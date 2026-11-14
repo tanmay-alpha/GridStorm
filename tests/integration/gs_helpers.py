@@ -51,8 +51,26 @@ def canonical_sha256(obj: Any) -> str:
     return hashlib.sha256(data.encode("utf-8")).hexdigest()
 
 
+def skip_if_edge_blocked(resp: httpx.Response) -> None:
+    """Skip when the hosting edge (Cloudflare WAF in front of Render) blocked the request.
+
+    Such a request never reached the application, so it says nothing about the app's own input
+    validation; the edge answers with an HTML page instead of the contract error shape.
+    """
+    ctype = resp.headers.get("content-type", "")
+    if (
+        resp.status_code in (400, 403)
+        and "text/html" in ctype
+        and resp.headers.get("server", "").lower() == "cloudflare"
+    ):
+        import pytest
+
+        pytest.skip(f"blocked by hosting edge WAF ({resp.status_code}) before reaching the API")
+
+
 def assert_error(resp: httpx.Response, status: int | set[int], code: str | None = None) -> dict:
     """Assert the contract error shape ``{"error": {"code", "message", "details"}}``."""
+    skip_if_edge_blocked(resp)
     wanted = {status} if isinstance(status, int) else status
     assert resp.status_code in wanted, (
         f"{resp.request.method} {resp.request.url}: expected {sorted(wanted)}, "
@@ -93,9 +111,16 @@ def assert_job_shape(job: dict) -> None:
     # Contract §6: no percentage progress anywhere in the job.
     for key in job:
         assert "progress" not in key and "percent" not in key, key
+    # Stages advance monotonically; the only allowed step back is the worker's documented requeue
+    # after a restart (a ``queued`` event carrying ``reason: worker_restart``), which starts a new
+    # monotonic segment.
     hist = [h["stage"] for h in job["stage_history"]]
-    order = [STAGES.index(s) for s in hist]
-    assert order == sorted(order), f"stage_history out of order: {hist}"
+    segment: list[int] = []
+    for h in job["stage_history"]:
+        if h["stage"] == "queued" and h.get("reason") == "worker_restart":
+            segment = []
+        segment.append(STAGES.index(h["stage"]))
+        assert segment == sorted(segment), f"stage_history out of order: {hist}"
 
 
 def wait_for_job(client: httpx.Client, job_id: str, timeout_s: float, poll_s: float = 2.0) -> dict:

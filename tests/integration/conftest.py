@@ -59,9 +59,43 @@ def api_url() -> str:
     return API_URL
 
 
+class _SimulationRateLimitTransport(httpx.HTTPTransport):
+    """Honour the server's simulation-submission rate limit (burst ~3, then ~6/min).
+
+    A 429 on ``POST /api/v1/simulations*`` is retried after the advertised ``retry_after_s`` so the
+    suite measures behaviour instead of tripping the limiter; other 429s (the ``ratelimit`` test)
+    pass through untouched.
+    """
+
+    MAX_RETRIES = 6
+
+    def handle_request(self, request: httpx.Request) -> httpx.Response:
+        for _ in range(self.MAX_RETRIES):
+            resp = super().handle_request(request)
+            if not (
+                resp.status_code == 429
+                and request.method == "POST"
+                and request.url.path.startswith("/api/v1/simulations")
+            ):
+                return resp
+            resp.read()
+            try:
+                wait_s = float(resp.json()["error"]["details"]["retry_after_s"])
+            except (ValueError, KeyError, TypeError):
+                wait_s = float(resp.headers.get("retry-after", "10"))
+            resp.close()
+            time.sleep(wait_s + 1.0)
+        return super().handle_request(request)
+
+
 @pytest.fixture(scope="session")
 def client() -> httpx.Client:
-    with httpx.Client(base_url=API_URL, timeout=120.0, follow_redirects=False) as c:
+    with httpx.Client(
+        base_url=API_URL,
+        timeout=120.0,
+        follow_redirects=False,
+        transport=_SimulationRateLimitTransport(),
+    ) as c:
         yield c
 
 

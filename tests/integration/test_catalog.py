@@ -94,7 +94,6 @@ def test_network_detail(client: httpx.Client, networks: list[dict]) -> None:
 @pytest.mark.parametrize("bad", ["nope", "..", "..%2F..%2Fetc", "x' OR '1'='1"])
 def test_unknown_network_404(client: httpx.Client, bad: str) -> None:
     r = client.get(f"/api/v1/networks/{bad}")
-    assert r.status_code in (404, 422), r.text
     assert_error(r, {404, 422})
 
 
