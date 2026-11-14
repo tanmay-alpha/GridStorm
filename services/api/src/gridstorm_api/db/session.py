@@ -11,7 +11,6 @@ from typing import Any
 from sqlalchemy import Engine, create_engine, event, text
 from sqlalchemy.orm import Session, sessionmaker
 
-from .migrate import apply_migrations
 from .models import Base
 
 log = logging.getLogger("gridstorm_api.db")
@@ -70,6 +69,9 @@ class Database:
         """SQLite: create tables from ORM metadata. Postgres: optionally apply SQL migrations."""
         if self.is_postgres:
             if auto_migrate:
+                # Imported lazily so `python -m gridstorm_api.db.migrate` does not pre-import it.
+                from .migrate import apply_migrations
+
                 applied = apply_migrations(self.engine, migrations_dir, supabase_stub=supabase_stub)
                 log.info("applied %d migration(s): %s", len(applied), applied)
             return

@@ -7,6 +7,19 @@ services:
     region: frankfurt
     branch: main
     autoDeployTrigger: commit
+    # Redeploy only when the image inputs change (mirrors the .dockerignore allow-list). Every
+    # redeploy wipes the ephemeral SQLite state, so unrelated commits must not trigger one.
+    buildFilter:
+      paths:
+        - services/api/**
+        - services/analytics/**
+        - packages/stormspec/**
+        - packages/canonical-grid/**
+        - workers/pypsa/**
+        - database/**
+        - data/networks/**
+        - data/artifacts/**
+        - .dockerignore
     dockerfilePath: ./services/api/Dockerfile
     dockerContext: .
     healthCheckPath: /health
