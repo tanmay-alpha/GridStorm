@@ -69,8 +69,8 @@ Last updated: 2026-11-14
 |---|---|---|---|---|---|---|
 | P4-01 | pandapower reference validation (case9–case300) | P1 | B/ACValidation | — | IMPLEMENTING | Max errors vs MATPOWER reference reported |
 | P4-02 | N-1 engine with explicit classification + ranking | P1 | B/ACValidation | P1-02 | IMPLEMENTING | Artifacts for case14/118 with class counts |
-| P4-03 | Warden audit | P2 | B/CrisisAdvisor | — | IMPLEMENTING | Reproduced vs unverified claims documented |
-| P4-04 | Crisis Response Advisor (deterministic, solver-verified) | P1 | B/CrisisAdvisor | P4-02 | IMPLEMENTING | ≥ 3 artifacts with accepted/rejected candidates; tests |
+| P4-03 | Warden audit | P2 | B/CrisisAdvisor | — | VERIFIED | `docs/audit/warden-audit.md`; Warden suite reproduced 129 passed / 1 timing failure; competition claims kept as unverified |
+| P4-04 | Crisis Response Advisor (deterministic, solver-verified) | P1 | B/CrisisAdvisor | P4-02 | VERIFIED | 5 PGLib crisis artifacts (3 with accepted recommendation, 2 honestly none accepted); 15 tests pass (commit `4fe25fb`) |
 | P4-05 | Cross-engine check PyPSA LPF vs pandapower DC/AC PF on same PGLib case | P1 | B/CrossEngine | P1-02, P4-01 | IMPLEMENTING | Branch flow max abs diff reported for ≥ 2 cases with verdicts; reproducible script |
 
 ## Phase 5 — Sequential operations and research
