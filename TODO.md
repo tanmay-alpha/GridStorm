@@ -31,8 +31,8 @@ Last updated: 2026-11-14
 | ID | Task | Pri | Owner | Deps | Status | Acceptance criteria |
 |---|---|---|---|---|---|---|
 | P1-01 | Public GitHub repo `tanmay-alpha/GridStorm` | P0 | I | P0-02 | VERIFIED | https://github.com/tanmay-alpha/GridStorm public; commit `ea921fc` pushed to `main` |
-| P1-02 | canonical-grid schemas + network importers (ac-dc-meshed, scigrid-de, PGLib case14/118) | P0 | D/DataPipelines | P0-03 | IMPLEMENTING | `data/networks/<id>/{network.nc,canonical.json,manifest.json}` validated; catalog.json |
-| P1-03 | Data catalog with provenance | P1 | D/DataPipelines | P1-02 | IMPLEMENTING | `data-catalog.md` lists all provenance fields per dataset |
+| P1-02 | canonical-grid schemas + network importers (ac-dc-meshed, scigrid-de, PGLib case14/118) | P0 | D/DataPipelines | P0-03 | VERIFIED | 4 networks validated (0 errors); DC balance case14 259 MW / case118 4242 MW, zero mismatch; network-import 20 + canonical-grid 17 tests pass (commits `866d985`, `309e9f7`) |
+| P1-03 | Data catalog with provenance | P1 | D/DataPipelines | P1-02 | VERIFIED | `docs/research/data-catalog.md`; open caveat: original SciGRID release licence not recovered — PyPSA CC-BY grant + conservative ODbL obligations documented |
 | P1-04 | PyPSA-Eur reduced Belgium network | P2 | B/PypsaEurBuilder | — | IMPLEMENTING | Network built + LOPF solved, or reproducible blocker report |
 | P1-05 | PyPSA-Explorer analytics port (`gridstorm_analytics`) | P1 | B/ExplorerPort | P0-06 | VERIFIED | 45 tests pass (commit `daa6f3e`); known gap: legacy demo CAPEX/OPEX differs from stored objective by ~2.3 %, cause unestablished |
 | P1-06 | FastAPI API per contract §6 + OpenAPI | P0 | E/Backend | P0-03 | IMPLEMENTING | All endpoints tested; `/docs` served |
