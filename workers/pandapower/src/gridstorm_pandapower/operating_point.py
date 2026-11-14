@@ -49,7 +49,8 @@ def apply_acopf_dispatch(model: GridModel) -> dict:
     try:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            pp.runopp(net, calculate_voltage_angles=True, init="flat", numba=True)
+            pp.runopp(net, calculate_voltage_angles=True, init="flat", numba=True,
+                      trafo_model="pi", OPF_FLOW_LIM=0)
         converged, message = bool(net.OPF_converged), None
     except Exception as exc:  # noqa: BLE001 - reported, base falls back to case set points
         converged, message = False, f"{type(exc).__name__}: {exc}"

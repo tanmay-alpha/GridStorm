@@ -6,7 +6,7 @@
   "engine": "cross-engine",
   "engine_version": "pandapower 3.5.6 | pypsa 1.4.0",
   "network_id": "pglib-case14-ieee",
-  "created_at": "2026-11-14T16:15:31+00:00",
+  "created_at": "2026-11-14T21:00:15+00:00",
   "command": "python tests/cross_engine/run_all.py",
   "inputs": [
    {
@@ -16,11 +16,43 @@
    {
     "path": "data/networks/pglib-case14-ieee/network.nc",
     "sha256": "52424e30e5375a7d8b57d66704b2c0b258c21cad65d47c223e02bad0cb056a42"
+   },
+   {
+    "path": "tests/cross_engine/compare.py",
+    "sha256": "9e9048f4277a7f25540d3f74605dcfd97dc4a7ee499d467097425897ebf5794d"
+   },
+   {
+    "path": "tests/cross_engine/mpc.py",
+    "sha256": "f9c8a4e89d6dc0f19ec2d2edbb3497f37cf6d4b839b9b82d8b8531f2c336be5e"
+   },
+   {
+    "path": "tests/cross_engine/pp_side.py",
+    "sha256": "c33f49c4499e5c532cf8e0a5c98849cdbfd5d292d275b02431c8c9813b4c0e58"
+   },
+   {
+    "path": "tests/cross_engine/pypsa_side.py",
+    "sha256": "1e933af9e4f0e5148f0a4bdd5838c0d9d71497ecded422a3a31dbc961bca6254"
+   },
+   {
+    "path": "tests/cross_engine/run_all.py",
+    "sha256": "f5ab19e99234aa2a0b9a16351b5fef837394bf1d3af43ba07cd10bce225d39bb"
+   },
+   {
+    "path": "tests/cross_engine/test_harness.py",
+    "sha256": "30c3afe73e9afebee8e72b087cd41d4bda8f08403a99c99901f70455fbb4143f"
+   },
+   {
+    "path": "workers/pandapower/uv.lock",
+    "sha256": "7762ea2325f575401a2bac5a1135ca4537660e42927004254ce18a35fa0f9d44"
+   },
+   {
+    "path": "pipelines/network-import/uv.lock",
+    "sha256": "3c4ead7e8075c757a81a36ce582508c646f833f30982ebae290e4098fe5c561a"
    }
   ],
   "platform": "Windows-10-10.0.26300-SP0; python 3.11.15",
   "execution_mode": "precomputed",
-  "payload_sha256": "c05b6ba017d950df154eab9908b056c2424f51f75f81a273ecdede3ab04d0502"
+  "payload_sha256": "9dff833b306c60af4c3894f02171e2a763a4d0482ce99080e526c2a99786cae4"
  },
  "payload": {
   "network_id": "pglib-case14-ieee",
@@ -33,7 +65,7 @@
    {
     "name": "pypsa",
     "version": "1.4.0",
-    "role": "lpf / optimize (HiGHS (highspy 1.16.0) via linopy 0.10.1) on committed network.nc"
+    "role": "lpf / optimize (HiGHS (highspy 1.16.0) via linopy 0.10.1) on data/networks network.nc"
    },
    {
     "name": "matpower-formula-numpy",
@@ -50,6 +82,20 @@
    "slack_gen": "gen-1",
    "slack_gen_p_mw": 220.702,
    "slack_gen_pmax_mw": 340.0,
+   "slack_residual_mw": 0.0,
+   "total_gs_mw": 0.0,
+   "total_load_mw": 259.0
+  },
+  "raw_dispatch": {
+   "allocation": "unmodified PGLib PG; reference slack absorbs residual",
+   "max_utilisation_pmax": 0.5,
+   "pglib_total_pg_mw": 199.5,
+   "residual_allocated_mw": 0.0,
+   "slack_bus": "bus-1",
+   "slack_gen": "gen-1",
+   "slack_gen_p_mw": 170.0,
+   "slack_gen_pmax_mw": 340.0,
+   "slack_residual_mw": 59.5,
    "total_gs_mw": 0.0,
    "total_load_mw": 259.0
   },
@@ -149,7 +195,8 @@
      "value": 1e-06,
      "unit": "MW",
      "also": {
-      "max_angle_diff_deg": 1e-06
+      "max_angle_diff_deg": 1e-06,
+      "max_injection_diff_mw": 1e-06
      }
     },
     "verdict": "AGREES",
@@ -212,7 +259,8 @@
      "value": 1e-06,
      "unit": "MW",
      "also": {
-      "max_angle_diff_deg": 1e-06
+      "max_angle_diff_deg": 1e-06,
+      "max_injection_diff_mw": 1e-06
      }
     },
     "verdict": "AGREES",
@@ -275,7 +323,8 @@
      "value": 1e-06,
      "unit": "MW",
      "also": {
-      "max_angle_diff_deg": 1e-06
+      "max_angle_diff_deg": 1e-06,
+      "max_injection_diff_mw": 1e-06
      }
     },
     "verdict": "AGREES",
@@ -310,6 +359,198 @@
       "pypsa": 28.3561,
       "matpower-formula-numpy": 28.3561,
       "diff_mw": 8.17124e-14
+     }
+    ]
+   },
+   {
+    "check_id": "raw_pg_dcpf_pp_vs_pypsa",
+    "case": "pglib-case14-ieee",
+    "title": "DC power flow: pandapower vs pypsa (unmodified PGLib PG, reference slack balances)",
+    "engines": [
+     "pandapower",
+     "pypsa"
+    ],
+    "quantity": "branch_flow_mw",
+    "n_compared": 20,
+    "metrics": {
+     "max_abs_diff_mw": 2.84217e-13,
+     "mean_abs_diff_mw": 5.51115e-14,
+     "p95_abs_diff_mw": 1.49214e-13,
+     "max_rel_diff": 8.72392e-15,
+     "rel_diff_floor_mw": 1.0,
+     "argmax": "branch-1",
+     "max_angle_diff_deg": 2.30926e-14,
+     "max_injection_diff_mw": 1.7053e-13
+    },
+    "tolerance": {
+     "metric": "max_abs_diff_mw",
+     "value": 1e-06,
+     "unit": "MW",
+     "also": {
+      "max_angle_diff_deg": 1e-06,
+      "max_injection_diff_mw": 1e-06
+     }
+    },
+    "verdict": "AGREES",
+    "explanation": "All 20 branch flows, 14 bus angles and injections match to floating-point rounding.",
+    "worst_branches": [
+     {
+      "id": "branch-1",
+      "pandapower": 156.638,
+      "pypsa": 156.638,
+      "diff_mw": -2.84217e-13
+     },
+     {
+      "id": "branch-2",
+      "pandapower": 72.8622,
+      "pypsa": 72.8622,
+      "diff_mw": -1.42109e-13
+     },
+     {
+      "id": "branch-4",
+      "pandapower": 54.5509,
+      "pypsa": 54.5509,
+      "diff_mw": -1.13687e-13
+     },
+     {
+      "id": "branch-5",
+      "pandapower": 40.1595,
+      "pypsa": 40.1595,
+      "diff_mw": -9.23706e-14
+     },
+     {
+      "id": "branch-3",
+      "pandapower": 69.7275,
+      "pypsa": 69.7275,
+      "diff_mw": -7.10543e-14
+     }
+    ]
+   },
+   {
+    "check_id": "raw_pg_dcpf_pp_vs_reference",
+    "case": "pglib-case14-ieee",
+    "title": "DC power flow: pandapower vs matpower-formula-numpy (unmodified PGLib PG, reference slack balances)",
+    "engines": [
+     "pandapower",
+     "matpower-formula-numpy"
+    ],
+    "quantity": "branch_flow_mw",
+    "n_compared": 20,
+    "metrics": {
+     "max_abs_diff_mw": 8.52651e-14,
+     "mean_abs_diff_mw": 1.91847e-14,
+     "p95_abs_diff_mw": 4.81393e-14,
+     "max_rel_diff": 6.81556e-15,
+     "rel_diff_floor_mw": 1.0,
+     "argmax": "branch-7",
+     "max_angle_diff_deg": 5.32907e-15,
+     "max_injection_diff_mw": 1.20792e-13
+    },
+    "tolerance": {
+     "metric": "max_abs_diff_mw",
+     "value": 1e-06,
+     "unit": "MW",
+     "also": {
+      "max_angle_diff_deg": 1e-06,
+      "max_injection_diff_mw": 1e-06
+     }
+    },
+    "verdict": "AGREES",
+    "explanation": "All 20 branch flows, 14 bus angles and injections match to floating-point rounding.",
+    "worst_branches": [
+     {
+      "id": "branch-7",
+      "pandapower": -62.5856,
+      "matpower-formula-numpy": -62.5856,
+      "diff_mw": 8.52651e-14
+     },
+     {
+      "id": "branch-15",
+      "pandapower": 28.3302,
+      "matpower-formula-numpy": 28.3302,
+      "diff_mw": 4.61853e-14
+     },
+     {
+      "id": "branch-13",
+      "pandapower": 17.2665,
+      "matpower-formula-numpy": 17.2665,
+      "diff_mw": 4.26326e-14
+     },
+     {
+      "id": "branch-1",
+      "pandapower": 156.638,
+      "matpower-formula-numpy": 156.638,
+      "diff_mw": 2.84217e-14
+     },
+     {
+      "id": "branch-20",
+      "pandapower": 5.2782,
+      "matpower-formula-numpy": 5.2782,
+      "diff_mw": -2.84217e-14
+     }
+    ]
+   },
+   {
+    "check_id": "raw_pg_dcpf_pypsa_vs_reference",
+    "case": "pglib-case14-ieee",
+    "title": "DC power flow: pypsa vs matpower-formula-numpy (unmodified PGLib PG, reference slack balances)",
+    "engines": [
+     "pypsa",
+     "matpower-formula-numpy"
+    ],
+    "quantity": "branch_flow_mw",
+    "n_compared": 20,
+    "metrics": {
+     "max_abs_diff_mw": 3.12639e-13,
+     "mean_abs_diff_mw": 5.21805e-14,
+     "p95_abs_diff_mw": 1.50635e-13,
+     "max_rel_diff": 8.22551e-15,
+     "rel_diff_floor_mw": 1.0,
+     "argmax": "branch-1",
+     "max_angle_diff_deg": 2.30926e-14,
+     "max_injection_diff_mw": 1.7053e-13
+    },
+    "tolerance": {
+     "metric": "max_abs_diff_mw",
+     "value": 1e-06,
+     "unit": "MW",
+     "also": {
+      "max_angle_diff_deg": 1e-06,
+      "max_injection_diff_mw": 1e-06
+     }
+    },
+    "verdict": "AGREES",
+    "explanation": "All 20 branch flows, 14 bus angles and injections match to floating-point rounding.",
+    "worst_branches": [
+     {
+      "id": "branch-1",
+      "pypsa": 156.638,
+      "matpower-formula-numpy": 156.638,
+      "diff_mw": 3.12639e-13
+     },
+     {
+      "id": "branch-2",
+      "pypsa": 72.8622,
+      "matpower-formula-numpy": 72.8622,
+      "diff_mw": 1.42109e-13
+     },
+     {
+      "id": "branch-4",
+      "pypsa": 54.5509,
+      "matpower-formula-numpy": 54.5509,
+      "diff_mw": 9.23706e-14
+     },
+     {
+      "id": "branch-5",
+      "pypsa": 40.1595,
+      "matpower-formula-numpy": 40.1595,
+      "diff_mw": 8.52651e-14
+     },
+     {
+      "id": "branch-3",
+      "pypsa": 69.7275,
+      "matpower-formula-numpy": 69.7275,
+      "diff_mw": 5.68434e-14
      }
     ]
    },
@@ -361,11 +602,15 @@
      "ac_slack_p_mw": 236.765,
      "dc_slack_p_mw": 220.702,
      "ac_vm_pu_min": 0.962915,
-     "ac_vm_pu_max": 1.0
+     "ac_vm_pu_max": 1.0,
+     "max_gen_q_limit_violation_mvar": 45.8675,
+     "n_gen_q_limit_violations": 3,
+     "max_vm_limit_violation_pu": 0.0,
+     "ac_slack_minus_dc_minus_losses_mw": -4.54675e-09
     },
     "tolerance": null,
     "verdict": "EXPECTED_DIFFERENCE",
-    "explanation": "Same P set points. The DC model is lossless, with flat |V| and no reactive power; in AC the slack generator at bus-1 additionally supplies the 16.1 MW of losses (AC slack 236.8 MW vs DC 220.7 MW). Largest difference 11.9 MW on branch-1 (bus-1-bus-2, incident to the slack bus); loss-neutral midpoint flow max 9.2 MW; mean 1.65 MW over 20 branches. This is the linearisation error of the DC approximation, not an engine disagreement.",
+    "explanation": "Same P set points. The DC model is lossless, with flat |V| and no reactive power; in AC the slack generator at bus-1 additionally supplies the 16.1 MW of losses (AC slack 236.8 MW vs DC 220.7 MW). Largest difference 11.9 MW on branch-1 (bus-1-bus-2, incident to the slack bus); local-loss midpoint flow max 9.2 MW; mean 1.65 MW over 20 branches. This is the linearisation error of the DC approximation, not an engine disagreement.",
     "worst_branches": [
      {
       "id": "branch-1",
@@ -483,7 +728,7 @@
    }
   ],
   "summary": {
-   "AGREES": 7,
+   "AGREES": 10,
    "DISAGREES": 0,
    "EXPECTED_DIFFERENCE": 1,
    "NOT_RUN": 0

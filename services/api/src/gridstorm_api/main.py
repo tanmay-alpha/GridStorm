@@ -70,7 +70,9 @@ def _startup(ctx: AppContext) -> None:
 def create_app(settings: Settings | None = None) -> FastAPI:
     settings = settings or Settings.from_env()
     if not logging.getLogger().handlers:
-        logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
+        logging.basicConfig(
+            level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s"
+        )
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
@@ -79,7 +81,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         _startup(ctx)
         log.info(
             "gridstorm-api %s ready: mode=%s db=%s workers=%d",
-            __version__, settings.execution_mode, ctx.db.engine.dialect.name,
+            __version__,
+            settings.execution_mode,
+            ctx.db.engine.dialect.name,
             settings.max_concurrent_jobs if ctx.pool else 0,
         )
         try:

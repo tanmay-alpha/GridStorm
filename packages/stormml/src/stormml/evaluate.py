@@ -76,7 +76,7 @@ def make_models() -> list:
         FeatureScore(
             "dc_lodf_rule",
             "dc_score",
-            "DC-LODF screening on base AC P-flows: flag if attributable estimated loading > 100 %",
+            "DC-LODF screening on base AC P-flows: flag if max estimated loading > 100 %",
             fixed_threshold=100.0,
         ),
         FeatureScore(
@@ -162,6 +162,12 @@ def evaluate_split(
     Xtr, ytr, gtr = ds.X[train], ds.y[train, ycol].astype(int), ds.op_id[train]
     Xte, yte, gte = ds.X[test], ds.y[test, ycol].astype(int), ds.op_id[test]
     n_ops_te = np.unique(gte).size
+    if np.unique(ytr).size != 2:
+        return {
+            "split": split.name, "target": target, "status": "unavailable",
+            "reason": "Training labels contain only one class; classifiers cannot be fitted.",
+            "train_rows": int(train.size), "test_rows": int(test.size),
+        }
     boots = M.cluster_bootstrap_indices(gte, n_boot, boot_seed)
 
     out_models = {}
@@ -170,9 +176,12 @@ def evaluate_split(
         t0 = time.perf_counter()
         model.fit(Xtr, ytr, gtr, names)
         fit_s = time.perf_counter() - t0
+        # Amortise timer resolution; this is batch scoring, not an individual-request latency.
+        repetitions = 20
         t0 = time.perf_counter()
-        s = model.score(Xte)
-        pred_s = time.perf_counter() - t0
+        for _ in range(repetitions):
+            s = model.score(Xte)
+        pred_s = (time.perf_counter() - t0) / repetitions
         strict = getattr(model, "fixed_threshold", None) is not None  # DC rule: "> 100 %"
         pred = s > model.threshold if strict else s >= model.threshold
         flags = _topk_flags(s, gte)
@@ -236,11 +245,17 @@ def evaluate_split(
             diffs[f"{ml}-minus-{base}"] = d
 
     nets_te = sorted(set(ds.network[test].tolist()))
-    ac = float(np.mean([ac_seconds_per_op[n] for n in nets_te]))
-    feat = float(np.mean([feature_seconds_per_op[n] for n in nets_te]))
+    test_networks = np.unique(ds.network[test])
+    # Weight by test operating points, not by rows (networks have different branch counts).
+    op_counts = np.array([
+        np.unique(gte[ds.network[test] == n]).size for n in test_networks
+    ])
+    ac = float(np.average([ac_seconds_per_op[n] for n in test_networks], weights=op_counts))
+    feat = float(np.average([feature_seconds_per_op[n] for n in test_networks], weights=op_counts))
     return {
         "split": split.name,
         "target": target,
+        "status": "ok",
         "train": {"rows": int(train.size), "operating_points": int(np.unique(gtr).size),
                   "positives": int(ytr.sum()), "networks": sorted(set(ds.network[train].tolist()))},
         "test": {"rows": int(test.size), "operating_points": int(n_ops_te),
@@ -255,5 +270,8 @@ def evaluate_split(
             "feature_seconds_per_operating_point_mean": feat,
             "note": "AC N-1 = sequential pandapower runpp per contingency (numba, 1 thread); "
                     "screening = feature extraction from the solved base case + model scoring.",
+            "timing_scope": "Means over generation operating points (including train); model "
+                            "scoring averaged over 20 full test batches. Excludes solved base AC "
+                            "state, one-time PTDF/LODF/topology preprocessing, and model fitting.",
         },
     }

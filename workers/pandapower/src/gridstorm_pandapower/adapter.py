@@ -54,6 +54,8 @@ ASSUMPTIONS = [
     "Line loading = apparent power at the more loaded end / RATE_A (MVA); RATE_A = 0 is unlimited.",
     "Loads are constant-power (P and Q); demand multipliers keep the power factor.",
     "Islanded buses (no path to a slack) are de-energised; their load counts as unserved.",
+    "Snapshot energy metrics use a nominal one-hour duration, not a chronological simulation; "
+    "unserved energy is deterministic and is not probability-weighted EENS.",
 ]
 
 

@@ -2,11 +2,10 @@
 
     uv run --project pipelines/network-import python tests/cross_engine/pypsa_side.py <network_id>
 
-Loads the committed ``data/networks/<id>/network.nc`` (the artifact GridStorm actually simulates
-on). If it has not been committed yet, the network is built with the importer's own code
-(``network_import.matpower.parse_matpower`` + ``network_import.pglib.build_network``), exported to
-``_work/<id>.importer.network.nc`` and read back, so the NetCDF round trip is still exercised.
-Then it imposes the harness fixed dispatch / loads on the first snapshot, and runs:
+Loads ``data/networks/<id>/network.nc`` (the artifact GridStorm actually simulates on).
+The file must already exist: this harness does not rebuild or modify the imported network.
+It runs both the original PGLib PG/PD power flow and a headroom-balanced dispatch / loads
+on the first snapshot, then runs:
   * ``n.lpf()``      -> linear (DC) power flow branch flows / angles / injections
   * ``n.optimize()`` -> linear OPF (HiGHS) with the importer's cost model, same loads
 It also exports, per branch, the effective series reactance PyPSA uses (``x_pu_eff`` re-based to
@@ -153,28 +152,30 @@ def _load(nc: Path) -> pypsa.Network:
         return pypsa.Network(str(nc))
 
 
-def _network_file(network_id: str, src: Path) -> tuple[Path, str]:
+def _network_file(network_id: str) -> tuple[Path, str]:
     nc = mpc.NETWORKS / network_id / "network.nc"
-    if nc.exists():
-        return nc, "committed network.nc"
-    from network_import.matpower import parse_matpower
-    from network_import.pglib import build_network
+    if not nc.is_file():
+        raise FileNotFoundError(f"{nc}: run the network importer before this benchmark")
+    return nc, "data/networks network.nc"
 
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        n, _ = build_network(parse_matpower(src), network_id)
-        nc = mpc.WORK / f"{network_id}.importer.network.nc"
-        nc.parent.mkdir(parents=True, exist_ok=True)
-        n.export_to_netcdf(str(nc))
-    return (
-        nc,
-        "built in-process by network_import.pglib.build_network (data/networks not committed)",
-    )
+
+def _dc_results(n: pypsa.Network, sign: dict, sn, base: float) -> dict:
+    sub = n.c.sub_networks.static
+    vang = n.c.buses.dynamic.v_ang.loc[sn]
+    return {
+        "sub_networks": int(len(sub)),
+        "slack_buses": sorted(str(b) for b in sub.slack_bus),
+        "branch_flow_mw": _flows(n, sign, sn),
+        "bus_angle_deg": {str(b): float(np.rad2deg(v)) for b, v in vang.items()},
+        "bus_injection_mw": {str(b): float(v) for b, v in n.c.buses.dynamic.p.loc[sn].items()},
+        "gen_p_mw": {str(g): float(v) for g, v in n.c.generators.dynamic.p.loc[sn].items()},
+        "param_audit": _param_audit(n, sign, base),
+    }
 
 
 def main(network_id: str) -> None:
     src = mpc.source_path(network_id)
-    nc, nc_origin = _network_file(network_id, src)
+    nc, nc_origin = _network_file(network_id)
     case = mpc.load_case(src)
     dispatch = mpc.fixed_dispatch(case)
     base = case["baseMVA"]
@@ -233,20 +234,20 @@ def main(network_id: str) -> None:
         "mapping_issues": branch_issues + inj["issues"],
         "injection_readback": {k: v for k, v in inj.items() if k != "issues"},
     }
+    raw_dispatch = mpc.fixed_dispatch(case, balance=False)
+    raw_n = _load(nc)
+    raw_inj = _set_injections(raw_n, raw_dispatch, sns, fix_generators=True)
+    if raw_inj["issues"]:
+        raise ValueError(raw_inj["issues"])
+    raw_n.lpf(snapshots=sns)
+    out["raw_dispatch"] = raw_dispatch
+    out["raw_dc"] = _dc_results(raw_n, sign, sn, base)
 
     t0 = time.perf_counter()
     n.lpf(snapshots=sns)
-    sub = n.c.sub_networks.static
-    vang = n.c.buses.dynamic.v_ang.loc[sn]
     out["dc"] = {
         "wall_time_s": time.perf_counter() - t0,
-        "sub_networks": int(len(sub)),
-        "slack_buses": sorted(str(b) for b in sub.slack_bus),
-        "branch_flow_mw": _flows(n, sign, sn),
-        "bus_angle_deg": {str(b): float(np.rad2deg(v)) for b, v in vang.items()},
-        "bus_injection_mw": {str(b): float(v) for b, v in n.c.buses.dynamic.p.loc[sn].items()},
-        "gen_p_mw": {str(g): float(v) for g, v in n.c.generators.dynamic.p.loc[sn].items()},
-        "param_audit": _param_audit(n, sign, base),
+        **_dc_results(n, sign, sn, base),
     }
 
     # Linear OPF with the importer's own cost model on a freshly loaded copy (no PF side effects);

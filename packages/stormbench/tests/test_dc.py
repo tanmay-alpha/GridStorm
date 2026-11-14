@@ -9,6 +9,7 @@ from pandapower.pypower.makePTDF import makePTDF
 
 from stormbench import dc
 from stormbench.matpower import BUS_I, BUS_TYPE, F_BUS, PD, RATE_A, T_BUS, case_from_ppc
+from stormbench.pp_bridge import branch_results, build_pp_net, set_branch_in_service
 
 
 def _ppc(name):
@@ -43,6 +44,26 @@ def test_lodf_prediction_equals_dc_resolve(name):
     est = dc.post_contingency_flows(f0, lr.lodf)[:, outages]
     exact = dc.dc_n1_resolve(net, outages)
     assert np.max(np.abs(est - exact)) < 1e-6
+
+
+@pytest.mark.parametrize("name", ["case9", "case14"])
+def test_lodf_prediction_equals_pandapower_rundcpp_per_outage(name):
+    case = case_from_ppc(_ppc(name), name)
+    net = dc.build_dc_network(case)
+    lr = dc.lodf(net)
+    prediction = dc.post_contingency_flows(dc.solve_dc_flows(net), lr.lodf)
+    ppnet, bmap = build_pp_net(case)
+    for outage in np.flatnonzero(~lr.islanding):
+        row = int(net.branch_rows[outage])
+        set_branch_in_service(ppnet, bmap, row, False)
+        try:
+            pp.rundcpp(ppnet, trafo_model="pi")
+            actual, _ = branch_results(ppnet, bmap)
+            np.testing.assert_allclose(
+                prediction[:, outage], actual[net.branch_rows], rtol=0, atol=1e-8
+            )
+        finally:
+            set_branch_in_service(ppnet, bmap, row, True)
 
 
 def test_base_flows_match_pandapower_rundcpp():

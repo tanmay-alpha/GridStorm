@@ -23,6 +23,7 @@ from .model import GridModel
 PF_OPTIONS: dict = {
     "algorithm": "nr",
     "calculate_voltage_angles": True,
+    "trafo_model": "pi",  # MATPOWER uses a pi equivalent, not pandapower's default T model.
     "tolerance_mva": 1e-8,
     "max_iteration": 30,
     "enforce_q_lims": False,

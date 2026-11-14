@@ -36,16 +36,16 @@ export const EQUATIONS: Equation[] = [
   {
     id: 'curtailment',
     title: 'Curtailment',
-    tex: 'E_{\\text{curt}} = \\sum_t \\left(P_{\\text{available},t} - P_{\\text{dispatched},t}\\right)\\Delta t',
-    explanation: 'Available variable-renewable energy that is not used, summed over variable generators [MWh].',
-    source: 'docs/glossary.md',
+    tex: 'E_{\\text{curt}} = \\sum_t \\sum_{s\\in V} \\max\\!\\left(0,\\bar g_{s,t}\\bar G_s-g_{s,t}\\right)w_t',
+    explanation: 'Unused available energy, only over variable generators with an original availability time series [MWh].',
+    source: 'docs/architecture/scientific-spec.md',
   },
   {
     id: 'loading',
     title: 'Line loading',
-    tex: '\\text{loading} = 100\\cdot\\frac{|P_{\\text{flow}}|}{s_{\\text{nom}}}\\ \\text{(LOPF)}\\qquad \\text{loading} = 100\\cdot\\frac{|I|}{I_{\\max}}\\ \\text{(AC PF)}',
-    explanation: 'A line at ≥ 99.9 % at any snapshot counts as congested in congested_line_count.',
-    source: 'docs/glossary.md',
+    tex: '\\text{loading} = 100\\cdot\\frac{|f_{\\ell,t}|}{\\bar f_{\\ell,t} F_\\ell}\\ \\text{(LOPF)}\\qquad \\text{loading} = 100\\cdot\\frac{|I|}{I_{\\max}}\\ \\text{(AC PF)}',
+    explanation: 'LOPF loading is relative to the active-power limit (s_nom × s_max_pu), not just the rating. A branch at ≥ 99.9 % at any snapshot counts as congested.',
+    source: 'docs/architecture/scientific-spec.md',
   },
   {
     id: 'ptdf',
@@ -68,8 +68,8 @@ export const EQUATIONS: Equation[] = [
     title: 'Expected Energy Not Served',
     tex: '\\mathrm{EENS} = \\sum_s p_s\\, E_{\\text{unserved},s},\\qquad \\sum_s p_s = 1',
     explanation:
-      'Over a complete, mutually exclusive scenario set. Only as meaningful as the supplied probabilities; infeasible scenarios are excluded rather than counted as zero.',
-    source: 'docs/glossary.md',
+      'Requires a complete, mutually exclusive scenario set with probabilities summing to one. Infeasible scenarios must not be passed to the estimator, nor counted as zero unserved energy.',
+    source: 'docs/architecture/scientific-spec.md',
   },
   {
     id: 'lolp',
@@ -95,6 +95,10 @@ export interface Statement {
 
 export const ASSUMPTIONS: Statement[] = [
   {
+    text: 'Dispatch-only LOPF fixes capacities and optimises all snapshots jointly with perfect foresight. It is not N-1 secure and omits reactive power, voltage and stability limits.',
+    source: 'docs/architecture/scientific-spec.md',
+  },
+  {
     text: 'PyPSA results use a DC linearised power flow (LOPF): no reactive power, voltage magnitudes or losses.',
     source: 'docs/architecture/contracts.md',
   },
@@ -103,8 +107,8 @@ export const ASSUMPTIONS: Statement[] = [
     source: 'docs/glossary.md',
   },
   {
-    text: 'Infeasible scenarios return outcome "infeasible" with empty series — never fabricated numbers.',
-    source: 'docs/architecture/contracts.md',
+    text: 'Infeasible scenarios return outcome "infeasible" with metrics, series and assets null — never fabricated numbers.',
+    source: 'docs/architecture/scientific-spec.md',
   },
   {
     text: 'Unsupported scenario operations are rejected, never silently approximated (e.g. a PyPSA line outage with a partial time window is rejected because KVL would still bind the angles).',
@@ -161,6 +165,7 @@ export const ENGINE_PINS: { env: string; contents: string; pins: string; source:
 ]
 
 export const DOC_LINKS: { label: string; path: string }[] = [
+  { label: 'Scientific specification — PyPSA LOPF', path: 'docs/architecture/scientific-spec.md' },
   { label: 'Architecture overview', path: 'docs/architecture/overview.md' },
   { label: 'Interface contracts (v1)', path: 'docs/architecture/contracts.md' },
   { label: 'ADR 0001 — architecture and environment isolation', path: 'docs/decisions/0001-architecture-and-environment-isolation.md' },

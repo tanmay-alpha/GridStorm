@@ -1,6 +1,6 @@
 """Print the Markdown tables of docs/benchmarks/stormbench.md from results/summary.json.
 
-    cd packages/stormbench && uv run python ../../benchmarks/stormbench/make_tables.py
+cd packages/stormbench && uv run python ../../benchmarks/stormbench/make_tables.py
 """
 
 import json
@@ -29,8 +29,10 @@ def main() -> None:
             f"{n['islanding']} | {n['screened']} | {c['operating_point']['method']} |"
         )
     print()
-    print("| case | max PTDF diff vs pandapower | max LODF diff vs pandapower | "
-          "max flow error vs DC re-solve (MW) | mean flow error (MW) |")
+    print(
+        "| case | max PTDF diff vs pandapower | max LODF diff vs pandapower | "
+        "max flow error vs DC re-solve (MW) | mean flow error (MW) |"
+    )
     print("|---|---|---|---|---|")
     for c in cases:
         v = c["validation"]
@@ -40,8 +42,10 @@ def main() -> None:
             f"{f(c['flow_error_mw']['mean'])} |"
         )
     print()
-    print("| case | overloading: screening / DC exact / AC exact | vs DC: precision | recall | "
-          "vs AC: precision | recall | recall@k (AC, k) | Kendall tau (AC) | Spearman (AC) |")
+    print(
+        "| case | overloading: screening / DC exact / AC exact | vs DC: precision | recall | "
+        "vs AC: precision | recall | recall@k (AC, k) | Kendall tau (AC) | Spearman (AC) |"
+    )
     print("|---|---|---|---|---|---|---|---|---|")
     for c in cases:
         o, d, a = c["overloading_contingencies"], c["screening_vs_dc"], c["screening_vs_ac"]
@@ -51,8 +55,10 @@ def main() -> None:
             f"{f(a['recall_at_k'])} ({a['k']}) | {f(a['kendall_tau'])} | {f(a['spearman'])} |"
         )
     print()
-    print("| case | AC converged | converged on retry | not converged | AC base overloads | "
-          "new-V-violation contingencies | of which not flagged by screening |")
+    print(
+        "| case | AC converged | converged on retry | not converged | AC base overloads | "
+        "new-V-violation contingencies | of which not flagged by screening |"
+    )
     print("|---|---|---|---|---|---|---|")
     for c in cases:
         a = c["ac"]
@@ -63,8 +69,10 @@ def main() -> None:
             f"{a['new_voltage_violation_not_flagged_by_screening']} |"
         )
     print()
-    print("| case | screening (s) | exact DC (s) | exact AC (s) | speed-up vs DC | speed-up vs AC | "
-          "peak tracemalloc screening / DC / AC (MiB) | RSS end (MiB) |")
+    print(
+        "| case | screening (s) | exact DC (s) | exact AC (s) | speed-up vs DC | speed-up vs AC | "
+        "peak tracemalloc screening / DC / AC (MiB) | RSS end (MiB) |"
+    )
     print("|---|---|---|---|---|---|---|---|")
     for c in cases:
         r, m = c["runtime"], c["memory"]

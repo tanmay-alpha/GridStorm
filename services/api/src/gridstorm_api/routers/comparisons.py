@@ -14,7 +14,7 @@ from ..comparisons import (
     job_markdown,
 )
 from ..db.models import ComparisonReport, SimulationJob
-from ..deps import CurrentPrincipal, Ctx, DBSession, parse_uuid, rate_limit_post
+from ..deps import Ctx, CurrentPrincipal, DBSession, parse_uuid, rate_limit_post
 from ..errors import Conflict, NotFound, Unprocessable
 from ..jobs.results import load_result
 from ..jobs.service import canonical_bytes, iso
@@ -98,8 +98,14 @@ def create_comparison(
     )
     session.add(row)
     session.flush()
-    audit(session, principal, "comparison.create", "comparison_report", row.id,
-          {"baseline_job_id": str(baseline_job.id), "scenario_job_id": str(scenario_job.id)})
+    audit(
+        session,
+        principal,
+        "comparison.create",
+        "comparison_report",
+        row.id,
+        {"baseline_job_id": str(baseline_job.id), "scenario_job_id": str(scenario_job.id)},
+    )
     session.commit()
     return comparison_to_dict(row)
 
@@ -112,7 +118,9 @@ def _visible_comparison(session: Any, principal: Any, comparison_id: str) -> Com
 
 
 @router.get(
-    "/api/v1/comparisons/{comparison_id}", response_model=Comparison, responses=_404,
+    "/api/v1/comparisons/{comparison_id}",
+    response_model=Comparison,
+    responses=_404,
     summary="One comparison",
 )
 def get_comparison(
@@ -124,8 +132,10 @@ def get_comparison(
 @router.get(
     "/api/v1/reports/{report_id}",
     responses={
-        200: {"content": {"application/json": {}, "text/markdown": {}},
-              "description": "gridstorm-comparison/1.0 or gridstorm-run-report/1.0"},
+        200: {
+            "content": {"application/json": {}, "text/markdown": {}},
+            "description": "gridstorm-comparison/1.0 or gridstorm-run-report/1.0",
+        },
         **_404,
         409: {"model": ErrorResponse},
     },
@@ -154,8 +164,9 @@ def get_report(
     if job is None or not can_read(job, principal):
         raise NotFound(f"report {report_id!r} not found", code="report_not_found")
     _completed(job, "report")
-    report = build_job_report(session, job, load_result(session, ctx.store, job),
-                              ctx.settings.git_sha)
+    report = build_job_report(
+        session, job, load_result(session, ctx.store, job), ctx.settings.git_sha
+    )
     if format == "md":
         return PlainTextResponse(job_markdown(report), media_type="text/markdown; charset=utf-8")
     return JSONResponse(report)

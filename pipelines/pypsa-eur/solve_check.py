@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import os
 import platform
 import time
@@ -30,7 +31,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 NETWORK = REPO_ROOT / "data" / "networks" / "pypsa-eur-be" / "network.nc"
 
 
-def peak_rss_mb() -> float:
+def peak_rss_mib() -> float:
     mi = psutil.Process().memory_info()
     peak = getattr(mi, "peak_wset", None)  # Windows
     if peak is None:
@@ -49,18 +50,30 @@ def main() -> None:
     n = pypsa.Network(args.network)
     t0 = time.perf_counter()
     status, condition = n.optimize(
-        solver_name="highs", solver_options={"threads": 1, "random_seed": 0}
+        solver_name="highs",
+        solver_options={"threads": 1, "random_seed": 0, "log_to_console": False},
     )
     wall = time.perf_counter() - t0
+    if (status, condition) != ("ok", "optimal"):
+        raise RuntimeError(f"LOPF did not solve optimally: {status}/{condition}")
+    if not math.isfinite(n.objective):
+        raise RuntimeError("LOPF returned a non-finite objective")
+    balance = n.model.constraints["Bus-nodal_balance"]
+    residual_mw = float(abs(balance.lhs.solution - balance.rhs).max())
+    if not math.isfinite(residual_mw) or residual_mw > 1e-4:
+        raise RuntimeError(f"Nodal active-power balance residual is {residual_mw} MW")
     report = {
-        "network": str(args.network.relative_to(REPO_ROOT)) if args.network.is_relative_to(
-            REPO_ROOT) else str(args.network),
+        "network": str(args.network.relative_to(REPO_ROOT))
+        if args.network.is_relative_to(REPO_ROOT)
+        else str(args.network),
         "snapshots": len(n.snapshots),
         "status": status,
+        "snapshot_weight_sum_h": float(n.snapshot_weightings.objective.sum()),
+        "balance_residual_max_mw": residual_mw,
         "termination_condition": condition,
         "objective_eur": n.objective,
         "optimize_wall_s": round(wall, 2),
-        "peak_rss_mb": peak_rss_mb(),
+        "peak_rss_mib": peak_rss_mib(),
         "pypsa": pypsa.__version__,
         "linopy": linopy.__version__,
         "highspy": version("highspy"),

@@ -1,0 +1,43 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: gridstorm
+      POSTGRES_USER: gridstorm
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-gridstorm-local-only}
+    ports:
+      - "127.0.0.1:8055:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gridstorm -d gridstorm"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  api:
+    build:
+      context: .
+      dockerfile: services/api/Dockerfile
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      PORT: "8000"
+      DATABASE_URL: postgresql+psycopg://gridstorm:${POSTGRES_PASSWORD:-gridstorm-local-only}@postgres:5432/gridstorm
+      GRIDSTORM_DB_AUTO_MIGRATE: "true"
+      # Plain Postgres needs a local auth.uid() stub; never enable this on Supabase.
+      GRIDSTORM_DB_SUPABASE_STUB: "true"
+      GRIDSTORM_STATE_DIR: /state
+      GRIDSTORM_CORS_ORIGINS: http://localhost:5173
+      GRIDSTORM_EXECUTION_MODE: live
+      GRIDSTORM_MAX_CONCURRENT_JOBS: "1"
+      GRIDSTORM_JOB_TIMEOUT_S: "180"
+      GRIDSTORM_JOB_MEMORY_MB: "400"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - api-state:/state
+    # A new named volume starts root-owned; image ownership seeds the mount.
+volumes:
+  postgres-data:
+  api-state:

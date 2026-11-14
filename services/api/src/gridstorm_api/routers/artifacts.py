@@ -26,7 +26,8 @@ def list_artifacts(
     network_id: Annotated[str | None, Query()] = None,
 ) -> dict[str, Any]:
     items = [
-        i for i in ctx.precomputed.index()
+        i
+        for i in ctx.precomputed.index()
         if (engine is None or i["engine"] == engine)
         and (kind is None or i["kind"] == kind)
         and (network_id is None or i["network_id"] == network_id)
@@ -42,9 +43,11 @@ def list_artifacts(
 @router.get(
     "/{engine}/{artifact_id}",
     responses={
-        200: {"content": {"application/json": {}},
-              "description": "gridstorm-artifact/1.0 document (`artifact` header + `payload`), "
-              "byte-identical to the committed file"},
+        200: {
+            "content": {"application/json": {}},
+            "description": "gridstorm-artifact/1.0 document (`artifact` header + `payload`), "
+            "byte-identical to the committed file",
+        },
         404: {"model": ErrorResponse},
     },
     summary="One precomputed artifact",

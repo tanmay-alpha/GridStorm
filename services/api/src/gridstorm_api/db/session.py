@@ -66,15 +66,11 @@ class Database:
     def is_postgres(self) -> bool:
         return is_postgres(self.engine)
 
-    def init_schema(
-        self, *, migrations_dir: Path, auto_migrate: bool, supabase_stub: bool
-    ) -> None:
+    def init_schema(self, *, migrations_dir: Path, auto_migrate: bool, supabase_stub: bool) -> None:
         """SQLite: create tables from ORM metadata. Postgres: optionally apply SQL migrations."""
         if self.is_postgres:
             if auto_migrate:
-                applied = apply_migrations(
-                    self.engine, migrations_dir, supabase_stub=supabase_stub
-                )
+                applied = apply_migrations(self.engine, migrations_dir, supabase_stub=supabase_stub)
                 log.info("applied %d migration(s): %s", len(applied), applied)
             return
         Base.metadata.create_all(self.engine)

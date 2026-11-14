@@ -1,4 +1,4 @@
-"""Job creation (live queue, result reuse, precomputed demo mode), serialisation and cancellation."""
+"""Job creation, result reuse, precomputed demo mode, serialisation and cancellation."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ from ..access import audit, ensure_profile
 from ..auth import Principal
 from ..context import AppContext
 from ..db.models import SimulationArtifact, SimulationJob, SimulationMetrics, utcnow
-from ..errors import Conflict, ServiceUnavailable
+from ..errors import Conflict, ServiceUnavailable, Unprocessable
 from ..validation import ValidationOutcome
 from .results import parse_result, record_artifact, record_metrics, solver_summary
 
@@ -134,8 +134,12 @@ def _complete_from(session: Session, job: SimulationJob, source: SimulationJob) 
     ).all():
         session.add(
             SimulationArtifact(
-                job_id=job.id, kind=art.kind, storage_backend=art.storage_backend,
-                storage_key=art.storage_key, sha256=art.sha256, bytes=art.bytes,
+                job_id=job.id,
+                kind=art.kind,
+                storage_backend=art.storage_backend,
+                storage_key=art.storage_key,
+                sha256=art.sha256,
+                bytes=art.bytes,
                 content_type=art.content_type,
             )
         )
@@ -194,9 +198,27 @@ def create_job(
 ) -> SimulationJob:
     ensure_profile(session, principal)
     mode = ctx.settings.execution_mode
+    assert outcome.entry is not None and outcome.scenario_hash is not None
+    if mode == "live" and not ctx.settings.live_execution(outcome.entry.id):
+        if ctx.precomputed.find_simulation(outcome.scenario_hash) is None:
+            raise Unprocessable(
+                f"Live execution is unavailable for network {outcome.entry.id!r} on this "
+                "deployment due to its memory budget, and no precomputed result matches this "
+                "exact scenario. Select a supported network or a precomputed preset.",
+                code="live_execution_unavailable",
+                details={
+                    "network_id": outcome.entry.id,
+                    "live_networks": sorted(ctx.settings.live_networks),
+                },
+            )
+        mode = "precomputed"
     job = _new_job(
-        ctx, outcome, principal, scenario_record_id=scenario_record_id,
-        visibility=visibility, execution_mode=mode,
+        ctx,
+        outcome,
+        principal,
+        scenario_record_id=scenario_record_id,
+        visibility=visibility,
+        execution_mode=mode,
     )
     if mode == "precomputed":
         _complete_precomputed(ctx, session, job)
@@ -206,9 +228,9 @@ def create_job(
             _complete_from(session, job, source)
         else:
             queued = session.scalar(
-                select(func.count()).select_from(SimulationJob).where(
-                    SimulationJob.status.in_(("queued", "running"))
-                )
+                select(func.count())
+                .select_from(SimulationJob)
+                .where(SimulationJob.status.in_(("queued", "running")))
             )
             if (queued or 0) >= ctx.settings.max_queued_jobs:
                 raise ServiceUnavailable(
@@ -226,7 +248,11 @@ def create_job(
             session.flush()
     _store_scenario(ctx, session, job)
     audit(
-        session, principal, "simulation.create", "simulation_job", job.id,
+        session,
+        principal,
+        "simulation.create",
+        "simulation_job",
+        job.id,
         {"scenario_hash": job.scenario_hash, "reused": job.reused, "mode": job.execution_mode},
     )
     session.commit()

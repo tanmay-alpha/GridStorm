@@ -8,7 +8,7 @@ from sqlalchemy import func, select
 
 from ..access import audit, can_read, ensure_profile, resolve_visibility, visible
 from ..db.models import ScenarioDefinition
-from ..deps import CurrentPrincipal, Ctx, DBSession, Paging, rate_limit_post
+from ..deps import Ctx, CurrentPrincipal, DBSession, Paging, rate_limit_post
 from ..errors import NotFound, Unprocessable
 from ..jobs.service import iso
 from ..schemas import (
@@ -66,8 +66,11 @@ def list_scenarios(
     rows = session.scalars(
         select(ScenarioDefinition)
         .where(*cond)
-        .order_by(ScenarioDefinition.is_preset.desc(), ScenarioDefinition.created_at.desc(),
-                  ScenarioDefinition.id)
+        .order_by(
+            ScenarioDefinition.is_preset.desc(),
+            ScenarioDefinition.created_at.desc(),
+            ScenarioDefinition.id,
+        )
         .limit(page.limit)
         .offset(page.offset)
     ).all()
@@ -123,15 +126,25 @@ def create_scenario(
     )
     session.add(row)
     session.flush()
-    audit(session, principal, "scenario.create", "scenario_definition", row.id,
-          {"scenario_hash": row.scenario_hash, "visibility": visibility})
+    audit(
+        session,
+        principal,
+        "scenario.create",
+        "scenario_definition",
+        row.id,
+        {"scenario_hash": row.scenario_hash, "visibility": visibility},
+    )
     session.commit()
     return scenario_to_dict(row)
 
 
 @router.get(
-    "/{scenario_id}", response_model=ScenarioRecord, responses={404: {"model": ErrorResponse}},
+    "/{scenario_id}",
+    response_model=ScenarioRecord,
+    responses={404: {"model": ErrorResponse}},
     summary="One preset or saved scenario",
 )
-def get_scenario(session: DBSession, principal: CurrentPrincipal, scenario_id: str) -> dict[str, Any]:
+def get_scenario(
+    session: DBSession, principal: CurrentPrincipal, scenario_id: str
+) -> dict[str, Any]:
     return scenario_to_dict(get_visible_scenario(session, principal, scenario_id))

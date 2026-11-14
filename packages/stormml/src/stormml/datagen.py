@@ -17,14 +17,13 @@ Operating point ``(case, seed)``
 Contingency labels (outage of one ``mpc.branch`` row ``l``; AC warm-started from the base state,
 then ``dc`` and ``flat`` initialisation as fall-backs):
     * ``nonconv``: no convergence with any initialisation.
-    * ``thermal``: some other branch ``k`` with ``rate_A > 0`` has post-outage
-      ``max(|S_from|,|S_to|) / rate_A > 100 %`` and either was ``<= 100 %`` in the base case or
-      worsened by at least ``AGGRAVATION_PP`` percentage points.
-    * ``voltage``: some energised bus is outside ``[VMIN, VMAX]`` and either was inside in the
-      base case or its limit excess grew by at least ``AGGRAVATION_PU``.
-    * ``label = nonconv | thermal | voltage`` ("contingency-caused AC violation").
-    * Islanding outages are flagged (``islanding``) with the disconnected load; buses left
-      without supply are excluded from the voltage check (pandapower reports NaN for them).
+    * ``thermal``: any remaining rated branch has ``max(|S_from|,|S_to|)/rate_A > 100 %``.
+    * ``voltage``: any energised bus is outside ``[VMIN, VMAX]``.
+    * ``label = nonconv | thermal | voltage`` (absolute post-contingency AC violation).
+    * ``aggravated`` (SECONDARY): non-convergence, a new violation, an existing thermal
+      violation worsened by 5 percentage points, or voltage-limit excess worsened by 0.01 pu.
+    * Islanding and disconnected load are separate diagnostics; unsupplied buses (NaN voltage)
+      are not silently classified as numerical non-convergence.
 """
 
 from __future__ import annotations
@@ -78,7 +77,7 @@ NETWORKS = {
     "case300": ("pglib-case300-ieee", "case300.m"),
 }
 
-LABEL_NAMES = ("label", "thermal", "voltage", "nonconv", "islanding")
+LABEL_NAMES = ("label", "thermal", "voltage", "nonconv", "islanding", "aggravated")
 
 
 @dataclass
@@ -155,7 +154,7 @@ def _quiet():
 
 def _runpp(net, vm0=None, va0=None) -> bool:
     import pandapower as pp
-
+    from pandapower.auxiliary import LoadflowNotConverged
     attempts = []
     if vm0 is not None:
         attempts.append({"init_vm_pu": vm0, "init_va_degree": va0})
@@ -164,7 +163,7 @@ def _runpp(net, vm0=None, va0=None) -> bool:
         try:
             pp.runpp(net, max_iteration=30, numba=True, **kw)
             return True
-        except Exception:  # noqa: BLE001 - any pandapower failure = non-convergence
+        except LoadflowNotConverged:
             continue
     return False
 
@@ -179,6 +178,8 @@ class OperatingPointResult:
     ac_n1_seconds: float = float("nan")
     feature_seconds: float = float("nan")
     base_max_loading_pct: float = float("nan")
+    base_thermal_violations: int = 0
+    base_voltage_violations: int = 0
 
 
 def label_operating_point(prep: PreparedNetwork, seed: int) -> OperatingPointResult:
@@ -218,20 +219,26 @@ def label_operating_point(prep: PreparedNetwork, seed: int) -> OperatingPointRes
             _, s1 = branch_flows(net, bmap)
             load1 = np.where(rated, s1 / np.where(rated, rate, 1.0) * 100.0, 0.0)
             load1[row] = 0.0
-            thermal = (load1 > 100.0 + TOL_PCT) & (
+            thermal = load1 > 100.0 + TOL_PCT
+            thermal_aggravated = thermal & (
                 (load0 <= 100.0 + TOL_PCT) | (load1 >= load0 + AGGRAVATION_PP)
             )
             vm1 = net.res_bus.vm_pu.to_numpy(dtype=float)
             alive = np.isfinite(vm1)
             over1 = np.where(alive, np.maximum(vm1 - vmax, vmin - vm1), -np.inf)
-            volt = (over1 > TOL_PU) & ((over0 <= TOL_PU) | (over1 >= over0 + AGGRAVATION_PU))
+            volt = over1 > TOL_PU
+            volt_aggravated = volt & (
+                (over0 <= TOL_PU) | (over1 >= over0 + AGGRAVATION_PU)
+            )
             labels[row, 1] = thermal.any()
             labels[row, 2] = volt.any()
+            labels[row, 5] = thermal_aggravated.any() | volt_aggravated.any()
             if not alive.all():
                 labels[row, 4] = 1
                 dead = net.res_bus.index[~alive]
                 lost[row] = float(load_p.reindex(dead).fillna(0.0).sum())
         labels[row, 0] = labels[row, 1] | labels[row, 2] | labels[row, 3]
+        labels[row, 5] |= labels[row, 3]
         set_branch_in_service(net, bmap, row, True)
     ac_s = time.perf_counter() - t0
     return OperatingPointResult(
@@ -243,6 +250,8 @@ def label_operating_point(prep: PreparedNetwork, seed: int) -> OperatingPointRes
         ac_n1_seconds=ac_s,
         feature_seconds=feat_s,
         base_max_loading_pct=float(load0.max()),
+        base_thermal_violations=int((load0 > 100.0 + TOL_PCT).sum()),
+        base_voltage_violations=int((over0 > TOL_PU).sum()),
     )
 
 
@@ -331,6 +340,8 @@ def generate_network(
                 ac_n1_seconds=r.ac_n1_seconds,
                 feature_seconds=r.feature_seconds,
                 base_max_loading_pct=r.base_max_loading_pct,
+                base_thermal_violations=r.base_thermal_violations,
+                base_voltage_violations=r.base_voltage_violations,
                 positives=int(r.labels[:, 0].sum()),
                 contingencies=m,
             )
@@ -349,5 +360,13 @@ def generate_network(
         log(f"{prep.name} {i + 1}/{len(seeds)} seed={seed} ok={r.ok} s={r.load_factor:.3f} "
             f"pos={rec.get('positives', '-')} t={rec.get('ac_n1_seconds', float('nan')):.1f}s")
     if not parts:
-        raise RuntimeError(f"{prep.name}: no operating point converged")
+        return Dataset(
+            X=np.empty((0, len(FEATURE_NAMES))),
+            y=np.empty((0, len(LABEL_NAMES)), dtype=np.uint8),
+            network=np.array([], dtype=str),
+            op_id=np.array([], dtype=str),
+            seed=np.array([], dtype=np.int64),
+            branch=np.array([], dtype=np.int64),
+            lost_load_mw=np.array([], dtype=float),
+        ), records
     return Dataset.concat(parts), records

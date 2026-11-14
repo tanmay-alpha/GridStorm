@@ -40,7 +40,9 @@ def content_key(sha256: str, ext: str) -> str:
 class ArtifactStore(ABC):
     backend: str
 
-    def put(self, data: bytes, *, ext: str = "json", content_type: str = "application/json") -> StoredBlob:
+    def put(
+        self, data: bytes, *, ext: str = "json", content_type: str = "application/json"
+    ) -> StoredBlob:
         digest = hashlib.sha256(data).hexdigest()
         key = content_key(digest, ext)
         if not self._exists(key):
@@ -54,7 +56,11 @@ class ArtifactStore(ABC):
             if actual != expected_sha256:
                 raise ArtifactIntegrityError(
                     "stored artifact does not match its recorded sha256",
-                    details={"key": key, "expected_sha256": expected_sha256, "actual_sha256": actual},
+                    details={
+                        "key": key,
+                        "expected_sha256": expected_sha256,
+                        "actual_sha256": actual,
+                    },
                 )
         return data
 

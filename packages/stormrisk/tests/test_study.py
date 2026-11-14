@@ -153,6 +153,15 @@ def test_infeasible_and_error_samples_counted_not_dropped(toy_network, base_scen
                if s["outcome"] != "feasible")
 
 
+@pytest.mark.parametrize("result", [None, [], {"outcome": "feasible", "metrics": []},
+                                   {"outcome": "feasible", "metrics": {"unserved_energy_mwh": 3},
+                                    "solver": "broken"}])
+def test_malformed_result_is_accounted_as_error(toy_network, base_scenario, result):
+    r = run_study(base_scenario, _spec(n_samples=20), toy_network, lambda _: result)
+    assert r["sample_accounting"]["n_error_samples"] == 20
+    assert all(s["unserved_energy_mwh"] is None for s in r["states"])
+    assert "eens_mwh" not in r["estimates"]
+
 def test_invalid_states_classified(toy_network, base_scenario):
     spec = _spec(n_samples=300, seed=2, max_outages_per_sample=1)
     r = run_study(base_scenario, spec, toy_network, lines_only_engine)
@@ -217,6 +226,12 @@ def test_input_errors(toy_network, base_scenario):
         base_scenario.model_dump() | {"dataset": {"network_id": "other-net"}})
     with pytest.raises(StudyInputError, match="network_mismatch"):
         prepare_study(wrong_net, _spec(), toy_network)
+
+
+@pytest.mark.parametrize("workers", [0, -1, True, 1.5])
+def test_invalid_worker_count_rejected(toy_network, base_scenario, workers):
+    with pytest.raises(StudyInputError, match="workers must be a positive integer"):
+        run_study(base_scenario, _spec(n_samples=20), toy_network, toy_engine, workers=workers)
 
 
 def test_base_outaged_assets_excluded(toy_network, base_scenario):

@@ -119,6 +119,17 @@ def main(network_id: str) -> None:
 
     ppc = _m2ppc(str(src))
     crosscheck = _parser_crosscheck(ppc, case)
+    raw_dispatch = mpc.fixed_dispatch(case, balance=False)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        raw_net = from_ppc(ppc, f_hz=60)
+    pp.rundcpp(raw_net, calculate_voltage_angles=True)
+    raw_dc = {
+        "converged": bool(raw_net.converged),
+        **_branch_results(raw_net, case, ac=False),
+        **_bus_results(raw_net),
+        "gen_p_mw": _gen_results(raw_net),
+    }
     for gid, p in dispatch["gen_p_mw"].items():
         ppc["gen"][int(gid.split("-")[1]) - 1, mpc.PG] = p
     with warnings.catch_warnings():
@@ -145,6 +156,8 @@ def main(network_id: str) -> None:
         "source": {"path": mpc.display_path(src), "sha256": mpc.sha256_file(src)},
         "engine": {"name": "pandapower", "version": pp.__version__},
         "dispatch": dispatch,
+        "raw_dispatch": raw_dispatch,
+        "raw_dc": raw_dc,
         "conversion": conversion,
     }
 
@@ -178,7 +191,26 @@ def main(network_id: str) -> None:
         ac["gen_p_mw"] = _gen_results(net)
         ac["vm_pu_min"] = float(net.res_bus.vm_pu.min())
         ac["vm_pu_max"] = float(net.res_bus.vm_pu.max())
-        ac["total_losses_mw"] = float(net.res_line.pl_mw.sum() + net.res_trafo.pl_mw.sum())
+        ac["total_losses_mw"] = float(
+            sum(
+                ac["branch_flow_mw"][bid] + ac["branch_flow_to_mw"][bid]
+                for bid in ac["branch_flow_mw"]
+            )
+        )
+        q_violations = []
+        for element in ("gen", "ext_grid", "sgen"):
+            for idx, row in net[element].iterrows():
+                q = float(net[f"res_{element}"].at[idx, "q_mvar"])
+                q_violations.append(max(0.0, row.min_q_mvar - q, q - row.max_q_mvar))
+        ac["max_gen_q_limit_violation_mvar"] = float(max(q_violations, default=0.0))
+        ac["n_gen_q_limit_violations"] = sum(v > 1e-6 for v in q_violations)
+        ac["max_vm_limit_violation_pu"] = float(
+            max(
+                0.0,
+                (net.bus.min_vm_pu - net.res_bus.vm_pu).max(),
+                (net.res_bus.vm_pu - net.bus.max_vm_pu).max(),
+            )
+        )
         ac["ext_grid_p_mw"] = float(net.res_ext_grid.p_mw.sum())
         ac["settings"] = {
             "algorithm": "nr",
@@ -210,6 +242,8 @@ def main(network_id: str) -> None:
         "network_id": network_id,
         "engine": {"name": "matpower-formula-numpy", "version": f"numpy {np.__version__}"},
         "dispatch": dispatch,
+        "raw_dispatch": raw_dispatch,
+        "raw_dc": mpc.reference_dcpf(case, raw_dispatch),
         "dc": mpc.reference_dcpf(case, dispatch),
         "dcopf": mpc.reference_dcopf(case),
         "branch_meta": [

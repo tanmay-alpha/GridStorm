@@ -7,8 +7,8 @@ import importlib.util
 import json
 
 import pytest
-from conftest import wait_job
 
+from conftest import wait_job
 from gridstorm_api.config import DEFAULT_ENGINE_CMD, REPO_ROOT
 
 pytestmark = pytest.mark.slow
@@ -22,9 +22,13 @@ OUTAGE = "ac-dc-meshed-dc-link-outage"
 def _missing() -> str | None:
     if importlib.util.find_spec("gridstorm_pypsa") is None:
         return "gridstorm_pypsa is not installed in this environment"
-    for path in (NET_DIR / "network.nc", NET_DIR / "canonical.json", REPO_ROOT / "data" /
-                 "networks" / "catalog.json", PRESETS / f"{BASELINE}.yaml",
-                 PRESETS / f"{OUTAGE}.yaml"):
+    for path in (
+        NET_DIR / "network.nc",
+        NET_DIR / "canonical.json",
+        REPO_ROOT / "data" / "networks" / "catalog.json",
+        PRESETS / f"{BASELINE}.yaml",
+        PRESETS / f"{OUTAGE}.yaml",
+    ):
         if not path.is_file():
             return f"missing {path.relative_to(REPO_ROOT)}"
     return None
@@ -67,8 +71,10 @@ def test_real_pypsa_run_and_comparison(real_client):
     assert links["DC link"]["outaged"] is True
     assert abs(result["metrics"]["balance_residual_max_mw"]) < 1e-3
 
-    r = client.post("/api/v1/comparisons", json={"baseline_job_id": jobs[BASELINE]["id"],
-                                                 "scenario_job_id": jobs[OUTAGE]["id"]})
+    r = client.post(
+        "/api/v1/comparisons",
+        json={"baseline_job_id": jobs[BASELINE]["id"], "scenario_job_id": jobs[OUTAGE]["id"]},
+    )
     assert r.status_code == 201, r.text
     report = r.json()["report"]
     m = {row["metric"]: row for row in report["metrics"]}

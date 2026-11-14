@@ -11,13 +11,25 @@ T = TypeVar("T")
 Provenance = Literal["observed", "estimated", "synthetic", "modeled", "calculated"]
 JobStatus = Literal["queued", "running", "completed", "failed", "cancelled", "timeout"]
 JobStage = Literal[
-    "queued", "loading_network", "applying_scenario", "building_model", "solving",
-    "postprocessing", "done",
+    "queued",
+    "loading_network",
+    "applying_scenario",
+    "building_model",
+    "solving",
+    "postprocessing",
+    "done",
 ]
 Outcome = Literal["feasible", "infeasible", "error"]
 Visibility = Literal["public", "private"]
 AssetType = Literal[
-    "buses", "lines", "transformers", "links", "generators", "loads", "storage_units", "stores",
+    "buses",
+    "lines",
+    "transformers",
+    "links",
+    "generators",
+    "loads",
+    "storage_units",
+    "stores",
     "carriers",
 ]
 
@@ -91,6 +103,7 @@ class NetworkSummary(BaseModel):
     engines: list[str]
     network_sha256: str | None = None
     has_network_file: bool
+    live_execution: bool
     source: dict[str, Any] | None = None
 
 

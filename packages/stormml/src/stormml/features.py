@@ -3,14 +3,11 @@
 One row per outaged ``mpc.branch`` row ``l``. All features are dimensionless or in percent so that
 they transfer between networks of different size; no network-size feature is used.
 
-DC screening score (also the DC-LODF baseline): with the LODF estimate ``e_k`` (% of ``rate_k``)
-of branch ``k`` after outage of ``l`` and DC base loading ``b_k = |p_k| / rate_k · 100``,
-
-    g_k = e_k                       if b_k <= 100      (would be a *new* overload when > 100)
-    g_k = 100 - Δ + (e_k - b_k)     if b_k  > 100      (> 100 iff aggravated by more than Δ)
-
-with ``Δ = AGGRAVATION_PP`` (same 5 pp as the AC label), and ``dc_score = max_{k != l} g_k``.
-Islanding outages (bridges, LODF undefined) use ``e_k = b_k`` (no redistribution information).
+The primary DC-LODF baseline is the maximum estimated loading of any remaining branch.
+``dc_attributable_score`` is a secondary feature: existing overloads must worsen by 5 percentage
+points to count, whereas new overloads use the ordinary 100 % limit.
+Islanding outages (bridges, LODF undefined) use base loading (no redistribution information);
+their separate bridge feature exposes this limitation.
 """
 
 from __future__ import annotations
@@ -24,7 +21,7 @@ AGGRAVATION_PP = 5.0
 
 FEATURE_NAMES: tuple[str, ...] = (
     "dc_score",
-    "dc_max_raw",
+    "dc_attributable_score",
     "dc_n_over",
     "dc_excess_sum",
     "lodf_absmax",
@@ -50,7 +47,7 @@ FEATURE_NAMES: tuple[str, ...] = (
 
 
 def attributable_dc_loading(est: np.ndarray, base_dc: np.ndarray) -> np.ndarray:
-    """``g`` from the module docstring; ``est`` is (m, m) [k, l], ``base_dc`` is (m,)."""
+    """Secondary aggravation score; ``est`` is (m, m) [k, l], ``base_dc`` is (m,)."""
     b = base_dc[:, None]
     return np.where(b <= 100.0, est, 100.0 - AGGRAVATION_PP + (est - b))
 
@@ -84,8 +81,8 @@ def compute_features(
     est[diag, diag] = np.nan
     with np.errstate(invalid="ignore"):
         over = np.nan_to_num(g - 100.0, nan=0.0)
-    dc_score = np.nan_to_num(np.nanmax(g, axis=0), nan=0.0)
-    dc_max_raw = np.nan_to_num(np.nanmax(est, axis=0), nan=0.0)
+    dc_attributable = np.nan_to_num(np.nanmax(g, axis=0), nan=0.0)
+    dc_score = np.nan_to_num(np.nanmax(est, axis=0), nan=0.0)
     dc_n_over = (over > 0).sum(axis=0).astype(float)
     dc_excess = np.clip(over, 0.0, None).sum(axis=0)
     lodf_abs = np.abs(np.nan_to_num(sens.lodf, nan=0.0))
@@ -106,7 +103,7 @@ def compute_features(
 
     cols = {
         "dc_score": dc_score,
-        "dc_max_raw": dc_max_raw,
+        "dc_attributable_score": dc_attributable,
         "dc_n_over": dc_n_over,
         "dc_excess_sum": dc_excess,
         "lodf_absmax": lodf_absmax,

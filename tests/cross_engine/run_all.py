@@ -7,6 +7,7 @@ merged), via ``uv run --project``:
   1. workers/pandapower       -> pp_side.py     (rundcpp / runpp / rundcopp + numpy reference)
   2. pipelines/network-import -> pypsa_side.py  (PyPSA lpf / optimize with HiGHS on network.nc)
   3. pipelines/network-import -> compare.py     (metrics, verdicts, data/artifacts/cross-engine/*)
+  4. pipelines/network-import -> test_harness.py (analytical physics + artifact integrity tests)
 Solvers are pinned to one thread. Raw PGLib files come from data/networks/<id>/source/ or, if the
 importer output is not committed, from GRIDSTORM_PGLIB_DIR (default ../upstream/pglib-opf).
 """
@@ -24,6 +25,7 @@ STEPS = (
     ("workers/pandapower", "pp_side.py"),
     ("pipelines/network-import", "pypsa_side.py"),
     ("pipelines/network-import", "compare.py"),
+    ("pipelines/network-import", "test_harness.py"),
 )
 
 

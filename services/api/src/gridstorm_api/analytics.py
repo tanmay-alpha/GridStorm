@@ -54,7 +54,11 @@ class AnalyticsService:
             return n
 
     def _compute(
-        self, entry: NetworkEntry, kind: str, carriers: list[str] | None, countries: list[str] | None
+        self,
+        entry: NetworkEntry,
+        kind: str,
+        carriers: list[str] | None,
+        countries: list[str] | None,
     ) -> dict[str, Any]:
         import gridstorm_analytics
 
@@ -68,7 +72,8 @@ class AnalyticsService:
             result = gridstorm_analytics.compute(kind, n, carriers=carriers, countries=countries)
         except gridstorm_analytics.UnknownAnalyticsKind as exc:
             raise NotFound(
-                str(exc), code="analytics_kind_not_found",
+                str(exc),
+                code="analytics_kind_not_found",
                 details={"kind": kind, "available": list(gridstorm_analytics.KINDS)},
             ) from exc
         except ValueError as exc:
@@ -80,7 +85,11 @@ class AnalyticsService:
         return result
 
     async def compute(
-        self, entry: NetworkEntry, kind: str, carriers: list[str] | None, countries: list[str] | None
+        self,
+        entry: NetworkEntry,
+        kind: str,
+        carriers: list[str] | None,
+        countries: list[str] | None,
     ) -> dict[str, Any]:
         if kind not in self.kinds():
             raise NotFound(
@@ -90,7 +99,8 @@ class AnalyticsService:
             )
         if self._sem.locked():
             raise ServiceUnavailable(
-                "analytics capacity exhausted; retry shortly", code="analytics_busy",
+                "analytics capacity exhausted; retry shortly",
+                code="analytics_busy",
                 headers={"Retry-After": "5"},
             )
         async with self._sem:
@@ -102,5 +112,6 @@ class AnalyticsService:
             except TimeoutError as exc:
                 raise APIError(
                     f"analytics computation exceeded {self.timeout_s:g} s",
-                    code="analytics_timeout", status_code=504,
+                    code="analytics_timeout",
+                    status_code=504,
                 ) from exc

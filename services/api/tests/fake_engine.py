@@ -88,13 +88,18 @@ def main() -> int:
     result = {
         "schema_version": "gridstorm-result/1.0",
         "scenario_id": scenario.id,
-        "scenario_hash": "0" * 64 if "fake:wrong-hash" in flags else stormspec.scenario_hash(scenario),
+        "scenario_hash": "0" * 64
+        if "fake:wrong-hash" in flags
+        else stormspec.scenario_hash(scenario),
         "network_id": scenario.dataset.network_id,
         "engine": {"name": "fake", "version": "0.0", "formulation": "lopf"},
         "solver": {
-            "name": "highs", "version": "test", "status": "warning" if infeasible else "ok",
+            "name": "highs",
+            "version": "test",
+            "status": "warning" if infeasible else "ok",
             "termination_condition": "infeasible" if infeasible else "optimal",
-            "objective_eur": None if infeasible else 50.0 * load * n, "wall_time_s": 0.01,
+            "objective_eur": None if infeasible else 50.0 * load * n,
+            "wall_time_s": 0.01,
         },
         "outcome": "infeasible" if infeasible else "feasible",
         "snapshots": [] if infeasible else [f"2020-01-01T{h:02d}:00:00" for h in range(n)],
@@ -102,13 +107,27 @@ def main() -> int:
         "metrics": metrics,
         "series": {},
         "assets": {
-            "lines": [] if infeasible else [
-                {"id": "l0", "s_nom_mva": 200.0, "outaged": False,
-                 "flow_mw": [load * 0.8] * n, "loading_pct": [40.0 * mult] * n},
+            "lines": []
+            if infeasible
+            else [
+                {
+                    "id": "l0",
+                    "s_nom_mva": 200.0,
+                    "outaged": False,
+                    "flow_mw": [load * 0.8] * n,
+                    "loading_pct": [40.0 * mult] * n,
+                },
             ],
-            "transformers": [] if infeasible else [
-                {"id": "l0", "s_nom_mva": 100.0, "outaged": False,
-                 "flow_mw": [10.0] * n, "loading_pct": [10.0] * n},
+            "transformers": []
+            if infeasible
+            else [
+                {
+                    "id": "l0",
+                    "s_nom_mva": 100.0,
+                    "outaged": False,
+                    "flow_mw": [10.0] * n,
+                    "loading_pct": [10.0] * n,
+                },
             ],
             "links": [],
             "buses": [],

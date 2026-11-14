@@ -3,8 +3,8 @@ from __future__ import annotations
 import hashlib
 
 import pytest
-from conftest import NETWORK_ID
 
+from conftest import NETWORK_ID
 from gridstorm_api.storage import ArtifactIntegrityError, LocalArtifactStore, S3ArtifactStore
 
 

@@ -53,8 +53,13 @@ def test_network_detail_and_errors(client):
     assert body["field_provenance"]["buses.x"] == "synthetic"
     r = client.get("/api/v1/networks/nope")
     assert r.status_code == 404
-    assert r.json() == {"error": {"code": "network_not_found", "message": "unknown network 'nope'",
-                                  "details": {"network_id": "nope"}}}
+    assert r.json() == {
+        "error": {
+            "code": "network_not_found",
+            "message": "unknown network 'nope'",
+            "details": {"network_id": "nope"},
+        }
+    }
     r = client.get("/api/v1/networks/broken-net")
     assert r.status_code == 503 and r.json()["error"]["code"] == "network_unavailable"
 
@@ -96,21 +101,29 @@ def test_cors_allows_configured_origin_only(client):
 def test_openapi_matches_contract_paths(client):
     spec = client.get("/openapi.json").json()
     expected = {
-        ("get", "/health"), ("get", "/ready"),
-        ("get", "/api/v1/networks"), ("get", "/api/v1/networks/{network_id}"),
+        ("get", "/health"),
+        ("get", "/ready"),
+        ("get", "/api/v1/networks"),
+        ("get", "/api/v1/networks/{network_id}"),
         ("get", "/api/v1/networks/{network_id}/assets"),
         ("get", "/api/v1/networks/{network_id}/geojson"),
         ("get", "/api/v1/networks/{network_id}/analytics/{kind}"),
-        ("get", "/api/v1/scenarios"), ("post", "/api/v1/scenarios/validate"),
-        ("post", "/api/v1/scenarios"), ("get", "/api/v1/scenarios/{scenario_id}"),
-        ("post", "/api/v1/simulations"), ("get", "/api/v1/simulations"),
-        ("get", "/api/v1/simulations/{job_id}"), ("post", "/api/v1/simulations/{job_id}/cancel"),
+        ("get", "/api/v1/scenarios"),
+        ("post", "/api/v1/scenarios/validate"),
+        ("post", "/api/v1/scenarios"),
+        ("get", "/api/v1/scenarios/{scenario_id}"),
+        ("post", "/api/v1/simulations"),
+        ("get", "/api/v1/simulations"),
+        ("get", "/api/v1/simulations/{job_id}"),
+        ("post", "/api/v1/simulations/{job_id}/cancel"),
         ("get", "/api/v1/simulations/{job_id}/metrics"),
         ("get", "/api/v1/simulations/{job_id}/result"),
         ("get", "/api/v1/simulations/{job_id}/artifacts"),
-        ("post", "/api/v1/comparisons"), ("get", "/api/v1/comparisons/{comparison_id}"),
+        ("post", "/api/v1/comparisons"),
+        ("get", "/api/v1/comparisons/{comparison_id}"),
         ("get", "/api/v1/reports/{report_id}"),
-        ("get", "/api/v1/artifacts"), ("get", "/api/v1/artifacts/{engine}/{artifact_id}"),
+        ("get", "/api/v1/artifacts"),
+        ("get", "/api/v1/artifacts/{engine}/{artifact_id}"),
     }
     actual = {(m, p) for p, ops in spec["paths"].items() for m in ops}
     assert actual == expected

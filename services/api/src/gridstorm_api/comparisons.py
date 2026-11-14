@@ -29,8 +29,15 @@ COMPARISON_ASSUMPTIONS = [
 ]
 
 _UNITS = (
-    ("_eur_per_mwh", "EUR/MWh"), ("_mwh", "MWh"), ("_mw", "MW"), ("_pct", "%"), ("_eur", "EUR"),
-    ("_hours", "h"), ("_h", "h"), ("_t", "t"), ("_count", "count"),
+    ("_eur_per_mwh", "EUR/MWh"),
+    ("_mwh", "MWh"),
+    ("_mw", "MW"),
+    ("_pct", "%"),
+    ("_eur", "EUR"),
+    ("_hours", "h"),
+    ("_h", "h"),
+    ("_t", "t"),
+    ("_count", "count"),
 )
 
 
@@ -73,7 +80,10 @@ def branch_max_loading(result: dict[str, Any]) -> dict[tuple[str, str], dict[str
         p_nom = _num(row.get("p_nom_mw"))
         peak = _max_abs(row.get("flow_mw"))
         loading = peak / p_nom * 100.0 if peak is not None and p_nom else None
-        out[("link", str(row.get("id")))] = {"max_loading_pct": loading, "outaged": row.get("outaged")}
+        out[("link", str(row.get("id")))] = {
+            "max_loading_pct": loading,
+            "outaged": row.get("outaged"),
+        }
     return out
 
 
@@ -90,7 +100,9 @@ def compare_results(baseline: dict[str, Any], scenario: dict[str, Any]) -> dict[
     for name in sorted(set(bm) | set(sm)):
         if isinstance(bm.get(name), dict) or isinstance(sm.get(name), dict):
             continue
-        metrics.append({"metric": name, "unit": unit_of(name), **delta_row(bm.get(name), sm.get(name))})
+        metrics.append(
+            {"metric": name, "unit": unit_of(name), **delta_row(bm.get(name), sm.get(name))}
+        )
 
     carriers: dict[str, list[dict[str, Any]]] = {}
     for name in ("generation_by_carrier_mwh", "curtailment_by_carrier_mwh"):
@@ -132,7 +144,9 @@ def compare_results(baseline: dict[str, Any], scenario: dict[str, Any]) -> dict[
 
 
 def run_manifest(session: Session, job: SimulationJob, result: dict[str, Any]) -> dict[str, Any]:
-    version = session.get(NetworkVersion, job.network_version_id) if job.network_version_id else None
+    version = (
+        session.get(NetworkVersion, job.network_version_id) if job.network_version_id else None
+    )
     execution = (job.spec or {}).get("execution") or {}
     return {
         "job_id": str(job.id),
@@ -253,7 +267,8 @@ def _repro_md(title: str, m: dict[str, Any]) -> str:
             f"- scenario: `{m['scenario_id']}` hash `{m['scenario_hash']}`",
             f"- dataset: `{ds['network_id']}` network.nc sha256 `{ds['network_sha256']}`",
             f"- engine: {eng.get('name')} {eng.get('version')} ({eng.get('formulation')})",
-            f"- solver: {sol.get('name')} {sol.get('version')} — {sol.get('termination_condition')}",
+            f"- solver: {sol.get('name')} {sol.get('version')} — "
+            f"{sol.get('termination_condition')}",
             f"- result sha256: `{m['result_sha256']}`",
             "",
             "<details><summary>Scenario specification (stormspec/1.0)</summary>",
@@ -292,8 +307,10 @@ def comparison_markdown(report: dict[str, Any], comparison_id: str) -> str:
         "",
         _table(
             ["metric", "unit", "baseline", "scenario", "delta", "delta %"],
-            [[m["metric"], m["unit"], m["baseline"], m["scenario"], m["delta"], m["delta_pct"]]
-             for m in report["metrics"]],
+            [
+                [m["metric"], m["unit"], m["baseline"], m["scenario"], m["delta"], m["delta_pct"]]
+                for m in report["metrics"]
+            ],
         ),
         "",
     ]
@@ -301,9 +318,15 @@ def comparison_markdown(report: dict[str, Any], comparison_id: str) -> str:
         parts += [
             f"## {name}",
             "",
-            _table(["carrier", "baseline", "scenario", "delta", "delta %"],
-                   [[r["carrier"], r["baseline"], r["scenario"], r["delta"], r["delta_pct"]]
-                    for r in rows]) if rows else "_no data_",
+            _table(
+                ["carrier", "baseline", "scenario", "delta", "delta %"],
+                [
+                    [r["carrier"], r["baseline"], r["scenario"], r["delta"], r["delta_pct"]]
+                    for r in rows
+                ],
+            )
+            if rows
+            else "_no data_",
             "",
         ]
     top = report["branch_loading"][:20]
@@ -313,10 +336,20 @@ def comparison_markdown(report: dict[str, Any], comparison_id: str) -> str:
         "",
         _table(
             ["component", "id", "baseline %", "scenario %", "delta (pp)", "outaged (b/s)"],
-            [[r["component"], r["id"], r["baseline_max_loading_pct"],
-              r["scenario_max_loading_pct"], r["delta_pct_points"],
-              f"{r['baseline_outaged']}/{r['scenario_outaged']}"] for r in top],
-        ) if top else "_no branch data_",
+            [
+                [
+                    r["component"],
+                    r["id"],
+                    r["baseline_max_loading_pct"],
+                    r["scenario_max_loading_pct"],
+                    r["delta_pct_points"],
+                    f"{r['baseline_outaged']}/{r['scenario_outaged']}",
+                ]
+                for r in top
+            ],
+        )
+        if top
+        else "_no branch data_",
         "",
         "## Assumptions",
         "",
@@ -351,8 +384,10 @@ def job_markdown(report: dict[str, Any]) -> str:
     parts += [
         "## Metrics",
         "",
-        _table(["metric", "unit", "value"],
-               [[m["metric"], m["unit"], m["value"]] for m in report["metrics"]]),
+        _table(
+            ["metric", "unit", "value"],
+            [[m["metric"], m["unit"], m["value"]] for m in report["metrics"]],
+        ),
         "",
     ]
     for name, values in report["carriers"].items():
@@ -360,7 +395,8 @@ def job_markdown(report: dict[str, Any]) -> str:
             f"## {name}",
             "",
             _table(["carrier", "value"], [[k, values[k]] for k in sorted(values)])
-            if values else "_no data_",
+            if values
+            else "_no data_",
             "",
         ]
     parts += [

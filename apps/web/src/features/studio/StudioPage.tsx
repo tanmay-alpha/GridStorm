@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Play, Plus, RotateCcw, Save } from 'lucide-react'
 import { ApiError, api } from '../../api/client'
-import { qk, useNetworkAssets, useNetworks, useScenarios } from '../../api/hooks'
+import { qk, useNetwork, useNetworkAssets, useNetworks, useScenarios } from '../../api/hooks'
 import { LIMITS, type EventType, type StormEvent, type StormSpec } from '../../api/stormspec'
 import type { ScenarioRecord, ValidationReport } from '../../api/types'
 import { NetworkSelect } from '../../components/network/NetworkSelect'
@@ -97,6 +97,7 @@ export default function StudioPage() {
     edited ?? (presetRecord ? normaliseSpec(presetRecord.spec) : network ? blankSpec(network) : null)
   const specNetwork = spec ? (netList.find((n) => n.id === spec.dataset.network_id) ?? null) : null
   const assets = useNetworkAssets(spec?.dataset.network_id)
+  const networkDetail = useNetwork(spec?.dataset.network_id)
 
   const specJson = spec ? JSON.stringify(spec) : ''
   const debouncedJson = useDebounced(specJson, 400)
@@ -196,6 +197,15 @@ export default function StudioPage() {
           )
         }
       />
+      {networkDetail.data?.live_execution === false && (
+        <div role="status" className="gs-panel border-warn/50 p-3 text-sm">
+          <h2 className="font-semibold">Precomputed preset results only</h2>
+          <p>
+            Live execution is unavailable for this network: measured solver memory exceeds the deployment memory limit.
+            Select an unchanged preset below to access its available precomputed result. Edited scenarios cannot run live here.
+          </p>
+        </div>
+      )}
       <div className="grid gap-3 lg:grid-cols-[16rem_minmax(0,1fr)_20rem]">
         <Panel title="Scenarios" bodyClassName="p-1.5" className="lg:max-h-[calc(100vh-9rem)] lg:overflow-y-auto">
           {scenarios.error ? (

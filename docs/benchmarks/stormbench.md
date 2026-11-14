@@ -111,6 +111,12 @@ Ranking uses stable index tie-breaking, Kendall tau-b and Spearman rho.
 `recall@k = |top-k(screening) intersect top-k(reference)| / k`, with `k` the number of reference
 overloading contingencies (at least one); it measures top-list overlap, not binary recall.
 The JSON also includes recall@10, confusion counts, and DC ranking metrics.
+Each result's `contingencies` list contains every branch in source-row order, its islanding
+classification, AC convergence status, new-voltage-violation flag, and aligned screening/DC/AC
+severities. These scores retain full floating-point precision (unlike rounded display aggregates)
+so independent consumers can reconstruct confusion matrices, recall@k and rank correlations.
+Excluded scores are null, not zero. The rows were regenerated in one untimed pass per case;
+their recomputed metric aggregates matched the original measurements before export.
 DC recall@k and recall@10 are 1 for all six cases. Tiny roundoff differences among tied or
 nearly tied severities affect correlation even when binary classification agrees:
 

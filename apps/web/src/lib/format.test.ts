@@ -54,6 +54,12 @@ describe('formatDuration / formatTimestamp', () => {
     expect(formatTimestamp('2026-11-14T16:14:28.859612Z')).toBe('2026-11-14 16:14:28Z')
     expect(formatTimestamp(null)).toBe(NO_VALUE)
   })
+
+  it('preserves the model clock for timezone-naive snapshots', () => {
+    expect(formatTimestamp('2015-01-01T00:00:00')).toBe('2015-01-01 00:00')
+    expect(formatTimestamp('2015-01-01T09:00:00')).toBe('2015-01-01 09:00')
+    expect(formatTimestamp('2015-01-01T09:00:00+05:30')).toBe('2015-01-01 03:30Z')
+  })
 })
 
 describe('field-name units (contract: units are encoded in field names)', () => {

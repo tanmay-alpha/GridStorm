@@ -18,18 +18,24 @@ _404 = {404: {"model": ErrorResponse}}
 @router.get("", response_model=Page[NetworkSummary], summary="List network datasets")
 def list_networks(ctx: Ctx, page: Paging) -> dict[str, Any]:
     entries = [ctx.catalog.get(i) for i in ctx.catalog.ids()]
-    items = [e.summary() for e in entries[page.offset : page.offset + page.limit]]
+    items = [
+        {**e.summary(), "live_execution": ctx.settings.live_execution(e.id)}
+        for e in entries[page.offset : page.offset + page.limit]
+    ]
     return {"items": items, "total": len(entries), "limit": page.limit, "offset": page.offset}
 
 
 @router.get(
-    "/{network_id}", response_model=NetworkDetail, responses=_404,
+    "/{network_id}",
+    response_model=NetworkDetail,
+    responses=_404,
     summary="Network summary + dataset manifest + assumptions",
 )
 def get_network(ctx: Ctx, network_id: str) -> dict[str, Any]:
     entry = ctx.catalog.get(network_id)
     return {
         **entry.summary(),
+        "live_execution": ctx.settings.live_execution(entry.id),
         "manifest": entry.manifest,
         "assumptions": entry.canonical.get("assumptions") or [],
         "field_provenance": entry.canonical.get("field_provenance") or {},
@@ -38,7 +44,9 @@ def get_network(ctx: Ctx, network_id: str) -> dict[str, Any]:
 
 
 @router.get(
-    "/{network_id}/assets", response_model=AssetPage, responses=_404,
+    "/{network_id}/assets",
+    response_model=AssetPage,
+    responses=_404,
     summary="Canonical asset rows of one component type (paginated)",
 )
 def list_assets(
@@ -59,14 +67,16 @@ def list_assets(
         "limit": limit,
         "offset": offset,
         "field_provenance": {
-            k: v for k, v in (entry.canonical.get("field_provenance") or {}).items()
+            k: v
+            for k, v in (entry.canonical.get("field_provenance") or {}).items()
             if k.startswith(prefix)
         },
     }
 
 
 @router.get(
-    "/{network_id}/geojson", responses=_404,
+    "/{network_id}/geojson",
+    responses=_404,
     summary="GeoJSON FeatureCollection (buses = Point; lines/transformers/links = LineString)",
     description="Top-level and per-feature `coordinate_kind`; `schematic` coordinates are layout "
     "coordinates, not lon/lat. Features are keyed by `properties.component` + `properties.id`.",

@@ -70,7 +70,10 @@ def canonical_sha256(obj) -> str:
 
 
 def _vec(a: dict, b: dict, keys: list[str]) -> tuple[np.ndarray, np.ndarray]:
-    return np.array([a[k] for k in keys], float), np.array([b[k] for k in keys], float)
+    x, y = np.array([a[k] for k in keys], float), np.array([b[k] for k in keys], float)
+    if not len(keys) or not np.isfinite(x).all() or not np.isfinite(y).all():
+        raise ValueError("comparison needs non-empty finite numerical vectors")
+    return x, y
 
 
 def _diff_metrics(a: dict, b: dict, keys: list[str], *, rel_floor_mw: float = 1.0) -> dict:
@@ -120,7 +123,11 @@ def _dcpf_check(check_id, case, a, b, names, bus_ids, branch_ids):
     inj = _vec(a["bus_injection_mw"], b["bus_injection_mw"], bus_ids)
     m["max_angle_diff_deg"] = float(np.abs(ang[0] - ang[1]).max())
     m["max_injection_diff_mw"] = float(np.abs(inj[0] - inj[1]).max())
-    ok = m["max_abs_diff_mw"] <= TOL_DC_FLOW_MW and m["max_angle_diff_deg"] <= TOL_DC_ANGLE_DEG
+    ok = (
+        m["max_abs_diff_mw"] <= TOL_DC_FLOW_MW
+        and m["max_angle_diff_deg"] <= TOL_DC_ANGLE_DEG
+        and m["max_injection_diff_mw"] <= TOL_DC_FLOW_MW
+    )
     expl = (
         f"All {len(branch_ids)} branch flows, {len(bus_ids)} bus angles and injections match to "
         f"floating-point rounding."
@@ -140,7 +147,10 @@ def _dcpf_check(check_id, case, a, b, names, bus_ids, branch_ids):
             "metric": "max_abs_diff_mw",
             "value": TOL_DC_FLOW_MW,
             "unit": "MW",
-            "also": {"max_angle_diff_deg": TOL_DC_ANGLE_DEG},
+            "also": {
+                "max_angle_diff_deg": TOL_DC_ANGLE_DEG,
+                "max_injection_diff_mw": TOL_DC_FLOW_MW,
+            },
         },
         "AGREES" if ok else "DISAGREES",
         expl,
@@ -246,7 +256,7 @@ def _ac_check(case_id, case, pp, pypsa, branch_ids) -> dict:
             "pandapower Newton-Raphson did not converge on the fixed dispatch.",
         )
     m = _diff_metrics(ac["branch_flow_mw"], pypsa["dc"]["branch_flow_mw"], branch_ids)
-    # Loss-neutral comparison: average of sending-end and (negated) receiving-end AC flow.
+    # Remove half of this branch's own losses, not the system-wide slack loss redistribution.
     mid = {k: 0.5 * (ac["branch_flow_mw"][k] - ac["branch_flow_to_mw"][k]) for k in branch_ids}
     mm = _diff_metrics(mid, pypsa["dc"]["branch_flow_mw"], branch_ids)
     rate = {mpc.branch_id(i): case["branch"][i, mpc.RATE_A] for i in range(len(case["branch"]))}
@@ -264,6 +274,12 @@ def _ac_check(case_id, case, pp, pypsa, branch_ids) -> dict:
             "dc_slack_p_mw": pp["dispatch"]["slack_gen_p_mw"],
             "ac_vm_pu_min": ac["vm_pu_min"],
             "ac_vm_pu_max": ac["vm_pu_max"],
+            "max_gen_q_limit_violation_mvar": ac["max_gen_q_limit_violation_mvar"],
+            "n_gen_q_limit_violations": ac["n_gen_q_limit_violations"],
+            "max_vm_limit_violation_pu": ac["max_vm_limit_violation_pu"],
+            "ac_slack_minus_dc_minus_losses_mw": (
+                ac["ext_grid_p_mw"] - pp["dispatch"]["slack_gen_p_mw"] - ac["total_losses_mw"]
+            ),
         }
     )
     worst = m["argmax"]
@@ -285,7 +301,7 @@ def _ac_check(case_id, case, pp, pypsa, branch_ids) -> dict:
         f"{ac['total_losses_mw']:.1f} MW of losses (AC slack {ac['ext_grid_p_mw']:.1f} MW vs DC "
         f"{pp['dispatch']['slack_gen_p_mw']:.1f} MW). Largest difference "
         f"{m['max_abs_diff_mw']:.1f} MW on {worst} ({ends[0]}-{ends[1]}"
-        f"{', incident to the slack bus' if slack in ends else ''}); loss-neutral midpoint flow "
+        f"{', incident to the slack bus' if slack in ends else ''}); local-loss midpoint flow "
         f"max {mm['max_abs_diff_mw']:.1f} MW; mean {m['mean_abs_diff_mw']:.2f} MW over "
         f"{len(branch_ids)} branches. This is the linearisation error of the DC approximation, "
         f"not an engine disagreement.",
@@ -299,7 +315,9 @@ def _ac_check(case_id, case, pp, pypsa, branch_ids) -> dict:
 
 
 def _opf_check(check_id, case_id, a, b, names, obj_a, obj_b, note) -> dict:
-    gens = sorted(set(a["gen_p_mw"]) & set(b["gen_p_mw"]), key=lambda g: int(g.split("-")[1]))
+    if set(a["gen_p_mw"]) != set(b["gen_p_mw"]):
+        raise ValueError("OPF generator sets differ")
+    gens = sorted(a["gen_p_mw"], key=lambda g: int(g.split("-")[1]))
     x, y = _vec(a["gen_p_mw"], b["gen_p_mw"], gens)
     m = {
         "objective_a": obj_a,
@@ -309,9 +327,9 @@ def _opf_check(check_id, case_id, a, b, names, obj_a, obj_b, note) -> dict:
         "argmax_gen": gens[int(np.abs(x - y).argmax())],
     }
     if "branch_flow_mw" in a and "branch_flow_mw" in b:
-        keys = sorted(
-            set(a["branch_flow_mw"]) & set(b["branch_flow_mw"]), key=lambda k: int(k.split("-")[1])
-        )
+        if set(a["branch_flow_mw"]) != set(b["branch_flow_mw"]):
+            raise ValueError("OPF branch sets differ")
+        keys = sorted(a["branch_flow_mw"], key=lambda k: int(k.split("-")[1]))
         m["max_branch_flow_abs_diff_mw"] = _diff_metrics(
             a["branch_flow_mw"], b["branch_flow_mw"], keys
         )["max_abs_diff_mw"]
@@ -324,11 +342,11 @@ def _opf_check(check_id, case_id, a, b, names, obj_a, obj_b, note) -> dict:
         )
     elif obj_ok:
         verdict, expl = (
-            "AGREES",
+            "DISAGREES",
             (
-                f"Same optimal objective; dispatch differs by up to "
-                f"{m['max_gen_abs_diff_mw']:.3g} MW on {m['argmax_gen']} (degenerate LP: "
-                f"several dispatches attain the optimum). {note}"
+                f"Objectives agree but dispatch differs by up to "
+                f"{m['max_gen_abs_diff_mw']:.3g} MW on {m['argmax_gen']}; this can indicate "
+                f"LP degeneracy, but dispatch agreement is not established. {note}"
             ),
         )
     else:
@@ -389,6 +407,15 @@ def compare(network_id: str) -> tuple[dict, dict, str]:
     for side in (pp, py):
         if side["dispatch"] != ref["dispatch"]:
             raise RuntimeError(f"{network_id}: dispatch mismatch between harness outputs")
+        if side["dispatch"] != mpc.fixed_dispatch(case):
+            raise RuntimeError(f"{network_id}: stale balanced dispatch")
+        if side["raw_dispatch"] != ref["raw_dispatch"]:
+            raise RuntimeError(f"{network_id}: original PG dispatch mismatch")
+        if side["raw_dispatch"] != mpc.fixed_dispatch(case, balance=False):
+            raise RuntimeError(f"{network_id}: stale original PG dispatch")
+    nc = mpc.NETWORKS / network_id / "network.nc"
+    if py["network_nc"]["sha256"] != mpc.sha256_file(nc):
+        raise RuntimeError(f"{network_id}: network.nc changed since the PyPSA run")
     branch_ids = [b["id"] for b in ref["branch_meta"] if b["status"] > 0]
     bus_ids = list(ref["dc"]["bus_angle_deg"])
     checks = []
@@ -398,6 +425,26 @@ def compare(network_id: str) -> tuple[dict, dict, str]:
         ("dcpf_pypsa_vs_reference", "pypsa", "matpower-formula-numpy", py["dc"], ref["dc"]),
     ):
         checks.append(_dcpf_check(cid, network_id, a, b, (a_name, b_name), bus_ids, branch_ids))
+    for cid, a_name, b_name, a, b in (
+        ("raw_pg_dcpf_pp_vs_pypsa", "pandapower", "pypsa", pp["raw_dc"], py["raw_dc"]),
+        (
+            "raw_pg_dcpf_pp_vs_reference",
+            "pandapower",
+            "matpower-formula-numpy",
+            pp["raw_dc"],
+            ref["raw_dc"],
+        ),
+        (
+            "raw_pg_dcpf_pypsa_vs_reference",
+            "pypsa",
+            "matpower-formula-numpy",
+            py["raw_dc"],
+            ref["raw_dc"],
+        ),
+    ):
+        c = _dcpf_check(cid, network_id, a, b, (a_name, b_name), bus_ids, branch_ids)
+        c["title"] += " (unmodified PGLib PG, reference slack balances)"
+        checks.append(c)
     checks.append(_param_check(network_id, case, py))
     checks.append(_ac_check(network_id, case, pp, py, branch_ids))
 
@@ -525,6 +572,9 @@ def compare(network_id: str) -> tuple[dict, dict, str]:
             "network_id": network_id,
             "engines": engines,
             "dispatch": {k: v for k, v in pp["dispatch"].items() if not isinstance(v, dict)},
+            "raw_dispatch": {
+                k: v for k, v in pp["raw_dispatch"].items() if not isinstance(v, dict)
+            },
             "case_features": ref["case_features"],
             "conversion": {
                 "pandapower": {
@@ -555,6 +605,14 @@ def compare(network_id: str) -> tuple[dict, dict, str]:
         "inputs": [
             {"path": pp["source"]["path"], "sha256": pp["source"]["sha256"]},
             {"path": py["network_nc"]["path"], "sha256": py["network_nc"]["sha256"]},
+            *[
+                {"path": mpc.display_path(p), "sha256": mpc.sha256_file(p)}
+                for p in (
+                    *sorted(Path(__file__).parent.glob("*.py")),
+                    mpc.REPO / "workers/pandapower/uv.lock",
+                    mpc.REPO / "pipelines/network-import/uv.lock",
+                )
+            ],
         ],
         "platform": f"{platform.platform()}; python {platform.python_version()}",
         "execution_mode": "precomputed",
@@ -599,11 +657,12 @@ def _table(p: dict) -> str:
     return "\n".join(lines) + "\n"
 
 
-def main(ids: list[str]) -> None:
+def main(ids: list[str]) -> int:
     ARTIFACT_DIR.mkdir(parents=True, exist_ok=True)
     index_path = ARTIFACT_DIR / "index.json"
     entries = json.loads(index_path.read_text("utf-8"))["artifacts"] if index_path.exists() else []
     tables = []
+    failed = False
     for nid in ids:
         art, entry, table = compare(nid)
         path = ARTIFACT_DIR / f"{entry['artifact_id']}.json"
@@ -616,6 +675,7 @@ def main(ids: list[str]) -> None:
         )
         tables.append(table)
         s = art["payload"]["summary"]
+        failed |= bool(s["DISAGREES"] or s["NOT_RUN"])
         print(
             f"{nid}: "
             + ", ".join(f"{k}={v}" for k, v in s.items())
@@ -637,7 +697,8 @@ def main(ids: list[str]) -> None:
         encoding="utf-8",
     )
     (mpc.WORK / "tables.md").write_text("\n".join(tables), encoding="utf-8")
+    return int(failed)
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:] or list(mpc.CASES))
+    sys.exit(main(sys.argv[1:] or list(mpc.CASES)))

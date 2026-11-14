@@ -1,0 +1,31 @@
+# Existing service: srv-dbs8a30ae00c73cs4cog (https://gridstorm-api.onrender.com)
+services:
+  - type: web
+    name: gridstorm-api
+    runtime: docker
+    plan: free
+    region: frankfurt
+    branch: main
+    autoDeployTrigger: commit
+    dockerfilePath: ./services/api/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: GRIDSTORM_EXECUTION_MODE
+        value: live
+      - key: GRIDSTORM_MAX_CONCURRENT_JOBS
+        value: "1"
+      - key: GRIDSTORM_LIVE_NETWORKS
+        value: ac-dc-meshed,pglib-case14-ieee,pglib-case118-ieee
+      - key: GRIDSTORM_JOB_TIMEOUT_S
+        value: "180"
+      - key: GRIDSTORM_JOB_MEMORY_MB
+        value: "400"
+      - key: GRIDSTORM_CORS_ORIGINS
+        value: https://gridstorm.vercel.app,https://gridstorm-tanmay-alphas-projects.vercel.app,http://localhost:5173
+      - key: DATABASE_URL
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_JWT_SECRET
+        sync: false

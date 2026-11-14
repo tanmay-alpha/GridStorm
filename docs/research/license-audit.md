@@ -3,7 +3,9 @@
 Audit date 2026-11-14. Repo SHAs: [`source-inventory.md`](source-inventory.md) /
 [`upstream-manifest.json`](upstream-manifest.json). Every claim below cites the file and line(s)
 inspected in the clone at `D:/New folder (4)/upstream/<name>` at the pinned SHA, or the metadata
-file of the installed package. GridStorm's own licence is MIT (e.g. `services/analytics/pyproject.toml` L5).
+file of the installed package. GridStorm's root licence is MIT (`LICENSE` L1-3); individual packages
+may declare other terms (e.g. `apps/web/package.json` declares Apache-2.0), so the root licence is
+not a replacement for component or third-party notices.
 
 Not legal advice; this is an engineering compliance record.
 
@@ -21,12 +23,12 @@ Not legal advice; this is an engineering compliance record.
 | grid2op | `LICENSE.md` L1 MPL-2.0; `LicensesInformation.md` L5-11 SPDX MPL-2.0; per-file header `grid2op/__init__.py` (first comment block: RTE copyright + `SPDX-License-Identifier: MPL-2.0`) | MPL-2.0 | none | Unmodified dependency: provide source pointer; modified MPL files stay MPL | reuse-code |
 | PowerModels.jl | `LICENSE.md` L1-5 (Los Alamos National Security LLC, DE-AC52-06NA25396; L5 "redistribution and use in source and binary forms..." BSD-3 conditions) | BSD-3-Clause (GitHub: NOASSERTION) | none | — (not used) | concepts-only |
 | simbench | `LICENSE` L1 copyright (Univ. Kassel, TU Dortmund, RWTH Aachen, Fraunhofer IEE); L5-6 database "Open Database License"; L7-8 contents "Database Contents License"; L11-33 code 3-clause BSD | BSD-3-Clause (code) AND ODbL-1.0 + DbCL-1.0 (data) | none | Code: BSD notice. Data: ODbL attribution; derived databases distributed publicly must be ODbL (share-alike) | reuse-code |
-| andes | `LICENSE` L3 "Copyright (c) 2015-2026 Hantao Cui", L6-8 "GNU General Public License ... either version 3 of the License, or (at your option) any later version"; `pyproject.toml` L10 `GPL-3.0-or-later` | GPL-3.0-or-later | none | Combined work becomes GPL | concepts-only (never import) |
+| andes | `LICENSE` L3 "Copyright (c) 2015-2026 Hantao Cui", L6-8 "GNU General Public License ... either version 3 of the License, or (at your option) any later version"; `pyproject.toml` L10 `GPL-3.0-or-later` | GPL-3.0-or-later | none | Distribution of a derivative combined work may require GPL terms; GridStorm policy excludes this runtime | concepts-only (never import) |
 | pypsa-earth | no root LICENSE; `REUSE.toml` L3 `AGPL-3.0-or-later`, L23-26 `data/**` CC-BY-4.0; `scripts/solve_network.py` L2-4 SPDX AGPL-3.0-or-later; `LICENSES/` AGPL-3.0-or-later, CC-BY-4.0, CC0-1.0 | AGPL-3.0-or-later (code) | none | Network-service copyleft | concepts-only |
 | power-grid-data-factory | no licence file in 398 tracked files; `grep -i licen` over `pyproject.toml`, `README.md` → no hits; GitHub API `license: null` | none | none | None granted | concepts-only |
 | GOCompetition/Evaluation | 34 tracked files, none a licence; `grep -ri "licen\|copyright"` over *.py/*.md/*.txt → no hits; GitHub API `license: null` | none | none | None granted | concepts-only |
 | GOC3Benchmark.jl | `LICENSE.md` L1 "Copyright © 2019, Triad National Security, LLC", L6 "This program is open source under the BSD-3 License." | BSD-3-Clause | none | — (not used) | concepts-only |
-| demandcast | `LICENSE` L1-2 "GNU AFFERO GENERAL PUBLIC LICENSE Version 3" (661 lines); `README.md` L10 badge, L92-94 "licensed under the GNU Affero General Public License v3.0 (AGPL-3.0)" — no "or later" grant | AGPL-3.0-only | none | Network-service copyleft on the whole GridStorm service | do-not-use |
+| demandcast | `LICENSE` L1-2 "GNU AFFERO GENERAL PUBLIC LICENSE Version 3" (661 lines); `README.md` L10 badge, L92-94 "licensed under the GNU Affero General Public License v3.0 (AGPL-3.0)" — no "or later" grant | AGPL-3.0-only | none | Copyleft and network-source requirements for covered/derivative works; excluded by project policy | do-not-use |
 | PyPSA-Explorer | `LICENSE` L1 "MIT License", L3 "Copyright (c) 2025 OET Network Viewer contributors"; `pyproject.toml` L13 `license = "MIT"` | MIT | none | Keep notice in ported files + THIRD_PARTY_NOTICES | adapt-with-attribution |
 | pypsa-eur | no root LICENSE; `REUSE.toml` L1-4 package info, L6-13 docs/test data CC-BY-4.0, L15-27 config/env files CC0-1.0, L32-51 `data/*` CC-BY-4.0, L53-58 CC0-1.0, further blocks CC-BY-4.0 and one CC-BY-SA-4.0 (L124-129, `data/ch_cantons.csv`, Wikipedia contributors); code headers e.g. `scripts/solve_network.py` L1-3, `Snakefile` L1-3 SPDX MIT; `LICENSES/{MIT,CC-BY-4.0,CC-BY-SA-4.0,CC0-1.0}.txt` | MIT (code) AND CC-BY-4.0 AND CC-BY-SA-4.0 AND CC0-1.0 | none | Run unmodified → no code obligations; downloaded data per `doc/data_inventory.csv` (L3 `osm` ODbL-1.0; L41 powerplants, L42 costs, L45 natura CC-BY-4.0; L10-11 NUTS EU reuse policy) | reuse-code (external workflow) |
 | Warden | `LICENSE` L1 "MIT License", L3 "Copyright (c) 2026 Eklavya Goyal" | MIT | none | Keep notice if reused | concepts-only |
@@ -51,14 +53,16 @@ therefore imposes no NOTICE propagation for energy-sdk-l2rpn (which is not reuse
 MPL-2.0 §3 binds only the *covered files*: a ported file must remain MPL-2.0 with its header and its
 source available; the rest of GridStorm stays MIT. GridStorm ported nothing; it re-implemented KPI
 definitions (`docs/audit/grid2viz-audit.md`; `workers/grid2op/src/gridstorm_grid2op/kpis.py`).
-Using `grid2op` and `lightsim2grid` (both MPL-2.0) unmodified as dependencies only requires pointing
-to their source.
+Using `grid2op` and `lightsim2grid` unmodified does not relicense GridStorm's separate files.
+When distributing executable covered software, MPL §3.2 also requires making the covered source
+available and informing recipients how to obtain it; a source pointer must lead to the matching source.
 
 ### demandcast — AGPL
-AGPL-3.0 §13 requires offering the complete corresponding source to every network user of a modified
-program. Incorporating any demandcast code into the GridStorm API/web service would force the whole
-service under AGPL-3.0. Verdict **do-not-use** for code; additionally its README L45 states the
-retrieved demand data are not redistributable.
+AGPL-3.0 §13 requires a modified program that supports remote interaction to offer its corresponding
+source to remote users. Whether a larger service is a derivative work depends on how code is
+incorporated; importing code does not automatically relicense unrelated programs. GridStorm's
+policy excludes demandcast code rather than depending on that boundary. Verdict **do-not-use**;
+additionally its README L45 states the retrieved demand data are not redistributable.
 
 ### openinframap — web code vs styles vs data
 * Root `LICENSE` and `web/LICENSE` are both BSD-3-Clause. `web/package.json` L18 says `"ISC"` — an
@@ -151,8 +155,10 @@ component venvs (`<component>/.venv/Lib/site-packages`). JavaScript: `license` f
 | tailwindcss / vite (build only) | 4.3.5 / 8.3.8 | web | MIT |
 | tslib | 2.3.0 | web (echarts dep) | 0BSD |
 
-No GPL/AGPL package is installed in any GridStorm env. The only copyleft runtime deps are file-level
-MPL-2.0 (grid2op, lightsim2grid, tqdm part) and LGPL-3.0 psycopg, all used unmodified.
+The audited direct runtime packages above do not declare GPL/AGPL as their primary package licence.
+This does **not** establish absence of copyleft in bundled native code. In addition to MPL-covered
+Grid2Op/LightSim2Grid/tqdm and LGPL-3.0 psycopg, Shapely bundles GEOS (LGPL-2.1), and offline
+LightSim2Grid bundles LGPL-2.1-or-later SuiteSparse components. See deployment scope below.
 
 ## 4. Data and service licences used at run time
 
@@ -165,3 +171,43 @@ MPL-2.0 (grid2op, lightsim2grid, tqdm part) and LGPL-3.0 psycopg, all used unmod
 | Grid2Op `l2rpn_case14_sandbox` | MPL-2.0 (grid2op-datasets repo), downloaded, not redistributed | `workers/grid2op/src/gridstorm_grid2op/env.py` L117-123 | artifact `dataset.license` |
 | OpenFreeMap tiles (OpenMapTiles schema, OSM data) | OSM ODbL-1.0; OpenMapTiles attribution | `apps/web/src/components/map/NetworkMap.tsx` L33-40 | map attribution control |
 | OPSD time series 2020-10-06 / NASA POWER | per `pipelines/observed/src/gridstorm_observed/sources.py` L38-71 | observed pipeline | owned by ObservedEvents — see `docs/research/external-data-sources.md` |
+
+## 5. Deployment scope and bundled native code (2026-11-15)
+
+`services/api/Dockerfile` L18-26 and L34-35 performs frozen, non-development syncs of the API
+lockfile; L59 copies the installed environment unchanged. It does not install the offline Grid2Op,
+pandapower or distribution worker environments. The following distinction is material:
+
+| Component | Evidence | Core API Docker dependency payload? |
+|---|---|---|
+| psycopg / psycopg-binary 3.3.9 | `services/api/uv.lock` packages `psycopg` and `psycopg-binary`; each wheel's `licenses/LICENSE.txt` L1-2 LGPL v3 | Yes; unmodified wheel installation |
+| GEOS 3.14.1 bundled by Shapely 2.2.0 | core lock package `shapely`; Linux wheel `shapely-2.2.0.dist-info/licenses/LICENSE_GEOS` L1-6 identifies GEOS, LGPLv2.1; wheel contains `libgeos-*.so.3.14.1` and `libgeos_c-*.so.1.20.5` | Yes; unmodified bundled shared libraries |
+| SuiteSparse BTF / CXSparse / KLU bundled by LightSim2Grid 1.3.1 | installed `lightsim2grid-1.3.1.dist-info/licenses/SuiteSparse/{BTF,CXSparse,KLU}/Doc/License.txt`, each introductory grant names LGPL 2.1 or later (BTF L8-11, CXSparse L8-11, KLU L11-14); accompanying `lesser.txt` contains full LGPLv2.1 | No; offline Grid2Op environment only |
+
+Matching CPython 3.11 manylinux x86_64 wheels for Shapely, psycopg-binary, Pyogrio and Pyproj were
+downloaded and inspected as ZIP archives. Exact filenames, SHA-256s, licence texts and notices are
+in `THIRD_PARTY_NOTICES.md` under "Linux deployment wheel". This is lockfile/wheel evidence, not
+an inspection of the running Render image or of every Debian base-image package.
+
+The wheel licences/notices remain installed in `site-packages/*.dist-info/licenses`; nothing in
+the Dockerfile strips them. Unmodified usage does not remove binary-redistribution obligations:
+preserve applicable corresponding-source access and replacement/relinking rights. Root notices
+are provided separately; the Dockerfile currently copies only its explicit app/data paths, not
+the root notice document.
+
+**Open binary-provenance item (bounded inspection):** the psycopg-binary Linux wheel contains
+`libcrypt-bc2db45e.so.1` and `libkeyutils-dfe70bd6.so.1.5` but no individual notices identifying
+their exact source builds. Libxcrypt's upstream
+[`LICENSING` L3-5](https://github.com/besser82/libxcrypt/blob/develop/LICENSING) grants LGPL-2.1-or-later;
+the keyutils library's
+[`keyutils.c` L3-9](https://github.com/Distrotech/keyutils/blob/master/keyutils.c) credits Red Hat /
+David Howells and grants LGPL version 2 or later. Mapping those upstream grants to these exact
+binary builds is unverified. Do not claim psycopg and GEOS exhaust all LGPL contents of the image.
+Mitigation option: use non-binary `psycopg` plus system `libpq` in Docker and retain the system
+distribution's corresponding copyright/source records. That option is recorded, not implemented.
+
+Pyogrio's inspected Linux wheel contains `gdal_data/LICENSE.TXT`, `gdal_data/copyright`,
+`proj_data/copyright` and its own MIT licence; Pyproj contains its MIT/PROJ notices. Those inspected
+texts contain no LGPL grant. This observation is not a blanket licence claim about every optional
+GDAL driver or future wheel.
+

@@ -44,8 +44,10 @@ def test_validate_reports_errors_and_warnings(client):
     other_engine = scenario(execution={"engine": "pandapower", "formulation": "ac_pf"})
     r = client.post("/api/v1/scenarios/validate", json=other_engine).json()
     assert r["valid"] is False
-    assert any(e["code"] == "unsupported_operation" and e["path"] == "execution.engine"
-               for e in r["errors"])
+    assert any(
+        e["code"] == "unsupported_operation" and e["path"] == "execution.engine"
+        for e in r["errors"]
+    )
 
     unknown_net = scenario(dataset={"network_id": "nowhere", "sha256": None})
     r = client.post("/api/v1/scenarios/validate", json=unknown_net).json()
@@ -57,8 +59,11 @@ def test_validate_reports_errors_and_warnings(client):
 
 
 def test_request_validation_errors(client):
-    r = client.post("/api/v1/scenarios/validate", content=b"{not json",
-                    headers={"Content-Type": "application/json"})
+    r = client.post(
+        "/api/v1/scenarios/validate",
+        content=b"{not json",
+        headers={"Content-Type": "application/json"},
+    )
     assert r.status_code == 422 and r.json()["error"]["code"] == "validation_error"
     r = client.post("/api/v1/simulations", json={})
     assert r.status_code == 422
@@ -83,8 +88,9 @@ def test_save_scenario_anonymous_is_public(client):
 
 
 def test_owner_isolation_for_private_scenarios(client):
-    r = client.post("/api/v1/scenarios", json={"scenario": scenario("alice-case")},
-                    headers=auth(ALICE))
+    r = client.post(
+        "/api/v1/scenarios", json={"scenario": scenario("alice-case")}, headers=auth(ALICE)
+    )
     assert r.status_code == 201
     rec = r.json()
     assert rec["visibility"] == "private" and rec["owner_id"] == str(ALICE)

@@ -2,7 +2,7 @@
 
 Usage (from packages/stormrisk):
 
-    uv run python scripts/run_study.py studies/ac-dc-meshed-storm.json --workers 8
+    uv run python scripts/run_study.py studies/ac-dc-meshed-storm-stress.json --workers 1
 
 A study file is JSON: ``{"artifact_id", "title", "base_scenario": <stormspec/1.0>,
 "sampling": <stormrisk-sampling/1.0>}``. Optional ``--n-samples``/``--seed`` override the file.
@@ -79,7 +79,12 @@ def main(argv: list[str] | None = None) -> int:
     payload["engine"]["package_versions"] = versions
     payload["study_title"] = study["title"]
 
-    cmd = ["uv run python scripts/run_study.py", _rel(args.study), f"--workers {args.workers}"]
+    cmd = [
+        "uv run --project packages/stormrisk python packages/stormrisk/scripts/run_study.py",
+        _rel(args.study), f"--workers {args.workers}",
+        f'--networks-root "{_rel(args.networks_root)}"',
+        f'--out-dir "{_rel(args.out_dir)}"',
+    ]
     if args.n_samples is not None:
         cmd.append(f"--n-samples {args.n_samples}")
     if args.seed is not None:

@@ -183,12 +183,15 @@ def cmd_assemble(a) -> None:
             "bridges": meta["bridges"],
             "operating_points_requested": len(recs),
             "operating_points_rejected_base_nonconvergence": len(recs) - len(okr),
+            "operating_points_accepted": len(okr),
             "rows": int(sel.sum()),
-            "label_rates": {n: float(ds.y[sel, i].mean()) for i, n in enumerate(LABEL_NAMES)},
-            "ac_n1_seconds_per_operating_point_mean": float(np.mean([r["ac_n1_seconds"] for r in okr])),
+            "label_rates": {n: float(ds.y[sel, i].mean()) if sel.any() else None
+                            for i, n in enumerate(LABEL_NAMES)},
+            "ac_n1_seconds_per_operating_point_mean": float(np.mean([r["ac_n1_seconds"] for r in okr]))
+            if okr else None,
             "feature_seconds_per_operating_point_mean": float(
                 np.mean([r["feature_seconds"] for r in okr])
-            ),
+            ) if okr else None,
             "generation_wall_seconds": meta["wall_seconds"],
             "command": meta["command"],
             "records": recs,
@@ -200,6 +203,7 @@ def cmd_assemble(a) -> None:
         "description": "Simulator-generated dataset for ML contingency screening: one row per "
         "(network, operating point, outaged branch). Labels come from pandapower AC N-1 power "
         "flows, NOT from historical outages.",
+        "provenance": "modeled",
         "dataset_file": {"path": "data/artifacts/stormml/dataset.npz", "sha256": _sha_file(DATASET),
                          "bytes": DATASET.stat().st_size},
         "rows": int(ds.X.shape[0]),
@@ -213,8 +217,17 @@ def cmd_assemble(a) -> None:
             "rng": "numpy default_rng([seed, crc32(network)])",
         },
         "label_definition": {
+            "primary": "Absolute post-outage thermal >100 % OR energised-bus voltage outside "
+                       "case limits OR AC numerical non-convergence; tolerance 1e-6 in % and pu.",
+            "secondary_aggravated": "Non-convergence OR new violation OR worsening of an existing "
+                                    "thermal violation by 5 percentage points or voltage excess "
+                                    "by 0.01 pu; this is NOT the primary absolute label.",
             "aggravation_pp": AGGRAVATION_PP,
             "aggravation_pu": AGGRAVATION_PU,
+            "islanding": "Separate diagnostic; converged islands with unsupplied load are not "
+                         "counted as numerical non-convergence. Disconnected MW retained per row.",
+            "power_flow": "NR max_iteration=30, numba=True, enforce_q_lims=False; warm-start from "
+                          "base AC then DC and flat retries. Only LoadflowNotConverged is caught.",
         },
         "networks": per_net,
         "versions": _versions(),
@@ -237,22 +250,33 @@ def cmd_evaluate(a) -> None:
     gen = json.loads((ART_DIR / "ml-screening-dataset.json").read_text())["payload"]
     ac = {n: v["ac_n1_seconds_per_operating_point_mean"] for n, v in gen["networks"].items()}
     ft = {n: v["feature_seconds_per_operating_point_mean"] for n, v in gen["networks"].items()}
-    jobs = [(operating_point_split(ds.seed, ds.op_id), t) for t in ("label", "thermal")]
-    jobs += [(leave_network_out_split(ds.network, ds.op_id, "case300"), t)
-             for t in ("label", "thermal")]
-    for held in ("case30", "case57", "case118"):
-        jobs.append((leave_network_out_split(ds.network, ds.op_id, held), "label"))
+    jobs = [(operating_point_split(ds.seed, ds.op_id), t) for t in ("label", "thermal", "aggravated")]
+    for held in sorted(set(ds.network.tolist())):
+        jobs += [(leave_network_out_split(ds.network, ds.op_id, held), t)
+                 for t in ("label", "aggravated")]
     results = []
     for i, (split, target) in enumerate(jobs):
         t0 = time.perf_counter()
         r = evaluate_split(ds, split, target, ac, ft, n_boot=a.n_boot, boot_seed=a.boot_seed + i)
         print(f"{split.name} target={target}: {time.perf_counter() - t0:.0f}s", flush=True)
+        if r["status"] != "ok":
+            print(f"  unavailable: {r['reason']}", flush=True)
+            results.append(r)
+            continue
         for name, m in r["models"].items():
             print(f"  {name:14s} PR-AUC {m['pr_auc']:.3f} ROC {m['roc_auc']:.3f} "
                   f"R@P.9 {m['recall_at_precision_0.9']:.3f} R@10 {m['recall_at_10']:.3f} "
                   f"F1 {m['at_threshold']['f1']:.3f}", flush=True)
         results.append(r)
+    for net, meta in gen["networks"].items():
+        if not meta["operating_points_accepted"]:
+            results.append({
+                "split": f"leave_network_out:{net}", "target": "label", "status": "unavailable",
+                "reason": "All requested base AC operating points failed; no valid N-1 test set.",
+                "attempted_operating_points": meta["operating_points_requested"],
+            })
     payload = {
+        "provenance": "modeled",
         "question": "Does ML trained on simulator-generated AC N-1 labels beat transparent DC-LODF "
         "and pre-loading screening, across operating points and across networks?",
         "label_note": "All labels are simulator-generated (pandapower AC power flow on PGLib-OPF "
@@ -264,7 +288,7 @@ def cmd_evaluate(a) -> None:
         "threads": {k: os.environ.get(k) for k in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS")},
     }
     _write_artifact("ml-screening-results", "multi:pglib-case30/57/118/300-ieee",
-                    f"uv run python -m stormml evaluate --n-boot {a.n_boot}",
+                    f"uv run python -m stormml evaluate --n-boot {a.n_boot} --boot-seed {a.boot_seed}",
                     [{"path": "data/artifacts/stormml/dataset.npz", "sha256": _sha_file(DATASET)}],
                     payload)
     _update_index({"artifact_id": "ml-screening-results", "kind": "benchmark",

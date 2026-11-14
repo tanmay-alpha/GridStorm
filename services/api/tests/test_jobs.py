@@ -5,16 +5,23 @@ import json
 import uuid
 from datetime import timedelta
 
-from conftest import NETWORK_ID, auth, run_job, scenario, wait_job
 from fastapi.testclient import TestClient
 
+from conftest import NETWORK_ID, auth, run_job, scenario, wait_job
 from gridstorm_api.db.models import SimulationJob, utcnow
 from gridstorm_api.main import create_app
 
 ALICE = uuid.UUID("11111111-1111-4111-8111-111111111111")
 BOB = uuid.UUID("22222222-2222-4222-8222-222222222222")
-RUN_STAGES = ["queued", "loading_network", "applying_scenario", "building_model", "solving",
-              "postprocessing", "done"]
+RUN_STAGES = [
+    "queued",
+    "loading_network",
+    "applying_scenario",
+    "building_model",
+    "solving",
+    "postprocessing",
+    "done",
+]
 
 
 def test_successful_job_lifecycle_and_artifact_integrity(client):
@@ -90,7 +97,9 @@ def test_engine_failure(client):
     r = client.get(f"/api/v1/simulations/{job['id']}/result")
     assert r.status_code == 409 and r.json()["error"]["code"] == "result_not_available"
     assert client.get(f"/api/v1/simulations/{job['id']}/metrics").status_code == 409
-    kinds = {a["kind"] for a in client.get(f"/api/v1/simulations/{job['id']}/artifacts").json()["items"]}
+    kinds = {
+        a["kind"] for a in client.get(f"/api/v1/simulations/{job['id']}/artifacts").json()["items"]
+    }
     assert kinds == {"scenario", "log"}
 
 
@@ -123,12 +132,14 @@ def test_memory_watchdog_kills_engine(client_factory):
 
 
 def test_cancel_running_and_queued(client):
-    r = client.post("/api/v1/simulations",
-                    json={"scenario": scenario("long", assumptions=["fake:sleep=30"])})
+    r = client.post(
+        "/api/v1/simulations", json={"scenario": scenario("long", assumptions=["fake:sleep=30"])}
+    )
     running_id = r.json()["id"]
     wait_job(client, running_id, until=lambda j: j["stage"] == "solving")
-    r = client.post("/api/v1/simulations",
-                    json={"scenario": scenario("waiting", assumptions=["fake:sleep=30"])})
+    r = client.post(
+        "/api/v1/simulations", json={"scenario": scenario("waiting", assumptions=["fake:sleep=30"])}
+    )
     queued = r.json()
     assert queued["status"] == "queued"  # one worker, busy
 
@@ -147,8 +158,9 @@ def test_cancel_running_and_queued(client):
 
 
 def test_private_jobs_are_isolated(client):
-    r = client.post("/api/v1/simulations", json={"scenario": scenario("alice-run")},
-                    headers=auth(ALICE))
+    r = client.post(
+        "/api/v1/simulations", json={"scenario": scenario("alice-run")}, headers=auth(ALICE)
+    )
     job = r.json()
     assert job["visibility"] == "private" and job["owner_id"] == str(ALICE)
     wait_job(client, job["id"], headers=auth(ALICE))
@@ -162,17 +174,23 @@ def test_private_jobs_are_isolated(client):
 
 
 def test_cancel_requires_owner(client):
-    r = client.post("/api/v1/simulations",
-                    json={"scenario": scenario("alice-pub", assumptions=["fake:sleep=30"]),
-                          "visibility": "public"},
-                    headers=auth(ALICE))
+    r = client.post(
+        "/api/v1/simulations",
+        json={
+            "scenario": scenario("alice-pub", assumptions=["fake:sleep=30"]),
+            "visibility": "public",
+        },
+        headers=auth(ALICE),
+    )
     job = r.json()
     assert job["visibility"] == "public"
     r = client.post(f"/api/v1/simulations/{job['id']}/cancel", headers=auth(BOB))
     assert r.status_code == 403 and r.json()["error"]["code"] == "not_owner"
     assert client.post(f"/api/v1/simulations/{job['id']}/cancel").status_code == 403
-    assert client.post(f"/api/v1/simulations/{job['id']}/cancel",
-                       headers=auth(ALICE)).status_code == 200
+    assert (
+        client.post(f"/api/v1/simulations/{job['id']}/cancel", headers=auth(ALICE)).status_code
+        == 200
+    )
     assert wait_job(client, job["id"])["status"] == "cancelled"
 
 
@@ -191,12 +209,19 @@ def test_restart_recovery(settings_factory):
 
                 sc = stormspec.Scenario.model_validate(spec)
                 job = SimulationJob(
-                    id=uuid.uuid4(), scenario_id=sid, scenario_hash=stormspec.scenario_hash(sc),
-                    spec=sc.model_dump(mode="json"), network_id=NETWORK_ID,
-                    execution_mode="live", status="running", stage="solving",
+                    id=uuid.uuid4(),
+                    scenario_id=sid,
+                    scenario_hash=stormspec.scenario_hash(sc),
+                    spec=sc.model_dump(mode="json"),
+                    network_id=NETWORK_ID,
+                    execution_mode="live",
+                    status="running",
+                    stage="solving",
                     stage_history=[{"stage": "queued", "at": "2026-01-01T00:00:00Z"}],
-                    attempts=attempts, worker_id="dead-host:1:abc",
-                    heartbeat_at=utcnow() - timedelta(minutes=10), started_at=utcnow(),
+                    attempts=attempts,
+                    worker_id="dead-host:1:abc",
+                    heartbeat_at=utcnow() - timedelta(minutes=10),
+                    started_at=utcnow(),
                     visibility="public",
                 )
                 s.add(job)
@@ -217,8 +242,9 @@ def test_precomputed_mode(client_factory):
     assert r.status_code == 202, r.text
     job = r.json()
     assert job["status"] == "completed" and job["execution_mode"] == "precomputed"
-    assert any(e.get("precomputed_artifact") == "pypsa/preset-base-result"
-               for e in job["stage_history"])
+    assert any(
+        e.get("precomputed_artifact") == "pypsa/preset-base-result" for e in job["stage_history"]
+    )
     result = client.get(f"/api/v1/simulations/{job['id']}/result").json()
     assert result["metrics"]["total_load_mwh"] == 400.0
     r = client.post("/api/v1/simulations", json={"scenario": scenario("not-precomputed")})
@@ -234,7 +260,9 @@ def test_workers_disabled_returns_503(client_factory):
 
 def test_simulation_rate_limit(client_factory):
     client = client_factory(rate_limit_sim_per_min=1.0, rate_limit_sim_burst=1)
-    assert client.post("/api/v1/simulations", json={"scenario": scenario("rl-1")}).status_code == 202
+    assert (
+        client.post("/api/v1/simulations", json={"scenario": scenario("rl-1")}).status_code == 202
+    )
     r = client.post("/api/v1/simulations", json={"scenario": scenario("rl-2")})
     assert r.status_code == 429
 

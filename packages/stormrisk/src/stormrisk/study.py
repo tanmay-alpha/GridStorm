@@ -42,8 +42,8 @@ class EngineRejected(Exception):
 STUDY_ASSUMPTIONS = [
     "Component unavailabilities are MODELLED inputs (see sampling_spec.outage_classes[].source); "
     "they are not observed failure statistics of the studied network.",
-    "Components fail independently of each other and of demand (no common-mode or "
-    "weather-correlated failures unless encoded in the class probabilities).",
+    "Components fail independently of each other and of demand; class probabilities do not "
+    "represent common-mode or weather-correlated failures.",
     "Every sampled outage lasts the whole study horizon (the PyPSA adapter supports topology "
     "changes for the whole horizon only); no repair or restoration within the horizon.",
     "Each sampled state is solved as a DC linearised optimal power flow (PyPSA LOPF, HiGHS) with "
@@ -119,13 +119,12 @@ def solve_state(engine: Engine, scenario: Scenario) -> dict[str, Any]:
     meta: dict[str, Any] = {}
     try:
         result = engine(scenario)
-    except Exception as exc:  # classified, never dropped
-        outcome = "invalid" if isinstance(exc, EngineRejected) else "error"
-        rec = _unsolved(outcome, f"{type(exc).__name__}: {exc}"[:500])
-    else:
         rec = classify_result(result)
         meta = {"engine": result.get("engine"),
                 "solver": {k: (result.get("solver") or {}).get(k) for k in ("name", "version")}}
+    except Exception as exc:  # engine and malformed-result errors are never dropped
+        outcome = "invalid" if isinstance(exc, EngineRejected) else "error"
+        rec = _unsolved(outcome, f"{type(exc).__name__}: {exc}"[:500])
     rec["wall_time_s"] = time.perf_counter() - t0
     rec["worker_peak_rss_mb"] = peak_rss_mb()
     rec["engine_meta"] = meta
@@ -167,6 +166,8 @@ def run_study(
     progress: Callable[[int, int], None] | None = None,
 ) -> dict[str, Any]:
     """Execute the study and return the ``stormrisk-study/1.0`` payload (unrounded)."""
+    if not isinstance(workers, int) or isinstance(workers, bool) or workers < 1:
+        raise StudyInputError("workers must be a positive integer")
     t_start = time.perf_counter()
     population, samples = prepare_study(base, spec, network)
 

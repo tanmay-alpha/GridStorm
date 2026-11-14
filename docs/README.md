@@ -17,13 +17,14 @@ teaching tool — not a live control system and not a validated blackout predict
 |---|---|
 | [architecture/overview.md](architecture/overview.md) | Components, principles, deployment split |
 | [architecture/contracts.md](architecture/contracts.md) | Binding interfaces: environments, dataset layout, StormSpec, result and artifact schemas, HTTP API |
+| [architecture/scientific-spec.md](architecture/scientific-spec.md) | PyPSA equations, metric definitions, assumptions and scientific limitations |
 | [decisions/](decisions/) | Architecture decision records (ADR 0001: engine isolation and deployment split) |
 
 ## Deployment and development
 
 | Document | Content |
 |---|---|
-| [deployment/local-development.md](deployment/local-development.md) | Per-component `uv` environments, running API and web locally, tests |
+| [deployment/local-development.md](deployment/local-development.md) | Per-component `uv` setup, SQLite, Docker Compose/Postgres, API/web commands and diagnostics |
 | [deployment/render.md](deployment/render.md) | API on Render (Docker), env vars, free-tier limits |
 | [deployment/vercel.md](deployment/vercel.md) | Web app on Vercel (`apps/web`) |
 | [deployment/supabase.md](deployment/supabase.md) | Postgres on Supabase: migrations, RLS, keys |
@@ -34,5 +35,6 @@ teaching tool — not a live control system and not a validated blackout predict
 | Location | Content |
 |---|---|
 | [research/](research/) | Literature and upstream research notes |
+| [research/compatibility-matrix.md](research/compatibility-matrix.md) | Published engine requirements and measured uv resolver evidence for environment isolation |
 | [audit/](audit/) | Audits of reused upstream projects (e.g. grid2viz) |
 | [benchmarks/](benchmarks/) | Benchmark reports |

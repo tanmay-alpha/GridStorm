@@ -19,7 +19,6 @@ from __future__ import annotations
 
 import copy
 import logging
-import math
 import warnings
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -196,6 +195,23 @@ def model_from_ppc(ppc: dict, network_id: str, source_path: Path | None = None) 
         logging.getLogger("pandapower").setLevel(logging.ERROR)
         net = from_ppc(ppc, f_hz=60, validate_conversion=False, check_costs=False)
     lookups = net._from_ppc_lookups
+    # MATPOWER's tap is always at F_BUS. The 3.5 converter sorts HV/LV buses but defaults
+    # every tap to HV, so reversed voltage levels otherwise change the branch admittance.
+    for r, lookup in lookups["branch"].iterrows():
+        if lookup.element_type != "trafo":
+            continue
+        index = int(lookup.element)
+        row = ppc["branch"][r]
+        if int(net.trafo.at[index, "hv_bus"]) == int(row[F_BUS]):
+            continue
+        ratio = float(row[TAP]) or 1.0
+        delta = 1.0 / ratio - 1.0
+        net.trafo.at[index, "tap_side"] = "lv"
+        net.trafo.at[index, "tap_step_percent"] = abs(delta) * 100.0
+        net.trafo.at[index, "tap_pos"] = float(np.sign(delta))
+        net.trafo.at[index, "vk_percent"] *= ratio**2
+        net.trafo.at[index, "vkr_percent"] *= ratio**2
+        net.trafo.at[index, "shift_degree"] = -float(row[SHIFT])
 
     # Loads: replace converter loads + negative-Pd sgens by one load per contract load id.
     neg_sgen = net.sgen.index[: int((bus[:, PD] < 0).sum())]
@@ -291,5 +307,3 @@ def resolve_case_file(network_id: str, network_dir: str | Path | None = None) ->
     return REFERENCE_DATA / "pglib" / name
 
 
-def is_finite(x: float | None) -> bool:
-    return x is not None and math.isfinite(x)

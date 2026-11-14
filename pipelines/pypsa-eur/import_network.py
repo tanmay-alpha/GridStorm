@@ -56,8 +56,8 @@ FIELD_PROVENANCE = {
     "links.p_nom_mw": "modeled",
     "links.efficiency": "modeled",
     "links.carrier": "modeled",
-    # Conventional capacities from powerplantmatching; renewables from the
-    # estimate_renewable_capacities step (IRENA statistics distributed by potential).
+    # Existing conventional and renewable capacities use powerplantmatching under
+    # the pinned tutorial's from_powerplantmatching: true configuration.
     "generators.p_nom_mw": "estimated",
     "generators.carrier": "observed",
     "generators.marginal_cost_eur_per_mwh": "modeled",
@@ -80,8 +80,8 @@ ASSUMPTIONS = [
     "2013-03-01..2013-03-08 averaged to 24 h, renewable profiles from the pre-built ERA5 cutout "
     "be-03-2013-era5.",
     "network.nc is the composed network before solve_network: extendable generators, storage, "
-    "H2 store/links and lines (transmission_limit vopt) carry capital costs; GridStorm dispatch "
-    "runs fix extendable capacities at their current p_nom.",
+    "H2 store/links and lines (transmission_limit vopt) carry capital costs; a plain "
+    "n.optimize() therefore solves capacity expansion, not fixed-capacity dispatch.",
     "Line ratings include dynamic line rating (max_line_rating 1.3) as time-varying s_max_pu; "
     "canonical s_nom_mva is the static nominal rating.",
     "Buses are k-means clusters of the OSM-derived transmission grid; coordinates are cluster "
@@ -89,7 +89,7 @@ ASSUMPTIONS = [
 ]
 
 QUALITY_FLAGS = [
-    "Snapshots are 24 h averages (8 snapshots); intra-day peaks are smoothed out.",
+    "Snapshots are 24 h averages; intra-day peaks are smoothed out.",
     "Load time series for BE 2013 come from OPSD/ENTSO-E (licence 'unknown' in the PyPSA-Eur data "
     "inventory); see license.redistribution.",
     "Capital-cost-bearing extendable components: a plain n.optimize() is a capacity-expansion "
@@ -97,7 +97,7 @@ QUALITY_FLAGS = [
 ]
 
 LICENSE = License(
-    spdx="ODbL-1.0 AND CC-BY-4.0 AND LicenseRef-ENTSOE-OPSD-unknown",
+    spdx="ODbL-1.0 AND CC-BY-4.0 AND LicenseRef-Copernicus-Land AND LicenseRef-ENTSOE-OPSD-unknown",
     url="https://pypsa-eur.readthedocs.io/en/latest/data_sources/",
     attribution=(
         "PyPSA-Eur contributors (code MIT, https://github.com/PyPSA/pypsa-eur); grid topology "
@@ -123,19 +123,20 @@ def main() -> None:
         raise SystemExit(f"{src} is {size} bytes > 10 MB contract limit")
     built_at = datetime.fromtimestamp(src.stat().st_mtime, UTC).replace(microsecond=0)
 
+    n = pypsa.Network(src)
+    print(f"loaded with pypsa {pypsa.__version__}: {n}")
+
+    canonical = from_pypsa(
+        n,
+        NETWORK_ID,
+        NAME,
+        field_provenance=FIELD_PROVENANCE,
+        assumptions=ASSUMPTIONS,
+    )
     out: Path = args.out
     out.mkdir(parents=True, exist_ok=True)
     nc = out / "network.nc"
     shutil.copyfile(src, nc)
-
-    n = pypsa.Network(nc)
-    print(f"loaded with pypsa {pypsa.__version__}: {n}")
-
-    canonical = from_pypsa(
-        n, NETWORK_ID, NAME,
-        field_provenance=FIELD_PROVENANCE,
-        assumptions=ASSUMPTIONS,
-    )
     write_text(out / "canonical.json", dump_json(canonical))
 
     snaps = canonical.snapshots
@@ -159,11 +160,17 @@ def main() -> None:
         coverage=Coverage(
             geographic="Belgium (BE), 5 clustered transmission buses",
             temporal=f"{snaps.start} .. {snaps.end}, {snaps.count} snapshots at "
-                     f"{snaps.resolution_h} h",
+            f"{snaps.resolution_h} h",
         ),
         units={
-            "v_nom": "kV", "p_nom": "MW", "s_nom": "MVA", "e_nom": "MWh", "x": "ohm (lines)",
-            "r": "ohm (lines)", "length": "km", "marginal_cost": "EUR/MWh",
+            "v_nom": "kV",
+            "p_nom": "MW",
+            "s_nom": "MVA",
+            "e_nom": "MWh",
+            "x": "ohm (lines)",
+            "r": "ohm (lines)",
+            "length": "km",
+            "marginal_cost": "EUR/MWh",
             "capital_cost": "EUR/MW/a (annuitised, per snapshot-weighted horizon)",
             "co2_emissions": "t/MWh",
         },

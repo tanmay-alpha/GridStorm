@@ -217,6 +217,7 @@ export interface NetworkSummary {
 
 /** GET /api/v1/networks/{id}: summary + manifest + assumptions. */
 export interface NetworkDetail extends NetworkSummary {
+  live_execution?: boolean
   manifest?: DatasetManifest | null
   assumptions?: string[]
   field_provenance?: Record<string, Provenance>

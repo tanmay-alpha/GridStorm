@@ -29,7 +29,6 @@ import shutil
 import signal
 import socket
 import subprocess
-import sys
 import tempfile
 import threading
 import time
@@ -198,28 +197,40 @@ class WorkerPool:
                 SimulationJob.worker_id != self.worker_id,
                 or_(
                     SimulationJob.heartbeat_at < stale_before,
-                    and_(SimulationJob.heartbeat_at.is_(None), SimulationJob.updated_at < stale_before),
+                    and_(
+                        SimulationJob.heartbeat_at.is_(None),
+                        SimulationJob.updated_at < stale_before,
+                    ),
                 ),
             )
         recovered = 0
         with self.ctx.db.session() as s:
             for job in s.scalars(select(SimulationJob).where(cond)).all():
-                values: dict[str, Any] = {"worker_id": None, "heartbeat_at": None, "updated_at": now}
+                values: dict[str, Any] = {
+                    "worker_id": None,
+                    "heartbeat_at": None,
+                    "updated_at": now,
+                }
                 if job.cancel_requested:
                     values.update(
-                        status="cancelled", finished_at=now,
+                        status="cancelled",
+                        finished_at=now,
                         error={"code": "cancelled", "message": "cancelled; worker was lost"},
                     )
                 elif job.attempts < self.settings.job_max_attempts:
                     values.update(
-                        status="queued", stage="queued", started_at=None,
+                        status="queued",
+                        stage="queued",
+                        started_at=None,
                         stage_history=[
-                            *job.stage_history, stage_event("queued", now, reason="worker_restart")
+                            *job.stage_history,
+                            stage_event("queued", now, reason="worker_restart"),
                         ],
                     )
                 else:
                     values.update(
-                        status="failed", finished_at=now,
+                        status="failed",
+                        finished_at=now,
                         error={
                             "code": "worker_restart",
                             "message": (
@@ -230,15 +241,25 @@ class WorkerPool:
                     )
                 res = s.execute(
                     update(SimulationJob)
-                    .where(SimulationJob.id == job.id, SimulationJob.status == "running",
-                           SimulationJob.worker_id.is_(job.worker_id) if job.worker_id is None
-                           else SimulationJob.worker_id == job.worker_id)
+                    .where(
+                        SimulationJob.id == job.id,
+                        SimulationJob.status == "running",
+                        SimulationJob.worker_id.is_(job.worker_id)
+                        if job.worker_id is None
+                        else SimulationJob.worker_id == job.worker_id,
+                    )
                     .values(**values)
                 )
                 if res.rowcount:
                     recovered += 1
-                    audit(s, None, "simulation.recover", "simulation_job", job.id,
-                          {"new_status": values["status"], "attempts": job.attempts})
+                    audit(
+                        s,
+                        None,
+                        "simulation.recover",
+                        "simulation_job",
+                        job.id,
+                        {"new_status": values["status"], "attempts": job.attempts},
+                    )
             s.commit()
         if recovered:
             log.warning("recovered %d stale running job(s)", recovered)
@@ -334,8 +355,9 @@ class WorkerPool:
         try:
             entry = self.ctx.catalog.get(network_id)
         except Exception as exc:
-            self._finish(job_id, status="failed",
-                         error={"code": "network_unavailable", "message": str(exc)})
+            self._finish(
+                job_id, status="failed", error={"code": "network_unavailable", "message": str(exc)}
+            )
             return
 
         workdir = Path(tempfile.mkdtemp(prefix="gridstorm-job-"))
@@ -346,8 +368,11 @@ class WorkerPool:
             scenario_path.write_text(json.dumps(spec, indent=2), encoding="utf-8")
             out_path = workdir / "result.json"
             argv = build_command(
-                settings.engine_cmd, python=settings.python_executable,
-                scenario=scenario_path, network_dir=entry.directory, out=out_path,
+                settings.engine_cmd,
+                python=settings.python_executable,
+                scenario=scenario_path,
+                network_dir=entry.directory,
+                out=out_path,
             )
             env = {
                 **os.environ,
@@ -363,14 +388,23 @@ class WorkerPool:
             if os.name == "posix":
                 popen_kw["start_new_session"] = True
             proc = subprocess.Popen(
-                argv, cwd=workdir, env=env, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE, text=True, encoding="utf-8", errors="replace",
-                bufsize=1, **popen_kw,
+                argv,
+                cwd=workdir,
+                env=env,
+                stdin=subprocess.DEVNULL,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                bufsize=1,
+                **popen_kw,
             )
         except OSError as exc:
             shutil.rmtree(workdir, ignore_errors=True)
-            self._finish(job_id, status="failed",
-                         error={"code": "engine_start_failed", "message": str(exc)})
+            self._finish(
+                job_id, status="failed", error={"code": "engine_start_failed", "message": str(exc)}
+            )
             return
 
         with self._lock:
@@ -390,8 +424,10 @@ class WorkerPool:
             for line in proc.stderr:
                 logbuf.add("[stderr] " + line)
 
-        readers = [threading.Thread(target=read_stdout, daemon=True),
-                   threading.Thread(target=read_stderr, daemon=True)]
+        readers = [
+            threading.Thread(target=read_stdout, daemon=True),
+            threading.Thread(target=read_stderr, daemon=True),
+        ]
         for r in readers:
             r.start()
 
@@ -408,8 +444,9 @@ class WorkerPool:
                 stage = stages.get(timeout=0.25)
                 history.append(stage_event(stage))
                 with self.ctx.db.session() as s:
-                    lost = not self._owned_update(s, job_id, stage=stage, stage_history=history,
-                                                  heartbeat_at=utcnow())
+                    lost = not self._owned_update(
+                        s, job_id, stage=stage, stage_history=history, heartbeat_at=utcnow()
+                    )
                     s.commit()
             except queue.Empty:
                 pass
@@ -429,8 +466,9 @@ class WorkerPool:
                 with self.ctx.db.session() as s:
                     lost = not self._owned_update(s, job_id, heartbeat_at=utcnow())
                     s.commit()
-                    if s.scalar(select(SimulationJob.cancel_requested)
-                                .where(SimulationJob.id == job_id)):
+                    if s.scalar(
+                        select(SimulationJob.cancel_requested).where(SimulationJob.id == job_id)
+                    ):
                         reason = "cancel"
             if lost and reason is None:
                 reason = "lost"
@@ -445,8 +483,9 @@ class WorkerPool:
             self._cancel.discard(job_id)
 
         try:
-            log_blob = self.ctx.store.put(logbuf.text().encode("utf-8"), ext="txt",
-                                          content_type="text/plain; charset=utf-8")
+            log_blob = self.ctx.store.put(
+                logbuf.text().encode("utf-8"), ext="txt", content_type="text/plain; charset=utf-8"
+            )
             if reason == "lost":
                 log.warning("job %s was taken over by recovery; result discarded", job_id)
                 return
@@ -454,12 +493,20 @@ class WorkerPool:
                 # shutdown killed the engine: leave the row for recovery to requeue
                 return
             if reason == "cancel":
-                self._finish(job_id, status="cancelled", history=history, log_blob=log_blob,
-                             error={"code": "cancelled", "message": "cancelled while running"})
+                self._finish(
+                    job_id,
+                    status="cancelled",
+                    history=history,
+                    log_blob=log_blob,
+                    error={"code": "cancelled", "message": "cancelled while running"},
+                )
                 return
             if reason == "memory":
                 self._finish(
-                    job_id, status="failed", history=history, log_blob=log_blob,
+                    job_id,
+                    status="failed",
+                    history=history,
+                    log_blob=log_blob,
                     error={
                         "code": "memory_limit",
                         "message": (
@@ -471,42 +518,71 @@ class WorkerPool:
                 return
             if reason == "timeout":
                 self._finish(
-                    job_id, status="timeout", history=history, log_blob=log_blob,
-                    error={"code": "timeout",
-                           "message": f"engine exceeded the {settings.job_timeout_s:g} s limit"},
+                    job_id,
+                    status="timeout",
+                    history=history,
+                    log_blob=log_blob,
+                    error={
+                        "code": "timeout",
+                        "message": f"engine exceeded the {settings.job_timeout_s:g} s limit",
+                    },
                 )
                 return
             if proc.returncode != 0 or not out_path.is_file():
                 tail = logbuf.last(2000)
                 code = "engine_out_of_memory" if "MemoryError" in tail else "engine_failed"
                 self._finish(
-                    job_id, status="failed", history=history, log_blob=log_blob,
-                    error={"code": code,
-                           "message": f"engine exited with code {proc.returncode}: {tail.strip()}"},
+                    job_id,
+                    status="failed",
+                    history=history,
+                    log_blob=log_blob,
+                    error={
+                        "code": code,
+                        "message": f"engine exited with code {proc.returncode}: {tail.strip()}",
+                    },
                 )
                 return
             data = out_path.read_bytes()
             try:
                 result = parse_result(data)
             except ValueError as exc:
-                self._finish(job_id, status="failed", history=history, log_blob=log_blob,
-                             error={"code": "invalid_result", "message": str(exc)})
+                self._finish(
+                    job_id,
+                    status="failed",
+                    history=history,
+                    log_blob=log_blob,
+                    error={"code": "invalid_result", "message": str(exc)},
+                )
                 return
             if result.get("scenario_hash") != expected_hash:
                 self._finish(
-                    job_id, status="failed", history=history, log_blob=log_blob,
-                    error={"code": "result_mismatch",
-                           "message": "engine result scenario_hash does not match the job"},
+                    job_id,
+                    status="failed",
+                    history=history,
+                    log_blob=log_blob,
+                    error={
+                        "code": "result_mismatch",
+                        "message": "engine result scenario_hash does not match the job",
+                    },
                 )
                 return
             blob = self.ctx.store.put(data, ext="json")
             error = None
             if result["outcome"] == "error":
                 warnings = "; ".join(str(w) for w in result.get("warnings") or [])
-                error = {"code": "engine_reported_error",
-                         "message": warnings or "engine reported outcome=error"}
-            self._finish(job_id, status="completed", history=history, log_blob=log_blob,
-                         result=result, result_blob=blob, error=error)
+                error = {
+                    "code": "engine_reported_error",
+                    "message": warnings or "engine reported outcome=error",
+                }
+            self._finish(
+                job_id,
+                status="completed",
+                history=history,
+                log_blob=log_blob,
+                result=result,
+                result_blob=blob,
+                error=error,
+            )
         finally:
             shutil.rmtree(workdir, ignore_errors=True)
 
@@ -522,13 +598,17 @@ class WorkerPool:
         result_blob: Any = None,
     ) -> None:
         values: dict[str, Any] = {
-            "status": status, "error": error, "finished_at": utcnow(), "heartbeat_at": None,
+            "status": status,
+            "error": error,
+            "finished_at": utcnow(),
+            "heartbeat_at": None,
         }
         if history is not None:
             values["stage_history"] = history
         if result is not None:
             values.update(
-                outcome=result["outcome"], solver=solver_summary(result),
+                outcome=result["outcome"],
+                solver=solver_summary(result),
                 result_sha256=result_blob.sha256,
             )
             if history is not None and (not history or history[-1]["stage"] != "done"):
@@ -539,8 +619,9 @@ class WorkerPool:
         with self.ctx.db.session() as s:
             if not self._owned_update(s, job_id, **values):
                 s.rollback()
-                log.warning("job %s no longer owned by %s; final state dropped", job_id,
-                            self.worker_id)
+                log.warning(
+                    "job %s no longer owned by %s; final state dropped", job_id, self.worker_id
+                )
                 return
             job = s.get(SimulationJob, job_id)
             assert job is not None

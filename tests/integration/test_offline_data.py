@@ -119,9 +119,9 @@ def test_canonical_consistency(entry: dict) -> None:
                 assert -180 <= b["x"] <= 180 and -90 <= b["y"] <= 90, b
     else:
         assert net["crs"] is None
-    # Capacity by carrier recomputed from generator rows.
+    # The canonical assumptions define capacity as generators plus storage units.
     cap: dict[str, float] = {}
-    for g in net["generators"]:
+    for g in [*net["generators"], *net["storage_units"]]:
         if g["p_nom_mw"] is not None:
             cap[g["carrier"]] = cap.get(g["carrier"], 0.0) + g["p_nom_mw"]
     for carrier, mw in net["summary"]["capacity_by_carrier_mw"].items():
@@ -219,10 +219,12 @@ def test_precomputed_pypsa_result_physics(name_result: tuple[str, dict]) -> None
     _, r = name_result
     manifest = r["manifest"]
     body = {k: v for k, v in r.items() if k != "manifest"}
+    # Independently implement the documented stable-result hash: omit runtime duration.
+    body["solver"] = {k: v for k, v in body["solver"].items() if k != "wall_time_s"}
     assert manifest["result_sha256"] == canonical_sha256(body), "result_sha256 mismatch"
     assert manifest["scenario_hash"] == r["scenario_hash"]
     if r["outcome"] != "feasible":
-        assert not r["series"].get("load_mw"), "non-feasible result carries series"
+        assert not (r["series"] or {}).get("load_mw"), "non-feasible result carries series"
         return
     w = r["snapshot_weightings_h"]
     s, m = r["series"], r["metrics"]

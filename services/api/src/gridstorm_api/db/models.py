@@ -111,7 +111,9 @@ class Profile(Timestamped, Base):
 class NetworkDataset(Timestamped, Base):
     __tablename__ = "network_datasets"
     __table_args__ = (
-        CheckConstraint(_in("coordinate_kind", ("geographic", "schematic")), name="coordinate_kind"),
+        CheckConstraint(
+            _in("coordinate_kind", ("geographic", "schematic")), name="coordinate_kind"
+        ),
     )
 
     id: Mapped[str] = mapped_column(Text, primary_key=True)

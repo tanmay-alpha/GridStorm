@@ -13,7 +13,7 @@ to the API (see [render.md](render.md)) over HTTPS.
 | Install command | `npm ci` (default; `apps/web/package-lock.json` is committed) | — |
 | Build command | `npm run build` (= `tsc -b && vite build`) | `apps/web/vercel.json`, `apps/web/package.json` |
 | Output directory | `dist` | `apps/web/vercel.json` |
-| Node.js | 20+ (developed on Node 24) | — |
+| Node.js | 24 LTS recommended; use a version supported by the locked Vite toolchain | `apps/web/package-lock.json` |
 
 `apps/web/vercel.json` also defines:
 
@@ -31,7 +31,8 @@ to the API (see [render.md](render.md)) over HTTPS.
 `VITE_*` variables are inlined into the JavaScript bundle **at build time** and are public. Never
 put a database URL, JWT secret or Supabase service-role key in a `VITE_*` variable. After changing
 `VITE_API_BASE_URL`, redeploy (a rebuild is required). If it is empty the app calls same-origin
-`/api/...`, which only works with the local Vite dev proxy.
+`/api/...`; local Vite development and preview servers proxy those requests, but the deployed
+static SPA has no API proxy.
 
 The API must allow the Vercel origin via CORS: set `GRIDSTORM_CORS_ORIGINS` on the API to the
 deployed origin(s), comma-separated (e.g.
@@ -41,7 +42,7 @@ ones you need.
 
 ## Steps (dashboard)
 
-1. *Add New → Project*, import `tanmay-alpha/GridStorm`.
+1. Open the existing `gridstorm` project, or import `tanmay-alpha/GridStorm` if creating it elsewhere.
 2. Set *Root Directory* to `apps/web`; Vercel picks up `vercel.json`.
 3. Add `VITE_API_BASE_URL` for Production (and Preview if desired).
 4. Deploy. Pushes to `main` deploy to production; other branches get preview URLs.
@@ -50,8 +51,7 @@ ones you need.
 
 ```bash
 npm i -g vercel
-cd apps/web
-vercel link          # choose/create project "gridstorm"
+vercel link --project gridstorm   # run at repository root for the apps/web-rooted project
 vercel env add VITE_API_BASE_URL production
 vercel --prod
 ```

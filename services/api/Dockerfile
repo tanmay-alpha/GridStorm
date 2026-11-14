@@ -51,7 +51,9 @@ ENV PATH=/app/services/api/.venv/bin:$PATH \
     GRIDSTORM_GIT_SHA=${GIT_SHA}
 
 RUN groupadd --system --gid 10001 gridstorm \
-    && useradd --system --uid 10001 --gid gridstorm --home-dir /app --no-create-home gridstorm
+    && useradd --system --uid 10001 --gid gridstorm --home-dir /app --no-create-home gridstorm \
+    && mkdir /state \
+    && chown gridstorm:gridstorm /state
 
 WORKDIR /app
 COPY --from=builder --chown=root:root /app /app

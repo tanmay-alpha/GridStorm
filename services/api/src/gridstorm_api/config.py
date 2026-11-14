@@ -18,6 +18,8 @@ DEFAULT_ENGINE_CMD = (
     "{python} -m gridstorm_pypsa run --scenario {scenario} --network-dir {network_dir} --out {out}"
 )
 
+DEFAULT_LIVE_NETWORKS = "ac-dc-meshed,pglib-case14-ieee,pglib-case118-ieee"
+
 
 def _env(name: str, default: str | None = None) -> str | None:
     value = os.environ.get(name)
@@ -77,6 +79,7 @@ class Settings:
     rate_limit_sim_burst: int = 3
 
     execution_mode: Literal["live", "precomputed"] = "live"
+    live_networks: set[str] = field(default_factory=lambda: set(DEFAULT_LIVE_NETWORKS.split(",")))
     run_workers: bool = True
     max_concurrent_jobs: int = 1
     engine_cmd: str = DEFAULT_ENGINE_CMD
@@ -130,6 +133,9 @@ class Settings:
     def resolved_artifact_dir(self) -> Path:
         return self.artifact_dir or (self.state_dir / "artifacts")
 
+    def live_execution(self, network_id: str) -> bool:
+        return self.execution_mode == "live" and network_id in self.live_networks
+
     @property
     def auth_enabled(self) -> bool:
         return bool(self.supabase_jwt_secret or self.supabase_url)
@@ -166,6 +172,11 @@ class Settings:
             rate_limit_sim_per_min=_env_float("GRIDSTORM_RATE_LIMIT_SIM_PER_MIN", 6.0),
             rate_limit_sim_burst=_env_int("GRIDSTORM_RATE_LIMIT_SIM_BURST", 3),
             execution_mode=mode,  # type: ignore[arg-type]
+            live_networks={
+                n.strip()
+                for n in os.environ.get("GRIDSTORM_LIVE_NETWORKS", DEFAULT_LIVE_NETWORKS).split(",")
+                if n.strip()
+            },
             run_workers=_env_bool("GRIDSTORM_RUN_WORKERS", True),
             max_concurrent_jobs=max(0, _env_int("GRIDSTORM_MAX_CONCURRENT_JOBS", 1)),
             engine_cmd=_env("GRIDSTORM_ENGINE_CMD", DEFAULT_ENGINE_CMD) or DEFAULT_ENGINE_CMD,

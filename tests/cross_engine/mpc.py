@@ -128,8 +128,8 @@ def ref_bus(case: dict) -> float:
     return float(refs[0])
 
 
-def fixed_dispatch(case: dict) -> dict:
-    """The dispatch every engine receives.
+def fixed_dispatch(case: dict, *, balance: bool = True) -> dict:
+    """The dispatch every engine receives (or original PG with ``balance=False``).
 
     PGLib PG columns are not a balanced dispatch (they are a warm start: e.g. case14 sums
     PG=199.5 MW vs PD=259 MW). In a DC power flow the slack absorbs the residual, so the result
@@ -154,17 +154,22 @@ def fixed_dispatch(case: dict) -> dict:
     room = np.where(on, gen[:, PMAX] - pg0 if residual >= 0 else pg0 - gen[:, PMIN], 0.0).clip(
         min=0.0
     )
-    if room.sum() < abs(residual):
+    if balance and room.sum() < abs(residual):
         raise ValueError(
             f"residual {residual:.3f} MW exceeds generator headroom {room.sum():.3f} MW"
         )
-    pg = pg0 + residual * room / room.sum() if residual else pg0.copy()
+    pg = pg0 + residual * room / room.sum() if balance and residual else pg0.copy()
     return {
         "gen_p_mw": {gen_id(i): float(pg[i]) for i in range(len(gen)) if on[i]},
         "load_p_mw": {load_id(b[BUS_I]): float(b[PD]) for b in bus if b[PD] != 0.0},
         "bus_gs_mw": {bus_id(b[BUS_I]): float(b[GS]) for b in bus if b[GS] != 0.0},
-        "allocation": "PGLib PG + residual pro rata to headroom",
-        "residual_allocated_mw": residual,
+        "allocation": (
+            "PGLib PG + residual pro rata to headroom"
+            if balance
+            else "unmodified PGLib PG; reference slack absorbs residual"
+        ),
+        "residual_allocated_mw": residual if balance else 0.0,
+        "slack_residual_mw": 0.0 if balance else residual,
         "slack_gen": gen_id(slack),
         "slack_bus": bus_id(rb),
         "slack_gen_p_mw": float(pg[slack]),

@@ -121,6 +121,7 @@ def test_job_lifecycle_and_result(client: httpx.Client, completed_job: dict, acd
     manifest = result["manifest"]
     assert manifest["scenario_hash"] == job["scenario_hash"]
     body = {k: v for k, v in result.items() if k != "manifest"}
+    body["solver"] = {k: v for k, v in body["solver"].items() if k != "wall_time_s"}
     assert manifest["result_sha256"] == canonical_sha256(body), "result_sha256 mismatch"
     assert job["result_sha256"] == manifest["result_sha256"]
 

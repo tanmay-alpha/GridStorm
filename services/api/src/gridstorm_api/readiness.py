@@ -15,7 +15,8 @@ _PROBE = (
     "print(json.dumps({'highspy': getattr(highspy, '__version__', None) or "
     "__import__('importlib.metadata').metadata.version('highspy'), "
     "'pypsa': pypsa.__version__, 'linopy': linopy.__version__, "
-    "'gridstorm_pypsa': __import__('importlib.util').util.find_spec('gridstorm_pypsa') is not None}))"
+    "'gridstorm_pypsa': "
+    "__import__('importlib.util').util.find_spec('gridstorm_pypsa') is not None}))"
 )
 
 
@@ -35,7 +36,10 @@ class SolverProbe:
                 return self._cached[1]
             try:
                 proc = subprocess.run(
-                    [self.python, "-c", _PROBE], capture_output=True, text=True, timeout=60,
+                    [self.python, "-c", _PROBE],
+                    capture_output=True,
+                    text=True,
+                    timeout=60,
                     check=False,
                 )
                 if proc.returncode == 0:

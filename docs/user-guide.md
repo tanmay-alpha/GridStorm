@@ -158,6 +158,9 @@ power-flow screening on research networks. Not an operational security assessmen
   contingencies, runtime, base-case loading/voltage, and a ranked table (rank, outage, class,
   severity as recorded in the artifact, max loading, min/max voltage magnitude [p.u.], islanded
   load [MW]). Selecting a contingency lists its overloaded branches and voltage violations.
+  The network schematic highlights the selected outage and affected branches. If the artifact
+  includes a top-K N-2 study, the page also shows its ranked pair-outage table; this is not an
+  exhaustive N-2 security certificate.
 - **Crisis Response Advisor**: crisis description, violations in the crisis state, the ranking
   objective, the acceptance rules (verbatim from the artifact), the recommendation (objective
   [EUR], load shed [MW], generation cost Δ [EUR], switching actions), crisis state vs state after
@@ -210,17 +213,17 @@ scenario horizon. Implemented in `workers/pypsa/src/gridstorm_pypsa/runner.py` u
 | Served load (`served_load_mwh`) | MWh | total load − unserved energy |
 | Peak load shed (`peak_load_shed_mw`) | MW | max_t P_shed,t |
 | Load-shed hours (`load_shed_hours`) | h | Σ Δt over snapshots with P_shed,t > 0.001 MW |
-| Total system cost (`total_system_cost_eur`) | EUR | LP objective (generation + load shedding at VOLL) |
+| Total system cost (`total_system_cost_eur`) | EUR | Solved dispatch objective, including generator, storage/link and other operating-cost terms present in the model, plus load shedding at VOLL; not merely a fuel-cost total |
 | Load-shedding cost (`load_shedding_cost_eur`) | EUR | Σ_t Σ_shed P_shed · VOLL · Δt |
-| Generation cost (`generation_cost_eur`) | EUR | total system cost − load-shedding cost |
+| Generation cost (`generation_cost_eur`) | EUR | total system cost − load-shedding cost; this field name includes any other non-shedding operating-cost terms in the objective |
 | Generation by carrier (`generation_by_carrier_mwh`) | MWh | Σ_t P_g,t · Δt per carrier (excluding shedding) |
 | Curtailment (`curtailment_mwh`, per carrier) | MWh | Σ_t max(0, p_max_pu · p_nom − P_dispatched) · Δt over variable generators |
 | Line loading (`loading_pct`; `max_/mean_line_loading_pct`) | % | 100 · \|p0\| / (s_nom · s_max_pu) per in-service line/transformer and snapshot; max and mean over all of them |
 | Congested branches (`congested_line_count`) | count | branches whose loading reaches ≥ 99.9 % at any snapshot |
-| Storage discharge / charge (`storage_discharge_mwh`, `storage_charge_mwh`) | MWh | Σ_t max(0, ±P_storage,t) · Δt |
+| Storage discharge / charge (`storage_discharge_mwh`, `storage_charge_mwh`) | MWh | Σ_t Σ_storage p_dispatch,t · Δt / Σ_t Σ_storage p_store,t · Δt, from the separate nonnegative discharge/charge variables (not the positive/negative parts of net fleet dispatch) |
 | CO₂ emissions (`co2_emissions_t`) | t | Σ_t Σ_g P_g,t · intensity(carrier) / efficiency · Δt; **null** (with a warning) when the dataset has no CO₂ intensities — a data gap, not "zero emissions" |
 | Mean marginal price (series) | EUR/MWh | mean over buses of the nodal-balance dual |
-| Balance residual (`balance_residual_max_mw`) | MW | max over snapshots and buses of the nodal balance residual recomputed from the solution; must be ≈ 0 (a sanity check, not physics) |
+| Balance residual (`balance_residual_max_mw`) | MW | maximum absolute nodal balance residual over snapshots and buses, recomputed from solved outputs; should be near zero within numerical tolerance |
 
 ### Probabilistic metrics
 
@@ -229,6 +232,13 @@ scenario horizon. Implemented in `workers/pypsa/src/gridstorm_pypsa/runner.py` u
 | EENS | MWh | Σ_s p_s · E_unserved,s over a complete, mutually exclusive scenario set (Σ p_s = 1); infeasible scenarios must not be included (`packages/stormspec/src/stormspec/eens.py`). In StormRisk Monte Carlo studies, p_s are sample weights. |
 | LOLP | – | Σ_s p_s · 1[E_unserved,s > tol]; Monte Carlo standard error √(LOLP(1 − LOLP)/N) (`packages/stormrisk/src/stormrisk/estimators.py`) |
 | SE(EENS), 95 % CI, CV | MWh, MWh, – | sample standard error of the estimator, EENS ± 1.96·SE (lower bound clipped at 0), SE/EENS |
+
+StormRisk uses frequency weights `p_s = c_s/N`, where `c_s` is the sampled state's count.
+Its sample variance is `S² = Σ_s c_s(E_s − EENS)²/(N − 1)` and `SE(EENS) = S/√N`.
+For `N = 1` the EENS standard error/interval are undefined; CV is also undefined when EENS is
+zero. The interval is a normal/CLT approximation, not a rare-event guarantee. Asset-importance
+shares describe co-occurrence with shedding, not causal attribution; multiple outages can make
+their shares sum to more than one.
 
 Both are only as meaningful as the outage probabilities supplied; GridStorm does not estimate
 failure rates itself.
@@ -290,6 +300,8 @@ artifact):
 | Disconnections / reconnections | connected→disconnected (resp. reverse) line transitions between consecutive valid states |
 | Actions | legal, non-do-nothing agent actions (illegal and scenario-forced actions excluded) |
 | Illegal actions | agent actions Grid2Op declared illegal (replaced by do-nothing) |
+| Blocked actions | agent actions replaced by do-nothing because they tried to reconnect a line within a scenario outage window |
+| Forced events | steps whose action was imposed by the scenario rather than chosen by the agent |
 | Cumulative reward | Σ of the environment reward over played steps, including the game-over step |
 | Mean / max ρ | over connected lines and valid played states |
 | Max topological distance | max over states of #disconnected lines + #substations with any element on bus 2 |
@@ -299,16 +311,18 @@ artifact):
 | | Live | Precomputed |
 |---|---|---|
 | Set by | `GRIDSTORM_EXECUTION_MODE=live` (default) | `GRIDSTORM_EXECUTION_MODE=precomputed` |
-| Simulations | Queued job; the PyPSA engine runs in a subprocess with time and memory limits | No computation: the job completes immediately from a committed `kind: simulation` artifact whose scenario hash matches, after verifying its `payload_sha256`; otherwise the request is refused with HTTP 409 (`precomputed_result_unavailable`) |
+| Simulations | Queued job; the PyPSA engine runs in a subprocess with time and memory limits | No simulation computation: loads a committed `kind: simulation` artifact matching the scenario hash. No match returns HTTP 409 (`precomputed_result_unavailable`); a declared payload hash mismatch returns 503 (`artifact_integrity_error`). |
 | Badge | *live run* | *precomputed* — "Loaded from a stored, reproducible artifact — not computed for this request" |
 
 Every job records its `execution_mode`. The Contingency, Operations and Benchmarks pages are always
 precomputed: pandapower N-1, the advisor, Grid2Op, StormBench and StormRisk run offline in their own
 environments and publish `gridstorm-artifact/1.0` files under `data/artifacts/<engine>/`.
 
-**Result reuse.** In either mode, a new job whose scenario hash, network (and dataset version) and
-execution mode match an earlier completed job with outcome `feasible` or `infeasible` is completed
-from that job and flagged *reused* (`services/api/src/gridstorm_api/jobs/service.py`).
+**Result reuse.** In live mode, when reuse is enabled, a new job whose scenario hash, network
+(and dataset version) and execution mode match an earlier completed job with outcome `feasible`
+or `infeasible` may complete from that job and is flagged *reused*. Precomputed mode loads the
+matching published artifact directly; it does not use the live-job reuse branch
+(`services/api/src/gridstorm_api/jobs/service.py`).
 
 ## 5. Job states
 
@@ -319,9 +333,10 @@ from that job and flagged *reused* (`services/api/src/gridstorm_api/jobs/service
 | `outcome` | `feasible`, `infeasible`, `error` | scientific: what did the optimiser conclude? |
 | `solver.termination_condition` | e.g. `optimal`, `infeasible`, `time_limit` | raw solver verdict |
 
-`status = completed` with `outcome = infeasible` is a legitimate result: demand cannot be met within
-network and generator limits (enable load shedding or relax the events). Infeasible results have
-empty series — no numbers are invented. Results are served only for `completed` jobs.
+`status = completed` with `outcome = infeasible` is legitimate: the configured constraints could
+not all be satisfied (enabling load shedding or relaxing events may help). Such results do not
+provide dispatch metrics/series/assets; missing values must not be read as zero. Results are
+served only for `completed` jobs.
 
 ## 6. Limitations
 
@@ -329,8 +344,8 @@ empty series — no numbers are invented. Results are served only for `completed
   horizon; costs are short-run marginal costs from the dataset. Every result lists its assumptions.
 - **Line/link outages in PyPSA must span the whole horizon**; partial windows are rejected, not
   approximated.
-- **Only PyPSA runs live.** AC N-1, advisor, Grid2Op, StormBench and StormRisk results are
-  precomputed artifacts and are not recomputed on request.
+- **Only PyPSA simulation jobs run live.** The API also computes network analytics. AC N-1,
+  advisor, Grid2Op, StormBench and StormRisk studies are precomputed, not recomputed on request.
 - **Comparisons are pairwise** and require two completed runs on the same network.
 - **Probabilistic metrics** (EENS, LOLP) depend entirely on the assumed outage probabilities.
 - **Grid2Op** episodes run on sandbox environments; survival is not evidence of operational safety.

@@ -29,9 +29,11 @@ offline, isolated envs: workers/pandapower, workers/advisor, workers/grid2op,
 
 ## 1. Dependency conflicts → one isolated environment per engine
 
-**Problem.** The three engines cannot share one Python environment. PyPSA 1.4 requires pandas 3,
-while pandapower 3.5.x and Grid2Op 1.12.x pin `pandas < 3` (versions verified on PyPI on 2026-11-14 and
-recorded in [`decisions/0001-architecture-and-environment-isolation.md`](decisions/0001-architecture-and-environment-isolation.md)).
+**Problem.** The target versions of all three engines cannot share one Python environment.
+PyPSA 1.4 requires pandas ≥ 3, while pandapower 3.5.6 and Grid2Op 1.12.6 require pandas < 3.
+The [compatibility matrix](research/compatibility-matrix.md) records published requirements,
+successful isolated resolutions and the combined resolver failures. pandapower and Grid2Op
+*can* coexist; their separate environments are an isolation choice, not another proven conflict.
 The committed lockfiles show the split as resolved by uv:
 
 | Lockfile | pandas | Engine |
@@ -49,7 +51,8 @@ reproducibility.
 ([`architecture/contracts.md` §1](architecture/contracts.md#1-python-environments-isolated-never-merged)):
 `services/api` (FastAPI + the PyPSA worker as a path dependency), `workers/pypsa`,
 `workers/pandapower`, `workers/advisor`, `workers/grid2op`, `packages/stormbench`,
-`packages/stormrisk`, … Each has its own `.python-version` and `uv.lock` (table above).
+`packages/stormrisk`, … Each has its own `uv.lock`; Python bounds live in `pyproject.toml`,
+and most components additionally have `.python-version`.
 
 **The trick that makes it work:** the shared packages `packages/stormspec` and
 `packages/canonical-grid` depend only on `pydantic>=2` (no pandas), so every environment can import
@@ -90,8 +93,8 @@ renewable/storage/link events it cannot represent (`workers/advisor/src/gridstor
 ## 3. Honest job states: infrastructure status ≠ solver termination
 
 **Problem.** "The job succeeded" conflates two independent facts: did the *process* finish, and what
-did the *optimiser* conclude? An infeasible scenario is a legitimate scientific outcome (the grid
-cannot be operated even with load shedding at VOLL), not a crash; a timeout is neither.
+did the *optimiser* conclude? An infeasible scenario is a legitimate scientific outcome (the
+configured constraints cannot all be satisfied), not a crash; a timeout is neither.
 
 **Decision.** The Job contract (contracts §6) carries separate fields:
 
@@ -110,10 +113,11 @@ run in a subprocess with a wall-clock timeout and memory limit (`GRIDSTORM_JOB_T
 bounded retries (`GRIDSTORM_JOB_MAX_ATTEMPTS`) and heartbeat-based stale-job detection
 (`GRIDSTORM_JOB_STALE_AFTER_S`), all in `services/api/src/gridstorm_api/config.py`.
 
-**Sanity check built into every result:** `balance_residual_max_mw` = max over snapshots and buses
-of the nodal balance residual recomputed from the solved outputs (`balance_residuals` in
-`workers/pypsa/src/gridstorm_pypsa/runner.py`). It must be ≈ 0; a non-zero value flags a
-post-processing bug rather than physics.
+**Sanity check on feasible outputs:** `balance_residual_max_mw` is the maximum absolute nodal
+balance residual over snapshots and buses, recomputed from solved component outputs
+(`balance_residuals` in `workers/pypsa/src/gridstorm_pypsa/runner.py`). It should be near zero
+within numerical tolerance; a large value indicates an inconsistency requiring investigation,
+not a new physical phenomenon.
 
 ## 4. Reproducibility: hashes, manifests, provenance
 
@@ -133,8 +137,9 @@ post-processing bug rather than physics.
   run, Grid2Op episode, benchmark) records the exact command, input hashes, platform and
   `payload_sha256` = SHA-256 of the canonical payload; each engine directory has an `index.json`.
   `scripts/compare_artifacts.py` compares artifacts.
-- **Provenance labels** on every number: `observed | estimated | synthetic | modeled | calculated`
-  (see [glossary](glossary.md#provenance-classes)). Missing values are `null`, never invented.
+- **Provenance vocabulary:** `observed | estimated | synthetic | modeled | calculated`
+  (see [glossary](glossary.md#provenance-classes)). Dataset/field provenance and result assumptions
+  carry context; not every displayed number has an individual provenance badge.
 
 ## 5. Screening vs exact contingency analysis
 
@@ -157,12 +162,19 @@ a full AC power flow and DC numbers never decide acceptance
 
 ## 6. Cross-engine verification
 
-Because engines live in different environments, agreement must be demonstrated by tests that run
-each engine separately on the same MATPOWER-derived case and compare artifacts (ids
-`bus-<BUS_I>`, `branch-<row>`, `gen-<row>`, `load-<BUS_I>` keep rows aligned across engines). The
-canonical checks are: StormBench's own DC flows vs pandapower `rundcpp` flows (bridge in
-`packages/stormbench/src/stormbench/pp_bridge.py`), and PyPSA DC flows vs pandapower DC flows
-(ADR 0001, "Consequences"). Differences are reported with tolerances, not hidden.
+The executable harness in `tests/cross_engine/run_all.py` invokes separate PyPSA and pandapower
+environments on aligned MATPOWER-derived cases. `tests/cross_engine/compare.py` compares DC
+branch flows and bus angles, effective reactances, and OPF objectives/dispatch; it distinguishes
+AC/DC model differences from implementation agreement. Its explicit tolerances include
+`1e-6 MW` for DC branch-flow agreement, `1e-6` relative objective difference and `0.01 MW` dispatch
+difference. Negative controls perturb modelling inputs to test whether the checks detect errors.
+The harness publishes artifacts under `data/artifacts/cross-engine/`; the Benchmarks page reads
+their per-check metrics, tolerances and verdicts. A published verdict applies only to its recorded
+case and check, not to arbitrary future scenarios.
+
+StormBench independently compares its DC sensitivities to pandapower through
+`packages/stormbench/src/stormbench/pp_bridge.py`. Agreement is evidence to inspect, not a blanket
+certification of either engine.
 
 ## 7. Render free tier → demo mode vs research mode
 
@@ -170,17 +182,18 @@ Render's free web service has 0.1 CPU / 512 MB RAM, spins down after 15 minutes 
 (about a minute to spin back up) and has an ephemeral filesystem lost on every restart, redeploy or
 spin-down (<https://render.com/docs/free>). Consequences in the design:
 
-- **Only PyPSA runs live** in the API (ADR 0001 §3). pandapower, advisor, Grid2Op, StormBench and
-  StormRisk studies run offline and are published as labelled precomputed artifacts
-  (`execution_mode: "precomputed"`), served read-only from `data/artifacts/` via
-  `services/api/src/gridstorm_api/precomputed.py`.
+- **Only PyPSA simulation jobs run live** in the API (ADR 0001 §3). The API also computes network
+  analytics; pandapower, advisor, Grid2Op, StormBench and StormRisk studies run offline and are
+  served from `data/artifacts/` through `services/api/src/gridstorm_api/precomputed.py`.
 - **Execution mode switch.** `GRIDSTORM_EXECUTION_MODE=live|precomputed`
   (`services/api/src/gridstorm_api/config.py`); every Job records `execution_mode`, so the UI can
   label results honestly.
-- **State must not live on the disk.** Jobs and metadata go to Postgres (Supabase) via
-  `DATABASE_URL`; SQLite (`.gridstorm/gridstorm.db`) is for local development and tests only.
-  Large payloads go to an ArtifactStore (`GRIDSTORM_ARTIFACT_STORE=local|s3`, S3-compatible such as
-  Cloudflare R2) — `services/api/src/gridstorm_api/storage.py`.
+- **Durability is explicit, not automatic.** With `DATABASE_URL`, jobs/metadata use Postgres.
+  Supabase provisioning currently awaits the user's terms acceptance, so the fallback is SQLite
+  (`var/gridstorm.db` locally; `/tmp/gridstorm/gridstorm.db` in the image), with no Render
+  durability. Generated payloads use an ArtifactStore (`GRIDSTORM_ARTIFACT_STORE=local|s3`);
+  only an external store preserves them across free-service resets
+  (`services/api/src/gridstorm_api/storage.py`).
 - **Limits are explicit:** concurrency 1, per-job timeout and memory cap, a queue bound
   (`GRIDSTORM_MAX_QUEUED_JOBS`) and token-bucket rate limits on POSTs and simulations
   (`GRIDSTORM_RATE_LIMIT_*`, `services/api/src/gridstorm_api/ratelimit.py`).

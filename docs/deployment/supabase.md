@@ -1,9 +1,11 @@
 # Supabase (Postgres + optional auth)
 
-GridStorm stores metadata, jobs, metrics, scenarios, comparisons and audit events in Postgres.
-Supabase's free plan is sufficient for the demo. Without `DATABASE_URL` the API falls back to a
-local SQLite file (`.gridstorm/gridstorm.db`), which is for development and tests only — on
-Render's free tier that file is lost on every restart, redeploy or spin-down.
+GridStorm supports Postgres for metadata, jobs, metrics, scenarios, comparisons and audit events.
+Supabase provisioning currently awaits the user's terms acceptance; do not assume a database has
+been provisioned. Without `DATABASE_URL`, the API uses SQLite at
+`<GRIDSTORM_STATE_DIR>/gridstorm.db` (default `var/gridstorm.db` from the repository root;
+`/tmp/gridstorm/gridstorm.db` in the Docker image). On Render Free this state is lost on restart,
+redeploy or spin-down. The free plan is a demo option, not a durability or capacity guarantee.
 
 ## 1. Create the project
 
@@ -42,12 +44,16 @@ Migrations live in `database/migrations/` and are applied in lexical order:
 
 ```bash
 cd services/api
+uv sync --locked --python 3.11
 DATABASE_URL='postgresql://...?sslmode=require' uv run python -m gridstorm_api.db.migrate
 ```
 
 The API can also apply them on startup with `GRIDSTORM_DB_AUTO_MIGRATE=true`.
 
 **Option B — psql:**
+
+Run the following from the repository root (a separate shell from Option A). Substitute your
+actual session-pooler URL; the example is not a working credential.
 
 ```bash
 export DATABASE_URL='postgresql://...?sslmode=require'

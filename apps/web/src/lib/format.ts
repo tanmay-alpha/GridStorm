@@ -104,6 +104,11 @@ export function formatDuration(seconds: number | null | undefined): string {
 
 export function formatTimestamp(iso: string | null | undefined): string {
   if (!iso) return NO_VALUE
+  // Network snapshot labels can be timezone-naive: preserve their model clock.
+  // Only timestamps carrying an explicit timezone are converted to UTC.
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?$/.test(iso)) {
+    return iso.replace('T', ' ').replace(/\.\d+$/, '').replace(/:00$/, '')
+  }
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return iso
   return d.toISOString().replace('T', ' ').replace(/\.\d+Z$/, 'Z').replace(/:00Z$/, 'Z')

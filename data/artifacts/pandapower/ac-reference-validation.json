@@ -1,0 +1,275 @@
+{
+  "artifact": {
+    "schema_version": "gridstorm-artifact/1.0",
+    "artifact_id": "ac-reference-validation",
+    "kind": "benchmark",
+    "engine": "pandapower",
+    "engine_version": "3.5.6",
+    "network_id": null,
+    "created_at": "2026-11-14T21:00:10Z",
+    "command": "cd workers/pandapower && uv run --locked python scripts/run_studies.py",
+    "inputs": [
+      {
+        "path": "workers/pandapower/reference_data/matpower/case118.m",
+        "sha256": "bc2e6f22b4b9e776572885ee4b50e4f4ab2ee0c5577e9126e86d906f14c4b5f7"
+      },
+      {
+        "path": "workers/pandapower/reference_data/matpower/case14.m",
+        "sha256": "2ffc4e1b734ae6c5e92dbe68b4e36010ed695a4bbcc4d065c74c4fbc39fcf3c1"
+      },
+      {
+        "path": "workers/pandapower/reference_data/matpower/case30.m",
+        "sha256": "3d9030311259b553be85d02336b7e1bcb24ec04775bee6671bdb62d18e4e2137"
+      },
+      {
+        "path": "workers/pandapower/reference_data/matpower/case300.m",
+        "sha256": "69a90280e999ef533d94656e0fbc08311f1347c962dd2753ff2005ff5e3f9ac5"
+      },
+      {
+        "path": "workers/pandapower/reference_data/matpower/case57.m",
+        "sha256": "2218325a6e8fe6c7b8b28202f523670459268075a6fd41b4959d66f17d47d28b"
+      },
+      {
+        "path": "workers/pandapower/reference_data/matpower/case9.m",
+        "sha256": "ee50fc7bf9f6019c0f3a3bc94d20978cc667b08f695dc725d00dbd998b358623"
+      },
+      {
+        "path": "workers/pandapower/reference_data/matpower/soln9_pf.mat",
+        "sha256": "ffa8e28cb1fc0e2b60ea52f21de40c8b15353ff37b7aaa97f93501ca514d126d"
+      },
+      {
+        "path": "workers/pandapower/reference_data/matpower/t_case9_pf.m",
+        "sha256": "c387e7de6538d1ce01167f7d6ddcf471f5cfc831f433f94495e28db7e4057549"
+      }
+    ],
+    "platform": "Windows-10-AMD64 Python 3.11.15",
+    "execution_mode": "precomputed",
+    "payload_sha256": "c9e3b59a22fc4f203cafa92aa7028b6a957fa8173cbd335a353855fbf0fed759"
+  },
+  "payload": {
+    "title": "AC power flow reference validation (pandapower vs MATPOWER/PYPOWER)",
+    "method": {
+      "power_flow": "pandapower.runpp Newton-Raphson, flat start",
+      "tolerance_mva": 1e-08,
+      "max_iteration": 30,
+      "enforce_q_lims": false,
+      "reference_pypower": "pypower.runpf (PF_ALG=1 Newton, PF_TOL = tolerance_mva/baseMVA)",
+      "angles": "differences wrapped to [-180, 180) degrees",
+      "tolerances": {
+        "vm_pu": 1e-06,
+        "va_deg": 0.0001,
+        "p_mw": 0.001,
+        "q_mvar": 0.001
+      }
+    },
+    "matpower_testsuite": {
+      "case": "t_case9_pf",
+      "reference": "MATPOWER soln9_pf.mat (lib/t)",
+      "max_abs_dvm_pu": 4.4409e-16,
+      "max_abs_dva_deg": 0.0,
+      "max_abs_dp_branch_mw": 1.4211e-13,
+      "max_abs_dq_branch_mvar": 8.3222e-13,
+      "losses_mw": 4.9547,
+      "reference_losses_mw": 4.9547,
+      "max_abs_dpg_mw": 5.6843e-14,
+      "max_abs_dqg_bus_mvar": 7.1454e-13,
+      "balance_residual_mw": -9.6634e-13,
+      "pass": true
+    },
+    "matpower_cases": [
+      {
+        "case": "case9",
+        "reference": "PYPOWER runpf on the same MATPOWER case",
+        "max_abs_dvm_pu": 2.2204e-16,
+        "max_abs_dva_deg": 0.0,
+        "max_abs_dp_branch_mw": 7.1054e-14,
+        "max_abs_dq_branch_mvar": 4.2633e-13,
+        "losses_mw": 4.641,
+        "reference_losses_mw": 4.641,
+        "max_abs_dpg_mw": 7.1054e-14,
+        "max_abs_dqg_bus_mvar": 3.4106e-13,
+        "balance_residual_mw": -4.6541e-13,
+        "pass": true,
+        "file_state_max_abs_dvm_pu": 0.04,
+        "file_state_max_abs_dva_deg": 9.28,
+        "conversion_notes": []
+      },
+      {
+        "case": "case14",
+        "reference": "PYPOWER runpf on the same MATPOWER case",
+        "max_abs_dvm_pu": 6.6613e-16,
+        "max_abs_dva_deg": 0.0,
+        "max_abs_dp_branch_mw": 3.9257e-13,
+        "max_abs_dq_branch_mvar": 1.2754e-12,
+        "losses_mw": 13.393,
+        "reference_losses_mw": 13.393,
+        "max_abs_dpg_mw": 1.4211e-13,
+        "max_abs_dqg_bus_mvar": 9.3792e-13,
+        "balance_residual_mw": -2.7711e-13,
+        "pass": true,
+        "file_state_max_abs_dvm_pu": 0.0013291,
+        "file_state_max_abs_dva_deg": 0.017099,
+        "conversion_notes": [
+          "14 bus(es) with baseKV <= 0 converted with baseKV = 1 kV (per-unit model unchanged)"
+        ]
+      },
+      {
+        "case": "case30",
+        "reference": "PYPOWER runpf on the same MATPOWER case",
+        "max_abs_dvm_pu": 9.7307e-11,
+        "max_abs_dva_deg": 1.1315e-08,
+        "max_abs_dp_branch_mw": 8.8397e-08,
+        "max_abs_dq_branch_mvar": 3.375e-08,
+        "losses_mw": 2.4438,
+        "reference_losses_mw": 2.4438,
+        "max_abs_dpg_mw": 7.9899e-08,
+        "max_abs_dqg_bus_mvar": 1.0801e-07,
+        "balance_residual_mw": -7.2863e-08,
+        "pass": true,
+        "file_state_max_abs_dvm_pu": 0.039376,
+        "file_state_max_abs_dva_deg": 3.9582,
+        "conversion_notes": []
+      },
+      {
+        "case": "case57",
+        "reference": "PYPOWER runpf on the same MATPOWER case",
+        "max_abs_dvm_pu": 2.0348e-12,
+        "max_abs_dva_deg": 1.1249e-10,
+        "max_abs_dp_branch_mw": 1.6608e-10,
+        "max_abs_dq_branch_mvar": 1.7739e-10,
+        "losses_mw": 27.864,
+        "reference_losses_mw": 27.864,
+        "max_abs_dpg_mw": 1.0078e-10,
+        "max_abs_dqg_bus_mvar": 7.222e-11,
+        "balance_residual_mw": -1.3663e-10,
+        "pass": true,
+        "file_state_max_abs_dvm_pu": 0.0097975,
+        "file_state_max_abs_dva_deg": 0.77393,
+        "conversion_notes": [
+          "57 bus(es) with baseKV <= 0 converted with baseKV = 1 kV (per-unit model unchanged)"
+        ]
+      },
+      {
+        "case": "case118",
+        "reference": "PYPOWER runpf on the same MATPOWER case",
+        "max_abs_dvm_pu": 2.6004e-12,
+        "max_abs_dva_deg": 2.9647e-10,
+        "max_abs_dp_branch_mw": 3.7287e-09,
+        "max_abs_dq_branch_mvar": 6.3828e-09,
+        "losses_mw": 132.86,
+        "reference_losses_mw": 132.86,
+        "max_abs_dpg_mw": 1.312e-08,
+        "max_abs_dqg_bus_mvar": 6.7784e-09,
+        "balance_residual_mw": -1.2281e-08,
+        "pass": true,
+        "file_state_max_abs_dvm_pu": 0.017333,
+        "file_state_max_abs_dva_deg": 0.30274,
+        "conversion_notes": []
+      },
+      {
+        "case": "case300",
+        "reference": "PYPOWER runpf on the same MATPOWER case",
+        "max_abs_dvm_pu": 0.10713,
+        "max_abs_dva_deg": 2.2554,
+        "max_abs_dp_branch_mw": 34.708,
+        "max_abs_dq_branch_mvar": 164.4,
+        "losses_mw": 421.77,
+        "reference_losses_mw": 408.32,
+        "max_abs_dpg_mw": 13.382,
+        "max_abs_dqg_bus_mvar": 164.4,
+        "balance_residual_mw": -1.4063e-10,
+        "pass": false,
+        "file_state_max_abs_dvm_pu": 0.10712,
+        "file_state_max_abs_dva_deg": 11.342,
+        "conversion_notes": []
+      }
+    ],
+    "pandapower_builtin": [
+      {
+        "case": "case9",
+        "reference": "PYPOWER runpf on PYPOWER's bundled case",
+        "max_abs_dvm_pu": 2.2204e-16,
+        "max_abs_dva_deg": 0.0,
+        "losses_mw": 4.9547,
+        "reference_losses_mw": 4.9547,
+        "abs_dlosses_mw": 3.5527e-15,
+        "slack_p_mw": 71.955,
+        "reference_slack_p_mw": 71.955,
+        "balance_residual_mw": -9.6634e-13,
+        "pass": true
+      },
+      {
+        "case": "case14",
+        "reference": "PYPOWER runpf on PYPOWER's bundled case",
+        "max_abs_dvm_pu": 8.8818e-16,
+        "max_abs_dva_deg": 5.6843e-14,
+        "losses_mw": 13.393,
+        "reference_losses_mw": 13.393,
+        "abs_dlosses_mw": 9.4147e-14,
+        "slack_p_mw": 232.39,
+        "reference_slack_p_mw": 232.39,
+        "balance_residual_mw": 3.908e-14,
+        "pass": true
+      },
+      {
+        "case": "case30",
+        "reference": "PYPOWER runpf on PYPOWER's bundled case",
+        "max_abs_dvm_pu": 9.7308e-11,
+        "max_abs_dva_deg": 1.1315e-08,
+        "losses_mw": 2.4438,
+        "reference_losses_mw": 2.4438,
+        "abs_dlosses_mw": 7.0359e-09,
+        "slack_p_mw": 25.974,
+        "reference_slack_p_mw": 25.974,
+        "balance_residual_mw": -7.2863e-08,
+        "pass": true
+      },
+      {
+        "case": "case57",
+        "reference": "PYPOWER runpf on PYPOWER's bundled case",
+        "max_abs_dvm_pu": 0.21602,
+        "max_abs_dva_deg": 4.533,
+        "losses_mw": 30.29,
+        "reference_losses_mw": 27.864,
+        "abs_dlosses_mw": 2.4265,
+        "slack_p_mw": 481.09,
+        "reference_slack_p_mw": 478.66,
+        "balance_residual_mw": -6.9633e-13,
+        "pass": false
+      },
+      {
+        "case": "case118",
+        "reference": "PYPOWER runpf on PYPOWER's bundled case",
+        "max_abs_dvm_pu": 0.013555,
+        "max_abs_dva_deg": 0.07345,
+        "losses_mw": 133.13,
+        "reference_losses_mw": 132.86,
+        "abs_dlosses_mw": 0.2628,
+        "slack_p_mw": 514.13,
+        "reference_slack_p_mw": 513.86,
+        "balance_residual_mw": -1.1462e-08,
+        "pass": false
+      },
+      {
+        "case": "case300",
+        "reference": "PYPOWER runpf on PYPOWER's bundled case",
+        "max_abs_dvm_pu": 0.10723,
+        "max_abs_dva_deg": 2.4048,
+        "losses_mw": 424.45,
+        "reference_losses_mw": 408.32,
+        "abs_dlosses_mw": 16.133,
+        "slack_p_mw": 472.01,
+        "reference_slack_p_mw": 455.95,
+        "balance_residual_mw": -7.725e-11,
+        "pass": false
+      }
+    ],
+    "summary": {
+      "all_pass": false,
+      "max_abs_dvm_pu": 0.21602,
+      "max_abs_dva_deg": 4.533,
+      "max_abs_dp_branch_mw": 34.708,
+      "max_abs_balance_residual_mw": 7.2863e-08
+    }
+  }
+}

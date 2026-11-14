@@ -71,7 +71,10 @@ class JWTVerifier:
             options = {"require": ["exp", "sub"]}
             if alg == "HS256" and self.secret:
                 claims = jwt.decode(
-                    token, self.secret, algorithms=["HS256"], audience=self.audience,
+                    token,
+                    self.secret,
+                    algorithms=["HS256"],
+                    audience=self.audience,
                     options=options,
                 )
             elif alg in _ASYMMETRIC and self.jwks_url:
@@ -80,16 +83,18 @@ class JWTVerifier:
                     token, key.key, algorithms=[alg], audience=self.audience, options=options
                 )
             else:
-                raise Unauthorized(
-                    f"unsupported token algorithm {alg!r}", code="invalid_token"
-                )
+                raise Unauthorized(f"unsupported token algorithm {alg!r}", code="invalid_token")
         except jwt.ExpiredSignatureError as exc:
             raise Unauthorized("token expired", code="token_expired") from exc
         except jwt.PyJWKClientError as exc:
             log.warning("JWKS lookup failed: %s", type(exc).__name__)
-            raise Unauthorized("token signing key could not be resolved", code="invalid_token") from exc
+            raise Unauthorized(
+                "token signing key could not be resolved", code="invalid_token"
+            ) from exc
         except jwt.InvalidTokenError as exc:
-            raise Unauthorized(f"invalid token ({type(exc).__name__})", code="invalid_token") from exc
+            raise Unauthorized(
+                f"invalid token ({type(exc).__name__})", code="invalid_token"
+            ) from exc
         try:
             user_id = uuid.UUID(str(claims["sub"]))
         except ValueError as exc:

@@ -6,8 +6,8 @@
   "engine": "stormbench",
   "engine_version": "stormbench 0.1.0 / pandapower 3.5.6",
   "network_id": "pglib-case14-ieee",
-  "created_at": "2026-11-14T16:19:50Z",
-  "command": "uv run python run_benchmark.py --out-dir D:\\New folder (4)\\GridStorm\\data\\artifacts\\stormbench --results-dir D:\\New folder (4)\\GridStorm\\benchmarks\\stormbench\\results",
+  "created_at": "2026-11-14T21:01:56Z",
+  "command": "uv run python ../../benchmarks/stormbench/run_benchmark.py",
   "inputs": [
    {
     "path": "benchmarks/stormbench/cases/pglib_opf_case14_ieee.m",
@@ -16,7 +16,7 @@
   ],
   "platform": "Windows 10 AMD64, Python 3.11.15",
   "execution_mode": "precomputed",
-  "payload_sha256": "f200b842e6f51d87ddc23653da5ef8b283c6066e411201bb7001ebd56a44f618"
+  "payload_sha256": "3cb1fd3a2168165ff603c89baf6f03717b43473d8b86dc1d93a24874e32bc8dc"
  },
  "payload": {
   "schema_version": "stormbench-result/1.0",
@@ -196,6 +196,189 @@
     "MKL_NUM_THREADS": "1",
     "NUMBA_NUM_THREADS": "1"
    }
-  }
+  },
+  "provenance": "calculated",
+  "contingencies": [
+   {
+    "branch_id": "branch-1",
+    "islanding": false,
+    "screening_severity_pct": 202.34374999999937,
+    "dc_exact_severity_pct": 202.34374999999986,
+    "ac_exact_severity_pct": 302.1972376220655,
+    "ac_status": "converged",
+    "new_voltage_violation": true
+   },
+   {
+    "branch_id": "branch-2",
+    "islanding": false,
+    "screening_severity_pct": 56.572392625799274,
+    "dc_exact_severity_pct": 56.57239262579934,
+    "ac_exact_severity_pct": 62.81567035140295,
+    "ac_status": "converged",
+    "new_voltage_violation": false
+   },
+   {
+    "branch_id": "branch-3",
+    "islanding": false,
+    "screening_severity_pct": 71.83844958174198,
+    "dc_exact_severity_pct": 71.83844958174198,
+    "ac_exact_severity_pct": 80.69928228636508,
+    "ac_status": "converged",
+    "new_voltage_violation": false
+   },
+   {
+    "branch_id": "branch-4",
+    "islanding": false,
+    "screening_severity_pct": 71.9079629422165,
+    "dc_exact_severity_pct": 71.90796294221647,
+    "ac_exact_severity_pct": 76.4032408393854,
+    "ac_status": "converged",
+    "new_voltage_violation": false
+   },
+   {
+    "branch_id": "branch-5",
+    "islanding": false,
+    "screening_severity_pct": 71.32448517870476,
+    "dc_exact_severity_pct": 71.3244851787048,
+    "ac_exact_severity_pct": 75.34770886535188,
+    "ac_status": "converged",
+    "new_voltage_violation": false
+   },
+   {
+    "branch_id": "branch-6",
+    "islanding": false,
+    "screening_severity_pct": 64.96551724137933,
+    "dc_exact_severity_pct": 64.96551724137932,
+    "ac_exact_severity_pct": 68.99613427096132,
+    "ac_status": "converged",
+    "new_voltage_violation": false
+   },
+   {
+    "branch_id": "branch-7",
+    "islanding": false,
+    "screening_severity_pct": 58.5422063584091,
+    "dc_exact_severity_pct": 58.54220635840913,
+    "ac_exact_severity_pct": 63.949804037693774,
+    "ac_status": "converged",
+    "new_voltage_violation": false
+   },
+   {
+    "branch_id": "branch-8",
+    "islanding": false,
+    "screening_severity_pct": 61.30447796346857,
+    "dc_exact_severity_pct": 61.30447796346855,
+    "ac_exact_severity_pct": 65.01916407744649,
+    "ac_status": "converged",
+    "new_voltage_violation": false
+   },
+   {
+    "branch_id": "branch-9",
+    "islanding": false,
+    "screening_severity_pct": 60.93419862652956,
+    "dc_exact_severity_pct": 60.934198626529565,
+    "ac_exact_severity_pct": 64.62063631264022,
+    "ac_status": "converged",
+    "new_voltage_violation": false
+   },
+   {
+    "branch_id": "branch-10",
+    "islanding": false,
+    "screening_severity_pct": 60.981455334682295,
+    "dc_exact_severity_pct": 60.98145533468236,
+    "ac_exact_severity_pct": 63.677404080977595,
+    "ac_status": "converged",
+    "new_voltage_violation": false
+   },
+   {
+    "branch_id": "branch-11",
+    "islanding": false,
+    "screening_severity_pct": 60.463657392420224,
+    "dc_exact_severity_pct": 60.46365739242019,
+    "ac_exact_severity_pct": 64.11204560147718,
+    "ac_status": "converged",
+    "new_voltage_violation": false
+   },
+   {
+    "branch_id": "branch-12",
+    "islanding": false,
+    "screening_severity_pct": 60.63309347279855,
+    "dc_exact_severity_pct": 60.63309347279863,
+    "ac_exact_severity_pct": 64.3674706441392,
+    "ac_status": "converged",
+    "new_voltage_violation": false
+   },
+   {
+    "branch_id": "branch-13",
+    "islanding": false,
+    "screening_severity_pct": 60.51546459372109,
+    "dc_exact_severity_pct": 60.51546459372108,
+    "ac_exact_severity_pct": 64.45250079739658,
+    "ac_status": "converged",
+    "new_voltage_violation": true
+   },
+   {
+    "branch_id": "branch-14",
+    "islanding": true,
+    "screening_severity_pct": null,
+    "dc_exact_severity_pct": null,
+    "ac_exact_severity_pct": null,
+    "ac_status": "islanding",
+    "new_voltage_violation": null
+   },
+   {
+    "branch_id": "branch-15",
+    "islanding": false,
+    "screening_severity_pct": 61.304477963468564,
+    "dc_exact_severity_pct": 61.30447796346857,
+    "ac_exact_severity_pct": 65.08446171856527,
+    "ac_status": "converged",
+    "new_voltage_violation": false
+   },
+   {
+    "branch_id": "branch-16",
+    "islanding": false,
+    "screening_severity_pct": 60.81650854044549,
+    "dc_exact_severity_pct": 60.81650854044548,
+    "ac_exact_severity_pct": 64.54440872829511,
+    "ac_status": "converged",
+    "new_voltage_violation": false
+   },
+   {
+    "branch_id": "branch-17",
+    "islanding": false,
+    "screening_severity_pct": 60.88131096083062,
+    "dc_exact_severity_pct": 60.88131096083064,
+    "ac_exact_severity_pct": 64.75218532203036,
+    "ac_status": "converged",
+    "new_voltage_violation": true
+   },
+   {
+    "branch_id": "branch-18",
+    "islanding": false,
+    "screening_severity_pct": 60.562455713867294,
+    "dc_exact_severity_pct": 60.562455713867315,
+    "ac_exact_severity_pct": 64.19539906566895,
+    "ac_status": "converged",
+    "new_voltage_violation": false
+   },
+   {
+    "branch_id": "branch-19",
+    "islanding": false,
+    "screening_severity_pct": 60.6520329694725,
+    "dc_exact_severity_pct": 60.65203296947256,
+    "ac_exact_severity_pct": 64.31247395239131,
+    "ac_status": "converged",
+    "new_voltage_violation": false
+   },
+   {
+    "branch_id": "branch-20",
+    "islanding": false,
+    "screening_severity_pct": 60.53159139798068,
+    "dc_exact_severity_pct": 60.53159139798073,
+    "ac_exact_severity_pct": 64.19390466202007,
+    "ac_status": "converged",
+    "new_voltage_violation": false
+   }
+  ]
  }
 }

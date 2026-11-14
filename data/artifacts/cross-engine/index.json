@@ -8,7 +8,7 @@
    "network_id": "pglib-case118-ieee",
    "title": "Cross-engine agreement (pandapower vs PyPSA vs MATPOWER formulas) \u2014 pglib-case118-ieee",
    "path": "cross-engine-pglib-case118-ieee.json",
-   "payload_sha256": "2a02d016337dc5e1de18cafa4e3e40359075e3fe326adf6b9781c7e3be7f6c98"
+   "payload_sha256": "3a05487b4961ba4037a6770a02abcf77f20c7c231da4d47b280e164433f2beb1"
   },
   {
    "artifact_id": "cross-engine-pglib-case14-ieee",
@@ -16,7 +16,7 @@
    "network_id": "pglib-case14-ieee",
    "title": "Cross-engine agreement (pandapower vs PyPSA vs MATPOWER formulas) \u2014 pglib-case14-ieee",
    "path": "cross-engine-pglib-case14-ieee.json",
-   "payload_sha256": "c05b6ba017d950df154eab9908b056c2424f51f75f81a273ecdede3ab04d0502"
+   "payload_sha256": "9dff833b306c60af4c3894f02171e2a763a4d0482ce99080e526c2a99786cae4"
   }
  ]
 }

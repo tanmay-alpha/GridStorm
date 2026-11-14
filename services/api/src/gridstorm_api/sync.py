@@ -121,8 +121,12 @@ def sync_catalog(session: Session, catalog: NetworkCatalog) -> dict[str, uuid.UU
             continue
         session.add(
             IngestionRun(
-                network_id=net_id, tool=TOOL, status="failed", started_at=utcnow(),
-                finished_at=utcnow(), details={"error": error},
+                network_id=net_id,
+                tool=TOOL,
+                status="failed",
+                started_at=utcnow(),
+                finished_at=utcnow(),
+                details={"error": error},
             )
         )
     session.commit()
@@ -165,9 +169,15 @@ def sync_presets(session: Session, catalog: NetworkCatalog, presets_dir: Any) ->
         if row is None:
             session.add(
                 ScenarioDefinition(
-                    id=sc.id, spec_id=sc.id, name=sc.name, network_id=sc.dataset.network_id,
-                    scenario_hash=outcome.scenario_hash, spec=normalized, is_preset=True,
-                    visibility="public", owner_id=None,
+                    id=sc.id,
+                    spec_id=sc.id,
+                    name=sc.name,
+                    network_id=sc.dataset.network_id,
+                    scenario_hash=outcome.scenario_hash,
+                    spec=normalized,
+                    is_preset=True,
+                    visibility="public",
+                    owner_id=None,
                 )
             )
         elif not row.is_preset:

@@ -8,8 +8,8 @@ from sqlalchemy import func, select
 from ..access import can_modify, can_read, resolve_visibility, visible
 from ..db.models import SimulationArtifact, SimulationJob, SimulationMetrics
 from ..deps import (
-    CurrentPrincipal,
     Ctx,
+    CurrentPrincipal,
     DBSession,
     Paging,
     parse_uuid,
@@ -39,7 +39,9 @@ _404 = {404: {"model": ErrorResponse}}
 def get_visible_job(session: Any, principal: Any, job_id: str) -> SimulationJob:
     job = session.get(SimulationJob, parse_uuid(job_id, "job"))
     if job is None or not can_read(job, principal):
-        raise NotFound(f"job {job_id!r} not found", code="job_not_found", details={"job_id": job_id})
+        raise NotFound(
+            f"job {job_id!r} not found", code="job_not_found", details={"job_id": job_id}
+        )
     return job
 
 
@@ -48,8 +50,12 @@ def get_visible_job(session: Any, principal: Any, job_id: str) -> SimulationJob:
     response_model=Job,
     status_code=202,
     dependencies=[Depends(rate_limit_post), Depends(rate_limit_simulations)],
-    responses={422: {"model": ErrorResponse}, 409: {"model": ErrorResponse},
-               503: {"model": ErrorResponse}, 429: {"model": ErrorResponse}},
+    responses={
+        422: {"model": ErrorResponse},
+        409: {"model": ErrorResponse},
+        503: {"model": ErrorResponse},
+        429: {"model": ErrorResponse},
+    },
     summary="Validate and enqueue a simulation (or reuse an identical completed result)",
     description="Body: `{scenario_id}` (preset or saved record id) or `{scenario: spec}`. "
     "In `GRIDSTORM_EXECUTION_MODE=precomputed` only scenarios with a committed precomputed "
@@ -69,11 +75,18 @@ def create_simulation(
         spec = body.scenario
     outcome = validate_spec(spec, ctx.catalog, for_execution=True)
     if not outcome.valid:
-        raise Unprocessable("scenario is invalid", code="scenario_invalid", details=outcome.report())
+        raise Unprocessable(
+            "scenario is invalid", code="scenario_invalid", details=outcome.report()
+        )
     visibility = resolve_visibility(requested, principal)
     job = create_job(
-        ctx, session, principal, outcome, scenario_record_id=record_id,
-        visibility=visibility, reuse=body.reuse,
+        ctx,
+        session,
+        principal,
+        outcome,
+        scenario_record_id=record_id,
+        visibility=visibility,
+        reuse=body.reuse,
     )
     return job_to_dict(job)
 
@@ -96,8 +109,11 @@ def list_simulations(
     if scenario_hash is not None:
         cond.append(SimulationJob.scenario_hash == scenario_hash)
     if mine:
-        cond.append(SimulationJob.owner_id == principal.user_id
-                    if principal.user_id else SimulationJob.owner_id.is_(None))
+        cond.append(
+            SimulationJob.owner_id == principal.user_id
+            if principal.user_id
+            else SimulationJob.owner_id.is_(None)
+        )
     total = session.scalar(select(func.count()).select_from(SimulationJob).where(*cond))
     rows = session.scalars(
         select(SimulationJob)
@@ -165,8 +181,10 @@ def simulation_metrics(
 @router.get(
     "/{job_id}/result",
     responses={
-        200: {"content": {"application/json": {}},
-              "description": "gridstorm-result/1.0 document, byte-identical to the stored artifact"},
+        200: {
+            "content": {"application/json": {}},
+            "description": "gridstorm-result/1.0 document, byte-identical to the stored artifact",
+        },
         **_404,
         409: {"model": ErrorResponse},
     },
@@ -183,7 +201,8 @@ def simulation_result(
         headers={
             "X-GridStorm-Result-SHA256": job.result_sha256 or "",
             "Cache-Control": "public, max-age=31536000, immutable"
-            if job.visibility == "public" else "private, max-age=3600",
+            if job.visibility == "public"
+            else "private, max-age=3600",
         },
     )
 

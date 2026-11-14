@@ -46,8 +46,10 @@ def _as_issue(item: Any) -> dict[str, str]:
     if isinstance(item, dict):
         get = item.get
     else:
+
         def get(k: str, default: Any = None) -> Any:
             return getattr(item, k, default)
+
     return _issue(str(get("code", "invalid")), str(get("path", "") or ""), str(get("message", "")))
 
 
@@ -61,9 +63,7 @@ def _loc(loc: tuple[Any, ...]) -> str:
     return out
 
 
-def validate_spec(
-    spec: Any, catalog: NetworkCatalog, *, for_execution: bool
-) -> ValidationOutcome:
+def validate_spec(spec: Any, catalog: NetworkCatalog, *, for_execution: bool) -> ValidationOutcome:
     out = ValidationOutcome()
     if not isinstance(spec, dict):
         out.errors.append(_issue("schema_error", "", "scenario must be a JSON object"))

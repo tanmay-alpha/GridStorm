@@ -178,5 +178,377 @@
    "MKL_NUM_THREADS": "1",
    "NUMBA_NUM_THREADS": "1"
   }
- }
+ },
+ "provenance": "calculated",
+ "contingencies": [
+  {
+   "branch_id": "branch-1",
+   "islanding": false,
+   "screening_severity_pct": 158.03997025193536,
+   "dc_exact_severity_pct": 158.0399702519352,
+   "ac_exact_severity_pct": 188.65475922926998,
+   "ac_status": "converged",
+   "new_voltage_violation": true
+  },
+  {
+   "branch_id": "branch-2",
+   "islanding": false,
+   "screening_severity_pct": 156.343449159502,
+   "dc_exact_severity_pct": 156.3434491595016,
+   "ac_exact_severity_pct": 69.62915019650856,
+   "ac_status": "converged",
+   "new_voltage_violation": false
+  },
+  {
+   "branch_id": "branch-3",
+   "islanding": false,
+   "screening_severity_pct": 87.63729264624084,
+   "dc_exact_severity_pct": 87.63729264624074,
+   "ac_exact_severity_pct": 71.38988745302977,
+   "ac_status": "converged",
+   "new_voltage_violation": false
+  },
+  {
+   "branch_id": "branch-4",
+   "islanding": false,
+   "screening_severity_pct": 154.60431872471938,
+   "dc_exact_severity_pct": 154.60431872471884,
+   "ac_exact_severity_pct": 69.30956499057041,
+   "ac_status": "converged",
+   "new_voltage_violation": false
+  },
+  {
+   "branch_id": "branch-5",
+   "islanding": false,
+   "screening_severity_pct": 87.40533371044634,
+   "dc_exact_severity_pct": 87.4053337104464,
+   "ac_exact_severity_pct": 94.03141531764504,
+   "ac_status": "converged",
+   "new_voltage_violation": false
+  },
+  {
+   "branch_id": "branch-6",
+   "islanding": false,
+   "screening_severity_pct": 87.1094466786067,
+   "dc_exact_severity_pct": 87.10944667860662,
+   "ac_exact_severity_pct": 84.4231220310487,
+   "ac_status": "converged",
+   "new_voltage_violation": false
+  },
+  {
+   "branch_id": "branch-7",
+   "islanding": false,
+   "screening_severity_pct": 114.86771941119983,
+   "dc_exact_severity_pct": 114.86771941119981,
+   "ac_exact_severity_pct": 90.26716517614754,
+   "ac_status": "converged",
+   "new_voltage_violation": false
+  },
+  {
+   "branch_id": "branch-8",
+   "islanding": false,
+   "screening_severity_pct": 102.47880064980471,
+   "dc_exact_severity_pct": 102.47880064980463,
+   "ac_exact_severity_pct": 69.4856598391062,
+   "ac_status": "converged",
+   "new_voltage_violation": false
+  },
+  {
+   "branch_id": "branch-9",
+   "islanding": false,
+   "screening_severity_pct": 106.12715570519082,
+   "dc_exact_severity_pct": 106.1271557051909,
+   "ac_exact_severity_pct": 87.26181959699716,
+   "ac_status": "converged",
+   "new_voltage_violation": false
+  },
+  {
+   "branch_id": "branch-10",
+   "islanding": false,
+   "screening_severity_pct": 99.97696537696524,
+   "dc_exact_severity_pct": 99.97696537696507,
+   "ac_exact_severity_pct": 65.533097780917,
+   "ac_status": "converged",
+   "new_voltage_violation": true
+  },
+  {
+   "branch_id": "branch-11",
+   "islanding": false,
+   "screening_severity_pct": 99.4830465131125,
+   "dc_exact_severity_pct": 99.48304651311243,
+   "ac_exact_severity_pct": 77.55922866844253,
+   "ac_status": "converged",
+   "new_voltage_violation": false
+  },
+  {
+   "branch_id": "branch-12",
+   "islanding": false,
+   "screening_severity_pct": 99.76762469331656,
+   "dc_exact_severity_pct": 99.76762469331648,
+   "ac_exact_severity_pct": 70.02554567163169,
+   "ac_status": "converged",
+   "new_voltage_violation": false
+  },
+  {
+   "branch_id": "branch-13",
+   "islanding": true,
+   "screening_severity_pct": null,
+   "dc_exact_severity_pct": null,
+   "ac_exact_severity_pct": null,
+   "ac_status": "islanding",
+   "new_voltage_violation": null
+  },
+  {
+   "branch_id": "branch-14",
+   "islanding": false,
+   "screening_severity_pct": 99.48304651311253,
+   "dc_exact_severity_pct": 99.4830465131122,
+   "ac_exact_severity_pct": 79.54154955587651,
+   "ac_status": "converged",
+   "new_voltage_violation": false
+  },
+  {
+   "branch_id": "branch-15",
+   "islanding": false,
+   "screening_severity_pct": 101.89568371392934,
+   "dc_exact_severity_pct": 101.8956837139291,
+   "ac_exact_severity_pct": 81.95407168663,
+   "ac_status": "converged",
+   "new_voltage_violation": false
+  },
+  {
+   "branch_id": "branch-16",
+   "islanding": true,
+   "screening_severity_pct": null,
+   "dc_exact_severity_pct": null,
+   "ac_exact_severity_pct": null,
+   "ac_status": "islanding",
+   "new_voltage_violation": null
+  },
+  {
+   "branch_id": "branch-17",
+   "islanding": false,
+   "screening_severity_pct": 100.03554201734505,
+   "dc_exact_severity_pct": 100.03554201734488,
+   "ac_exact_severity_pct": 85.72550375954332,
+   "ac_status": "converged",
+   "new_voltage_violation": false
+  },
+  {
+   "branch_id": "branch-18",
+   "islanding": false,
+   "screening_severity_pct": 100.18675094918,
+   "dc_exact_severity_pct": 100.18675094917988,
+   "ac_exact_severity_pct": 67.37359738077316,
+   "ac_status": "converged",
+   "new_voltage_violation": false
+  },
+  {
+   "branch_id": "branch-19",
+   "islanding": false,
+   "screening_severity_pct": 100.1446358534268,
+   "dc_exact_severity_pct": 100.14463585342666,
+   "ac_exact_severity_pct": 72.99209244379453,
+   "ac_status": "converged",
+   "new_voltage_violation": false
+  },
+  {
+   "branch_id": "branch-20",
+   "islanding": false,
+   "screening_severity_pct": 100.00640261118293,
+   "dc_exact_severity_pct": 100.00640261118284,
+   "ac_exact_severity_pct": 67.30004725112445,
+   "ac_status": "converged",
+   "new_voltage_violation": false
+  },
+  {
+   "branch_id": "branch-21",
+   "islanding": false,
+   "screening_severity_pct": 100.06789991839908,
+   "dc_exact_severity_pct": 100.0678999183989,
+   "ac_exact_severity_pct": 67.6992935177147,
+   "ac_status": "converged",
+   "new_voltage_violation": false
+  },
+  {
+   "branch_id": "branch-22",
+   "islanding": false,
+   "screening_severity_pct": 100.0869290016793,
+   "dc_exact_severity_pct": 100.0869290016794,
+   "ac_exact_severity_pct": 59.76274045810462,
+   "ac_status": "converged",
+   "new_voltage_violation": false
+  },
+  {
+   "branch_id": "branch-23",
+   "islanding": false,
+   "screening_severity_pct": 100.03854360738747,
+   "dc_exact_severity_pct": 100.03854360738742,
+   "ac_exact_severity_pct": 59.71097445652128,
+   "ac_status": "converged",
+   "new_voltage_violation": false
+  },
+  {
+   "branch_id": "branch-24",
+   "islanding": false,
+   "screening_severity_pct": 99.89489946808364,
+   "dc_exact_severity_pct": 99.89489946808357,
+   "ac_exact_severity_pct": 78.96340252555503,
+   "ac_status": "converged",
+   "new_voltage_violation": true
+  },
+  {
+   "branch_id": "branch-25",
+   "islanding": false,
+   "screening_severity_pct": 99.86163450950801,
+   "dc_exact_severity_pct": 99.86163450950801,
+   "ac_exact_severity_pct": 84.1007648163393,
+   "ac_status": "converged",
+   "new_voltage_violation": true
+  },
+  {
+   "branch_id": "branch-26",
+   "islanding": false,
+   "screening_severity_pct": 99.8705789426135,
+   "dc_exact_severity_pct": 99.87057894261339,
+   "ac_exact_severity_pct": 64.50472353723016,
+   "ac_status": "converged",
+   "new_voltage_violation": false
+  },
+  {
+   "branch_id": "branch-27",
+   "islanding": false,
+   "screening_severity_pct": 99.98612452586556,
+   "dc_exact_severity_pct": 99.98612452586528,
+   "ac_exact_severity_pct": 82.29138022560724,
+   "ac_status": "converged",
+   "new_voltage_violation": false
+  },
+  {
+   "branch_id": "branch-28",
+   "islanding": false,
+   "screening_severity_pct": 99.99535294595141,
+   "dc_exact_severity_pct": 99.99535294595125,
+   "ac_exact_severity_pct": 86.04562316452507,
+   "ac_status": "converged",
+   "new_voltage_violation": false
+  },
+  {
+   "branch_id": "branch-29",
+   "islanding": false,
+   "screening_severity_pct": 100.00205474014795,
+   "dc_exact_severity_pct": 100.00205474014763,
+   "ac_exact_severity_pct": 70.31160843280165,
+   "ac_status": "converged",
+   "new_voltage_violation": false
+  },
+  {
+   "branch_id": "branch-30",
+   "islanding": false,
+   "screening_severity_pct": 100.07472569022234,
+   "dc_exact_severity_pct": 100.07472569022228,
+   "ac_exact_severity_pct": 68.7531959762563,
+   "ac_status": "converged",
+   "new_voltage_violation": false
+  },
+  {
+   "branch_id": "branch-31",
+   "islanding": false,
+   "screening_severity_pct": 99.97611292531042,
+   "dc_exact_severity_pct": 99.97611292531009,
+   "ac_exact_severity_pct": 69.63670403067924,
+   "ac_status": "converged",
+   "new_voltage_violation": false
+  },
+  {
+   "branch_id": "branch-32",
+   "islanding": false,
+   "screening_severity_pct": 100.0196264342846,
+   "dc_exact_severity_pct": 100.01962643428449,
+   "ac_exact_severity_pct": 62.78739146521893,
+   "ac_status": "converged",
+   "new_voltage_violation": false
+  },
+  {
+   "branch_id": "branch-33",
+   "islanding": false,
+   "screening_severity_pct": 99.95792153480708,
+   "dc_exact_severity_pct": 99.95792153480713,
+   "ac_exact_severity_pct": 65.12990804239386,
+   "ac_status": "converged",
+   "new_voltage_violation": false
+  },
+  {
+   "branch_id": "branch-34",
+   "islanding": true,
+   "screening_severity_pct": null,
+   "dc_exact_severity_pct": null,
+   "ac_exact_severity_pct": null,
+   "ac_status": "islanding",
+   "new_voltage_violation": null
+  },
+  {
+   "branch_id": "branch-35",
+   "islanding": false,
+   "screening_severity_pct": 99.90031222112276,
+   "dc_exact_severity_pct": 99.90031222112259,
+   "ac_exact_severity_pct": 69.74653717197549,
+   "ac_status": "converged",
+   "new_voltage_violation": true
+  },
+  {
+   "branch_id": "branch-36",
+   "islanding": false,
+   "screening_severity_pct": 99.68633477029532,
+   "dc_exact_severity_pct": 99.68633477029519,
+   "ac_exact_severity_pct": 92.91180319169327,
+   "ac_status": "converged",
+   "new_voltage_violation": true
+  },
+  {
+   "branch_id": "branch-37",
+   "islanding": false,
+   "screening_severity_pct": 100.00000000000014,
+   "dc_exact_severity_pct": 100.00000000000009,
+   "ac_exact_severity_pct": 63.4870226067112,
+   "ac_status": "converged",
+   "new_voltage_violation": true
+  },
+  {
+   "branch_id": "branch-38",
+   "islanding": false,
+   "screening_severity_pct": 100.00000000000014,
+   "dc_exact_severity_pct": 100.00000000000014,
+   "ac_exact_severity_pct": 63.58086001222957,
+   "ac_status": "converged",
+   "new_voltage_violation": true
+  },
+  {
+   "branch_id": "branch-39",
+   "islanding": false,
+   "screening_severity_pct": 100.00000000000014,
+   "dc_exact_severity_pct": 100.00000000000017,
+   "ac_exact_severity_pct": 63.30451167969867,
+   "ac_status": "converged",
+   "new_voltage_violation": true
+  },
+  {
+   "branch_id": "branch-40",
+   "islanding": false,
+   "screening_severity_pct": 100.00030542652988,
+   "dc_exact_severity_pct": 100.00030542652964,
+   "ac_exact_severity_pct": 63.645297054227214,
+   "ac_status": "converged",
+   "new_voltage_violation": false
+  },
+  {
+   "branch_id": "branch-41",
+   "islanding": false,
+   "screening_severity_pct": 99.94654887982207,
+   "dc_exact_severity_pct": 99.94654887982198,
+   "ac_exact_severity_pct": 65.79765731569553,
+   "ac_status": "converged",
+   "new_voltage_violation": false
+  }
+ ]
 }

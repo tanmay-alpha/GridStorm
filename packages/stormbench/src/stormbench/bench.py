@@ -253,6 +253,39 @@ def exact_ac(case: MatpowerCase, dcnet: dc.DCNetwork, outages: np.ndarray) -> di
     }
 
 
+def contingency_rows(s: dict, d: dict, a: dict) -> list[dict]:
+    """Aligned, full-precision scores for independent metric reconstruction.
+
+    Do not round these scores: rounding nearly tied severities changes rank correlations.
+    Islanding and AC non-convergence remain explicit rather than receiving zero scores.
+    """
+    net = s["net"]
+    positions = {int(l): j for j, l in enumerate(s["outages"])}
+    rows = []
+    for l in range(net.n_branch):
+        j = positions.get(l)
+        row = {
+            "branch_id": f"branch-{int(net.branch_rows[l]) + 1}",
+            "islanding": bool(s["lodf"].islanding[l]),
+            "screening_severity_pct": None,
+            "dc_exact_severity_pct": None,
+            "ac_exact_severity_pct": None,
+            "ac_status": "islanding",
+            "new_voltage_violation": None,
+        }
+        if j is not None:
+            converged = a["status"][j] != "not_converged"
+            row.update(
+                screening_severity_pct=float(s["severity"][j]),
+                dc_exact_severity_pct=float(d["severity"][j]),
+                ac_exact_severity_pct=float(a["severity"][j]) if converged else None,
+                ac_status=str(a["status"][j]),
+                new_voltage_violation=bool(a["voltage_violation_new"][j]) if converged else None,
+            )
+        rows.append(row)
+    return rows
+
+
 def pandapower_reference(case: MatpowerCase, net: dc.DCNetwork) -> tuple[np.ndarray, np.ndarray]:
     """pandapower makePTDF/makeLODF on the same in-service network, renumbered 0..n-1."""
     from pandapower.pypower.idx_brch import branch_cols
@@ -354,6 +387,7 @@ def run_case(name: str, repeats: int = 3, memory: bool = True, log=print) -> dic
 
     payload = {
         "schema_version": "stormbench-result/1.0",
+        "provenance": "calculated",
         "case": name,
         "source": src,
         "operating_point": op,
@@ -428,7 +462,9 @@ def run_case(name: str, repeats: int = 3, memory: bool = True, log=print) -> dic
             "ac_exact_peak_tracemalloc_mib": _peak_mib(lambda: exact_ac(case, net, outages)),
             "process_rss_end_mib": psutil.Process().memory_info().rss / 2**20,
         }
-    return _sig(payload)
+    payload = _sig(payload)
+    payload["contingencies"] = contingency_rows(s, d, a)
+    return payload
 
 
 # ----------------------------------------------------------------------------- artifacts
@@ -492,6 +528,7 @@ def write_outputs(
     if summary:
         sp_ = {
             "schema_version": "stormbench-summary/1.0",
+            "provenance": "calculated",
             "threshold_pct": THRESHOLD,
             "cases": results,
             "platform": results[0]["platform"] if results else None,

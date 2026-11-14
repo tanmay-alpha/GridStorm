@@ -113,7 +113,7 @@ class NetworkCatalog:
         return self.networks_dir / "catalog.json"
 
     def _resolve_dir(self, net_id: str, path: str | None) -> Path:
-        """``path`` may be relative to the networks dir or to the repo root (``data/networks/x``)."""
+        """Resolve a path relative to networks/ or the repo root (``data/networks/x``)."""
         candidates: list[Path] = []
         if path:
             p = Path(path)

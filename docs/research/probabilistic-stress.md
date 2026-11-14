@@ -52,7 +52,8 @@ $$\mathrm{CV} = \mathrm{SE}/\widehat{\mathrm{EENS}},\qquad
 \mathrm{SE}(\widehat{\mathrm{LOLP}}) = \sqrt{\widehat{\mathrm{LOLP}}(1-\widehat{\mathrm{LOLP}})/N}$$
 
 * $\tau$ = `shed_tolerance_mwh` (studies below: $10^{-3}$ MWh). The lower CI bound is clipped at 0.
-* Also reported: mean unserved energy given shedding, 95th percentile and maximum of $E$.
+* The unconditional sample mean unserved energy is exactly the Monte Carlo EENS estimate.
+  Also reported: mean unserved energy given shedding, 95th percentile and maximum of $E$.
 * **Convergence trace**: running mean and CI half-width after $k$ samples in draw order
   (geometrically spaced $k$).
 * **Importance ranking** (descriptive only): for each component, samples in which it is out, how
@@ -66,15 +67,23 @@ $$\mathrm{CV} = \mathrm{SE}/\widehat{\mathrm{EENS}},\qquad
 ## Assumptions
 
 * Outage probabilities are **modelled**, not observed (each class carries its citation):
-  * Generators: forced outage rates from IEEE RTS-96 Table 6 (Grigg et al., "The IEEE Reliability
-    Test System-1996", *IEEE Trans. Power Syst.* 14(3):1010–1020, 1999): 0.02–0.12 by unit type
-    (coal/steam 350 MW 0.08, nuclear 400 MW 0.12, oil/steam 197 MW 0.05, oil CT 0.10).
-  * Lines: RTS-96 Table 12 normal-weather permanent outage rates 0.24–0.54 /yr with 10–16 h
-    duration give $q=\lambda r/8760\approx 3\cdot10^{-4}$–$10^{-3}$. Storm stress is represented
-    by scaling to $q=0.01$–$0.05$, within the one-to-two-orders-of-magnitude adverse-weather
-    envelope of the two-state weather model (Billinton & Allan, *Reliability Evaluation of Power
-    Systems*, 2nd ed., 1996). These are illustrative stress values.
-  * Transformers: RTS-96 0.02 /yr × 768 h → $q\approx0.002$ (not storm-scaled).
+  * Generators: [IEEE RTS-96 Table 6](https://labs.ece.uw.edu/pstca/rts/rts96/Table-06.txt)
+    gives forced outage rates 0.01–0.12 (including hydro), with thermal-unit values 0.02–0.12:
+    coal/steam 350 MW 0.08, nuclear 400 MW 0.12, oil/steam 197 MW 0.05, oil CT 0.10.
+    Citation: Grigg et al., "The IEEE Reliability Test System-1996", *IEEE Trans. Power Syst.*
+    14(3):1010–1020, 1999, [doi:10.1109/59.780914](https://doi.org/10.1109/59.780914).
+  * Lines: [RTS-96 Table 12](https://labs.ece.uw.edu/pstca/rts/rts96/Table-12.txt)
+    contains permanent outage rates 0.24–0.54 /yr and typical durations 10–16 h
+    (the A10/B10/C10 branches have 35 h). The rare-outage approximation
+    $q\approx\lambda r/8760$ gives order-$10^{-4}$ to order-$10^{-3}$ unavailability.
+    Study values $q=0.01$–$0.05$ are author-selected stress assumptions, **not** calibrated
+    weather-conditioned probabilities. Neither a storm multiplier nor a whole-horizon outage
+    probability is inferred from these stationary RTS data. The study input files retain their
+    original qualitative weather-model rationale; that rationale is not empirical validation.
+  * Transformers: RTS-96 Table 12 gives 0.02 /yr × 768 h,
+    hence $q\approx0.00175$, rounded to 0.002.
+  * Wind-farm and HVDC-link probabilities are illustrative proxies, not technology-specific
+    reliability statistics. Applying unit FORs to aggregated generator plants is a simplification.
 * Components fail **independently** of each other and of demand (no common-mode or spatially
   correlated storm damage).
 * Outages last the **whole horizon** (the PyPSA adapter supports whole-horizon topology changes
@@ -83,3 +92,26 @@ $$\mathrm{CV} = \mathrm{SE}/\widehat{\mathrm{EENS}},\qquad
   with load shedding at VOLL = 10 000 EUR/MWh: no AC feasibility, voltage, stability or
   protection behaviour.
 * Crude Monte Carlo: the CI covers sampling error only, not parameter or model uncertainty.
+
+## Reproduction and checks
+
+From the repository root (no paid services or external solver):
+
+```bash
+cd packages/stormrisk
+uv sync
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 uv run python scripts/run_study.py studies/ac-dc-meshed-storm-stress.json --workers 1
+```
+
+`--n-samples` and `--seed` can override the study file. A single worker avoids concurrent solver
+memory use; every study spec requests one HiGHS thread. `data/artifacts/stormrisk/index.json`
+indexes the contract-§5 artifact envelopes, including SHA-256 input and payload hashes, empirical
+state frequencies, sampled-state order, convergence trace, wall time, solve count and process peak
+RSS (MiB). Peak RSS is the process high-water mark, not an isolated solver allocation.
+
+Tests include hand-computed weighted estimator arithmetic, independent Bernoulli sampling versus
+an exactly enumerated toy expectation, deterministic sample/estimate reproduction, component-id
+collisions, and explicit infeasible/error/invalid accounting. A real-engine one-bus test checks
+power balance and the physically known 160/400 MWh supply-deficit energies with unequal snapshot
+weights; it then checks their empirical probability-weighted estimate. Published artifacts are
+checked independently from their stored state counts and energies, including the normal CI.

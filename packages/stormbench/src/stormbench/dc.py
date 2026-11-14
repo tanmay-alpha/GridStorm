@@ -255,6 +255,7 @@ def lodf(net: DCNetwork, H: np.ndarray | None = None) -> LODFResult:
     den = 1.0 - np.diag(Hll).copy()
     islanding = find_bridges(net.n_bus, net.f, net.t)
     numeric = np.abs(den) < ISLANDING_EPS
+    islanding |= numeric
     ok = ~islanding
     L = np.full_like(Hll, np.nan)
     L[:, ok] = Hll[:, ok] / den[ok]

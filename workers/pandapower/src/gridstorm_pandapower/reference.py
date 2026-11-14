@@ -11,8 +11,9 @@ Three comparisons, all with the fixed :data:`~gridstorm_pandapower.powerflow.PF_
    orientation, transformer model, shunts, loads) rather than the NR algorithm itself. The VM/VA
    columns stored in the MATPOWER files are also compared, for information only: they are not a
    consistent solved state for every case.
-3. ``pandapower_builtin`` — ``pandapower.networks.case*`` (pandapower's bundled conversions) vs
-   PYPOWER ``runpf`` on PYPOWER's bundled case of the same name (bus voltages, losses, slack P).
+3. ``pandapower_builtin`` — ``pandapower.networks.case*`` vs PYPOWER ``runpf`` on the
+   exact exported model. Same-named bundled cases differ in their transformer representations;
+   their voltage differences are retained as diagnostics, not mistaken for numerical errors.
 
 Power balance ``Σgen − Σload − Σshunt − losses`` is reported for every pandapower solution.
 """
@@ -27,6 +28,7 @@ import pandapower as pp
 import pandapower.networks as pn
 import scipy.io
 from pypower import api as pypower_api
+from pandapower.converter import to_ppc
 from pypower.api import ppoption, runpf
 
 from .model import BUS_I, REFERENCE_DATA, VA, VM, model_from_ppc, read_mpc
@@ -44,12 +46,17 @@ PF_COL, QF_COL, PT_COL, QT_COL = 13, 14, 15, 16
 
 
 def _pypower_runpf(ppc: dict) -> dict:
+    ppc = copy.deepcopy(ppc)
+    # Some PYPOWER bundled cases use integer generator arrays: runpf writes fractional slack P
+    # in place, so promote before solving rather than comparing a truncated reference.
+    for key in ("bus", "gen", "branch"):
+        ppc[key] = np.asarray(ppc[key], dtype=float)
     opt = ppoption(VERBOSE=0, OUT_ALL=0, PF_ALG=1,
                    PF_TOL=PF_OPTIONS["tolerance_mva"] / float(ppc["baseMVA"]),
                    PF_MAX_IT=PF_OPTIONS["max_iteration"], ENFORCE_Q_LIMS=0)
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        res, ok = runpf(copy.deepcopy(ppc), opt)
+        res, ok = runpf(ppc, opt)
     if not ok:
         raise RuntimeError("PYPOWER runpf did not converge")
     return res
@@ -157,15 +164,20 @@ def pandapower_builtin(cases: tuple[str, ...] = CASES) -> list[dict]:
     rows = []
     for name in cases:
         net = getattr(pn, name)()
-        ref = _pypower_runpf(getattr(pypower_api, name)())
+        bundled_ref = _pypower_runpf(getattr(pypower_api, name)())
+        exported = to_ppc(net, calculate_voltage_angles=True, init="flat", trafo_model="pi")
+        ref = _pypower_runpf(exported)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             pp.runpp(net, init="flat", **{k: v for k, v in PF_OPTIONS.items()})
-        names = net.bus.name.astype(int).values
-        refmap = {int(b): (vm, va) for b, vm, va in zip(ref["bus"][:, BUS_I], ref["bus"][:, VM],
-                                                          ref["bus"][:, VA], strict=True)}
-        rvm = np.array([refmap[b][0] for b in names])
-        rva = np.array([refmap[b][1] for b in names])
+        ids = exported["bus"][:, BUS_I].astype(int)
+        pp_indices = net._pd2ppc_lookups["bus"][net.bus.index]
+        refmap = {int(b): (vm, va) for b, vm, va in zip(
+            ref["bus"][:, BUS_I], ref["bus"][:, VM], ref["bus"][:, VA], strict=True)}
+        rvm = np.array([refmap[b][0] for b in pp_indices])
+        rva = np.array([refmap[b][1] for b in pp_indices])
+        bundled_map = {int(b[BUS_I]): b for b in bundled_ref["bus"]}
+        bundled_buses = np.array([bundled_map[int(b)] for b in net.bus.name])
         bal = power_balance(net)
         ref_losses = float(np.sum(ref["branch"][:, PF_COL] + ref["branch"][:, PT_COL]))
         slack_ref = float(sum(ref["gen"][k, PG_COL] for k in range(ref["gen"].shape[0])
@@ -173,7 +185,11 @@ def pandapower_builtin(cases: tuple[str, ...] = CASES) -> list[dict]:
                                   ref["bus"][ref["bus"][:, 1] == 3, BUS_I].astype(int))))
         row = {
             "case": name,
-            "reference": "PYPOWER runpf on PYPOWER's bundled case",
+            "reference": "PYPOWER runpf on exact exported pandapower builtin model",
+            "same_named_bundled_max_abs_dvm_pu": _max_abs(
+                net.res_bus.vm_pu.values, bundled_buses[:, VM]),
+            "same_named_bundled_max_abs_dva_deg": _angle_diff(
+                net.res_bus.va_degree.values, bundled_buses[:, VA]),
             "max_abs_dvm_pu": _max_abs(net.res_bus.vm_pu.values, rvm),
             "max_abs_dva_deg": _angle_diff(net.res_bus.va_degree.values, rva),
             "losses_mw": bal["losses_mw"],

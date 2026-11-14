@@ -6,13 +6,16 @@
  *   `payload.steps` reduced to rows 0–19 and the last 3 of 808 rows (incl. the game-over row); every other field
  *   verbatim (so `payload_sha256` refers to the full payload).
  * - grid2op-index-c0.json: the chronic-0 entries of data/artifacts/grid2op/index.json.
+ * - advisor-case14.json: data/artifacts/advisor/pglib-case14-ieee-loss-branch-3.json (verbatim copy).
  */
 import { describe, expect, it } from 'vitest'
 import type { ArtifactIndexItem } from '../../../api/types'
+import advisor from '../__fixtures__/advisor-case14.json'
 import crossEngine from '../__fixtures__/cross-engine-pglib-case14-ieee.json'
 import episodeDoc from '../__fixtures__/grid2op-episode-subset.json'
 import g2oIndex from '../__fixtures__/grid2op-index-c0.json'
 import stormbench from '../__fixtures__/stormbench-case14-ieee.json'
+import { parseAdvisor } from '../lib/advisor'
 import { parseCrossEngine, parseStormBench } from '../lib/bench'
 import { parseEpisode, rhoStats } from '../lib/episode'
 import { groupEpisodes, itemAgent } from '../lib/indexing'
@@ -20,7 +23,7 @@ import { ArtifactShapeError, artifactProvenance, parseArtifact } from '../lib/pa
 
 describe('parseArtifact', () => {
   it('accepts real artifact envelopes', () => {
-    for (const doc of [crossEngine, episodeDoc, stormbench]) {
+    for (const doc of [crossEngine, episodeDoc, stormbench, advisor]) {
       const a = parseArtifact(doc)
       expect(a.header.execution_mode).toBe('precomputed')
       expect(a.header.payload_sha256).toMatch(/^[0-9a-f]{64}$/)
@@ -99,5 +102,19 @@ describe('cross-engine', () => {
     expect(first.verdict).toBe('AGREES')
     expect(first.metrics.argmax).toBe('branch-1')
     expect(first.tolerance).toEqual({ metric: 'max_abs_diff_mw', value: 1e-6, unit: 'MW' })
+  })
+})
+
+describe('Crisis Advisor', () => {
+  it('keeps real rejected candidates and the exact verification scope', () => {
+    const run = parseAdvisor(parseArtifact(advisor).payload)
+    expect(run.crisisState?.nViolations).toBe(4)
+    expect(run.candidates.map((c) => c.status)).toEqual(['accepted', 'rejected'])
+    expect(run.candidates[0]?.objective?.objectiveEur).toBe(457537.72)
+    expect(run.candidates[1]?.rejectionReasons).toEqual(advisor.payload.candidates[1]!.rejection_reasons)
+    expect(run.recommendationId).toBe(advisor.payload.recommendation.candidate_id)
+    expect(run.objective.definition).toBe(advisor.payload.objective.definition)
+    expect(run.securityStatement).toBe(advisor.payload.security_statement)
+    expect(run.candidates[0]?.nMinus1?.n_contingencies).toBe(19)
   })
 })
