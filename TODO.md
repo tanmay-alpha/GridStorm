@@ -4,8 +4,9 @@ Statuses: `BACKLOG → RESEARCHED → IMPLEMENTING → TESTING → VERIFIED → 
 A task moves to VERIFIED only with recorded evidence (test output, artifact, screenshot) and to
 DEPLOYED only when observed live. Priorities: P0 (blocking demo) · P1 (core) · P2 (valuable) · P3 (optional).
 Owners: A Forensics · B Science (ScienceCore, ACValidation, CrisisAdvisor, StormBench, Sequential,
-PypsaEurBuilder) · C Frontend · D Data (DataPipelines, Research) · E Backend/Infra · F Verification ·
-I Integration owner.
+PypsaEurBuilder, StormRisk, CrossEngine) · C Frontend (Frontend, FrontendResearch) · D Data
+(DataPipelines, Research, ObservedEvents, ExplorerPort) · E Backend/Infra (Backend, CIDevOps) ·
+F Verification (Verifier) · I Integration owner.
 
 Last updated: 2026-11-14
 
@@ -27,7 +28,7 @@ Last updated: 2026-11-14
 
 | ID | Task | Pri | Owner | Deps | Status | Acceptance criteria |
 |---|---|---|---|---|---|---|
-| P1-01 | Public GitHub repo `tanmay-alpha/GridStorm` | P0 | I | P0-02 | IMPLEMENTING | Repo public, main pushed |
+| P1-01 | Public GitHub repo `tanmay-alpha/GridStorm` | P0 | I | P0-02 | VERIFIED | https://github.com/tanmay-alpha/GridStorm public; commit `ea921fc` pushed to `main` |
 | P1-02 | canonical-grid schemas + network importers (ac-dc-meshed, scigrid-de, PGLib case14/118) | P0 | D/DataPipelines | P0-03 | IMPLEMENTING | `data/networks/<id>/{network.nc,canonical.json,manifest.json}` validated; catalog.json |
 | P1-03 | Data catalog with provenance | P1 | D/DataPipelines | P1-02 | IMPLEMENTING | `data-catalog.md` lists all provenance fields per dataset |
 | P1-04 | PyPSA-Eur reduced Belgium network | P2 | B/PypsaEurBuilder | — | IMPLEMENTING | Network built + LOPF solved, or reproducible blocker report |
@@ -47,6 +48,8 @@ Last updated: 2026-11-14
 | P2-05 | Baseline vs crisis comparison + reports | P1 | E/Backend | P2-04 | IMPLEMENTING | Comparison math tests; MD/JSON report with manifests |
 | P2-06 | Crisis Studio + Simulation Dashboard UI | P0 | C/Frontend | P2-04 | IMPLEMENTING | Run preset end-to-end in browser; real stages; no % progress |
 | P2-07 | Scientific specification document | P1 | B/ScienceCore | P2-02 | IMPLEMENTING | `scientific-spec.md` with equations, units, citations |
+| P2-08 | StormRisk: Monte Carlo outage sampling → EENS ± CI, LOLP, convergence | P1 | B/StormRisk | P2-02 | IMPLEMENTING | Deterministic (seeded) study artifact; estimator tests vs hand-computed values |
+| P2-09 | Observed-analogue scenarios (OPSD load/wind/solar → StormSpec events on scigrid-de) | P2 | D/ObservedEvents | P1-02, P2-02 | IMPLEMENTING | ≥ 2 scenarios validate + solve; data license + checksums documented |
 
 ## Phase 3 — Mapping and analytics
 
@@ -64,7 +67,7 @@ Last updated: 2026-11-14
 | P4-02 | N-1 engine with explicit classification + ranking | P1 | B/ACValidation | P1-02 | IMPLEMENTING | Artifacts for case14/118 with class counts |
 | P4-03 | Warden audit | P2 | B/CrisisAdvisor | — | IMPLEMENTING | Reproduced vs unverified claims documented |
 | P4-04 | Crisis Response Advisor (deterministic, solver-verified) | P1 | B/CrisisAdvisor | P4-02 | IMPLEMENTING | ≥ 3 artifacts with accepted/rejected candidates; tests |
-| P4-05 | Cross-engine check PyPSA LPF vs pandapower DC PF on same PGLib case | P1 | F | P1-02, P4-01 | BACKLOG | Branch flow max abs diff reported (two envs, artifact exchange) |
+| P4-05 | Cross-engine check PyPSA LPF vs pandapower DC/AC PF on same PGLib case | P1 | B/CrossEngine | P1-02, P4-01 | IMPLEMENTING | Branch flow max abs diff reported for ≥ 2 cases with verdicts; reproducible script |
 
 ## Phase 5 — Sequential operations and research
 
@@ -73,7 +76,7 @@ Last updated: 2026-11-14
 | P5-01 | Grid2Op episodes (≥ 3 agents × ≥ 2 chronics) + KPIs | P1 | B/Sequential | — | IMPLEMENTING | Deterministic trace hashes; artifacts |
 | P5-02 | Grid2Viz audit (MPL-2.0) and KPI concepts | P2 | B/Sequential | — | IMPLEMENTING | `grid2viz-audit.md` |
 | P5-03 | StormBench PTDF/LODF screening vs DC/AC exact N-1 | P1 | B/StormBench | — | IMPLEMENTING | ≥ 5 cases; recall/precision/runtime/memory measured |
-| P5-04 | Operations replay + Benchmarks + Contingency UI pages | P1 | C/Frontend | P4-02, P5-01, P5-03 | IMPLEMENTING | Pages render real artifacts |
+| P5-04 | Operations replay + Benchmarks + Contingency + Methods UI pages | P1 | C/FrontendResearch | P4-02, P5-01, P5-03 | IMPLEMENTING | Pages render real artifacts; unit tests use fixtures copied from real artifacts |
 | P5-05 | Optional ML on simulation-derived labels | P3 | — | P5-03 | BACKLOG | Only with chronological/network-aware splits and heuristic baselines |
 
 ## Phase 6 — Deployment and hardening
@@ -81,10 +84,10 @@ Last updated: 2026-11-14
 | ID | Task | Pri | Owner | Deps | Status | Acceptance criteria |
 |---|---|---|---|---|---|---|
 | P6-01 | Dockerfile, docker-compose, render.yaml | P0 | E/Backend | P1-06 | IMPLEMENTING | Image builds; `/health` 200 in container |
-| P6-02 | Supabase project (free) + migrations applied | P0 | I/E | P1-07 | BACKLOG | `/ready` database check ok against Supabase |
+| P6-02 | Supabase project (free plan via Vercel Marketplace, fra1) + migrations applied | P0 | I/E | P1-07 | BLOCKED (user action) | Terms acceptance needed at vercel.com/…/accept-terms/supabase; then `/ready` database check ok against Supabase |
 | P6-03 | Render deployment (free web service) | P0 | I/E | P6-01 | BACKLOG | Live `/health` and `/ready` |
-| P6-04 | Vercel deployment of apps/web | P0 | I/C | P1-08 | BACKLOG | Live URL loads; API reachable (CORS) |
+| P6-04 | Vercel deployment of apps/web | P0 | I/C | P1-08 | IMPLEMENTING | Vercel project `gridstorm` created (tanmay-alphas-projects); live URL loads; API reachable (CORS) |
 | P6-05 | Artifact storage (R2 if available, else local + committed artifacts) | P2 | E | P2-04 | BACKLOG | Documented choice; integrity test |
-| P6-06 | GitHub Actions CI (lint, types, tests per env, web build, API smoke) | P0 | I | P1-06, P1-08 | BACKLOG | Green CI run on main |
-| P6-07 | Independent verification + live browser audit | P0 | F | P6-03, P6-04 | BACKLOG | `docs/audit/verification-report.md` with evidence |
-| P6-08 | Security: secret scan, dependency audit (pip-audit, npm audit), container scan | P1 | F | P6-01 | BACKLOG | Findings recorded and triaged |
+| P6-06 | GitHub Actions CI (lint, types, tests per env, web build, API smoke, actionlint) | P0 | E/CIDevOps | P1-06, P1-08 | IMPLEMENTING | actionlint clean; `scripts/test_all.sh` real summary; green CI run on main |
+| P6-07 | Independent verification (components, science spot checks, API black-box, live browser audit) | P0 | F/Verifier | all | IMPLEMENTING | `docs/audit/verification-report.md` + `issues.md` with reproducible evidence |
+| P6-08 | Security: secret scan, dependency audit (pip-audit, npm audit), container scan, authz tests | P1 | F/Verifier + E/CIDevOps | P6-01 | IMPLEMENTING | Findings recorded and triaged in `docs/audit/issues.md` |
