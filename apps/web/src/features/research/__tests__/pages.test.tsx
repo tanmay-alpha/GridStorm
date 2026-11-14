@@ -155,7 +155,7 @@ describe('MethodsPage', () => {
     wrap(<MethodsPage />)
     expect(screen.getByText('Not a real-time control system.')).toBeInTheDocument()
     expect(screen.getByText(/Dispatch-only LOPF fixes capacities/)).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Scientific specification — PyPSA LOPF' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: /^Scientific specification — PyPSA LOPF/ })).toHaveAttribute(
       'href', 'https://github.com/tanmay-alpha/GridStorm/blob/main/docs/architecture/scientific-spec.md',
     )
     expect(document.querySelectorAll('.katex').length).toBeGreaterThan(0)

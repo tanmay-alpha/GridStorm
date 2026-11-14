@@ -108,6 +108,7 @@ def top_elements(
     return out
 
 
-def energy_mwh(power_mw: np.ndarray, dt_h: float) -> float:
-    """Rectangle-rule energy of a per-step power series (NaN steps excluded)."""
-    return float(np.nansum(np.asarray(power_mw, dtype=float)) * dt_h)
+def energy_mwh(power_mw: np.ndarray, dt_h: float) -> float | None:
+    """Rectangle-rule energy over known steps; no known values means unknown, not zero."""
+    power = np.asarray(power_mw, dtype=float)
+    return float(np.nansum(power) * dt_h) if np.isfinite(power).any() else None

@@ -4,12 +4,11 @@ One study = one SimBench grid code, one contiguous window of the SimBench 2016 p
 resolution), optional stress factors on load and PV, and an optional mitigation built only from
 existing pandapower machinery:
 
-* ``pv_feed_in_cap_pu``: static active-power feed-in limit per PV unit, ``p <= cap * sn_mva``
-  (the German "70 % rule", EEG 2012 §6(2) / EEG 2017 §9(2)); applied to the profile before the
-  power flow, the curtailed energy is reported.
-* ``q_u_control``: reactive power voltage control Q(U) of every PV unit with
-  ``pandapower.control.DERController`` + ``QModelQVCurve`` inside the VDE AR-N 4105 PQV area
-  (variant 2, ``|q| <= 0.484 * sn_mva`` i.e. cos phi 0.9).
+* ``pv_feed_in_cap_pu``: modeled static active-power limit per PV unit,
+  ``p <= cap * sn_mva``; applied before the power flow, with curtailed energy reported.
+* ``q_u_control``: stylised reactive power voltage control Q(U) of every PV unit with
+  ``pandapower.control.DERController`` + ``QModelQVCurve`` inside pandapower's
+  ``PQVArea4105(variant=2)``. This is not a grid-code compliance assessment.
 
 Balanced three-phase positive-sequence AC power flow (Newton-Raphson); no protection, no dynamics.
 """
@@ -40,8 +39,8 @@ from .metrics import energy_mwh, loading_flags, summarize_flags, top_elements, v
 
 DT_H = 0.25  # SimBench profiles: 15-min resolution, calendar year 2016
 PROFILE_TIME_FORMAT = "%d.%m.%Y %H:%M"
-# Q(U) characteristic (VDE AR-N 4105:2018 §5.7.2.4 shape): full reactive capability at
-# 0.93 / 1.07 pu, dead band 0.97..1.03 pu; q in pu of sn_mva, positive = over-excited (injecting).
+# Stylised Q(U): full requested reactive power at 0.93 / 1.07 pu, dead band 0.97..1.03 pu.
+# q is in pu of sn_mva, positive = injecting. PQVArea4105 further constrains the request.
 QU_VM_POINTS_PU = (0.0, 0.93, 0.97, 1.03, 1.07, 2.0)
 QU_Q_POINTS_PU = (0.484, 0.484, 0.0, 0.0, -0.484, -0.484)
 # Fallback limits only for buses where SimBench gives none (EN 50160: Un +/- 10 %).
@@ -106,8 +105,10 @@ def _pv_index(net) -> pd.Index:
 
 
 def _names(df: pd.DataFrame) -> list[str]:
-    return [str(n) if isinstance(n, str) and n else f"#{i}"
-            for i, n in zip(df.index, df["name"], strict=True)]
+    return [
+        str(n) if isinstance(n, str) and n else f"#{i}"
+        for i, n in zip(df.index, df["name"], strict=True)
+    ]
 
 
 def run_study(cfg: StudyConfig) -> dict:
@@ -154,61 +155,102 @@ def run_study(cfg: StudyConfig) -> dict:
             idx = [i for i in idx if i not in set(pv)]
         if not idx:
             continue
-        ConstControl(net, element=elm, variable=var, element_index=idx,
-                     data_source=DFData(df[idx]), profile_name=idx)
+        ConstControl(
+            net,
+            element=elm,
+            variable=var,
+            element_index=idx,
+            data_source=DFData(df[idx]),
+            profile_name=idx,
+        )
     if cfg.q_u_control and len(pv):
         DERController(
-            net, list(pv), element="sgen",
-            q_model=QModelQVCurve(QVCurve(vm_points_pu=QU_VM_POINTS_PU,
-                                          q_points_pu=QU_Q_POINTS_PU)),
+            net,
+            list(pv),
+            element="sgen",
+            q_model=QModelQVCurve(
+                QVCurve(vm_points_pu=QU_VM_POINTS_PU, q_points_pu=QU_Q_POINTS_PU)
+            ),
             pqv_area=PQVArea4105(variant=2),
-            data_source=DFData(sgen_p[list(pv)]), p_profile=list(pv), ts_absolute=True,
+            data_source=DFData(sgen_p[list(pv)]),
+            p_profile=list(pv),
+            ts_absolute=True,
         )
 
     # ---- run ----------------------------------------------------------------------------------
     ow = OutputWriter(net, time_steps=steps, output_path=None)
-    logged = [("res_bus", "vm_pu"), ("res_line", "loading_percent"), ("res_line", "pl_mw"),
-              ("res_trafo", "loading_percent"), ("res_trafo", "pl_mw"), ("res_ext_grid", "p_mw"),
-              ("res_ext_grid", "q_mvar"), ("res_load", "p_mw"), ("res_sgen", "p_mw"),
-              ("res_sgen", "q_mvar")]
+    logged = [
+        ("res_bus", "vm_pu"),
+        ("res_line", "loading_percent"),
+        ("res_line", "pl_mw"),
+        ("res_trafo", "loading_percent"),
+        ("res_trafo", "pl_mw"),
+        ("res_ext_grid", "p_mw"),
+        ("res_ext_grid", "q_mvar"),
+        ("res_load", "p_mw"),
+        ("res_sgen", "p_mw"),
+        ("res_sgen", "q_mvar"),
+    ]
     for table, var in logged:
         ow.log_variable(table, var)
     t0 = time.perf_counter()
-    run_timeseries(net, time_steps=steps, continue_on_divergence=True, verbose=False,
-                   algorithm="nr", tolerance_mva=PF_TOLERANCE_MVA,
-                   max_iteration=PF_MAX_ITERATION, numba=False)
+    run_timeseries(
+        net,
+        time_steps=steps,
+        continue_on_divergence=True,
+        verbose=False,
+        algorithm="nr",
+        tolerance_mva=PF_TOLERANCE_MVA,
+        max_iteration=PF_MAX_ITERATION,
+        numba=False,
+    )
     runtime_s = time.perf_counter() - t0
     out = ow.output
     params = out["Parameters"]
     failed = params["powerflow_failed"].to_numpy(dtype=bool)
     unstable = params["controller_unstable"].to_numpy(dtype=bool)
+    invalid = failed | unstable
 
     def res(key: str) -> pd.DataFrame:
         df = out[key].copy()
-        df.loc[failed, :] = np.nan  # never report numbers from a failed step
+        df.loc[invalid, :] = np.nan  # neither failed PF nor unstable controls are usable
         return df
 
     vm = res("res_bus.vm_pu")
     line_ld = res("res_line.loading_percent")
     trafo_ld = res("res_trafo.loading_percent")
     losses = res("res_line.pl_mw").sum(axis=1, min_count=1) + res("res_trafo.pl_mw").sum(
-        axis=1, min_count=1)
+        axis=1, min_count=1
+    )
     imp = res("res_ext_grid.p_mw").sum(axis=1, min_count=1)
     imp_q = res("res_ext_grid.q_mvar").sum(axis=1, min_count=1)
     load_mw = res("res_load.p_mw").sum(axis=1, min_count=1)
     sgen_res = res("res_sgen.p_mw")
     pv_mw = sgen_res[list(pv)].sum(axis=1, min_count=1) if len(pv) else pd.Series(0.0, index=steps)
-    pv_q = (res("res_sgen.q_mvar")[list(pv)].sum(axis=1, min_count=1) if len(pv)
-            else pd.Series(0.0, index=steps))
-    pv_curtailed = (pv_uncapped.sum(axis=1) - sgen_p[list(pv)].sum(axis=1)) if len(pv) else \
-        pd.Series(0.0, index=steps)
+    pv_q = (
+        res("res_sgen.q_mvar")[list(pv)].sum(axis=1, min_count=1)
+        if len(pv)
+        else pd.Series(0.0, index=steps)
+    )
+    pv_curtailed = (
+        (pv_uncapped.sum(axis=1) - sgen_p[list(pv)].sum(axis=1))
+        if len(pv)
+        else pd.Series(0.0, index=steps)
+    )
+    pv_curtailed.loc[invalid] = np.nan
 
     # ---- limits & flags -----------------------------------------------------------------------
     bus = net.bus.loc[vm.columns]
-    vmin = bus["min_vm_pu"].fillna(DEFAULT_VM_MIN_PU).to_numpy() if "min_vm_pu" in bus else \
-        np.full(len(bus), DEFAULT_VM_MIN_PU)
-    vmax = bus["max_vm_pu"].fillna(DEFAULT_VM_MAX_PU).to_numpy() if "max_vm_pu" in bus else \
-        np.full(len(bus), DEFAULT_VM_MAX_PU)
+    vmin = (
+        bus["min_vm_pu"].fillna(DEFAULT_VM_MIN_PU).to_numpy()
+        if "min_vm_pu" in bus
+        else np.full(len(bus), DEFAULT_VM_MIN_PU)
+    )
+    vmax = (
+        bus["max_vm_pu"].fillna(DEFAULT_VM_MAX_PU).to_numpy()
+        if "max_vm_pu" in bus
+        else np.full(len(bus), DEFAULT_VM_MAX_PU)
+    )
     under, over = voltage_flags(vm.to_numpy(), vmin, vmax)
     line_lim = _limit(net.line, line_ld.columns)
     trafo_lim = _limit(net.trafo, trafo_ld.columns)
@@ -221,7 +263,7 @@ def run_study(cfg: StudyConfig) -> dict:
     vm_np = vm.to_numpy()
     series = {
         "time": [t.strftime("%Y-%m-%dT%H:%M") for t in stamps],
-        "converged": (~failed).tolist(),
+        "converged": (~invalid).tolist(),
         "vm_min_pu": _nan_reduce(np.nanmin, vm_np),
         "vm_max_pu": _nan_reduce(np.nanmax, vm_np),
         "n_buses_over_voltage": over.sum(axis=1).tolist(),
@@ -238,6 +280,8 @@ def run_study(cfg: StudyConfig) -> dict:
         "pv_q_mvar": _list(pv_q),
         "pv_curtailed_mw": _list(pv_curtailed),
     }
+    load_energy = energy_mwh(load_mw, DT_H)
+    loss_energy = energy_mwh(losses, DT_H)
     summary = {
         "vm_min_pu": _scalar(np.nanmin, vm_np),
         "vm_max_pu": _scalar(np.nanmax, vm_np),
@@ -248,67 +292,106 @@ def run_study(cfg: StudyConfig) -> dict:
         "line_overload": summarize_flags(line_over, DT_H),
         "trafo_overload": summarize_flags(trafo_over, DT_H),
         "any_violation": summarize_flags(
-            np.column_stack([over.any(1), under.any(1), line_over.any(1), trafo_over.any(1)]),
-            DT_H)["steps_with_violation"] * DT_H,
+            np.column_stack([over.any(1), under.any(1), line_over.any(1), trafo_over.any(1)]), DT_H
+        )["steps_with_violation"]
+        * DT_H,
         "energy_mwh": {
-            "load": energy_mwh(load_mw, DT_H),
+            "load": load_energy,
             "pv": energy_mwh(pv_mw, DT_H),
             "pv_curtailed": energy_mwh(pv_curtailed, DT_H),
             "grid_import": energy_mwh(imp.clip(lower=0), DT_H),
             "grid_export": energy_mwh((-imp).clip(lower=0), DT_H),
-            "losses": energy_mwh(losses, DT_H),
+            "losses": loss_energy,
         },
-        "losses_pct_of_load": (energy_mwh(losses, DT_H) / energy_mwh(load_mw, DT_H) * 100.0
-                               if energy_mwh(load_mw, DT_H) > 0 else None),
-        "max_reverse_flow_mw": float(max(0.0, -np.nanmin(imp.to_numpy()))) if imp.notna().any()
+        "losses_pct_of_load": (
+            loss_energy / load_energy * 100.0
+            if load_energy is not None and load_energy > 0
+            else None
+        ),
+        "max_reverse_flow_mw": float(max(0.0, -np.nanmin(imp.to_numpy())))
+        if imp.notna().any()
         else None,
     }
     top = {
         "over_voltage_buses": top_elements(over, vm_np, bus_names, worst="max", dt_h=DT_H),
         "under_voltage_buses": top_elements(under, vm_np, bus_names, worst="min", dt_h=DT_H),
-        "overloaded_lines": top_elements(line_over, line_ld.to_numpy(), line_names,
-                                         worst="max", dt_h=DT_H),
-        "overloaded_trafos": top_elements(trafo_over, trafo_ld.to_numpy(), trafo_names,
-                                          worst="max", dt_h=DT_H),
+        "overloaded_lines": top_elements(
+            line_over, line_ld.to_numpy(), line_names, worst="max", dt_h=DT_H
+        ),
+        "overloaded_trafos": top_elements(
+            trafo_over, trafo_ld.to_numpy(), trafo_names, worst="max", dt_h=DT_H
+        ),
     }
     grid = {
         "simbench_code": cfg.grid_code,
-        "buses": int(len(net.bus)), "lines": int(len(net.line)), "trafos": int(len(net.trafo)),
-        "loads": int(len(net.load)), "sgens": int(len(net.sgen)), "pv_units": int(len(pv)),
-        "storages": int(len(net.storage)), "storages_idled": n_storage_idled,
-        "pv_installed_mw": float(net.sgen.loc[pv, "sn_mva"].sum()) if len(pv) else 0.0,
+        "buses": int(len(net.bus)),
+        "lines": int(len(net.line)),
+        "trafos": int(len(net.trafo)),
+        "loads": int(len(net.load)),
+        "sgens": int(len(net.sgen)),
+        "pv_units": int(len(pv)),
+        "storages": int(len(net.storage)),
+        "storages_idled": n_storage_idled,
+        "pv_installed_mva": float(net.sgen.loc[pv, "sn_mva"].sum()) if len(pv) else 0.0,
         "load_reference_mw": float(net.load["p_mw"].sum()),
         "trafo_sn_mva": [float(x) for x in net.trafo["sn_mva"]],
         "ext_grid_vm_pu": [float(x) for x in net.ext_grid["vm_pu"]],
     }
     return {
         "schema": "gridstorm-distribution-timeseries/1.0",
+        "provenance": "calculated",
+        "source": {
+            "name": "SimBench",
+            "package_version": versions()["simbench"],
+            "data_version": 1,
+            "provenance": "synthetic",
+            "url": "https://simbench.de/en/",
+            "license": "ODbL-1.0",
+            "contents_license": "DbCL-1.0",
+            "attribution": "SimBench: University of Kassel, TU Dortmund, RWTH Aachen "
+            "University and Fraunhofer IEE; individual contributors.",
+        },
         "config": asdict(cfg),
         "grid": grid,
-        "window": {"start": series["time"][0], "end": series["time"][-1],
-                   "n_steps": cfg.n_steps, "dt_h": DT_H, "profile_year": 2016},
+        "window": {
+            "start": series["time"][0],
+            "end": series["time"][-1],
+            "n_steps": cfg.n_steps,
+            "dt_h": DT_H,
+            "profile_year": 2016,
+        },
         "assumptions": _assumptions(cfg, n_storage_idled),
         "limits": {
             "voltage": "per-bus SimBench min_vm_pu/max_vm_pu (LV buses 0.90-1.10 pu = EN 50160 "
-                       "+/-10 %; MV buses 0.965-1.055 pu); fallback 0.90-1.10 pu",
+            "+/-10 %; MV buses 0.965-1.055 pu); fallback 0.90-1.10 pu",
             "vm_min_pu_range": [float(vmin.min()), float(vmin.max())],
             "vm_max_pu_range": [float(vmax.min()), float(vmax.max())],
-            "line_max_loading_pct": [float(line_lim.min()), float(line_lim.max())] if len(line_lim)
+            "line_max_loading_pct": [float(line_lim.min()), float(line_lim.max())]
+            if len(line_lim)
             else None,
             "trafo_max_loading_pct": [float(trafo_lim.min()), float(trafo_lim.max())]
-            if len(trafo_lim) else None,
+            if len(trafo_lim)
+            else None,
             "violation_rule": "strict: vm > max, vm < min, loading > max_loading_percent",
         },
         "solver": {
-            "name": "pandapower.runpp", "algorithm": "nr",
-            "tolerance_mva": PF_TOLERANCE_MVA, "max_iteration": PF_MAX_ITERATION,
-            "continue_on_divergence": True, "threads": 1,
+            "name": "pandapower.runpp",
+            "algorithm": "nr",
+            "tolerance_mva": PF_TOLERANCE_MVA,
+            "max_iteration": PF_MAX_ITERATION,
+            "continue_on_divergence": True,
+            "threads": 1,
             "controllers": sorted({type(c).__name__ for c in net.controller["object"]}),
             "versions": versions(),
         },
-        "convergence": {"steps": cfg.n_steps, "converged_steps": int((~failed).sum()),
-                        "failed_steps": int(failed.sum()),
-                        "controller_unstable_steps": int(unstable.sum())},
+        "convergence": {
+            "steps": cfg.n_steps,
+            "converged_steps": int((~invalid).sum()),
+            "failed_steps": int(failed.sum()),
+            "controller_unstable_steps": int(unstable.sum()),
+            "valid_hours": float((~invalid).sum() * DT_H),
+            "energy_scope": "only converged PF steps with stable controls",
+        },
         "runtime_s": runtime_s,
         "summary": summary,
         "top_violations": top,
@@ -331,17 +414,26 @@ def _assumptions(cfg: StudyConfig, n_storage_idled: int) -> list[str]:
     if cfg.pv_factor != 1.0:
         out.append(f"PV installed capacity (sn_mva) and PV P profile scaled by {cfg.pv_factor}.")
     if cfg.pv_feed_in_cap_pu is not None:
-        out.append(f"PV active power capped at {cfg.pv_feed_in_cap_pu} x sn_mva per unit "
-                   "(static feed-in limit); surplus reported as curtailed energy.")
+        out.append(
+            f"PV active power capped at {cfg.pv_feed_in_cap_pu} x sn_mva per unit "
+            "(static feed-in limit); surplus reported as curtailed energy."
+        )
     if cfg.ext_grid_vm_pu is not None:
-        out.append(f"MV-side (ext_grid) voltage held at {cfg.ext_grid_vm_pu} pu (upper end of the "
-                   "SimBench MV band 0.965-1.055 pu: simultaneous MV-level PV voltage rise).")
+        out.append(
+            f"MV-side (ext_grid) voltage held at {cfg.ext_grid_vm_pu} pu "
+            "(explicit fixed upstream boundary assumption, not an observed voltage)."
+        )
     if cfg.q_u_control:
-        out.append("PV Q(U) via pandapower DERController/QModelQVCurve, VDE AR-N 4105 PQV area "
-                   "variant 2; inverter apparent-power saturation not modelled.")
+        out.append(
+            "Stylised PV Q(U) via pandapower DERController/QModelQVCurve with "
+            "PQVArea4105 variant 2; inverter apparent-power saturation not modelled; "
+            "not a grid-code compliance assessment."
+        )
     if n_storage_idled:
-        out.append(f"{n_storage_idled} SimBench PV-home storages held idle (p=q=0): their "
-                   "converted profiles discharge only and are not energy-consistent.")
+        out.append(
+            f"{n_storage_idled} SimBench PV-home storages held idle (p=q=0): their "
+            "converted profiles discharge only and are not energy-consistent."
+        )
     return out
 
 
@@ -372,5 +464,8 @@ def tiny_net_check() -> dict:
     """Single AC power flow on the smallest SimBench LV grid (used by tests)."""
     net, _, _ = load_grid("1-LV-rural1--0-sw")
     pp.runpp(net, algorithm="nr", tolerance_mva=PF_TOLERANCE_MVA, numba=False)
-    return {"converged": bool(net.converged), "vm_min_pu": float(net.res_bus.vm_pu.min()),
-            "vm_max_pu": float(net.res_bus.vm_pu.max())}
+    return {
+        "converged": bool(net.converged),
+        "vm_min_pu": float(net.res_bus.vm_pu.min()),
+        "vm_max_pu": float(net.res_bus.vm_pu.max()),
+    }

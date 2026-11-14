@@ -69,20 +69,36 @@ def write_artifact(artifact: dict[str, Any], out_dir: Path, *, title: str) -> Pa
     out_dir.mkdir(parents=True, exist_ok=True)
     head = artifact["artifact"]
     path = out_dir / f"{head['artifact_id']}.json"
-    path.write_text(json.dumps(artifact, separators=(",", ":"), ensure_ascii=False,
-                               allow_nan=False) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(artifact, separators=(",", ":"), ensure_ascii=False, allow_nan=False) + "\n",
+        encoding="utf-8",
+    )
     index_path = out_dir / "index.json"
     entries: list[dict[str, Any]] = []
     if index_path.exists():
         entries = json.loads(index_path.read_text(encoding="utf-8")).get("artifacts", [])
     entries = [e for e in entries if e.get("artifact_id") != head["artifact_id"]]
-    entries.append({"artifact_id": head["artifact_id"], "kind": head["kind"],
-                    "network_id": head["network_id"], "title": title,
-                    "path": path.name, "payload_sha256": head["payload_sha256"]})
+    entries.append(
+        {
+            "artifact_id": head["artifact_id"],
+            "kind": head["kind"],
+            "network_id": head["network_id"],
+            "title": title,
+            "path": path.name,
+            "payload_sha256": head["payload_sha256"],
+        }
+    )
     entries.sort(key=lambda e: e["artifact_id"])
     index_path.write_text(
-        json.dumps({"schema_version": "gridstorm-artifact-index/1.0", "engine": ARTIFACT_ENGINE,
-                    "artifacts": entries}, indent=1) + "\n",
+        json.dumps(
+            {
+                "schema_version": "gridstorm-artifact-index/1.0",
+                "engine": ARTIFACT_ENGINE,
+                "artifacts": entries,
+            },
+            indent=1,
+        )
+        + "\n",
         encoding="utf-8",
     )
     return path
