@@ -190,7 +190,7 @@ spin-down (<https://render.com/docs/free>). Consequences in the design:
   (`services/api/src/gridstorm_api/config.py`); every Job records `execution_mode`, so the UI can
   label results honestly.
 - **Durability is explicit, not automatic.** With `DATABASE_URL`, jobs/metadata use Postgres.
-  Supabase provisioning currently awaits the user's terms acceptance, so the fallback is SQLite
+  The live API uses Supabase Postgres (session pooler); without `DATABASE_URL` the fallback is SQLite
   (`var/gridstorm.db` locally; `/tmp/gridstorm/gridstorm.db` in the image), with no Render
   durability. Generated payloads use an ArtifactStore (`GRIDSTORM_ARTIFACT_STORE=local|s3`);
   only an external store preserves them across free-service resets

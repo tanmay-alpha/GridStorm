@@ -50,7 +50,7 @@ Details: [overview](docs/architecture/overview.md) · [decisions](docs/decisions
 
 ## Known limitations
 
-- The live API stores jobs in **SQLite on ephemeral disk** until Supabase is connected, so jobs are lost when Render restarts or redeploys.
+- Jobs and metadata persist in **Supabase Postgres**, but generated result files use the local artifact store (no R2 credentials), so a job's downloadable result JSON may need recomputation after a Render restart.
 - LOPF is a DC linearisation: no reactive power, voltage magnitudes or losses. The AC studies are steady-state only: no protection, dynamics or transient stability.
 - Outage probabilities in StormRisk are modelled from IEEE RTS-96 ranges, not observed for these networks.
 

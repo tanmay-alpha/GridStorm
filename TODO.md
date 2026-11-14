@@ -12,13 +12,12 @@ Last updated: 2026-11-15
 
 ## Progress dashboard
 
-**58 tracked tasks: 57 done (46 VERIFIED + 11 DEPLOYED) · 0 in progress · 1 blocked on the owner (≈ 98 %).**
+**58 tracked tasks: 58 done (46 VERIFIED + 12 DEPLOYED) · 0 in progress · 0 blocked (100 %).**
 
 | State | Count | Tasks |
 |---|---|---|
-| DEPLOYED (observed live) | 11 | API on Render, web on Vercel, live jobs, comparisons/reports, Studio + Run dashboard, line-loading replay, Explorer map, OOM fix, a11y/perf fixes, audit defect fixes, PyPSA-Eur BE live |
+| DEPLOYED (observed live) | 12 | API on Render, web on Vercel, live jobs, comparisons/reports, Studio + Run dashboard, line-loading replay, Explorer map, OOM fix, a11y/perf fixes, audit defect fixes, PyPSA-Eur BE live, Supabase Postgres |
 | VERIFIED (evidence recorded) | 46 | research, licensing (incl. ENTSO-E remediation), all science engines, data, CI, verification, security, a11y/perf audit, EENS wording |
-| BLOCKED (owner action) | 1 | P6-02 Supabase: accept Vercel Marketplace terms → then apply migrations and set `DATABASE_URL` on Render (runbook in `docs/deployment/backend.md`) |
 
 Live: https://gridstorm.vercel.app · https://gridstorm-api.onrender.com · CI green on `17d76e4`.
 
@@ -102,7 +101,7 @@ Live: https://gridstorm.vercel.app · https://gridstorm-api.onrender.com · CI g
 | ID | Task | Pri | Owner | Deps | Status | Acceptance criteria |
 |---|---|---|---|---|---|---|
 | P6-01 | Dockerfile, docker-compose, render.yaml | P0 | E/Backend | P1-06 | VERIFIED | Image builds on Render and serves `/health` (git_sha reported) |
-| P6-02 | Supabase project (free plan via Vercel Marketplace, fra1) + migrations applied | P0 | I/E | P1-07 | BLOCKED (user action) | Terms acceptance needed at vercel.com/…/accept-terms/supabase; then `/ready` database check ok against Supabase |
+| P6-02 | Supabase project (free plan via Vercel Marketplace) + migrations applied | P0 | I/E | P1-07 | DEPLOYED | `gridstorm-db` (eu-central-1, free) provisioned; migrations 0001–0002 applied (12 tables, RLS on all 12, 15 policies); 5 datasets seeded; Render `DATABASE_URL` = session pooler; live `/ready` → `postgres`; job `2d47898b` + metrics survived a Render restart |
 | P6-03 | Render deployment (free web service, Docker, frankfurt) | P0 | I/E | P6-01 | DEPLOYED | https://gridstorm-api.onrender.com `/health` 200, `/ready` ready (database `sqlite-ephemeral`, highspy 1.16.0, pypsa 1.4.0, 4 datasets); cold start ≈ 28 s |
 | P6-04 | Vercel deployment of apps/web | P0 | I/C | P1-08 | DEPLOYED | https://gridstorm.vercel.app (prebuilt deploy; Git auto-deploy not triggering — Vercel GitHub app likely not installed). Web: typecheck 0 errors, lint 0 errors, 72/72 unit, 8/8 Playwright (local) |
 | P6-05 | Artifact storage (R2 if available, else local + committed artifacts) | P2 | E | P2-04 | VERIFIED (fallback) | No Cloudflare credentials → LocalFS store (`/tmp`, ephemeral on Render) + artifacts baked into image; S3/R2 adapter behind ArtifactStore interface. Render build filter set so doc-only pushes don't redeploy |

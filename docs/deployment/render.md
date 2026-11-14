@@ -40,8 +40,9 @@ The Blueprint sets these explicitly; these are deployment overrides, not all API
 | `DATABASE_URL` | Secret; supply the Supabase session-pooler URL with `sslmode=require`, or leave unset for ephemeral SQLite |
 | `SUPABASE_URL`, `SUPABASE_JWT_SECRET` | Optional server-side JWT verification configuration |
 
-Supabase provisioning currently awaits the user's terms acceptance. Until a database is configured,
-the Docker image uses `/tmp/gridstorm/gridstorm.db`; saved jobs/scenarios are **not durable**.
+The live service's `DATABASE_URL` points at the Supabase session pooler (see [Supabase setup](supabase.md));
+`/ready` reports `postgres`. Without it, the image falls back to `/tmp/gridstorm/gridstorm.db`, which is
+**not durable**.
 Follow [Supabase setup](supabase.md) before claiming persistent storage. Apply migrations before
 using Postgres, or explicitly enable `GRIDSTORM_DB_AUTO_MIGRATE=true` after reviewing them.
 

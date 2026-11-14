@@ -1,8 +1,11 @@
 # Supabase (Postgres + optional auth)
 
 GridStorm supports Postgres for metadata, jobs, metrics, scenarios, comparisons and audit events.
-Supabase provisioning currently awaits the user's terms acceptance; do not assume a database has
-been provisioned. Without `DATABASE_URL`, the API uses SQLite at
+**Live deployment (2026-11-15):** Supabase project `gridstorm-db` (free plan, eu-central-1) was
+provisioned through the Vercel Marketplace; migrations 0001–0002 are applied (12 tables, RLS on all,
+15 policies), 5 network datasets are seeded, and Render's `DATABASE_URL` points at the Supavisor
+**session** pooler (port 5432, `sslmode=require`; the transaction pooler on 6543 is not used because
+psycopg prepares statements). `/ready` reports `kind: "postgres"`. Without `DATABASE_URL`, the API uses SQLite at
 `<GRIDSTORM_STATE_DIR>/gridstorm.db` (default `var/gridstorm.db` from the repository root;
 `/tmp/gridstorm/gridstorm.db` in the Docker image). On Render Free this state is lost on restart,
 redeploy or spin-down. The free plan is a demo option, not a durability or capacity guarantee.
