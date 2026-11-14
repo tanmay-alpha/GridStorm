@@ -19,7 +19,7 @@ Last updated: 2026-11-14
 | P0-03 | Interface contracts + architecture + ADR 0001 | P0 | I | — | VERIFIED | `docs/architecture/contracts.md`, `overview.md`, `docs/decisions/0001-*.md` exist |
 | P0-04 | Upstream source inventory, SHAs, license audit, manifest | P0 | A | — | IMPLEMENTING | 21 repos audited with pinned SHAs; `source-inventory.md`, `license-audit.md`, `upstream-manifest.json` |
 | P0-05 | Dependency compatibility matrix with resolver evidence | P0 | A | — | IMPLEMENTING | `compatibility-matrix.md` with `uv pip compile` outcomes per engine pair |
-| P0-06 | PyPSA-Explorer unchanged baseline (run app + tests) | P0 | B/ExplorerPort | — | IMPLEMENTING | Test counts recorded; app served HTTP 200 with bundled network; `docs/audit/pypsa-explorer-baseline.md` |
+| P0-06 | PyPSA-Explorer unchanged baseline (run app + tests) | P0 | B/ExplorerPort | — | VERIFIED | Upstream suite 105 passed / 3 skipped; `docs/audit/pypsa-explorer-baseline.md`; ADR 0002 keeps analytics, drops Dash runtime |
 | P0-07 | Research papers matrix (5 papers) | P1 | D/Research | — | VERIFIED | `research-papers.md`: 8-column matrix + per-paper LaTeX equations for PyPSA, PyPSA-Eur, L2RPN, DemandCast, X-GridAgent; 27 links; full arXiv PDFs read |
 | P0-08 | Tool decision matrix (PowerModels, PGLib, SimBench, ANDES, PyPSA-Earth, ORNL, GO) | P1 | D/Research | — | VERIFIED | `tool-decision-matrix.md`: PGLib data-only; ORNL/CoogGrid/NVIDIA/Grid2Game concepts-only; PowerModels/SimBench/ANDES/PyPSA-Earth/GOC3 deferred; GO Evaluation rejected (no licence) |
 | P0-09 | External data sources licensing (OPSD, ENTSO-E, ERA5, NASA POWER, GEM, OSM, CEA, EIA) | P1 | D/Research | — | VERIFIED | `external-data-sources.md`: 10 sources checked 2026-11-14 (ERA5 CC BY 4.0 since 2025-07-02; EIA needs key (HTTP 403); CEA needs permission; ENTSO-E free re-use list appears to exclude actual load/generation) |
@@ -34,7 +34,7 @@ Last updated: 2026-11-14
 | P1-02 | canonical-grid schemas + network importers (ac-dc-meshed, scigrid-de, PGLib case14/118) | P0 | D/DataPipelines | P0-03 | IMPLEMENTING | `data/networks/<id>/{network.nc,canonical.json,manifest.json}` validated; catalog.json |
 | P1-03 | Data catalog with provenance | P1 | D/DataPipelines | P1-02 | IMPLEMENTING | `data-catalog.md` lists all provenance fields per dataset |
 | P1-04 | PyPSA-Eur reduced Belgium network | P2 | B/PypsaEurBuilder | — | IMPLEMENTING | Network built + LOPF solved, or reproducible blocker report |
-| P1-05 | PyPSA-Explorer analytics port (`gridstorm_analytics`) | P1 | B/ExplorerPort | P0-06 | IMPLEMENTING | capacity/energy_balance/costs match independent recomputation |
+| P1-05 | PyPSA-Explorer analytics port (`gridstorm_analytics`) | P1 | B/ExplorerPort | P0-06 | VERIFIED | 45 tests pass (commit `daa6f3e`); known gap: legacy demo CAPEX/OPEX differs from stored objective by ~2.3 %, cause unestablished |
 | P1-06 | FastAPI API per contract §6 + OpenAPI | P0 | E/Backend | P0-03 | IMPLEMENTING | All endpoints tested; `/docs` served |
 | P1-07 | Postgres schema, Supabase migrations, RLS | P0 | E/Backend | P1-06 | IMPLEMENTING | Migrations apply on postgres:16; RLS policies for owner rows |
 | P1-08 | Frontend shell + Grid Explorer map with real network data | P0 | C/Frontend | P1-02, P1-06 | IMPLEMENTING | Map renders real assets; details panel shows units + provenance |
