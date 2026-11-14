@@ -37,8 +37,8 @@ Last updated: 2026-11-14
 | P1-04b | Decide redistribution of PyPSA-Eur BE build | P2 | I + user | P1-04 | BACKLOG | Licence of each input settled; then `update_catalog()` and commit |
 | P1-05 | PyPSA-Explorer analytics port (`gridstorm_analytics`) | P1 | B/ExplorerPort | P0-06 | VERIFIED | 45 tests pass (commit `daa6f3e`); known gap: legacy demo CAPEX/OPEX differs from stored objective by ~2.3 %, cause unestablished |
 | P1-06 | FastAPI API per contract §6 + OpenAPI | P0 | E/Backend | P0-03 | VERIFIED | 45 local tests pass, ruff clean; live `/api/v1/networks` lists 4 networks and `/api/v1/scenarios` lists 11 presets on Render |
-| P1-07 | Postgres schema, Supabase migrations, RLS | P0 | E/Backend | P1-06 | IMPLEMENTING | Migrations apply on postgres:16; RLS policies for owner rows |
-| P1-08 | Frontend shell + Grid Explorer map with real network data | P0 | C/Frontend | P1-02, P1-06 | IMPLEMENTING | Map renders real assets; details panel shows units + provenance |
+| P1-07 | Postgres schema, Supabase migrations, RLS | P0 | E/Backend | P1-06 | VERIFIED | Migrations + RLS apply on postgres:16 (3 docker tests; 12 tables RLS-on, 15 policies); psql runbook in `docs/deployment/backend.md`; not yet applied to Supabase (P6-02) |
+| P1-08 | Frontend shell + Grid Explorer map with real network data | P0 | C/Frontend | P1-02, P1-06 | DEPLOYED | https://gridstorm.vercel.app renders ac-dc-meshed from the live Render API (all API calls 200, 0 console errors); MapLibre worker-URL fix |
 
 ## Phase 2 — Crisis simulation
 
@@ -47,10 +47,10 @@ Last updated: 2026-11-14
 | P2-01 | StormSpec package (models, schema, hash, capabilities, validation, manifest) | P0 | B/ScienceCore | P0-03 | VERIFIED | 30 tests pass (commit `96f3f3a`); JSON schema exported; unsupported ops rejected |
 | P2-02 | PyPSA adapter (`gridstorm_pypsa`) + CLI | P0 | B/ScienceCore | P2-01 | VERIFIED | 30 tests pass incl. balance residual, outage, demand scaling, storage SOC, infeasible, reproducibility |
 | P2-03 | Preset scenarios with real asset ids + precomputed artifacts | P0 | B/ScienceCore | P1-02, P2-02 | VERIFIED | 11 presets solved with HiGHS → `data/artifacts/pypsa/`; peak RSS: scigrid-de 541–550 MiB (> Render 512 MB → precomputed only), small networks 277–280 MiB |
-| P2-03b | Per-network live-execution policy (no live scigrid-de on 512 MB) | P0 | E/Backend + C/Frontend | P2-03 | TESTING | Backend: `GRIDSTORM_LIVE_NETWORKS` + 422 `live_execution_unavailable` or labelled precomputed (`jobs/service.py`); UI wording check pending |
+| P2-03b | Per-network live-execution policy (no live scigrid-de on 512 MB) | P0 | E/Backend + C/Frontend | P2-03 | VERIFIED | API: 422 `live_execution_unavailable` or labelled precomputed; Studio shows per-preset badges + verbatim 422; Playwright `studio-live-execution.spec.ts` passes |
 | P2-04 | Simulation jobs: persistent queue, subprocess, timeout, cancel, recovery | P0 | E/Backend | P1-06, P2-02 | DEPLOYED | Live on Render: `ac-dc-meshed-dc-link-outage` → stages queued…done, HiGHS optimal, objective 131 950.19 EUR, wall 1.30 s, balance residual 0 MW. Known: SQLite ephemeral → jobs lost on redeploy (observed once) until Supabase |
-| P2-05 | Baseline vs crisis comparison + reports | P1 | E/Backend | P2-04 | IMPLEMENTING | Comparison math tests; MD/JSON report with manifests |
-| P2-06 | Crisis Studio + Simulation Dashboard UI | P0 | C/Frontend | P2-04 | IMPLEMENTING | Run preset end-to-end in browser; real stages; no % progress |
+| P2-05 | Baseline vs crisis comparison + reports | P1 | E/Backend | P2-04 | DEPLOYED | Live: comparison 201 (cost +3 271.61 EUR / +2.54 %, CO₂ +23.45 t); MD report 200, 6 948 chars, hash header matches. Minor: JSON says provenance `calculated`, MD says `modeled` |
+| P2-06 | Crisis Studio + Simulation Dashboard UI | P0 | C/Frontend | P2-04 | DEPLOYED | Live browser: preset run on gridstorm.vercel.app → real stage timestamps queued→done, HiGHS optimal 1.29 s, metrics + charts; no % progress. Fixed snapshot-label timezone bug (regression test, TZ pinned) |
 | P2-07 | Scientific specification document | P1 | B/ScienceCore | P2-02 | VERIFIED | `docs/architecture/scientific-spec.md` with equations, units, citations, measured memory limits |
 | P2-08 | StormRisk: Monte Carlo outage sampling → EENS ± CI, LOLP, convergence | P1 | B/StormRisk | P2-02 | VERIFIED | ac-dc-meshed, seed-fixed: 1000 samples / 165 distinct solves, 0 infeasible; EENS 145.21 MWh (SE 35.76, 95 % CI 75.11–215.30), LOLP 0.087; outage rates MODELLED from IEEE RTS-96; 38 tests; scigrid-de not run |
 | P2-09 | Observed-analogue scenarios (OPSD load/wind/solar → StormSpec events on scigrid-de) | P2 | D/ObservedEvents | P1-02, P2-02 | VERIFIED | 3 scenarios solved optimal; unserved energy baseline 0 / Dunkelflaute 3 237.1 / peak-load 5 647.7 / combined 20 499.7 MWh; residual ≤ 3.2e-7 MW; no raw ENTSO-E data committed; 25 tests (commit `4f944b5`) |
@@ -60,9 +60,9 @@ Last updated: 2026-11-14
 
 | ID | Task | Pri | Owner | Deps | Status | Acceptance criteria |
 |---|---|---|---|---|---|---|
-| P3-01 | Line-loading visualisation + time slider replay | P1 | C/Frontend | P2-06 | IMPLEMENTING | Map colours match result `loading_pct` for selected snapshot (test) |
-| P3-02 | Compare & Replay, report export | P1 | C/Frontend | P2-05 | IMPLEMENTING | Two runs compared; export downloads report |
-| P3-03 | Research Library (saved scenarios, jobs, datasets, manifests) | P2 | C/Frontend | P1-06 | IMPLEMENTING | Lists real records; downloads work |
+| P3-01 | Line-loading visualisation + time slider replay | P1 | C/Frontend | P2-06 | DEPLOYED | Live run page shows loading map + replay slider over 10 snapshots |
+| P3-02 | Compare & Replay, report export | P1 | C/Frontend | P2-05 | VERIFIED | Playwright journey compares two runs and exports report (local backend) |
+| P3-03 | Research Library (saved scenarios, jobs, datasets, manifests) | P2 | C/Frontend | P1-06 | VERIFIED | Playwright journey covers /library with real records |
 
 ## Phase 4 — Contingency and AC validation
 
@@ -81,9 +81,9 @@ Last updated: 2026-11-14
 | P5-01 | Grid2Op episodes (≥ 3 agents × ≥ 2 chronics) + KPIs | P1 | B/Sequential | — | VERIFIED | 12 episodes (do_nothing/reco_powerline/greedy_simulate × 2 chronics × normal/line 1_3_3 outage), l2rpn_case14_sandbox, lightsim2grid; rerun trace hash identical (`050177c8…`); 20 tests pass; commit `c69a1dc` |
 | P5-02 | Grid2Viz audit (MPL-2.0) and KPI concepts | P2 | B/Sequential | — | VERIFIED | `docs/audit/grid2viz-audit.md` (SHA `b416eba4`); KPIs re-implemented, no MPL code copied |
 | P5-03 | StormBench PTDF/LODF screening vs DC/AC exact N-1 | P1 | B/StormBench | — | VERIFIED | 6 PGLib cases (14/30/57/118/300/1354-PEGASE); DC screening matches exact DC re-solve (max severity diff 2.4e-11 pp); metrics recomputed from per-contingency lists with 0 diffs; 17 tests; CI regeneration case14/30 matches at 1e-4 (commit `f91e96c`). Limits: AC ignores Q limits; full-case timings not re-measured |
-| P5-04 | Operations replay + Benchmarks + Contingency + Methods UI pages | P1 | C/FrontendResearch | P4-02, P5-01, P5-03 | IMPLEMENTING | Pages render real artifacts; unit tests use fixtures copied from real artifacts |
+| P5-04 | Operations replay + Benchmarks + Contingency + Methods UI pages | P1 | C/FrontendResearch | P4-02, P5-01, P5-03 | VERIFIED | `research.spec.ts` (Playwright) checks values against the same `data/artifacts` files; parser tests check CI = EENS ± 1.96·SE, class counts sum, ordering |
 | P5-05 | ML contingency screening on simulator-derived labels vs DC-LODF/heuristic baselines | P3 | B/StormML | P5-03 | IMPLEMENTING | Operating-point and leave-one-network-out splits; bootstrap CIs; honest verdict vs baselines |
-| P5-06 | User guide, engineering story, glossary, deployment docs | P1 | D/DocsWriter | all | IMPLEMENTING | Every documented command/feature exists in code at finish |
+| P5-06 | User guide, engineering story, glossary, deployment docs | P1 | D/DocsWriter | all | VERIFIED | Commands/features checked against code (commit `130efd4`); Vercel URL to add |
 
 ## Phase 6 — Deployment and hardening
 
@@ -92,8 +92,8 @@ Last updated: 2026-11-14
 | P6-01 | Dockerfile, docker-compose, render.yaml | P0 | E/Backend | P1-06 | VERIFIED | Image builds on Render and serves `/health` (git_sha reported) |
 | P6-02 | Supabase project (free plan via Vercel Marketplace, fra1) + migrations applied | P0 | I/E | P1-07 | BLOCKED (user action) | Terms acceptance needed at vercel.com/…/accept-terms/supabase; then `/ready` database check ok against Supabase |
 | P6-03 | Render deployment (free web service, Docker, frankfurt) | P0 | I/E | P6-01 | DEPLOYED | https://gridstorm-api.onrender.com `/health` 200, `/ready` ready (database `sqlite-ephemeral`, highspy 1.16.0, pypsa 1.4.0, 4 datasets); cold start ≈ 28 s |
-| P6-04 | Vercel deployment of apps/web | P0 | I/C | P1-08 | IMPLEMENTING | Web: typecheck ok, lint 0 errors, 62/62 unit tests, build ok; `VITE_API_BASE_URL` set (prod+preview); production deploy in progress |
-| P6-05 | Artifact storage (R2 if available, else local + committed artifacts) | P2 | E | P2-04 | RESEARCHED | No Cloudflare credentials available → LocalFS store + artifacts baked into image (ephemeral on Render free); S3/R2 adapter behind ArtifactStore interface; integrity test |
+| P6-04 | Vercel deployment of apps/web | P0 | I/C | P1-08 | DEPLOYED | https://gridstorm.vercel.app (prebuilt deploy; Git auto-deploy not triggering — Vercel GitHub app likely not installed). Web: typecheck 0 errors, lint 0 errors, 72/72 unit, 8/8 Playwright (local) |
+| P6-05 | Artifact storage (R2 if available, else local + committed artifacts) | P2 | E | P2-04 | VERIFIED (fallback) | No Cloudflare credentials → LocalFS store (`/tmp`, ephemeral on Render) + artifacts baked into image; S3/R2 adapter behind ArtifactStore interface. Render build filter set so doc-only pushes don't redeploy |
 | P6-06 | GitHub Actions CI (lint, types, tests per env, web build, API smoke, actionlint) | P0 | E/CIDevOps | P1-06, P1-08 | TESTING | Run on `ece4887`: 15 jobs green; failing: pandapower, stormml, stormrisk, tests/integration, api container smoke — being fixed |
 | P6-07 | Independent verification (components, science spot checks, API black-box, live browser audit) | P0 | F/Verifier | all | IMPLEMENTING | `docs/audit/verification-report.md` + `issues.md` with reproducible evidence |
 | P6-08 | Security: secret scan, dependency audit (pip-audit, npm audit), container scan, authz tests | P1 | F/Verifier + E/CIDevOps | P6-01 | IMPLEMENTING | Findings recorded and triaged in `docs/audit/issues.md` |
