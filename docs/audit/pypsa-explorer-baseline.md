@@ -263,6 +263,19 @@ returned). Bus carriers whose unit is not MW-based (PyPSA-Eur `t_co2`) are liste
 45 passed, 13 warnings in 33.56s
 ```
 
+Continuation verification on 2026-11-15, with `OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1`:
+
+```text
+$ uvx ruff@0.14.0 check --fix . && uvx ruff@0.14.0 format . && uv run pytest
+All checks passed!
+8 files left unchanged
+pytest: 45 passed, 13 warnings in 20.75s
+```
+
+The upstream results and launch evidence above are preserved from the original baseline run;
+they were not rerun during this continuation. Both upstream pytest summaries were checked
+against their retained logs.
+
 Tests run every kind on `pypsa.examples.ac_dc_meshed()` and `pypsa.examples.scigrid_de()`, each
 unsolved and solved with HiGHS, and compare against recomputation from raw component tables
 (not via `n.statistics`):
