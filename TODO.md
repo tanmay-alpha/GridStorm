@@ -53,7 +53,7 @@ Last updated: 2026-11-14
 | P2-07 | Scientific specification document | P1 | B/ScienceCore | P2-02 | VERIFIED | `docs/architecture/scientific-spec.md` with equations, units, citations, measured memory limits |
 | P2-08 | StormRisk: Monte Carlo outage sampling → EENS ± CI, LOLP, convergence | P1 | B/StormRisk | P2-02 | IMPLEMENTING | Deterministic (seeded) study artifact; estimator tests vs hand-computed values |
 | P2-09 | Observed-analogue scenarios (OPSD load/wind/solar → StormSpec events on scigrid-de) | P2 | D/ObservedEvents | P1-02, P2-02 | VERIFIED | 3 scenarios solved optimal; unserved energy baseline 0 / Dunkelflaute 3 237.1 / peak-load 5 647.7 / combined 20 499.7 MWh; residual ≤ 3.2e-7 MW; no raw ENTSO-E data committed; 25 tests (commit `4f944b5`) |
-| P2-10 | Distribution-grid AC time-series stress (SimBench LV/MV: heat wave, PV over-voltage, PV loss, mitigation) | P2 | B/SimBenchAC | — | IMPLEMENTING | Partial work committed (`ece4887`); agent stopped at provider limit; ≥ 4 artifacts with per-step vm/loading; tests |
+| P2-10 | Distribution-grid AC time-series stress (SimBench LV/MV: heat wave, PV over-voltage, PV loss, mitigation) | P2 | B/SimBenchAC | — | VERIFIED | 9 studies, 672/672 steps converged; PV×1.5 → max 1.108 pu, 17 h over-voltage; 50 % cap → 8.25 h; Q(U) → 0 h but transformer up to 241 %; deterministic rerun; 10 tests; ruff clean |
 
 ## Phase 3 — Mapping and analytics
 
