@@ -20,10 +20,20 @@ def fetch(url: str, *, origin: str | None = None, retries: int = 1):
     for attempt in range(retries):
         try:
             with urlopen(Request(url, headers=headers), timeout=25) as response:
-                return response.status, {k.lower(): v for k, v in response.headers.items()}, response.read(3_000_000)
-        except (HTTPError, URLError, TimeoutError) as exc:
+                return (
+                    response.status,
+                    {k.lower(): v for k, v in response.headers.items()},
+                    response.read(3_000_000),
+                )
+        except HTTPError as exc:
+            # 4xx/5xx are real server responses, not cold-start network failures.
+            detail = exc.read(500).decode('utf-8', errors='replace').strip()
+            raise RuntimeError(
+                f"GET {url}: HTTP {exc.code}; response {detail[:240]!r}"
+            ) from exc
+        except (URLError, TimeoutError) as exc:
             if attempt + 1 >= retries:
-                raise RuntimeError(f"GET {url}: {type(exc).__name__} {getattr(exc, 'code', '')}") from exc
+                raise RuntimeError(f"GET {url}: {type(exc).__name__}") from exc
             time.sleep(min(10 * (attempt + 1), 20))
     raise AssertionError("unreachable")
 
