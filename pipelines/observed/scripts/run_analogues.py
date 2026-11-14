@@ -31,6 +31,7 @@ OUT_PATH = REPO_ROOT / "data" / "observed" / "analogue-results.json"
 RES_CARRIERS = ("Wind Onshore", "Wind Offshore", "Solar")
 METRIC_KEYS = (
     "total_load_mwh",
+    "served_load_mwh",
     "unserved_energy_mwh",
     "peak_load_shed_mw",
     "load_shed_hours",
@@ -43,6 +44,8 @@ METRIC_KEYS = (
     "mean_line_loading_pct",
     "congested_line_count",
     "storage_discharge_mwh",
+    "storage_charge_mwh",
+    "balance_residual_max_mw",
 )
 
 
@@ -64,15 +67,14 @@ def _issues(report) -> dict:
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--network-dir", type=Path,
-                    default=REPO_ROOT / "data" / "networks" / "scigrid-de")
+    ap.add_argument(
+        "--network-dir", type=Path, default=REPO_ROOT / "data" / "networks" / "scigrid-de"
+    )
     args = ap.parse_args(argv)
     ndir = args.network_dir.resolve()
     nc_sha = stormspec.file_sha256(ndir / "network.nc")
     canonical_path = ndir / "canonical.json"
-    canonical = (
-        json.loads(canonical_path.read_text(encoding="utf-8")) if canonical_path.exists() else None
-    )
+    canonical = json.loads(canonical_path.read_text(encoding="utf-8"))
     pypsa_index = network_index(load_network(ndir), "scigrid-de")
 
     paths = sorted(SCENARIO_DIR.glob("*.yaml"))
@@ -81,13 +83,15 @@ def main(argv: list[str] | None = None) -> int:
     scenarios = [(p, stormspec.load_scenario(p)) for p in paths]
     # Reference run: identical settings, no events = the network's own 2011-01-01 day.
     first = scenarios[0][1]
-    baseline = first.model_copy(update={
-        "id": "observed-baseline-network-day",
-        "name": "Baseline: scigrid-de 2011-01-01 without events (same settings)",
-        "description": "Reference for the observed-analogue scenarios; not written to disk.",
-        "events": [],
-        "assumptions": [],
-    })
+    baseline = first.model_copy(
+        update={
+            "id": "observed-baseline-network-day",
+            "name": "Baseline: scigrid-de 2011-01-01 without events (same settings)",
+            "description": "Reference for the observed-analogue scenarios; not written to disk.",
+            "events": [],
+            "assumptions": [],
+        }
+    )
 
     runs = []
     failed = False
@@ -100,11 +104,12 @@ def main(argv: list[str] | None = None) -> int:
             "scenario_hash": stormspec.scenario_hash(scen),
             "events": len(scen.events),
             "validation": {
-                "canonical_json": _issues(stormspec.validate(scen, canonical))
-                if canonical is not None else None,
+                "canonical_json": _issues(stormspec.validate(scen, canonical)),
                 "pypsa_network_index": _issues(stormspec.validate(scen, pypsa_index)),
             },
         }
+        if not all(r["valid"] for r in entry["validation"].values()):
+            raise SystemExit(f"{scen.id}: validation failed: {entry['validation']}")
         print(f"[{scen.id}] solving ...", flush=True)
         t0 = time.perf_counter()
         result = run_scenario(scen, ndir)
@@ -113,20 +118,38 @@ def main(argv: list[str] | None = None) -> int:
         full.write_text(json.dumps(result, indent=1), encoding="utf-8")
         metrics = result.get("metrics") or {}
         by_carrier = metrics.get("curtailment_by_carrier_mwh") or {}
-        entry.update({
-            "outcome": result["outcome"],
-            "provenance": result["provenance"],
-            "solver": result["solver"],
-            "run_wall_time_s": round(elapsed, 2),
-            "metrics": {k: metrics.get(k) for k in METRIC_KEYS},
-            "wind_solar_curtailment_mwh": round(
-                sum(float(by_carrier.get(c) or 0.0) for c in RES_CARRIERS), 3),
-            "generation_by_carrier_mwh": metrics.get("generation_by_carrier_mwh"),
-            "result_warnings": result["warnings"],
-            "dataset_sha256": result["manifest"]["dataset_sha256"],
-            "result_sha256": result["manifest"]["result_sha256"],
-            "package_versions": result["manifest"]["package_versions"],
-        })
+        integrals = {}
+        if result["outcome"] == "feasible":
+            weights = result["snapshot_weightings_h"]
+            for key in ("load_mw", "load_shed_mw", "storage_dispatch_mw"):
+                integrals[key.removesuffix("_mw")] = sum(
+                    p * w for p, w in zip(result["series"][key], weights, strict=True)
+                )
+            integrals["generation"] = sum(
+                p * w
+                for series in result["series"]["generation_by_carrier_mw"].values()
+                for p, w in zip(series, weights, strict=True)
+            )
+        entry.update(
+            {
+                "outcome": result["outcome"],
+                "provenance": result["provenance"],
+                "solver": result["solver"],
+                "run_wall_time_s": round(elapsed, 2),
+                "started_at": result["manifest"]["started_at"],
+                "finished_at": result["manifest"]["finished_at"],
+                "series_integrals_mwh": integrals,
+                "metrics": {k: metrics.get(k) for k in METRIC_KEYS},
+                "wind_solar_curtailment_mwh": round(
+                    sum(float(by_carrier.get(c) or 0.0) for c in RES_CARRIERS), 3
+                ),
+                "generation_by_carrier_mwh": metrics.get("generation_by_carrier_mwh"),
+                "result_warnings": result["warnings"],
+                "dataset_sha256": result["manifest"]["dataset_sha256"],
+                "result_sha256": result["manifest"]["result_sha256"],
+                "package_versions": result["manifest"]["package_versions"],
+            }
+        )
         failed |= result["outcome"] != "feasible"
         runs.append(entry)
         m = entry["metrics"]
@@ -143,7 +166,8 @@ def main(argv: list[str] | None = None) -> int:
         "provenance": "modeled",
         "network_id": "scigrid-de",
         "network_nc_sha256": nc_sha,
-        "canonical_json_present": canonical is not None,
+        "command": "OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 uv run python "
+        "../../pipelines/observed/scripts/run_analogues.py",
         "runs": runs,
     }
     OUT_PATH.write_bytes((json.dumps(summary, indent=2) + "\n").encode("utf-8"))

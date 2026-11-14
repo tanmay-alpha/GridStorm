@@ -10,12 +10,11 @@ stress days (:mod:`detect`); (3) map each day onto the network's own 24 snapshot
 manifest to ``data/observed/opsd-de/``; (5) optionally fetch NASA POWER temperature/wind for the
 stress windows into ``data/observed/nasa-power-de/``.
 
-Licensing: the OPSD German load/generation/capacity columns originate from the ENTSO-E
-Transparency Platform; actual total load (Art. 6.1.a), actual generation per type (16.1.b/c) and
-installed capacity (14.1.a) are NOT on ENTSO-E's list of data for free re-use (CC BY 4.0, version
-18 October 2023). Redistribution is therefore *restricted/unknown*: no observed hourly series is
-written into the repository - only derived multipliers, a handful of summary statistics, source
-URLs and sha256 checksums.
+Licensing: OPSD German load/generation columns derive from ENTSO-E Transparency; capacities are
+OPSD calculations based on BNetzA and netztransparenz.de (per-column datapackage metadata).
+Redistribution permission for the ENTSO-E-derived series is not established. No observed hourly
+OPSD series is written into the repository: only derived multipliers, summary statistics,
+source URLs and sha256 checksums.
 """
 
 from __future__ import annotations
@@ -43,9 +42,7 @@ WEATHER_PAD_DAYS = 3
 HOURS = 24
 CARRIERS = tuple(opsd.TECHS.values())
 
-ENTSOE_TERMS_URL = (
-    "https://transparencyplatform.zendesk.com/hc/en-us/articles/40921911218961-Legal-Terms-and-Conditions"
-)
+ENTSOE_TERMS_URL = "https://transparencyplatform.zendesk.com/hc/en-us/articles/40921911218961-Legal-Terms-and-Conditions"
 ENTSOE_REUSE_LIST_URL = (
     "https://transparencyplatform.zendesk.com/hc/en-us/article_attachments/40921869379729"
 )
@@ -125,8 +122,10 @@ def day_values(s: pd.Series, day: str) -> np.ndarray:
 def reference_day(load: pd.Series, day: str) -> str:
     """1 January (UTC) nearest to ``day`` whose 24 load hours are all present."""
     d = pd.Timestamp(day, tz="UTC")
-    years = sorted({d.year - 1, d.year, d.year + 1}, key=lambda y: abs(
-        (pd.Timestamp(f"{y}-01-01", tz="UTC") - d).total_seconds()))
+    years = sorted(
+        {d.year - 1, d.year, d.year + 1},
+        key=lambda y: abs((pd.Timestamp(f"{y}-01-01", tz="UTC") - d).total_seconds()),
+    )
     for y in years:
         cand = f"{y}-01-01"
         try:
@@ -179,9 +178,15 @@ def _fmt_hours(hours: list[int]) -> str:
     return "none" if not hours else ", ".join(str(h) for h in hours)
 
 
-def scenario_dict(kind: Kind, day: str, ref: str, net: NetworkProfiles,
-                  dm: mapping.DemandMapping, rms: list[mapping.RenewableMapping],
-                  detection: detect.DayResult) -> dict:
+def scenario_dict(
+    kind: Kind,
+    day: str,
+    ref: str,
+    net: NetworkProfiles,
+    dm: mapping.DemandMapping,
+    rms: list[mapping.RenewableMapping],
+    detection: detect.DayResult,
+) -> dict:
     events: list[dict] = [
         {"type": "demand_multiplier", "value": v, "window": {"start": h, "end": h + 1}}
         for h, v in enumerate(dm.multipliers)
@@ -190,12 +195,14 @@ def scenario_dict(kind: Kind, day: str, ref: str, net: NetworkProfiles,
         for h, w in enumerate(rm.multipliers):
             if w is None or w == 1.0:  # undefined (network CF = 0) or clipped to a no-op
                 continue
-            events.append({
-                "type": "renewable_availability_multiplier",
-                "carrier": rm.carrier,
-                "value": w,
-                "window": {"start": h, "end": h + 1},
-            })
+            events.append(
+                {
+                    "type": "renewable_availability_multiplier",
+                    "carrier": rm.carrier,
+                    "value": w,
+                    "window": {"start": h, "end": h + 1},
+                }
+            )
     clip_notes = "; ".join(
         f"{rm.carrier}: clipped to 1 at hours [{_fmt_hours(rm.clipped_hours)}], "
         f"undefined (network CF = 0) at hours [{_fmt_hours(rm.undefined_hours)}]"
@@ -233,9 +240,10 @@ def scenario_dict(kind: Kind, day: str, ref: str, net: NetworkProfiles,
         "assumptions": [
             f"OBSERVED input: OPSD time series {sources.OPSD_VERSION} "
             f"({sources.OPSD_DOI}), German columns DE_load_actual_entsoe_transparency and "
-            "DE_{wind_onshore,wind_offshore,solar}_{generation_actual,capacity}; primary source "
-            "ENTSO-E Transparency Platform. Only derived multipliers are stored in GridStorm "
-            "(redistribution of the hourly series is restricted/unknown).",
+            "DE_{wind_onshore,wind_offshore,solar}_{generation_actual,capacity}; load/generation "
+            "derive from ENTSO-E Transparency, capacities from OPSD calculations based on BNetzA "
+            "and netztransparenz.de. Only derived multipliers are stored in GridStorm "
+            "(redistribution permission for the hourly series is not established).",
             "Time alignment: network snapshot h = observed UTC hour h of the stress day. "
             "Evidence (data/observed/opsd-de/derived-multipliers.json, alignment_evidence): the "
             "network's solar availability matches observed 1 January solar CF far better in UTC "
@@ -269,6 +277,12 @@ def build(network_dir: Path, *, csv_path: Path | None = None) -> dict:
     csv_sha = sources.sha256_file(csv)
     if csv_sha != sources.OPSD_CSV_SHA256:
         raise ValueError(f"{csv}: sha256 {csv_sha} != published {sources.OPSD_CSV_SHA256}")
+    datapackage_path = opsd.fetch_datapackage()
+    datapackage = json.loads(datapackage_path.read_text(encoding="utf-8"))
+    resource = next(r for r in datapackage["resources"] if r["name"] == "opsd_time_series_60min")
+    if resource["hash"] != csv_sha or resource["bytes"] != csv.stat().st_size:
+        raise ValueError("OPSD source does not match the official datapackage metadata")
+    fields = {f["name"]: f for f in resource["schema"]["fields"]}
     retrieved_at = datetime.fromtimestamp(csv.stat().st_mtime, UTC).replace(microsecond=0)
     de = opsd.read_de(csv)
     cf = opsd.capacity_factors(de)
@@ -313,7 +327,7 @@ def build(network_dir: Path, *, csv_path: Path | None = None) -> dict:
             if over:
                 flags.append(
                     f"{tech}: observed generation exceeds OPSD capacity (CF > 1) at UTC hours "
-                    f"{over}; capacity series lags commissioning - values kept, not altered"
+                    f"{over}; possibly lagging capacity data - values kept, not altered"
                 )
             rms.append(mapping.renewable_multipliers(carrier, obs, net.cf[carrier]))
         scen = scenario_dict(kind, day, ref, net, dm, rms, det)
@@ -328,47 +342,55 @@ def build(network_dir: Path, *, csv_path: Path | None = None) -> dict:
         text = header + yaml.safe_dump(body, sort_keys=False, allow_unicode=True, width=100)
         path.write_bytes(text.encode("utf-8"))
         written.append(path)
-        derived["scenarios"].append({
-            "scenario_id": model.id,
-            "kind": kind.key,
-            "stress_day_utc": day,
-            "reference_day_utc": ref,
-            "detection": det.as_dict(),
-            "demand": {
-                "multipliers": dm.multipliers,
-                "clipped_hours": dm.clipped_hours,
-                "reference_day_mean_load_mw": round(dm.reference_mean_obs_mw, 1),
-                "stress_day_mean_over_reference_mean": round(
-                    float(np.mean(day_values(load, day))) / dm.reference_mean_obs_mw, 4),
-                "scaled_network_peak_mw": round(float(np.max(
-                    np.asarray(dm.multipliers) * net.load_mw)), 1),
-                "scaled_network_energy_mwh": round(float(np.sum(
-                    np.asarray(dm.multipliers) * net.load_mw)), 1),
-            },
-            "renewables": {
-                rm.carrier: {
-                    "multipliers": rm.multipliers,
-                    "clipped_hours": rm.clipped_hours,
-                    "max_raw_ratio_in_clipped_hours": (
-                        round(max(rm.raw[h] for h in rm.clipped_hours), 4)
-                        if rm.clipped_hours else None
+        derived["scenarios"].append(
+            {
+                "scenario_id": model.id,
+                "kind": kind.key,
+                "stress_day_utc": day,
+                "reference_day_utc": ref,
+                "detection": det.as_dict(),
+                "demand": {
+                    "multipliers": dm.multipliers,
+                    "clipped_hours": dm.clipped_hours,
+                    "reference_day_mean_load_mw": round(dm.reference_mean_obs_mw, 1),
+                    "stress_day_mean_over_reference_mean": round(
+                        float(np.mean(day_values(load, day))) / dm.reference_mean_obs_mw, 4
                     ),
-                    "undefined_hours": rm.undefined_hours,
-                    "network_daily_mean_cf": round(float(np.mean(rm.network_cf)), 4),
-                    "observed_daily_mean_cf": round(float(np.mean(rm.observed_cf)), 4),
-                    "modeled_daily_mean_cf_after_mapping": round(
-                        float(np.mean(mapping.effective_cf(rm))), 4),
-                }
-                for rm in rms
-            },
-            "quality_flags": flags,
-            "events": len(model.events),
-            "scenario_sha256": sources.sha256_file(path),
-        })
+                    "scaled_network_peak_mw": round(
+                        float(np.max(np.asarray(dm.multipliers) * net.load_mw)), 1
+                    ),
+                    "scaled_network_energy_mwh": round(
+                        float(np.sum(np.asarray(dm.multipliers) * net.load_mw)), 1
+                    ),
+                },
+                "renewables": {
+                    rm.carrier: {
+                        "multipliers": rm.multipliers,
+                        "clipped_hours": rm.clipped_hours,
+                        "max_raw_ratio_in_clipped_hours": (
+                            round(max(rm.raw[h] for h in rm.clipped_hours), 4)
+                            if rm.clipped_hours
+                            else None
+                        ),
+                        "undefined_hours": rm.undefined_hours,
+                        "network_daily_mean_cf": round(float(np.mean(rm.network_cf)), 4),
+                        "observed_daily_mean_cf": round(float(np.mean(rm.observed_cf)), 4),
+                        "modeled_daily_mean_cf_after_mapping": round(
+                            float(np.mean(mapping.effective_cf(rm))), 4
+                        ),
+                    }
+                    for rm in rms
+                },
+                "quality_flags": flags,
+                "events": len(model.events),
+                "scenario_sha256": sources.sha256_file(path),
+            }
+        )
 
     derived_path = sources.OPSD_OUT_DIR / DERIVED_NAME
     derived_path.write_bytes(
-        (json.dumps(derived, indent=2, ensure_ascii=False) + "\n").encode("utf-8"))
+        (json.dumps(derived, indent=2, ensure_ascii=False) + "\n").encode("utf-8")
+    )
     coverage = opsd.coverage_report(de)
     manifest = {
         "schema_version": OPSD_MANIFEST_SCHEMA,
@@ -381,6 +403,7 @@ def build(network_dir: Path, *, csv_path: Path | None = None) -> dict:
             "doi": sources.OPSD_DOI,
             "url": sources.OPSD_CSV_URL,
             "datapackage_url": sources.OPSD_DATAPACKAGE_URL,
+            "datapackage_sha256": sources.sha256_file(datapackage_path),
             "file": sources.OPSD_CSV_NAME,
             "bytes": sources.OPSD_CSV_BYTES,
             "sha256": csv_sha,
@@ -389,20 +412,23 @@ def build(network_dir: Path, *, csv_path: Path | None = None) -> dict:
             "retrieved_at": retrieved_at.isoformat(),
             "columns_used": list(sources.OPSD_DE_COLUMNS),
             "coverage": coverage,
-            "primary_source": "ENTSO-E Transparency Platform (via OPSD)",
+            "column_sources": {
+                c: {"unit": fields[c]["unit"], **fields[c]["source"]}
+                for c in sources.OPSD_DE_COLUMNS
+            },
         },
         "license": {
             "opsd_package": "No data licence in datapackage.json (licenses: null); the OPSD page "
             "states 'Text is licensed under CC-BY license' (text only). OPSD notes primary data "
-            "come from ENTSO-E Transparency.",
+            "originate in ENTSO-E Transparency; capacities have separate per-column sources.",
             "entsoe_terms_url": ENTSOE_TERMS_URL,
             "entsoe_reuse_list_url": ENTSOE_REUSE_LIST_URL,
             "entsoe_reuse_list_sha256": ENTSOE_REUSE_LIST_SHA256,
             "entsoe_reuse_list_version": "2023-10-18",
-            "assessment": "Actual total load (Transparency Regulation Art. 6.1.a), actual "
-            "generation per production type (16.1.b/c) and installed generation capacity "
-            "(14.1.a) are not among the 35 items of ENTSO-E's list of data for free re-use under "
-            "CC BY 4.0, so redistribution permission for these columns is not established.",
+            "assessment": "Redistribution permission for the load/generation columns derived "
+            "from ENTSO-E Transparency has not been established. Capacities are OPSD "
+            "calculations based on BNetzA and netztransparenz.de; no hourly OPSD series are "
+            "redistributed, including these capacity columns.",
             "redistribution": "restricted",
             "committed_content": "derived hourly multipliers and summary statistics only; no "
             "observed hourly series",
@@ -417,6 +443,7 @@ def build(network_dir: Path, *, csv_path: Path | None = None) -> dict:
         "missing_value_policy": "No interpolation or filling. Hours absent from the source or "
         "empty are NaN; any UTC day/window with a NaN hour is excluded from detection; a mapped "
         "day must be complete.",
+        "quality_flags": {s["scenario_id"]: s["quality_flags"] for s in derived["scenarios"]},
         "derived_files": {DERIVED_NAME: sources.sha256_file(derived_path)},
         "scenario_files": {
             p.relative_to(sources.REPO_ROOT).as_posix(): sources.sha256_file(p) for p in written
@@ -424,7 +451,8 @@ def build(network_dir: Path, *, csv_path: Path | None = None) -> dict:
         "generator": "pipelines/observed: python -m gridstorm_observed.build",
     }
     (sources.OPSD_OUT_DIR / MANIFEST_NAME).write_bytes(
-        (json.dumps(manifest, indent=2, ensure_ascii=False) + "\n").encode("utf-8"))
+        (json.dumps(manifest, indent=2, ensure_ascii=False) + "\n").encode("utf-8")
+    )
     return {"derived": derived, "manifest": manifest, "scenarios": written}
 
 
@@ -440,12 +468,16 @@ def build_weather(days: list[str]) -> dict:
             df, header = weather.parse_point(path, pt)
             frames.append(df)
             headers.append(header)
-            requests.append({
-                "point": pt.id, "url": weather.point_url(pt, start, end),
-                "response_sha256": sources.sha256_file(path),
-                "retrieved_at": datetime.fromtimestamp(path.stat().st_mtime, UTC)
-                .replace(microsecond=0).isoformat(),
-            })
+            requests.append(
+                {
+                    "point": pt.id,
+                    "url": weather.point_url(pt, start, end),
+                    "response_sha256": sources.sha256_file(path),
+                    "retrieved_at": datetime.fromtimestamp(path.stat().st_mtime, UTC)
+                    .replace(microsecond=0)
+                    .isoformat(),
+                }
+            )
     allw = pd.concat(frames)
     allw = allw.reset_index().drop_duplicates(["utc", "point"]).sort_values(["utc", "point"])
     sources.POWER_OUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -468,11 +500,12 @@ def build_weather(days: list[str]) -> dict:
             "requests": requests,
         },
         "license": {
-            "terms": "NASA POWER data are freely available without API key. No explicit licence "
-            "text was found on the POWER pages read; treating them as U.S. Government work is "
-            "an inference. The referencing guide requires attribution (service, version, date "
-            "accessed) and requests (does not require) notification when data are "
-            "redistributed to other researchers.",
+            "terms": "NASA Earthdata guidance permits factual use and redistribution of "
+            "unrestricted NASA material without explicit permission, with acknowledgement and "
+            "no implied endorsement. POWER requires service/version/access-date attribution "
+            "and requests notification when data are redistributed to other researchers. "
+            "No POWER-specific SPDX licence is asserted.",
+            "data_use_url": sources.POWER_DATA_USE_URL,
             "referencing_url": sources.POWER_REFERENCING_URL,
             "redistribution": "permitted",
         },
@@ -484,11 +517,12 @@ def build_weather(days: list[str]) -> dict:
         "points": [
             {"id": p.id, "name": p.name, "lat": p.lat, "lon": p.lon} for p in sources.POWER_POINTS
         ],
-        "windows_utc": [
-            {"stress_day": d, "days_before_after": WEATHER_PAD_DAYS} for d in days
-        ],
-        "units": {"T2M": weather.UNITS["T2M"], "WS10M": weather.UNITS["WS10M"],
-                  "utc": "UTC hour start"},
+        "windows_utc": [{"stress_day": d, "days_before_after": WEATHER_PAD_DAYS} for d in days],
+        "units": {
+            "T2M": weather.UNITS["T2M"],
+            "WS10M": weather.UNITS["WS10M"],
+            "utc": "UTC hour start",
+        },
         "missing_value_policy": "POWER fill value -999 -> empty cell; never interpolated.",
         "missing_values": {p: int(allw[p].isna().sum()) for p in weather.PARAMETERS},
         "rows": int(len(allw)),
@@ -497,27 +531,36 @@ def build_weather(days: list[str]) -> dict:
         "generator": "pipelines/observed: python -m gridstorm_observed.build",
     }
     (sources.POWER_OUT_DIR / MANIFEST_NAME).write_bytes(
-        (json.dumps(manifest, indent=2, ensure_ascii=False) + "\n").encode("utf-8"))
+        (json.dumps(manifest, indent=2, ensure_ascii=False) + "\n").encode("utf-8")
+    )
     return manifest
 
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--network-dir", type=Path, default=sources.NETWORK_DIR,
-                    help="directory containing network.nc (default data/networks/scigrid-de)")
+    ap.add_argument(
+        "--network-dir",
+        type=Path,
+        default=sources.NETWORK_DIR,
+        help="directory containing network.nc (default data/networks/scigrid-de)",
+    )
     ap.add_argument("--csv", type=Path, default=None, help="pre-downloaded OPSD 60-min CSV")
     ap.add_argument("--skip-weather", action="store_true")
     args = ap.parse_args(argv)
     res = build(args.network_dir, csv_path=args.csv)
     for s in res["derived"]["scenarios"]:
-        print(f"{s['scenario_id']}: day {s['stress_day_utc']} ref {s['reference_day_utc']} "
-              f"events {s['events']} detection {s['detection']['value']:.4f}")
+        print(
+            f"{s['scenario_id']}: day {s['stress_day_utc']} ref {s['reference_day_utc']} "
+            f"events {s['events']} detection {s['detection']['value']:.4f}"
+        )
     if not args.skip_weather:
         days = [s["stress_day_utc"] for s in res["derived"]["scenarios"]]
         wm = build_weather(days)
         for sm in wm["stress_day_summaries"]:
-            print(f"weather {sm['date']}: T2M mean {sm['t2m_mean_all_points_c']} C, "
-                  f"WS10M mean {sm['ws10m_mean_all_points_ms']} m/s")
+            print(
+                f"weather {sm['date']}: T2M mean {sm['t2m_mean_all_points_c']} C, "
+                f"WS10M mean {sm['ws10m_mean_all_points_ms']} m/s"
+            )
     return 0
 
 

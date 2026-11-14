@@ -349,10 +349,10 @@
         }
       },
       "quality_flags": [
-        "wind_offshore: observed generation exceeds OPSD capacity (CF > 1) at UTC hours [16, 18, 19, 20, 21, 22, 23]; capacity series lags commissioning - values kept, not altered"
+        "wind_offshore: observed generation exceeds OPSD capacity (CF > 1) at UTC hours [16, 18, 19, 20, 21, 22, 23]; possibly lagging capacity data - values kept, not altered"
       ],
       "events": 56,
-      "scenario_sha256": "bfe3bc913cd7b2d87a845ab97290c89ba2c7c995dc5c18e0ea9bb7908a0952ff"
+      "scenario_sha256": "5375290b71aa5ede5abbe7dc12c5e181c643e5a860f39eb74c2087896a1398c8"
     },
     {
       "scenario_id": "observed-dunkelflaute-2015-01-20",
@@ -532,7 +532,7 @@
       },
       "quality_flags": [],
       "events": 79,
-      "scenario_sha256": "207897d45ae00c4e4f5454a117bc131b07b62acbfc4d134ce9390607818eb5d6"
+      "scenario_sha256": "8fdf5d8d2b60d1d98d59f16dc9f2dc3a2e68f21211e8ea81916f0a6853fcdce7"
     },
     {
       "scenario_id": "observed-high-load-low-res-2017-01-24",
@@ -711,7 +711,7 @@
       },
       "quality_flags": [],
       "events": 79,
-      "scenario_sha256": "59ee7b64d636445e39d74a476b9ab350d8c4ba440475f32df146f05a21206fc9"
+      "scenario_sha256": "eaf7aa3499f8676d40060c43db6d5e5f9c0112122d01aff8e76cc44d3ba84168"
     }
   ]
 }

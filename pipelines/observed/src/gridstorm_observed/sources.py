@@ -47,8 +47,8 @@ OPSD_DOI = f"https://doi.org/10.25832/time_series/{OPSD_VERSION}"
 OPSD_ATTRIBUTION = (
     "Open Power System Data. 2020. Data Package Time series. Version 2020-10-06. "
     "https://doi.org/10.25832/time_series/2020-10-06. (Primary data from various sources, "
-    "for a complete list see URL). Primary source of the DE columns used: ENTSO-E "
-    "Transparency Platform."
+    "for a complete list see URL). German load/generation: ENTSO-E Transparency Platform; "
+    "German capacities: OPSD calculations based on BNetzA and netztransparenz.de."
 )
 
 #: German columns of the OPSD 60-min single-index CSV used here (all in MW).
@@ -66,6 +66,9 @@ OPSD_DE_COLUMNS = (
 
 POWER_HOURLY_URL = "https://power.larc.nasa.gov/api/temporal/hourly/point"
 POWER_REFERENCING_URL = "https://power.larc.nasa.gov/docs/referencing/"
+POWER_DATA_USE_URL = (
+    "https://www.earthdata.nasa.gov/engage/open-data-services-software-policies/data-use-guidance"
+)
 
 
 @dataclass(frozen=True)
@@ -93,8 +96,9 @@ def sha256_file(path: Path, chunk: int = 1 << 20) -> str:
     return h.hexdigest()
 
 
-def download(url: str, dest: Path, *, expected_sha256: str | None = None, timeout: float = 120.0
-             ) -> Path:
+def download(
+    url: str, dest: Path, *, expected_sha256: str | None = None, timeout: float = 120.0
+) -> Path:
     """Stream ``url`` to ``dest`` (atomic rename) and verify ``expected_sha256`` if given.
 
     An existing ``dest`` whose sha256 matches is reused without network access.

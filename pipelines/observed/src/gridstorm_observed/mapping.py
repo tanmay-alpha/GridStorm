@@ -84,7 +84,7 @@ def demand_multipliers(obs_day, obs_ref_day, net_load) -> DemandMapping:
     net_mean = float(net.mean())
     target = net_mean * obs / ref_mean
     raw = target / net
-    clipped = np.clip(raw, 10.0 ** -DECIMALS, DEMAND_MAX)
+    clipped = np.clip(raw, 10.0**-DECIMALS, DEMAND_MAX)
     clipped_hours = [int(h) for h in np.flatnonzero(clipped != raw)]
     return DemandMapping(
         multipliers=[round(float(v), DECIMALS) for v in clipped],
@@ -101,8 +101,13 @@ def renewable_multipliers(carrier: str, obs_cf, net_cf) -> RenewableMapping:
     net = _as24(net_cf, f"net_cf[{carrier}]")
     if np.any(obs < 0) or np.any(net < 0):
         raise ValueError("capacity factors must be >= 0")
-    out = RenewableMapping(carrier=carrier, multipliers=[], raw=[],
-                           observed_cf=[float(v) for v in obs], network_cf=[float(v) for v in net])
+    out = RenewableMapping(
+        carrier=carrier,
+        multipliers=[],
+        raw=[],
+        observed_cf=[float(v) for v in obs],
+        network_cf=[float(v) for v in net],
+    )
     for h in range(24):
         if net[h] <= 0.0:
             out.multipliers.append(None)

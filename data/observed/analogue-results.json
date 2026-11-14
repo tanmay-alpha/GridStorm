@@ -3,7 +3,7 @@
   "provenance": "modeled",
   "network_id": "scigrid-de",
   "network_nc_sha256": "284850c8e922414f9da69ffda0623431148e0c28a3380ba370e4135ac5236500",
-  "canonical_json_present": true,
+  "command": "OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 uv run python ../../pipelines/observed/scripts/run_analogues.py",
   "runs": [
     {
       "scenario_id": "observed-baseline-network-day",
@@ -34,11 +34,20 @@
         "status": "ok",
         "termination_condition": "optimal",
         "objective_eur": 6684817.323607,
-        "wall_time_s": 5.671
+        "wall_time_s": 4.741
       },
-      "run_wall_time_s": 13.88,
+      "run_wall_time_s": 12.15,
+      "started_at": "2026-11-14T20:59:04.417Z",
+      "finished_at": "2026-11-14T20:59:16.498Z",
+      "series_integrals_mwh": {
+        "load": 1209951.6799999997,
+        "load_shed": 0.0,
+        "storage_dispatch": -4083.7481999999986,
+        "generation": 1214035.4279999991
+      },
       "metrics": {
         "total_load_mwh": 1209951.68,
+        "served_load_mwh": 1209951.68,
         "unserved_energy_mwh": 0.0,
         "peak_load_shed_mw": 0.0,
         "load_shed_hours": 0.0,
@@ -54,7 +63,9 @@
         "max_line_loading_pct": 100.0,
         "mean_line_loading_pct": 22.864579,
         "congested_line_count": 42,
-        "storage_discharge_mwh": 32433.871732
+        "storage_discharge_mwh": 32433.871732,
+        "storage_charge_mwh": 36517.619995,
+        "balance_residual_max_mw": 3.24e-07
       },
       "wind_solar_curtailment_mwh": 69590.793,
       "generation_by_carrier_mwh": {
@@ -77,7 +88,7 @@
         "Dataset carriers carry no CO2 intensities (all zero/missing): co2_emissions_t is null (data gap, not a zero-emission finding)"
       ],
       "dataset_sha256": "284850c8e922414f9da69ffda0623431148e0c28a3380ba370e4135ac5236500",
-      "result_sha256": "ef5891e62b9bad3c8fd2424d1826bfee99409c9bc4be05efd36a83e2d76da42e",
+      "result_sha256": "9e7ac7caba5780476b0c3f1fc8609282f68aecf41f3507230917a17689c662e4",
       "package_versions": {
         "pypsa": "1.4.0",
         "linopy": "0.10.1",
@@ -92,8 +103,8 @@
       "scenario_id": "observed-dunkelflaute-2015-01-20",
       "role": "observed_analogue",
       "scenario_file": "data/scenarios/observed/observed-dunkelflaute-2015-01-20.yaml",
-      "scenario_sha256": "207897d45ae00c4e4f5454a117bc131b07b62acbfc4d134ce9390607818eb5d6",
-      "scenario_hash": "8ed1917b65eea1c2bc68d6b01358a235e6ae84e87e53e01bb33f7ec2f59955eb",
+      "scenario_sha256": "8fdf5d8d2b60d1d98d59f16dc9f2dc3a2e68f21211e8ea81916f0a6853fcdce7",
+      "scenario_hash": "f7924982613ab9ad8e6c706e1f558fb53d4ec4a409e814e84163631917ce9c6a",
       "events": 79,
       "validation": {
         "canonical_json": {
@@ -117,11 +128,20 @@
         "status": "ok",
         "termination_condition": "optimal",
         "objective_eur": 66230004.947724,
-        "wall_time_s": 6.186
+        "wall_time_s": 5.569
       },
-      "run_wall_time_s": 27.25,
+      "run_wall_time_s": 21.46,
+      "started_at": "2026-11-14T20:59:16.790Z",
+      "finished_at": "2026-11-14T20:59:38.170Z",
+      "series_integrals_mwh": {
+        "load": 1655703.1195,
+        "load_shed": 3237.0991000000004,
+        "storage_dispatch": -3454.9251000000036,
+        "generation": 1655920.9456999986
+      },
       "metrics": {
         "total_load_mwh": 1655703.119504,
+        "served_load_mwh": 1652466.02028,
         "unserved_energy_mwh": 3237.099224,
         "peak_load_shed_mw": 260.880833,
         "load_shed_hours": 17.0,
@@ -137,7 +157,9 @@
         "max_line_loading_pct": 100.0,
         "mean_line_loading_pct": 22.176496,
         "congested_line_count": 32,
-        "storage_discharge_mwh": 31980.204182
+        "storage_discharge_mwh": 31980.204182,
+        "storage_charge_mwh": 35435.129288,
+        "balance_residual_max_mw": 4e-09
       },
       "wind_solar_curtailment_mwh": 0.0,
       "generation_by_carrier_mwh": {
@@ -160,7 +182,7 @@
         "Dataset carriers carry no CO2 intensities (all zero/missing): co2_emissions_t is null (data gap, not a zero-emission finding)"
       ],
       "dataset_sha256": "284850c8e922414f9da69ffda0623431148e0c28a3380ba370e4135ac5236500",
-      "result_sha256": "5217c12ee8e76d8ac317f00c4f4f0747ed314059ba517ab33334818e35566d15",
+      "result_sha256": "6352e3979d5d7d6993c4488904cf87f8a4ec89b3927dae701acdbaef322d0f6b",
       "package_versions": {
         "pypsa": "1.4.0",
         "linopy": "0.10.1",
@@ -175,8 +197,8 @@
       "scenario_id": "observed-high-load-low-res-2017-01-24",
       "role": "observed_analogue",
       "scenario_file": "data/scenarios/observed/observed-high-load-low-res-2017-01-24.yaml",
-      "scenario_sha256": "59ee7b64d636445e39d74a476b9ab350d8c4ba440475f32df146f05a21206fc9",
-      "scenario_hash": "d172067743654d2cfa48fa6b450c1485bbaea75a5a75ef4de3788c14f6a90795",
+      "scenario_sha256": "eaf7aa3499f8676d40060c43db6d5e5f9c0112122d01aff8e76cc44d3ba84168",
+      "scenario_hash": "514b5b103a25ef04d14009222f03c81882a9cf6dc26cd8299ad1539608b71a58",
       "events": 79,
       "validation": {
         "canonical_json": {
@@ -204,11 +226,20 @@
         "status": "ok",
         "termination_condition": "optimal",
         "objective_eur": 253032522.79879,
-        "wall_time_s": 6.493
+        "wall_time_s": 6.201
       },
-      "run_wall_time_s": 23.72,
+      "run_wall_time_s": 21.4,
+      "started_at": "2026-11-14T20:59:38.454Z",
+      "finished_at": "2026-11-14T20:59:59.767Z",
+      "series_integrals_mwh": {
+        "load": 1916278.4338999998,
+        "load_shed": 20499.6724,
+        "storage_dispatch": -4881.557800000002,
+        "generation": 1900660.3180999975
+      },
       "metrics": {
         "total_load_mwh": 1916278.434,
+        "served_load_mwh": 1895778.761473,
         "unserved_energy_mwh": 20499.672527,
         "peak_load_shed_mw": 1661.96852,
         "load_shed_hours": 24.0,
@@ -224,7 +255,9 @@
         "max_line_loading_pct": 100.0,
         "mean_line_loading_pct": 24.798883,
         "congested_line_count": 44,
-        "storage_discharge_mwh": 45185.699679
+        "storage_discharge_mwh": 45185.699679,
+        "storage_charge_mwh": 50067.257262,
+        "balance_residual_max_mw": 1e-09
       },
       "wind_solar_curtailment_mwh": 458.035,
       "generation_by_carrier_mwh": {
@@ -249,7 +282,7 @@
         "Dataset carriers carry no CO2 intensities (all zero/missing): co2_emissions_t is null (data gap, not a zero-emission finding)"
       ],
       "dataset_sha256": "284850c8e922414f9da69ffda0623431148e0c28a3380ba370e4135ac5236500",
-      "result_sha256": "42669454c4050e571b523f23f3f1e1a85ec7824297be9716321f86d6cefe5d33",
+      "result_sha256": "9645beb177267d2940a1abf34b0f531228a9695db02ebc1e38d0f5cf0926767e",
       "package_versions": {
         "pypsa": "1.4.0",
         "linopy": "0.10.1",
@@ -264,8 +297,8 @@
       "scenario_id": "observed-peak-load-2017-12-13",
       "role": "observed_analogue",
       "scenario_file": "data/scenarios/observed/observed-peak-load-2017-12-13.yaml",
-      "scenario_sha256": "bfe3bc913cd7b2d87a845ab97290c89ba2c7c995dc5c18e0ea9bb7908a0952ff",
-      "scenario_hash": "b8d2d812ac1209f96c0aba166c073019ee05251de714f79bc853b358603426c3",
+      "scenario_sha256": "5375290b71aa5ede5abbe7dc12c5e181c643e5a860f39eb74c2087896a1398c8",
+      "scenario_hash": "1b723486519d98e49123a4b7abd624793c4cb2ae0f91309f0cfcdf84917f7c9d",
       "events": 56,
       "validation": {
         "canonical_json": {
@@ -289,11 +322,20 @@
         "status": "ok",
         "termination_condition": "optimal",
         "objective_eur": 82186647.607053,
-        "wall_time_s": 5.988
+        "wall_time_s": 4.521
       },
-      "run_wall_time_s": 24.9,
+      "run_wall_time_s": 19.29,
+      "started_at": "2026-11-14T21:00:00.064Z",
+      "finished_at": "2026-11-14T21:00:19.292Z",
+      "series_integrals_mwh": {
+        "load": 1836261.0035000003,
+        "load_shed": 5647.7254,
+        "storage_dispatch": -4729.749900000008,
+        "generation": 1835343.0278999999
+      },
       "metrics": {
         "total_load_mwh": 1836261.003472,
+        "served_load_mwh": 1830613.278104,
         "unserved_energy_mwh": 5647.725368,
         "peak_load_shed_mw": 436.531875,
         "load_shed_hours": 20.0,
@@ -309,7 +351,9 @@
         "max_line_loading_pct": 100.0,
         "mean_line_loading_pct": 26.145864,
         "congested_line_count": 51,
-        "storage_discharge_mwh": 43780.505133
+        "storage_discharge_mwh": 43780.505133,
+        "storage_charge_mwh": 48510.254996,
+        "balance_residual_max_mw": 2.9e-08
       },
       "wind_solar_curtailment_mwh": 19198.838,
       "generation_by_carrier_mwh": {
@@ -332,7 +376,7 @@
         "Dataset carriers carry no CO2 intensities (all zero/missing): co2_emissions_t is null (data gap, not a zero-emission finding)"
       ],
       "dataset_sha256": "284850c8e922414f9da69ffda0623431148e0c28a3380ba370e4135ac5236500",
-      "result_sha256": "dd59e40fa6bf831fc3a0bd4380caf8fc60dd878b9b2e7522ff462890502145b5",
+      "result_sha256": "645966379489b6c2a967d7adcd5203d44791ea7d9bad373b53f2859bb0cd5200",
       "package_versions": {
         "pypsa": "1.4.0",
         "linopy": "0.10.1",

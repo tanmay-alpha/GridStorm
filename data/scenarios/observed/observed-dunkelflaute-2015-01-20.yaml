@@ -510,8 +510,9 @@ execution:
 assumptions:
 - 'OBSERVED input: OPSD time series 2020-10-06 (https://doi.org/10.25832/time_series/2020-10-06), German
   columns DE_load_actual_entsoe_transparency and DE_{wind_onshore,wind_offshore,solar}_{generation_actual,capacity};
-  primary source ENTSO-E Transparency Platform. Only derived multipliers are stored in GridStorm (redistribution
-  of the hourly series is restricted/unknown).'
+  load/generation derive from ENTSO-E Transparency, capacities from OPSD calculations based on BNetzA
+  and netztransparenz.de. Only derived multipliers are stored in GridStorm (redistribution permission
+  for the hourly series is not established).'
 - 'Time alignment: network snapshot h = observed UTC hour h of the stress day. Evidence (data/observed/opsd-de/derived-multipliers.json,
   alignment_evidence): the network''s solar availability matches observed 1 January solar CF far better
   in UTC than shifted to local time; for load the evidence is weaker (correlation slightly higher in local

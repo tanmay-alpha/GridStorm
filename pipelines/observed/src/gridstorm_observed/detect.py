@@ -64,7 +64,10 @@ def _regular(s: pd.Series) -> pd.Series:
 
 
 def min_mean_window(
-    s: pd.Series, length: int = HOURS_PER_DAY, *, start_hours: Iterable[int] | None = None,
+    s: pd.Series,
+    length: int = HOURS_PER_DAY,
+    *,
+    start_hours: Iterable[int] | None = None,
     months: Iterable[int] | None = None,
 ) -> WindowResult:
     """Window of ``length`` consecutive hours with the lowest mean.

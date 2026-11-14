@@ -89,7 +89,8 @@
     ]
   },
   "license": {
-    "terms": "NASA POWER data are freely available without API key. No explicit licence text was found on the POWER pages read; treating them as U.S. Government work is an inference. The referencing guide requires attribution (service, version, date accessed) and requests (does not require) notification when data are redistributed to other researchers.",
+    "terms": "NASA Earthdata guidance permits factual use and redistribution of unrestricted NASA material without explicit permission, with acknowledgement and no implied endorsement. POWER requires service/version/access-date attribution and requests notification when data are redistributed to other researchers. No POWER-specific SPDX licence is asserted.",
+    "data_use_url": "https://www.earthdata.nasa.gov/engage/open-data-services-software-policies/data-use-guidance",
     "referencing_url": "https://power.larc.nasa.gov/docs/referencing/",
     "redistribution": "permitted"
   },
