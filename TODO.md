@@ -20,7 +20,7 @@ Last updated: 2026-11-15
 | VERIFIED (evidence recorded) | 46 | research, licensing (incl. ENTSO-E remediation), all science engines, data, CI, verification, security, a11y/perf audit, EENS wording |
 | BLOCKED (owner action) | 1 | P6-02 Supabase: accept Vercel Marketplace terms → then apply migrations and set `DATABASE_URL` on Render (runbook in `docs/deployment/backend.md`) |
 
-Live: https://gridstorm.vercel.app · https://gridstorm-api.onrender.com · CI green on `49ad242`.
+Live: https://gridstorm.vercel.app · https://gridstorm-api.onrender.com · CI green on `17d76e4`.
 
 ## Phase 0 — Research, audit, baseline
 
