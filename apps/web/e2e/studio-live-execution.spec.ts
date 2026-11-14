@@ -3,10 +3,10 @@ import { test, expect } from '@playwright/test'
 /**
  * scigrid-de is not in the backend's default GRIDSTORM_LIVE_NETWORKS (its measured solve exceeds
  * the hosted memory budget), so GET /api/v1/networks/scigrid-de reports live_execution=false.
- * An unchanged preset is served from its verified precomputed artifact; an edited scenario is
- * refused with HTTP 422 live_execution_unavailable. Both paths hit the real backend.
+ * An unchanged preset is served from its verified precomputed artifact; the UI prevents
+ * an edited scenario from submitting when there is no matching result.
  */
-test('Crisis Studio honours live_execution=false: precomputed preset runs, edited scenario is refused', async ({
+test('Crisis Studio honours live_execution=false: precomputed preset runs, unavailable edits cannot submit', async ({
   page,
   request,
 }) => {
@@ -35,16 +35,14 @@ test('Crisis Studio honours live_execution=false: precomputed preset runs, edite
   await page.goto('/studio?preset=scigrid-de-baseline')
   await expect(page.getByTestId('validation-status')).toHaveAttribute('data-valid', 'true')
   await page.getByTestId('time-limit').fill('120')
-  await expect(page.getByTestId('execution-forecast')).toContainText('No precomputed result matches')
-  const refused = page.waitForResponse((r) => r.url().endsWith('/api/v1/simulations') && r.request().method() === 'POST')
-  await page.getByTestId('run-scenario').click()
-  const resp = await refused
-  expect(resp.status()).toBe(422)
-  expect((await resp.json()).error.code).toBe('live_execution_unavailable')
-  const alert = page.getByTestId('live-unavailable')
-  await expect(alert).toContainText('Run refused: live execution unavailable')
-  await expect(alert).toContainText("Live execution is unavailable for network 'scigrid-de'")
-  await expect(alert).toContainText('HTTP 422 · live_execution_unavailable')
+  await expect(page.getByTestId('execution-forecast')).toContainText('cannot run here')
+  await expect(page.getByTestId('run-scenario')).toBeDisabled()
+  const guidance = page.getByTestId('unavailable-guidance')
+  await expect(guidance).toContainText('not available for execution')
+  await expect(guidance.getByRole('link', { name: 'Try the runnable IEEE 14-bus example' })).toHaveAttribute(
+    'href',
+    '/studio?preset=pglib-case14-ieee-baseline',
+  )
   await expect(page).toHaveURL(/\/studio/)
   expect(errors).toEqual([])
 })
