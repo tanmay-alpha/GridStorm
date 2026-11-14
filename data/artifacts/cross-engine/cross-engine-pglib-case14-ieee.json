@@ -4,9 +4,9 @@
   "artifact_id": "cross-engine-pglib-case14-ieee",
   "kind": "benchmark",
   "engine": "cross-engine",
-  "engine_version": "pandapower 3.5.6 | pypsa 1.4.0",
+  "engine_version": "pandapower 3.5.4 | pypsa 1.4.0",
   "network_id": "pglib-case14-ieee",
-  "created_at": "2026-11-14T21:10:53+00:00",
+  "created_at": "2026-11-14T21:46:20+00:00",
   "command": "python tests/cross_engine/run_all.py",
   "inputs": [
    {
@@ -43,7 +43,7 @@
    },
    {
     "path": "workers/pandapower/uv.lock",
-    "sha256": "7762ea2325f575401a2bac5a1135ca4537660e42927004254ce18a35fa0f9d44"
+    "sha256": "d33195df521b5a1b1b4b7d5ffc12519af22621a8750657c4d34415a9f83969be"
    },
    {
     "path": "pipelines/network-import/uv.lock",
@@ -52,14 +52,14 @@
   ],
   "platform": "Windows-10-10.0.26300-SP0; python 3.11.15",
   "execution_mode": "precomputed",
-  "payload_sha256": "9dff833b306c60af4c3894f02171e2a763a4d0482ce99080e526c2a99786cae4"
+  "payload_sha256": "fe2e511f8db43506ab2c7f00701c7a9e7bfd4b1b2824a0855ac329e76dcd7c2c"
  },
  "payload": {
   "network_id": "pglib-case14-ieee",
   "engines": [
    {
     "name": "pandapower",
-    "version": "3.5.6",
+    "version": "3.5.4",
     "role": "rundcpp / runpp / rundcopp on from_mpc conversion"
    },
    {
@@ -69,7 +69,7 @@
    },
    {
     "name": "matpower-formula-numpy",
-    "version": "numpy 2.4.6",
+    "version": "numpy 2.2.6",
     "role": "independent makeBdc/dcpf arbiter; DC OPF LP via scipy.optimize.linprog(highs)"
    }
   ],

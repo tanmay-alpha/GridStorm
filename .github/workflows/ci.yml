@@ -217,6 +217,8 @@ jobs:
         run: docker logs api
       - if: steps.df.outputs.present == 'true'
         name: Trivy scan (report-only)
+        # Report-only: a Trivy DB download/scan error must not fail the smoke job.
+        continue-on-error: true
         uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8  # v0.33.1
         with:
           image-ref: gridstorm-api:ci
