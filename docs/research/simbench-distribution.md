@@ -22,8 +22,10 @@ variables explicitly if your shell already specifies another value. No API keys 
 are needed. Each artifact under `data/artifacts/distribution/` has contract §5's envelope,
 `kind: timeseries`, a canonical payload SHA-256, exact configuration, solver/version/runtime
 metadata and SHA-256 hashes of the packaged source CSV tables. `index.json` lists all studies.
-Wall time and creation date vary between reproductions; numerical results, not those fields,
-are deterministic. The payload includes calculated provenance and synthetic source provenance.
+Wall time and creation date vary between reproductions. Because `runtime_s` is part of the payload
+(as `wall_time_s` is for other engines in contract §5), `payload_sha256` changes on every rerun.
+A full rerun of all nine studies reproduced every other payload field exactly. The payload
+includes calculated provenance and synthetic source provenance.
 
 ## Sources, licenses and reference grid
 
@@ -85,6 +87,52 @@ is only **0.412 MWh**. Under pandapower's storage sign convention this is a larg
 not a sustainable annual operating cycle. We do not infer that upstream SimBench itself is
 physically invalid; the profile/conversion interpretation is unresolved. Idling storage is an
 explicit study assumption, not a simulated storage mitigation. No SOC or optimal dispatch is claimed.
+
+## Results
+
+All values below are copied from the committed artifacts (`summary`, `convergence`, `config`).
+Every study converged on all 672 steps with no unstable controller steps. No study had line
+overloads or under-voltage, so those columns are omitted. Voltage extrema and loadings are
+rounded to four significant digits. Hours count steps with any affected element × 0.25 h.
+
+| Study | Window (2016) | Stress | Upstream V (pu) | V min–max (pu) | Max line (%) | Max trafo (%) | Over-voltage h (bus-steps; buses) | Trafo overload h (longest h; events) | PV MWh | Curtailed MWh | Export MWh | Losses MWh (% of load) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| `lv-rural1-0-baseline` | Jul 25–31 | — | 1.025 | 1.013–1.03 | 25.33 | 42.49 | 0 | 0 | 2.849 | 0 | 1.327 | 0.09868 (2.54) |
+| `lv-rural1-0-heatwave` | Jul 25–31 | load ×1.3 | 1.025 | 1.01–1.029 | 24.67 | 40.2 | 0 | 0 | 2.849 | 0 | 1.066 | 0.1054 (2.087) |
+| `lv-rural1-0-pv-loss-high-load` | Jul 25–31 | load ×1.3, PV = 0 | 1.025 | 1.009–1.025 | 15.72 | 37.08 | 0 | 0 | 0 | 0 | 0 | 0.1075 (2.129) |
+| `lv-rural1-2-baseline` | May 23–29 | — | 1.025 | 1.008–1.06 | 40.72 | 139.4 | 0 | 26.75 (5.0; 6) | 12.06 | 0 | 9.257 | 0.2803 (6.321) |
+| `lv-rural1-2-pv-loss-high-load` | Jul 25–31 | load ×1.3, PV = 0 | 1.025 | 1.005–1.025 | 32.47 | 51.25 | 0 | 0 | 0 | 0 | 0 | 0.1086 (2.101) |
+| `lv-rural1-2-high-mv-baseline` | May 23–29 | — | 1.055 | 1.038–1.089 | 39.62 | 135.6 | 0 | 25.5 (5.0; 7) | 12.06 | 0 | 9.265 | 0.2743 (6.185) |
+| `lv-rural1-2-high-pv` | May 23–29 | PV ×1.5 | 1.055 | 1.038–1.108 | 61.53 | 210.0 | 17.0 (134; 2) | 45.0 (6.75; 7) | 18.1 | 0 | 14.98 | 0.5379 (12.13) |
+| `lv-rural1-2-high-pv-cap50` | May 23–29 | PV ×1.5, cap 0.5·sn | 1.055 | 1.038–1.102 | 52.17 | 188.3 | 8.25 (61; 2) | 45.0 (6.75; 7) | 17.48 | 0.617 | 14.41 | 0.4957 (11.18) |
+| `lv-rural1-2-high-pv-qu` | May 23–29 | PV ×1.5, Q(U) | 1.055 | 1.038–1.066 | 73.09 | 241.3 | 0 | 49.0 (7.5; 7) | 18.1 | 0 | 14.81 | 0.7086 (15.98) |
+
+What these numbers show, within the stated model:
+
+- **Scenario 0 (today) has no violations** in the July week, even with load ×1.3 and all PV lost
+  (lowest voltage 1.009 pu against a 0.90-pu limit). Its peak transformer loading is set by PV
+  export: the 0.06846-MW maximum reverse flow is ≈ 42.5 % of the 0.16-MVA rating. Removing PV
+  therefore lowers peak transformer loading (42.49 → 37.08 %) despite 30 % more load. This feeder
+  is not under-voltage-limited under these load proxies.
+- **Scenario 2's 0.468 MVA of PV already overloads the 0.16-MVA transformer** in the May week.
+  This occurs at default boundary voltage, with 26.75 h above 100 % and a 139.4 % peak. The
+  0.2266-MW maximum reverse flow (≈ 142 % of rating) is of the same magnitude as that peak.
+  Voltages remain inside 0.90–1.10 pu.
+- Raising the upstream voltage to 1.055 pu alone shifts the voltage band up (max 1.06 → 1.089 pu)
+  without creating over-voltage. Adding **PV ×1.5 (0.7023 MVA)** then produces **17 h of
+  over-voltage at two end-of-feeder buses** (`LV1.101 Bus 5`/`Bus 6`, max 1.108 pu), plus
+  45 h of transformer overload (peak 210 %).
+- The **50 % static cap** curtails 0.617 MWh (3.4 % of the 18.1 MWh available). This halves
+  over-voltage hours (17 → 8.25 h) and lowers peak transformer loading to 188.3 %. However,
+  overload hours are unchanged (45 h): the cap removes only the profile peaks.
+- **Q(U)** removes over-voltage entirely (max 1.066 pu). However, reactive absorption raises
+  peak transformer loading to 241.3 %, overload hours to 49 h, line loading to 73.09 % and losses
+  from 0.5379 to 0.7086 MWh. Voltage support trades against thermal loading here. Neither
+  mitigation resolves the transformer overload, which would need reinforcement or export
+  limitation at the transformer (not modeled). Q(U) controller iterations made this study's
+  runtime ≈ 57 s vs ≈ 7 s for the others (single thread, this workstation).
+- Losses as % of load are large in PV-export weeks because losses scale with reverse flow while
+  load is the denominator. This ratio is not a feeder efficiency metric.
 
 ## Numerical interpretation and limitations
 

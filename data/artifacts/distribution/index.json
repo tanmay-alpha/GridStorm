@@ -8,7 +8,7 @@
    "network_id": "simbench-1-LV-rural1--0-sw",
    "title": "LV rural1 (today) - baseline summer week",
    "path": "lv-rural1-0-baseline.json",
-   "payload_sha256": "b53e547f0aa14e49fa2848a2058bc2248d23c37e53182fff8a9dfd0d2ab9245a"
+   "payload_sha256": "60f97cee3bc5132045408bd94fe01ea9f990688dbb5fbc02e5a88c5302f7baaf"
   },
   {
    "artifact_id": "lv-rural1-0-heatwave",
@@ -16,7 +16,7 @@
    "network_id": "simbench-1-LV-rural1--0-sw",
    "title": "LV rural1 (today) - high-load proxy x1.3",
    "path": "lv-rural1-0-heatwave.json",
-   "payload_sha256": "003f38e3d39d6527663c51b97517c4a84a19f1d55c2d26260384acc4cc926ea2"
+   "payload_sha256": "a95dd0840f5569936ed1e39f65ae2cabfa6727b2d6daf7aeccb2b8f831c8dc58"
   },
   {
    "artifact_id": "lv-rural1-0-pv-loss-high-load",
@@ -24,7 +24,7 @@
    "network_id": "simbench-1-LV-rural1--0-sw",
    "title": "LV rural1 (today) - PV loss + load x1.3",
    "path": "lv-rural1-0-pv-loss-high-load.json",
-   "payload_sha256": "03f9bad09b8256930ac7e7050d2a1e60fab1a66ef3aafb5d2d23d553d10ece28"
+   "payload_sha256": "2907b8ca6af661c4017a8e77d4957049db1bb9a65c6a53560b5211d4b408ddb9"
   },
   {
    "artifact_id": "lv-rural1-2-baseline",
@@ -32,7 +32,7 @@
    "network_id": "simbench-1-LV-rural1--2-sw",
    "title": "LV rural1 (scenario 2) - May baseline, default MV voltage",
    "path": "lv-rural1-2-baseline.json",
-   "payload_sha256": "787a9c28610dce42b91669f4b89c2d4e5f2d6332c22cc8101212a681f53ad31c"
+   "payload_sha256": "15afde958754386663fb8c3805dd4cec61c4a5d502fe245d8ce18f6c0c991614"
   },
   {
    "artifact_id": "lv-rural1-2-high-mv-baseline",
@@ -40,7 +40,7 @@
    "network_id": "simbench-1-LV-rural1--2-sw",
    "title": "LV rural1 (scenario 2) - May baseline, MV 1.055 pu",
    "path": "lv-rural1-2-high-mv-baseline.json",
-   "payload_sha256": "7dd3db8c72615637758bb4a791832ef25472ccfca7e4efbdc67ad86c32bbe2c0"
+   "payload_sha256": "4fbf25cd41659e6ac024605f1a21d614dcd5369c5cea079d4547831e87d3a57e"
   },
   {
    "artifact_id": "lv-rural1-2-high-pv",
@@ -48,7 +48,7 @@
    "network_id": "simbench-1-LV-rural1--2-sw",
    "title": "LV rural1 (scenario 2) - PV x1.5, MV 1.055 pu",
    "path": "lv-rural1-2-high-pv.json",
-   "payload_sha256": "186935618cea1a33373eb6eddcdfe1dd314fe431e9402badb4b6aba125b55ac3"
+   "payload_sha256": "d2b6216174849af564a6b7d75aeb703be0f88a43ea66e64b56f05e79cf0258d1"
   },
   {
    "artifact_id": "lv-rural1-2-high-pv-cap50",
@@ -56,7 +56,7 @@
    "network_id": "simbench-1-LV-rural1--2-sw",
    "title": "LV rural1 - high PV / MV + modeled 50% inverter-power cap",
    "path": "lv-rural1-2-high-pv-cap50.json",
-   "payload_sha256": "9f92b938a75339c67fcc39ab5d3eca2b0505691cc5473cc4a0748a9b4a685a6c"
+   "payload_sha256": "47499d5f7918b6c79f4f8f62f3d2f28fd43c859f5080f6374a045c31973479ac"
   },
   {
    "artifact_id": "lv-rural1-2-high-pv-qu",
@@ -64,7 +64,7 @@
    "network_id": "simbench-1-LV-rural1--2-sw",
    "title": "LV rural1 - high PV / MV + Q(U) control",
    "path": "lv-rural1-2-high-pv-qu.json",
-   "payload_sha256": "f091558a57669d5446370a59912dbf17b1ae9f35647c88726146152ecb7075eb"
+   "payload_sha256": "603747c195356ef5c676edd163f3c5162a5656d32fffeddfb984e698de103b7a"
   },
   {
    "artifact_id": "lv-rural1-2-pv-loss-high-load",
@@ -72,7 +72,7 @@
    "network_id": "simbench-1-LV-rural1--2-sw",
    "title": "LV rural1 (scenario 2) - PV loss + load x1.3",
    "path": "lv-rural1-2-pv-loss-high-load.json",
-   "payload_sha256": "f272551666c2ef6df43e545c88a8fbcdd37d3202ea53faf2e03e9b90f5eab0b5"
+   "payload_sha256": "eba09edcb195234f75d1aeee60049f2c4e400dc6bb204d29005ff32ba7d1e169"
   }
  ]
 }
