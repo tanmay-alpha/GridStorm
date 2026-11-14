@@ -83,11 +83,18 @@ def export_netcdf(n: pypsa.Network, path: Path) -> bool:
     return True
 
 
+#: Derived per-network outputs written after the manifest (precomputed analytics). They carry their
+#: own sha256 index that pins network.nc and manifest.json, so listing them here would be circular.
+DERIVED_SUBDIRS = ("analytics",)
+
+
 def file_entries(dataset_dir: Path) -> list[dict[str, Any]]:
-    """sha256 + size of every file in the dataset directory except the manifest itself."""
+    """sha256 + size of every dataset file except the manifest itself and derived subdirectories."""
     out = []
     for p in sorted(dataset_dir.rglob("*")):
         if not p.is_file() or p.name == MANIFEST_NAME and p.parent == dataset_dir:
+            continue
+        if p.relative_to(dataset_dir).parts[0] in DERIVED_SUBDIRS:
             continue
         if p.name.endswith((".part", ".tmp.nc")):
             raise RuntimeError(f"stray temporary file {p}; remove it and re-run")

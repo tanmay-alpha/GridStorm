@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import sys
 
 import pytest
@@ -32,4 +33,6 @@ def test_engine_child_prefers_itself_as_oom_victim(client_factory):
     client = client_factory(engine_cmd=PRINT_OOM_ADJ)
     job = run_job(client, scenario("oom-adj"))
     assert job["error"]["code"] == "engine_failed"
-    assert job["error"]["message"].rstrip().endswith("1000"), job["error"]["message"]
+    # The child's stderr (its oom_score_adj) is embedded in the error message, possibly followed by
+    # other captured stderr lines; require the exact value as a whole token.
+    assert re.search(r"\[stderr\]\s*1000\b", job["error"]["message"]), job["error"]["message"]
