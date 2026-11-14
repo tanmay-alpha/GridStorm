@@ -45,7 +45,11 @@ def test_result_validates_against_schema_and_stages_in_order():
     jsonschema.validate(res, schema)
     jsonschema.validate(_ac_base(), schema)
     assert res["outcome"] == "feasible"
-    assert res["engine"] == {"name": "pypsa", "version": res["engine"]["version"], "formulation": "lopf"}
+    assert res["engine"] == {
+        "name": "pypsa",
+        "version": res["engine"]["version"],
+        "formulation": "lopf",
+    }
     assert any("DC linearised" in a for a in res["assumptions"])
     # the ac-dc-meshed CO2 cap belongs to the planning study and is removed, visibly
     assert any("global constraints removed" in a for a in res["assumptions"])
@@ -95,7 +99,8 @@ def test_line_outage_zeroes_flow_and_redistributes():
     assert np.abs(_arr(lines[target]["flow_mw"])).max() == 0.0
     others = [i for i in lines if i != target]
     changed = [
-        i for i in others
+        i
+        for i in others
         if np.abs(_arr(lines[i]["flow_mw"]) - _arr(base_lines[i]["flow_mw"])).max() > 1e-3
     ]
     assert changed, "no other line flow changed after the outage"
@@ -113,7 +118,9 @@ def test_link_outage_zeroes_link_flow():
 
 def test_partial_window_branch_outage_is_rejected():
     spec = scenario(
-        AC, 10, [{"type": "line_outage", "asset_id": "0", "window": {"start": 2, "end": 5}}],
+        AC,
+        10,
+        [{"type": "line_outage", "asset_id": "0", "window": {"start": 2, "end": 5}}],
         sid="ac-partial",
     )
     with pytest.raises(ScenarioRejected) as ei:
@@ -129,10 +136,15 @@ def test_unknown_asset_is_rejected():
 
 
 def _all_gas_out(load_shedding: bool, sid: str) -> dict:
-    events = [{"type": "generator_outage", "asset_id": g, "window": {"start": 2, "end": 8}}
-              for g in AC_GAS]
+    events = [
+        {"type": "generator_outage", "asset_id": g, "window": {"start": 2, "end": 8}}
+        for g in AC_GAS
+    ]
     spec = scenario(
-        AC, 10, events, sid=sid,
+        AC,
+        10,
+        events,
+        sid=sid,
         mitigation={"load_shedding": {"enabled": load_shedding, "voll_eur_per_mwh": 10000}},
     )
     return run_cached(sid, spec, AC)
@@ -174,9 +186,12 @@ def test_curtailment_counts_only_variable_generators():
     """Regression: events densify p_max_pu; dispatchable units must not count as curtailable."""
     res = run_scenario(
         scenario(
-            AC, 10,
-            [{"type": "renewable_availability_multiplier", "carrier": "wind", "value": 0.5},
-             {"type": "generator_outage", "asset_id": "Norway Gas"}],
+            AC,
+            10,
+            [
+                {"type": "renewable_availability_multiplier", "carrier": "wind", "value": 0.5},
+                {"type": "generator_outage", "asset_id": "Norway Gas"},
+            ],
             sid="ac-curtail",
         ),
         network_dir(AC),
@@ -191,7 +206,9 @@ def test_curtailment_counts_only_variable_generators():
     assert m["curtailment_mwh"] == pytest.approx(float(((wind_avail - wind_p) * w).sum()), abs=1e-2)
     # availability multiplier applied exactly
     base_wind = sum(
-        _arr(g["available_mw"]) for g in _ac_base()["assets"]["generators"] if g["carrier"] == "wind"
+        _arr(g["available_mw"])
+        for g in _ac_base()["assets"]["generators"]
+        if g["carrier"] == "wind"
     )
     assert wind_avail == pytest.approx(0.5 * base_wind, abs=1e-3)
 
@@ -228,9 +245,12 @@ def scigrid_storage_run():
     import pypsa
 
     spec = scenario(
-        SG, 6,
-        [{"type": "line_outage", "asset_id": "2", "component": "transformer"},
-         {"type": "demand_multiplier", "value": 1.1}],
+        SG,
+        6,
+        [
+            {"type": "line_outage", "asset_id": "2", "component": "transformer"},
+            {"type": "demand_multiplier", "value": 1.1},
+        ],
         sid="sg-storage",
     )
     res = run_scenario(spec, network_dir(SG))
@@ -268,13 +288,14 @@ def test_storage_soc_bounds_and_recursion(scigrid_storage_run):
         eff_s = float(su.at[sid, "efficiency_store"])
         eff_d = float(su.at[sid, "efficiency_dispatch"])
         loss = float(su.at[sid, "standing_loss"])
-        prev = soc[-1] if bool(su.at[sid, "cyclic_state_of_charge"]) else float(
-            su.at[sid, "state_of_charge_initial"]
+        prev = (
+            soc[-1]
+            if bool(su.at[sid, "cyclic_state_of_charge"])
+            else float(su.at[sid, "state_of_charge_initial"])
         )
         for t in range(len(soc)):
-            expected = (
-                (1 - loss) ** w[t] * prev
-                + w[t] * (eff_s * store[t] - disp[t] / eff_d + float(inflow[sid].iloc[t]) - spill[t])
+            expected = (1 - loss) ** w[t] * prev + w[t] * (
+                eff_s * store[t] - disp[t] / eff_d + float(inflow[sid].iloc[t]) - spill[t]
             )
             assert soc[t] == pytest.approx(expected, abs=5e-3), (sid, t)
             prev = soc[t]
@@ -288,9 +309,21 @@ def _cli(tmp_path, spec: dict, network_id: str):
     sp.write_text(json.dumps(spec), encoding="utf-8")
     out = tmp_path / "r.json"
     proc = subprocess.run(
-        [sys.executable, "-m", "gridstorm_pypsa", "run", "--scenario", str(sp),
-         "--network-dir", str(network_dir(network_id)), "--out", str(out)],
-        capture_output=True, text=True, check=False,
+        [
+            sys.executable,
+            "-m",
+            "gridstorm_pypsa",
+            "run",
+            "--scenario",
+            str(sp),
+            "--network-dir",
+            str(network_dir(network_id)),
+            "--out",
+            str(out),
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
     )
     return proc, out
 
@@ -305,14 +338,19 @@ def test_cli_writes_result_and_prints_stages(tmp_path):
 
 def test_cli_infeasible_exit_zero_and_rejection_exit_two(tmp_path):
     events = [{"type": "generator_outage", "asset_id": g} for g in AC_GAS]
-    spec = scenario(AC, 2, events, sid="ac-cli-inf",
-                    mitigation={"load_shedding": {"enabled": False}})
+    spec = scenario(
+        AC, 2, events, sid="ac-cli-inf", mitigation={"load_shedding": {"enabled": False}}
+    )
     proc, out = _cli(tmp_path, spec, AC)
     assert proc.returncode == 0, proc.stderr
     assert json.loads(out.read_text(encoding="utf-8"))["outcome"] == "infeasible"
 
-    bad = scenario(AC, 2, [{"type": "line_outage", "asset_id": "0",
-                            "window": {"start": 0, "end": 1}}], sid="ac-cli-bad")
+    bad = scenario(
+        AC,
+        2,
+        [{"type": "line_outage", "asset_id": "0", "window": {"start": 0, "end": 1}}],
+        sid="ac-cli-bad",
+    )
     (tmp_path / "b").mkdir()
     proc, out2 = _cli(tmp_path / "b", bad, AC)
     assert proc.returncode == 2

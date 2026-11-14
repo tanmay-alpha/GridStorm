@@ -1,4 +1,4 @@
-"""GridStorm PyPSA adapter: StormSpec scenario -> PyPSA linear OPF (HiGHS) -> gridstorm-result/1.0."""
+"""Run StormSpec scenarios with PyPSA linear OPF (HiGHS), returning gridstorm-result/1.0."""
 
 from .runner import (
     STAGES,

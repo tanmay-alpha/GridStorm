@@ -63,8 +63,11 @@ def _child(scenario_path: str, network_dir: str, out_path: str) -> int:
         json.dumps(result, ensure_ascii=False, allow_nan=False), encoding="utf-8"
     )
     peak, method = _peak_rss_mb()
-    print(json.dumps({"wall_time_s": round(wall, 3), "peak_rss_mb": round(peak, 1),
-                      "rss_method": method}))
+    print(
+        json.dumps(
+            {"wall_time_s": round(wall, 3), "peak_rss_mb": round(peak, 1), "rss_method": method}
+        )
+    )
     return 0
 
 
@@ -85,15 +88,28 @@ def _run_one(preset_path: Path, network_root: Path, out_dir: Path) -> dict:
     if not nc.is_file():
         raise FileNotFoundError(f"{nc} not found (network {scenario.dataset.network_id!r})")
 
-    env = {**os.environ, "OMP_NUM_THREADS": "1", "OPENBLAS_NUM_THREADS": "1",
-           "MKL_NUM_THREADS": "1"}
+    env = {
+        **os.environ,
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+    }
     with tempfile.TemporaryDirectory() as tmp:
         result_path = Path(tmp) / "result.json"
         t0 = time.perf_counter()
         proc = subprocess.run(
-            [sys.executable, __file__, "--_child", str(preset_path), str(network_dir),
-             str(result_path)],
-            capture_output=True, text=True, env=env, check=False,
+            [
+                sys.executable,
+                __file__,
+                "--_child",
+                str(preset_path),
+                str(network_dir),
+                str(result_path),
+            ],
+            capture_output=True,
+            text=True,
+            env=env,
+            check=False,
         )
         process_wall = time.perf_counter() - t0
         if proc.returncode != 0:
@@ -191,14 +207,18 @@ def _write_benchmark_md(path: Path, entries: list[dict]) -> None:
         rows.append(
             f"| `{e['artifact_id']}` | {e['network_id']} | {e['outcome']} | "
             f"{_fmt(e['objective_eur'], 0)} | {_fmt(e['unserved_energy_mwh'], 1)} | "
-            f"{_fmt(m.get('solver_wall_time_s'), 2)} | {_fmt(m.get('run_scenario_wall_time_s'), 2)} | "
+            f"{_fmt(m.get('solver_wall_time_s'), 2)} | "
+            f"{_fmt(m.get('run_scenario_wall_time_s'), 2)} | "
             f"{_fmt(m.get('peak_rss_mb'), 0)} |"
         )
     plat = platform.platform()
     peaks = [(e.get("measurements") or {}).get("peak_rss_mb") for e in entries]
     peaks = [p for p in peaks if p is not None]
-    over = [e["artifact_id"] for e in entries
-            if ((e.get("measurements") or {}).get("peak_rss_mb") or 0) > 512]
+    over = [
+        e["artifact_id"]
+        for e in entries
+        if ((e.get("measurements") or {}).get("peak_rss_mb") or 0) > 512
+    ]
     text = [
         "# PyPSA preset benchmarks",
         "",
@@ -206,7 +226,8 @@ def _write_benchmark_md(path: Path, entries: list[dict]) -> None:
         "",
         f"```\n{COMMAND}\n```",
         "",
-        f"Platform: `{plat}`, CPU `{cpu}`, HiGHS single-threaded (`threads=1`). Each preset runs in a "
+        f"Platform: `{plat}`, CPU `{cpu}`, HiGHS single-threaded (`threads=1`). "
+        "Each preset runs in a "
         f"fresh Python process; peak RSS = {method} of that process (includes the Python "
         "interpreter, PyPSA/linopy/xarray imports, the network, the linopy model and HiGHS).",
         "",
@@ -219,7 +240,8 @@ def _write_benchmark_md(path: Path, entries: list[dict]) -> None:
             "Presets above 512 MB: " + ", ".join(f"`{i}`" for i in over) + ". These do NOT fit a "
             "512 MB instance for live execution; serve their precomputed artifacts instead, or "
             "run live on a larger instance."
-            if over else "All presets stay below 512 MB."
+            if over
+            else "All presets stay below 512 MB."
         ),
         "",
     ]
@@ -239,8 +261,12 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--network-root", type=Path, default=REPO_ROOT / "data" / "networks")
     ap.add_argument("--presets-dir", type=Path, default=stormspec.PRESETS_DIR)
     ap.add_argument("--only", nargs="*", default=None, help="preset ids to run (default: all)")
-    ap.add_argument("--benchmark-md", type=Path, default=None,
-                    help="also write a markdown benchmark table to this path")
+    ap.add_argument(
+        "--benchmark-md",
+        type=Path,
+        default=None,
+        help="also write a markdown benchmark table to this path",
+    )
     args = ap.parse_args(argv)
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
@@ -261,8 +287,10 @@ def main(argv: list[str] | None = None) -> int:
             continue
         m = h["measurements"]
         print(
-            f"  {h['outcome']}  solver {m['solver_wall_time_s']} s  run {m['run_scenario_wall_time_s']}"
-            f" s  peak RSS {m['peak_rss_mb']} MB", flush=True
+            f"  {h['outcome']}  solver {m['solver_wall_time_s']} s  "
+            f"run {m['run_scenario_wall_time_s']}"
+            f" s  peak RSS {m['peak_rss_mb']} MB",
+            flush=True,
         )
     entries = _rebuild_index(args.out_dir)
     if args.benchmark_md:

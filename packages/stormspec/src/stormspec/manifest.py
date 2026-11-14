@@ -25,7 +25,7 @@ def platform_string() -> str:
 
 
 def detect_git_sha(start: str | Path | None = None) -> str | None:
-    """Return ``GRIDSTORM_GIT_SHA`` if set, else ``git rev-parse HEAD`` near ``start``, else None."""
+    """Return the environment git SHA, repository SHA near ``start``, or None."""
     env = os.environ.get("GRIDSTORM_GIT_SHA")
     if env:
         return env.strip() or None

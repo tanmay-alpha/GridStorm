@@ -29,7 +29,6 @@ from typing import Any
 import numpy as np
 import pandas as pd
 import pypsa
-
 import stormspec
 from stormspec import (
     DemandMultiplier,
@@ -208,13 +207,13 @@ def _window_mask(snapshots: pd.Index, horizon_start: int, window) -> np.ndarray:
 
 
 def _fix_capacities(n: pypsa.Network, applied: _Applied) -> None:
-    for list_name, ext, nom in (
-        ("generators", "p_nom_extendable", "p_nom"),
-        ("storage_units", "p_nom_extendable", "p_nom"),
-        ("stores", "e_nom_extendable", "e_nom"),
-        ("links", "p_nom_extendable", "p_nom"),
-        ("lines", "s_nom_extendable", "s_nom"),
-        ("transformers", "s_nom_extendable", "s_nom"),
+    for list_name, ext in (
+        ("generators", "p_nom_extendable"),
+        ("storage_units", "p_nom_extendable"),
+        ("stores", "e_nom_extendable"),
+        ("links", "p_nom_extendable"),
+        ("lines", "s_nom_extendable"),
+        ("transformers", "s_nom_extendable"),
     ):
         df = getattr(n, list_name)
         if len(df) and ext in df.columns:
@@ -305,7 +304,8 @@ def _apply_events(n: pypsa.Network, scenario: Scenario, applied: _Applied) -> No
             loads_touched = True
         elif isinstance(ev, RenewableAvailabilityMultiplier):
             cols = [
-                g for g in gen_pmax.columns
+                g
+                for g in gen_pmax.columns
                 if g in var_gens and str(n.generators.at[g, "carrier"]) == ev.carrier
             ]
             gen_pmax.loc[mask, cols] = gen_pmax.loc[mask, cols] * ev.value
@@ -401,9 +401,7 @@ def _add_load_shedding(
             continue
         name = f"{bus} {SHED_CARRIER}"
         if name in n.generators.index:
-            raise _reject(
-                "invalid_network", "dataset", f"generator name collision for {name!r}"
-            )
+            raise _reject("invalid_network", "dataset", f"generator name collision for {name!r}")
         names.append(name)
         buses.append(bus)
         p_noms.append(peak)
@@ -541,7 +539,7 @@ def _postprocess(n: pypsa.Network, scenario: Scenario, applied: _Applied) -> dic
     p, avail, real, shed, gen_by_c, curt, curt_by_c, shed_mw = _generation_metrics(n, applied, w)
 
     sign = _sign(n, "loads")
-    load_mw_df = (n.loads_t.p.reindex(columns=n.loads.index).fillna(0.0) * (-sign))
+    load_mw_df = n.loads_t.p.reindex(columns=n.loads.index).fillna(0.0) * (-sign)
     load_mw = load_mw_df.sum(axis=1).to_numpy(dtype=float)
     shed_total = shed_mw.sum(axis=1).to_numpy(dtype=float) if shed else np.zeros(len(snaps))
 
@@ -555,6 +553,7 @@ def _postprocess(n: pypsa.Network, scenario: Scenario, applied: _Applied) -> dic
 
     su = n.storage_units
     if len(su):
+
         def su_frame(attr: str) -> pd.DataFrame:
             df = n.storage_units_t.get(attr)
             if df is None or df.empty:
@@ -613,8 +612,7 @@ def _postprocess(n: pypsa.Network, scenario: Scenario, applied: _Applied) -> dic
         },
         "curtailment_mwh": _num(float((curt_total * w).sum()), md),
         "curtailment_by_carrier_mwh": {
-            str(c): _num(float((curt_by_c[c].to_numpy() * w).sum()), md)
-            for c in curt_by_c.columns
+            str(c): _num(float((curt_by_c[c].to_numpy() * w).sum()), md) for c in curt_by_c.columns
         },
         "max_line_loading_pct": _num(max_loading, md),
         "mean_line_loading_pct": _num(mean_loading, md),
@@ -812,9 +810,7 @@ def run_scenario(
 
     # Datetime snapshots -> ISO-8601; non-temporal labels (e.g. PGLib "now") are kept verbatim,
     # never parsed (pd.Timestamp("now") would invent the current time).
-    snapshots_iso = [
-        s.isoformat() if isinstance(s, pd.Timestamp) else str(s) for s in n.snapshots
-    ]
+    snapshots_iso = [s.isoformat() if isinstance(s, pd.Timestamp) else str(s) for s in n.snapshots]
     weights = _series(n.snapshot_weightings.generators.reindex(n.snapshots), METRIC_DECIMALS)
     result: dict[str, Any] = {
         "schema_version": RESULT_SCHEMA_VERSION,
@@ -850,9 +846,7 @@ def run_scenario(
                 f"Solver finished with status {status!r}, termination {condition!r}: "
                 "no valid solution, no numbers are reported."
             )
-    result["assumptions"] = _base_assumptions() + applied.assumptions + list(
-        scenario.assumptions
-    )
+    result["assumptions"] = _base_assumptions() + applied.assumptions + list(scenario.assumptions)
     result["warnings"] = result_warnings + applied.warnings
 
     manifest = ExecutionManifest(

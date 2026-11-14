@@ -6,6 +6,7 @@ from pathlib import Path
 
 import jsonschema
 import pytest
+from conftest import base_scenario
 from pydantic import ValidationError
 
 import stormspec
@@ -18,8 +19,6 @@ from stormspec import (
     scenario_hash,
     validate,
 )
-
-from conftest import base_scenario
 
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA_FILE = ROOT / "schema" / "stormspec-1.0.schema.json"
@@ -154,8 +153,12 @@ def test_payload_and_result_hash():
 def test_valid_scenario(network):
     s = base_scenario(
         events=[
-            {"type": "demand_multiplier", "value": 1.2, "buses": ["b3"],
-             "window": {"start": 0, "end": 6}},
+            {
+                "type": "demand_multiplier",
+                "value": 1.2,
+                "buses": ["b3"],
+                "window": {"start": 0, "end": 6},
+            },
             {"type": "renewable_availability_multiplier", "carrier": "wind", "value": 0.3},
             {"type": "line_outage", "asset_id": "l12"},
             {"type": "line_outage", "asset_id": "t13", "component": "transformer"},

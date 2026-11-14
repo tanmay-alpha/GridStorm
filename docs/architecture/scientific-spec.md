@@ -2,8 +2,8 @@
 
 Scope: what `gridstorm_pypsa.run_scenario` (`workers/pypsa`) computes for a StormSpec 1.0 scenario
 (`packages/stormspec`), how the numbers in a `gridstorm-result/1.0` are defined, and what they do
-**not** mean. Interfaces are fixed in [`contracts.md`](contracts.md); measured run times and memory are
-in [`../benchmarks/pypsa-presets.md`](../benchmarks/pypsa-presets.md).
+**not** mean. Interfaces are fixed in [`contracts.md`](contracts.md); per-preset wall time and
+peak RSS are recorded in the artifact headers and [`../../data/artifacts/pypsa/index.json`](../../data/artifacts/pypsa/index.json).
 
 All results are **modeled** (`provenance: "modeled"`): scenario analysis on a linearised network
 model, not a validated blackout predictor or operational forecast.
@@ -203,8 +203,14 @@ dataset, and operations the engine cannot represent faithfully (`unsupported_ope
 * **Dataset scope:** SciGRID-DE is a 2011 snapshot with stylised costs and no CO2 intensities
   (`co2_emissions_t = null`); `ac-dc-meshed` is a toy model; PGLib cases are benchmark systems with
   a single non-temporal snapshot (`"now"`).
-* **Memory:** a 24-snapshot SciGRID-DE run peaks above 512 MB RSS (see benchmarks); such runs should
-  be served precomputed on 512 MB instances.
+* **Memory:** use the measured per-process peak RSS in each preset artifact's
+  `artifact.measurements` before enabling live execution. Measurements include interpreter,
+  imports, network, model and solver, but not the separate API server or operating-system overhead.
+  A Windows working-set measurement is not proof of fit on Linux; leave additional memory headroom
+  and serve large SciGRID runs precomputed on 512 MB instances.
+  The committed Windows run measured SciGRID-DE presets at **541.1–549.5 MiB**, already above
+  512 MiB without the API process. Small AC/DC and PGLib presets measured **276.9–280.4 MiB**.
+  Header key `peak_rss_mb` uses binary MiB (`bytes / 2**20`).
 
 ## 7. Verification (automated)
 
@@ -214,6 +220,9 @@ $g \le$ available capacity; storage SOC bounds and recursion; branch outage ⇒ 
 change; demand ×k ⇒ total load ×k; $E_{unserved}=\sum_t w_t p^{shed}_t$ and VOLL cost; infeasible
 handling (no numbers, CLI exit 0); curtailment restricted to variable generators; reproducibility of
 objective and result hash; partial-window branch outage rejected; transformer/line id collision.
+`tests/test_presets.py` also checks every shipped artifact's result schema, payload/result/input
+hashes, index membership and measured peak RSS, the baseline-based line selection, and the
+storage-dispatch mitigation pair.
 
 ## References
 

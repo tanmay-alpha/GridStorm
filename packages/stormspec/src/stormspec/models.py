@@ -101,7 +101,9 @@ class RenewableAvailabilityMultiplier(_Strict):
     value: float = Field(
         ge=0.0,
         le=1.0,
-        description="Multiplier on availability (p_max_pu); <=1 so availability stays within [0,1].",
+        description=(
+            "Multiplier on availability (p_max_pu); <=1 so availability stays within [0,1]."
+        ),
     )
     window: Window | None = None
 
