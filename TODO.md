@@ -4,9 +4,9 @@ Statuses: `BACKLOG → RESEARCHED → IMPLEMENTING → TESTING → VERIFIED → 
 A task moves to VERIFIED only with recorded evidence (test output, artifact, screenshot) and to
 DEPLOYED only when observed live. Priorities: P0 (blocking demo) · P1 (core) · P2 (valuable) · P3 (optional).
 Owners: A Forensics · B Science (ScienceCore, ACValidation, CrisisAdvisor, StormBench, Sequential,
-PypsaEurBuilder, StormRisk, CrossEngine) · C Frontend (Frontend, FrontendResearch) · D Data
-(DataPipelines, Research, ObservedEvents, ExplorerPort) · E Backend/Infra (Backend, CIDevOps) ·
-F Verification (Verifier) · I Integration owner.
+PypsaEurBuilder, StormRisk, CrossEngine, SimBenchAC, StormML) · C Frontend (Frontend, FrontendResearch) ·
+D Data (DataPipelines, Research, ObservedEvents, ExplorerPort, DocsWriter) · E Backend/Infra (Backend,
+CIDevOps) · F Verification (Verifier) · I Integration owner.
 
 Last updated: 2026-11-14
 
@@ -50,6 +50,7 @@ Last updated: 2026-11-14
 | P2-07 | Scientific specification document | P1 | B/ScienceCore | P2-02 | IMPLEMENTING | `scientific-spec.md` with equations, units, citations |
 | P2-08 | StormRisk: Monte Carlo outage sampling → EENS ± CI, LOLP, convergence | P1 | B/StormRisk | P2-02 | IMPLEMENTING | Deterministic (seeded) study artifact; estimator tests vs hand-computed values |
 | P2-09 | Observed-analogue scenarios (OPSD load/wind/solar → StormSpec events on scigrid-de) | P2 | D/ObservedEvents | P1-02, P2-02 | IMPLEMENTING | ≥ 2 scenarios validate + solve; data license + checksums documented |
+| P2-10 | Distribution-grid AC time-series stress (SimBench LV/MV: heat wave, PV over-voltage, PV loss, mitigation) | P2 | B/SimBenchAC | — | IMPLEMENTING | ≥ 4 artifacts with per-step vm/loading; SimBench license verified; tests |
 
 ## Phase 3 — Mapping and analytics
 
@@ -77,7 +78,8 @@ Last updated: 2026-11-14
 | P5-02 | Grid2Viz audit (MPL-2.0) and KPI concepts | P2 | B/Sequential | — | IMPLEMENTING | `grid2viz-audit.md` |
 | P5-03 | StormBench PTDF/LODF screening vs DC/AC exact N-1 | P1 | B/StormBench | — | IMPLEMENTING | ≥ 5 cases; recall/precision/runtime/memory measured |
 | P5-04 | Operations replay + Benchmarks + Contingency + Methods UI pages | P1 | C/FrontendResearch | P4-02, P5-01, P5-03 | IMPLEMENTING | Pages render real artifacts; unit tests use fixtures copied from real artifacts |
-| P5-05 | Optional ML on simulation-derived labels | P3 | — | P5-03 | BACKLOG | Only with chronological/network-aware splits and heuristic baselines |
+| P5-05 | ML contingency screening on simulator-derived labels vs DC-LODF/heuristic baselines | P3 | B/StormML | P5-03 | IMPLEMENTING | Operating-point and leave-one-network-out splits; bootstrap CIs; honest verdict vs baselines |
+| P5-06 | User guide, engineering story, glossary, deployment docs | P1 | D/DocsWriter | all | IMPLEMENTING | Every documented command/feature exists in code at finish |
 
 ## Phase 6 — Deployment and hardening
 
