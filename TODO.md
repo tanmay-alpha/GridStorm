@@ -8,7 +8,21 @@ PypsaEurBuilder, StormRisk, CrossEngine, SimBenchAC, StormML) · C Frontend (Fro
 D Data (DataPipelines, Research, ObservedEvents, ExplorerPort, DocsWriter) · E Backend/Infra (Backend,
 CIDevOps) · F Verification (Verifier) · I Integration owner.
 
-Last updated: 2026-11-14
+Last updated: 2026-11-15
+
+## Progress dashboard
+
+**58 tracked tasks: 53 done (46 VERIFIED + 7 DEPLOYED) · 2 in progress · 2 now being worked by agents · 1 blocked (≈ 91 %).**
+
+| State | Count | Tasks |
+|---|---|---|
+| DEPLOYED (observed live) | 7 | API on Render, web on Vercel, live jobs, comparisons/reports, Studio + Run dashboard, line-loading replay, Explorer map |
+| VERIFIED (evidence recorded) | 46 | research, licensing, all science engines, data, CI, verification, security, a11y/perf audit, EENS wording |
+| IN PROGRESS | 2 | P6-10 API OOM fix (fixed locally: 350.7 MB peak under 512 MB, deploy pending) · P6-12 a11y/perf fixes (UIFixer) |
+| BACKLOG → in progress | 2 | P0-10 ENTSO-E item re-check (EntsoeCheck) · P1-04b PyPSA-Eur BE licence evidence (EurLicence; final publish decision needs the owner) |
+| BLOCKED (user action) | 1 | P6-02 Supabase: accept Vercel Marketplace terms |
+
+Live: https://gridstorm.vercel.app · https://gridstorm-api.onrender.com · CI green on `49ad242`.
 
 ## Phase 0 — Research, audit, baseline
 
@@ -24,7 +38,7 @@ Last updated: 2026-11-14
 | P0-08 | Tool decision matrix (PowerModels, PGLib, SimBench, ANDES, PyPSA-Earth, ORNL, GO) | P1 | D/Research | — | VERIFIED | `tool-decision-matrix.md`: PGLib data-only; ORNL/CoogGrid/NVIDIA/Grid2Game concepts-only; PowerModels/SimBench/ANDES/PyPSA-Earth/GOC3 deferred; GO Evaluation rejected (no licence) |
 | P0-09 | External data sources licensing (OPSD, ENTSO-E, ERA5, NASA POWER, GEM, OSM, CEA, EIA) | P1 | D/Research | — | VERIFIED | `external-data-sources.md`: 10 sources checked 2026-11-14 (ERA5 CC BY 4.0 since 2025-07-02; EIA needs key (HTTP 403); CEA needs permission; ENTSO-E free re-use list appears to exclude actual load/generation) |
 | P0-10 | Manually re-check ENTSO-E free re-use item numbers before any ingestion | P2 | D/ObservedEvents | P0-09 | BACKLOG | Each ENTSO-E-derived column used has a manifest licence entry matching the current re-use list, else only derived parameters are committed |
-| P0-11 | "EENS" label only for probability-weighted scenario sets | P1 | B/StormRisk + C/Frontend | P2-08 | IMPLEMENTING | Test shows single-scenario outputs never carry the EENS label; UI uses "Unserved energy" for single runs |
+| P0-11 | "EENS" label only for probability-weighted scenario sets | P1 | B/StormRisk + C/Frontend | P2-08 | VERIFIED | StormRisk artifacts use `metric: "EENS"` only for weighted estimates; Run/Compare pages say "Unserved energy"; Studio test + live run page checked |
 
 ## Phase 1 — Functional foundation
 
