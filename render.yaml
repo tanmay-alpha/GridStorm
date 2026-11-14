@@ -29,13 +29,13 @@ services:
       - key: GRIDSTORM_MAX_CONCURRENT_JOBS
         value: "1"
       - key: GRIDSTORM_LIVE_NETWORKS
-        value: ac-dc-meshed,pglib-case14-ieee,pglib-case118-ieee
+        value: ac-dc-meshed,pglib-case14-ieee,pglib-case118-ieee,pypsa-eur-be
       - key: GRIDSTORM_JOB_TIMEOUT_S
         value: "180"
       - key: GRIDSTORM_JOB_MEMORY_MB
         value: "400"
       - key: GRIDSTORM_CORS_ORIGINS
-        value: https://gridstorm.vercel.app,https://gridstorm-tanmay-alphas-projects.vercel.app,http://localhost:5173
+        value: https://gridstorm.vercel.app,https://gridstorm-tanmay-alphas-projects.vercel.app
       - key: DATABASE_URL
         sync: false
       - key: SUPABASE_URL

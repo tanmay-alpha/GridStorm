@@ -18,7 +18,7 @@ DEFAULT_ENGINE_CMD = (
     "{python} -m gridstorm_pypsa run --scenario {scenario} --network-dir {network_dir} --out {out}"
 )
 
-DEFAULT_LIVE_NETWORKS = "ac-dc-meshed,pglib-case14-ieee,pglib-case118-ieee"
+DEFAULT_LIVE_NETWORKS = "ac-dc-meshed,pglib-case14-ieee,pglib-case118-ieee,pypsa-eur-be"
 
 
 def _env(name: str, default: str | None = None) -> str | None:

@@ -313,7 +313,7 @@ artifact):
 | Set by | `GRIDSTORM_EXECUTION_MODE=live` (default) | `GRIDSTORM_EXECUTION_MODE=precomputed` |
 | Simulations | Queued job; the PyPSA engine runs in a subprocess with time and memory limits | No simulation computation: loads a committed `kind: simulation` artifact matching the scenario hash. No match returns HTTP 409 (`precomputed_result_unavailable`); a declared payload hash mismatch returns 503 (`artifact_integrity_error`). |
 | Badge | *live run* | *precomputed* — "Loaded from a stored, reproducible artifact — not computed for this request" |
-| Network gate | Only networks in `GRIDSTORM_LIVE_NETWORKS` (default `ac-dc-meshed,pglib-case14-ieee,pglib-case118-ieee`) solve live. Other networks complete as *precomputed* when a stored artifact matches the scenario hash; otherwise HTTP 422 (`live_execution_unavailable`). Network responses expose `live_execution`. | — |
+| Network gate | Only networks in `GRIDSTORM_LIVE_NETWORKS` (default `ac-dc-meshed,pglib-case14-ieee,pglib-case118-ieee,pypsa-eur-be`) solve live. Other networks complete as *precomputed* when a stored artifact matches the scenario hash; otherwise HTTP 422 (`live_execution_unavailable`). Network responses expose `live_execution`. | — |
 
 Every job records its `execution_mode`. The Contingency, Operations and Benchmarks pages are always
 precomputed: pandapower N-1, the advisor, Grid2Op, StormBench and StormRisk run offline in their own
@@ -345,7 +345,7 @@ served only for `completed` jobs.
   horizon; costs are short-run marginal costs from the dataset. Every result lists its assumptions.
 - **Line/link outages in PyPSA must span the whole horizon**; partial windows are rejected, not
   approximated.
-- **Only PyPSA simulation jobs run live.** The API also computes network analytics. AC N-1,
+- **Only PyPSA simulation jobs run live.** Network analytics are precomputed per network. AC N-1,
   advisor, Grid2Op, StormBench and StormRisk studies are precomputed, not recomputed on request.
 - **Comparisons are pairwise** and require two completed runs on the same network.
 - **Probabilistic metrics** (EENS, LOLP) depend entirely on the assumed outage probabilities.
