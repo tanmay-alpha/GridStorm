@@ -6,7 +6,7 @@
   "engine": "cross-engine",
   "engine_version": "pandapower 3.5.6 | pypsa 1.4.0",
   "network_id": "pglib-case118-ieee",
-  "created_at": "2026-11-14T21:00:15+00:00",
+  "created_at": "2026-11-14T21:10:54+00:00",
   "command": "python tests/cross_engine/run_all.py",
   "inputs": [
    {
@@ -19,7 +19,7 @@
    },
    {
     "path": "tests/cross_engine/compare.py",
-    "sha256": "9e9048f4277a7f25540d3f74605dcfd97dc4a7ee499d467097425897ebf5794d"
+    "sha256": "ce972757980e58851e7ebd830109998da1ac64747ca6a41cd79e24979120dc47"
    },
    {
     "path": "tests/cross_engine/mpc.py",
