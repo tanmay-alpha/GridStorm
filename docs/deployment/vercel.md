@@ -3,6 +3,9 @@
 The frontend (`apps/web`) is a static React + Vite single-page app. It holds no secrets and talks
 to the API (see [render.md](render.md)) over HTTPS.
 
+Status: the Vercel project `gridstorm` exists with Root Directory `apps/web`; a production
+deployment has not yet been made, so no public frontend URL is documented here.
+
 ## Project settings
 
 | Setting | Value | Source |

@@ -33,6 +33,7 @@ The Blueprint sets these explicitly; these are deployment overrides, not all API
 |---|---|
 | `GRIDSTORM_EXECUTION_MODE` | `live`; `precomputed` disables simulation computation and requires an exact stored scenario match |
 | `GRIDSTORM_MAX_CONCURRENT_JOBS` | `1` |
+| `GRIDSTORM_LIVE_NETWORKS` | `ac-dc-meshed,pglib-case14-ieee,pglib-case118-ieee`; other networks (e.g. SciGRID-DE) only serve exact precomputed matches, else 422 `live_execution_unavailable` |
 | `GRIDSTORM_JOB_TIMEOUT_S` | `180` wall-clock seconds |
 | `GRIDSTORM_JOB_MEMORY_MB` | `400` per engine subprocess; **not** a guarantee that total service memory fits 512 MB |
 | `GRIDSTORM_CORS_ORIGINS` | Explicit comma-separated frontend origins; update for your Vercel production/preview domains |
