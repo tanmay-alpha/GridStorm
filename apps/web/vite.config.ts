@@ -26,5 +26,7 @@ export default defineConfig({
     setupFiles: ['./src/test/setup.ts'],
     include: ['src/**/*.test.{ts,tsx}'],
     css: false,
+    // Non-UTC, half-hour offset: catches code that parses timezone-naive snapshots as local time.
+    env: { TZ: 'Asia/Kolkata' },
   },
 })

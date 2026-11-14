@@ -58,9 +58,15 @@ export function branchRows(r: GridstormResult): BranchRow[] {
   }))
 }
 
-/** Short x-axis labels from ISO snapshot timestamps. */
+/**
+ * Short x-axis labels (MM-DD HH:MM) from snapshot timestamps. Timezone-naive snapshots keep their
+ * model clock: parsing them with `new Date` would apply the browser's offset.
+ */
 export function snapshotLabels(r: GridstormResult): string[] {
   return r.snapshots.map((s) => {
+    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(s) && !/(Z|[+-]\d{2}:?\d{2})$/.test(s)) {
+      return s.slice(5, 16).replace('T', ' ')
+    }
     const d = new Date(s)
     return Number.isNaN(d.getTime()) ? s : d.toISOString().slice(5, 16).replace('T', ' ')
   })
