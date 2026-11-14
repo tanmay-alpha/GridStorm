@@ -76,8 +76,8 @@ Last updated: 2026-11-14
 
 | ID | Task | Pri | Owner | Deps | Status | Acceptance criteria |
 |---|---|---|---|---|---|---|
-| P5-01 | Grid2Op episodes (≥ 3 agents × ≥ 2 chronics) + KPIs | P1 | B/Sequential | — | IMPLEMENTING | Deterministic trace hashes; artifacts |
-| P5-02 | Grid2Viz audit (MPL-2.0) and KPI concepts | P2 | B/Sequential | — | IMPLEMENTING | `grid2viz-audit.md` |
+| P5-01 | Grid2Op episodes (≥ 3 agents × ≥ 2 chronics) + KPIs | P1 | B/Sequential | — | VERIFIED | 12 episodes (do_nothing/reco_powerline/greedy_simulate × 2 chronics × normal/line 1_3_3 outage), l2rpn_case14_sandbox, lightsim2grid; rerun trace hash identical (`050177c8…`); 20 tests pass; commit `c69a1dc` |
+| P5-02 | Grid2Viz audit (MPL-2.0) and KPI concepts | P2 | B/Sequential | — | VERIFIED | `docs/audit/grid2viz-audit.md` (SHA `b416eba4`); KPIs re-implemented, no MPL code copied |
 | P5-03 | StormBench PTDF/LODF screening vs DC/AC exact N-1 | P1 | B/StormBench | — | IMPLEMENTING | ≥ 5 cases; recall/precision/runtime/memory measured |
 | P5-04 | Operations replay + Benchmarks + Contingency + Methods UI pages | P1 | C/FrontendResearch | P4-02, P5-01, P5-03 | IMPLEMENTING | Pages render real artifacts; unit tests use fixtures copied from real artifacts |
 | P5-05 | ML contingency screening on simulator-derived labels vs DC-LODF/heuristic baselines | P3 | B/StormML | P5-03 | IMPLEMENTING | Operating-point and leave-one-network-out splits; bootstrap CIs; honest verdict vs baselines |
