@@ -30,28 +30,62 @@ MINIMAL = {
     "crs": None,
     "snapshots": {"count": 1, "start": None, "end": None, "resolution_h": 1.0},
     "buses": [
-        {"id": "b0", "name": None, "x": 0.0, "y": 0.0, "v_nom_kv": 110.0, "carrier": "AC",
-         "country": None},
-        {"id": "b1", "name": None, "x": 1.0, "y": 0.0, "v_nom_kv": 110.0, "carrier": "AC",
-         "country": None},
+        {
+            "id": "b0",
+            "name": None,
+            "x": 0.0,
+            "y": 0.0,
+            "v_nom_kv": 110.0,
+            "carrier": "AC",
+            "country": None,
+        },
+        {
+            "id": "b1",
+            "name": None,
+            "x": 1.0,
+            "y": 0.0,
+            "v_nom_kv": 110.0,
+            "carrier": "AC",
+            "country": None,
+        },
     ],
     "lines": [
-        {"id": "l0", "bus0": "b0", "bus1": "b1", "v_nom_kv": 110.0, "s_nom_mva": 100.0,
-         "x_ohm": 10.0, "r_ohm": 1.0, "length_km": None, "num_parallel": 1.0, "carrier": "AC"}
+        {
+            "id": "l0",
+            "bus0": "b0",
+            "bus1": "b1",
+            "v_nom_kv": 110.0,
+            "s_nom_mva": 100.0,
+            "x_ohm": 10.0,
+            "r_ohm": 1.0,
+            "length_km": None,
+            "num_parallel": 1.0,
+            "carrier": "AC",
+        }
     ],
     "transformers": [],
     "links": [],
     "generators": [
-        {"id": "g0", "bus": "b0", "carrier": "gas", "p_nom_mw": 50.0,
-         "marginal_cost_eur_per_mwh": 30.0, "p_nom_extendable": False, "is_variable": False}
+        {
+            "id": "g0",
+            "bus": "b0",
+            "carrier": "gas",
+            "p_nom_mw": 50.0,
+            "marginal_cost_eur_per_mwh": 30.0,
+            "p_nom_extendable": False,
+            "is_variable": False,
+        }
     ],
     "loads": [{"id": "d1", "bus": "b1", "p_peak_mw": 40.0, "p_mean_mw": 40.0, "energy_mwh": 40.0}],
     "storage_units": [],
     "stores": [],
     "carriers": [{"id": "gas", "color": None, "co2_emissions_t_per_mwh": 0.2, "nice_name": None}],
-    "summary": {"counts": {"buses": 2, "lines": 1, "generators": 1, "loads": 1},
-                "capacity_by_carrier_mw": {"gas": 50.0}, "peak_load_mw": 40.0,
-                "total_load_mwh": 40.0},
+    "summary": {
+        "counts": {"buses": 2, "lines": 1, "generators": 1, "loads": 1},
+        "capacity_by_carrier_mw": {"gas": 50.0},
+        "peak_load_mw": 40.0,
+        "total_load_mwh": 40.0,
+    },
     "field_provenance": {"buses.x": "synthetic", "generators.marginal_cost_eur_per_mwh": "modeled"},
     "assumptions": ["toy"],
 }
@@ -89,28 +123,44 @@ def test_rejects_invalid(mutate, needle):
 
 def test_storage_efficiency_range():
     d = copy.deepcopy(MINIMAL)
-    d["storage_units"] = [{"id": "s", "bus": "b0", "carrier": None, "p_nom_mw": 1.0,
-                           "max_hours": 6.0, "efficiency_store": 1.2,
-                           "efficiency_dispatch": 0.9}]
+    d["storage_units"] = [
+        {
+            "id": "s",
+            "bus": "b0",
+            "carrier": None,
+            "p_nom_mw": 1.0,
+            "max_hours": 6.0,
+            "efficiency_store": 1.2,
+            "efficiency_dispatch": 0.9,
+        }
+    ]
     with pytest.raises(ValidationError):
         CanonicalNetwork.model_validate(d)
 
 
 def test_manifest_rejects_bad_paths_and_hashes():
     base = {
-        "network_id": "toy-two-bus", "name": "Toy", "description": "",
+        "network_id": "toy-two-bus",
+        "name": "Toy",
+        "description": "",
         "source": {"url": "x", "version": "1", "publication_date": None, "upstream_commit": None},
         "retrieved_at": "2026-01-01T00:00:00+00:00",
         "files": [{"path": "network.nc", "sha256": "0" * 64, "bytes": 1}],
         "license": {"spdx": "MIT", "url": "x", "attribution": "x", "redistribution": "permitted"},
         "coverage": {"geographic": "x", "temporal": "x"},
-        "units": {}, "missing_value_policy": "null", "quality_flags": [], "transformations": [],
-        "engines": ["pypsa"], "provenance_class": "synthetic",
+        "units": {},
+        "missing_value_policy": "null",
+        "quality_flags": [],
+        "transformations": [],
+        "engines": ["pypsa"],
+        "provenance_class": "synthetic",
     }
     DatasetManifest.model_validate(base)
-    for bad in ({"path": "../x", "sha256": "0" * 64, "bytes": 1},
-                {"path": "a\\b", "sha256": "0" * 64, "bytes": 1},
-                {"path": "x", "sha256": "XYZ", "bytes": 1}):
+    for bad in (
+        {"path": "../x", "sha256": "0" * 64, "bytes": 1},
+        {"path": "a\\b", "sha256": "0" * 64, "bytes": 1},
+        {"path": "x", "sha256": "XYZ", "bytes": 1},
+    ):
         with pytest.raises(ValidationError):
             DatasetManifest.model_validate({**base, "files": [bad]})
 

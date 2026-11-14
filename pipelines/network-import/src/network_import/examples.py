@@ -80,11 +80,12 @@ AC_DC_MESHED = ExampleSpec(
     provenance_class=_SYN,
     field_provenance={
         **{f"buses.{f}": _SYN for f in ("x", "y", "v_nom_kv", "carrier", "country")},
-        **{f"lines.{f}": _SYN for f in ("s_nom_mva", "x_ohm", "r_ohm", "num_parallel",
-                                         "carrier")},
+        **{f"lines.{f}": _SYN for f in ("s_nom_mva", "x_ohm", "r_ohm", "num_parallel", "carrier")},
         **{f"links.{f}": _SYN for f in ("p_nom_mw", "efficiency", "carrier")},
-        **{f"generators.{f}": _SYN for f in ("carrier", "p_nom_mw", "marginal_cost_eur_per_mwh",
-                                              "p_nom_extendable")},
+        **{
+            f"generators.{f}": _SYN
+            for f in ("carrier", "p_nom_mw", "marginal_cost_eur_per_mwh", "p_nom_extendable")
+        },
         **{f"loads.{f}": "calculated" for f in ("p_peak_mw", "p_mean_mw", "energy_mwh")},
         **{f"carriers.{f}": _SYN for f in ("color", "co2_emissions_t_per_mwh", "nice_name")},
     },
@@ -137,22 +138,40 @@ SCIGRID_DE = ExampleSpec(
     },
     provenance_class="modeled",
     field_provenance={
-        "buses.x": _SG_OBS, "buses.y": _SG_OBS, "buses.v_nom_kv": _SG_OBS,
+        "buses.x": _SG_OBS,
+        "buses.y": _SG_OBS,
+        "buses.v_nom_kv": _SG_OBS,
         "buses.carrier": _SG_OBS,
-        "lines.length_km": _SG_OBS, "lines.num_parallel": _SG_OBS,
-        "lines.s_nom_mva": "estimated", "lines.x_ohm": "calculated", "lines.r_ohm": "calculated",
-        "transformers.s_nom_mva": "estimated", "transformers.x_pu": "estimated",
-        "transformers.r_pu": "estimated", "transformers.tap_ratio": "estimated",
-        "generators.carrier": _SG_OBS, "generators.p_nom_mw": _SG_OBS,
-        "generators.marginal_cost_eur_per_mwh": "modeled", "generators.p_nom_extendable": "modeled",
-        "loads.p_peak_mw": "modeled", "loads.p_mean_mw": "modeled", "loads.energy_mwh": "modeled",
-        "storage_units.carrier": _SG_OBS, "storage_units.p_nom_mw": _SG_OBS,
-        "storage_units.max_hours": "estimated", "storage_units.efficiency_store": "estimated",
+        "lines.length_km": _SG_OBS,
+        "lines.num_parallel": _SG_OBS,
+        "lines.s_nom_mva": "estimated",
+        "lines.x_ohm": "calculated",
+        "lines.r_ohm": "calculated",
+        "transformers.s_nom_mva": "estimated",
+        "transformers.x_pu": "estimated",
+        "transformers.r_pu": "estimated",
+        "transformers.tap_ratio": "estimated",
+        "generators.carrier": _SG_OBS,
+        "generators.p_nom_mw": _SG_OBS,
+        "generators.marginal_cost_eur_per_mwh": "modeled",
+        "generators.p_nom_extendable": "modeled",
+        "loads.p_peak_mw": "modeled",
+        "loads.p_mean_mw": "modeled",
+        "loads.energy_mwh": "modeled",
+        "storage_units.carrier": _SG_OBS,
+        "storage_units.p_nom_mw": _SG_OBS,
+        "storage_units.max_hours": "estimated",
+        "storage_units.efficiency_store": "estimated",
         "storage_units.efficiency_dispatch": "estimated",
         "carriers.nice_name": "modeled",
     },
-    null_fields=["buses.name", "buses.country", "lines.carrier",
-                 "carriers.co2_emissions_t_per_mwh", "carriers.color"],
+    null_fields=[
+        "buses.name",
+        "buses.country",
+        "lines.carrier",
+        "carriers.co2_emissions_t_per_mwh",
+        "carriers.color",
+    ],
     assumptions=[
         "lines.x_ohm/r_ohm are the effective impedances PyPSA derives from the standard line "
         "type ('Al/St 240/40 2-bundle 220.0' / '4-bundle 380.0') x length / num_parallel; the "
@@ -193,12 +212,21 @@ def import_example(network_id: str, *, catalog: bool = True) -> None:
     spec = EXAMPLES[network_id]
     d = networks_dir() / network_id
     url = f"{BASE_URL}/{spec.upstream_name}.nc"
-    rec = fetch(url, d / "network.nc", record=d / "source" / "retrieval.json",
-                expected_sha256=spec.expected_sha256)
+    rec = fetch(
+        url,
+        d / "network.nc",
+        record=d / "source" / "retrieval.json",
+        expected_sha256=spec.expected_sha256,
+    )
     n = pypsa.Network(d / "network.nc")
     canonical = from_pypsa(
-        n, spec.network_id, spec.name, coordinate_kind="geographic", crs=f"EPSG:{int(n.srid)}",
-        field_provenance=spec.field_provenance, assumptions=spec.assumptions,
+        n,
+        spec.network_id,
+        spec.name,
+        coordinate_kind="geographic",
+        crs=f"EPSG:{int(n.srid)}",
+        field_provenance=spec.field_provenance,
+        assumptions=spec.assumptions,
         null_fields=spec.null_fields,
     )
     write_canonical(d, canonical)
@@ -218,13 +246,20 @@ def import_example(network_id: str, *, catalog: bool = True) -> None:
         coverage=spec.coverage,
         quality_flags=spec.quality_flags,
         transformations=[
-            {"step": "download", "tool": "network_import.paths.fetch", "version": "1.0.0",
-             "description": f"Downloaded {url} (the URL pypsa.examples uses for v{PYPSA_VERSION}); "
-             "sha256 pinned in source/retrieval.json. network.nc is byte-identical upstream."},
-            {"step": "canonicalize", "tool": "network_import.canonical.from_pypsa",
-             "version": f"pypsa {pypsa.__version__}",
-             "description": "Converted to canonical-grid/1.0; derived impedances via "
-             "calculate_dependent_values; defaults masquerading as data emitted as null."},
+            {
+                "step": "download",
+                "tool": "network_import.paths.fetch",
+                "version": "1.0.0",
+                "description": f"Downloaded {url} (the URL pypsa.examples uses for v{PYPSA_VERSION}); "
+                "sha256 pinned in source/retrieval.json. network.nc is byte-identical upstream.",
+            },
+            {
+                "step": "canonicalize",
+                "tool": "network_import.canonical.from_pypsa",
+                "version": f"pypsa {pypsa.__version__}",
+                "description": "Converted to canonical-grid/1.0; derived impedances via "
+                "calculate_dependent_values; defaults masquerading as data emitted as null.",
+            },
         ],
         engines=["pypsa"],
         provenance_class=spec.provenance_class,

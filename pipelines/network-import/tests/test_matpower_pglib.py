@@ -84,10 +84,13 @@ def test_layout_is_deterministic(mini_case):
     assert schematic_layout(n).equals(schematic_layout(n))
 
 
-@pytest.mark.parametrize("nid,counts", [
-    ("pglib-case14-ieee", (14, 20, 5)),
-    ("pglib-case118-ieee", (118, 186, 54)),
-])
+@pytest.mark.parametrize(
+    "nid,counts",
+    [
+        ("pglib-case14-ieee", (14, 20, 5)),
+        ("pglib-case118-ieee", (118, 186, 54)),
+    ],
+)
 def test_committed_sources_parse(nid, counts):
     src = next((networks_dir() / nid / "source").glob("*.m"))
     case = parse_matpower(src)

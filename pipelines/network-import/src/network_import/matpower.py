@@ -14,11 +14,37 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 # MATPOWER column layouts (MATPOWER manual, Appendix B, "caseformat").
-BUS_COLS = ("bus_i", "type", "pd", "qd", "gs", "bs", "area", "vm", "va", "base_kv", "zone",
-            "vmax", "vmin")
+BUS_COLS = (
+    "bus_i",
+    "type",
+    "pd",
+    "qd",
+    "gs",
+    "bs",
+    "area",
+    "vm",
+    "va",
+    "base_kv",
+    "zone",
+    "vmax",
+    "vmin",
+)
 GEN_COLS = ("bus", "pg", "qg", "qmax", "qmin", "vg", "mbase", "status", "pmax", "pmin")
-BRANCH_COLS = ("fbus", "tbus", "r", "x", "b", "rate_a", "rate_b", "rate_c", "ratio", "angle",
-               "status", "angmin", "angmax")
+BRANCH_COLS = (
+    "fbus",
+    "tbus",
+    "r",
+    "x",
+    "b",
+    "rate_a",
+    "rate_b",
+    "rate_c",
+    "ratio",
+    "angle",
+    "status",
+    "angmin",
+    "angmax",
+)
 
 _SCALAR = re.compile(r"^\s*mpc\.(\w+)\s*=\s*([^\[\{;]+?)\s*;", re.M)
 _BLOCK = re.compile(r"^\s*mpc\.(\w+)\s*=\s*([\[\{])(.*?)[\]\}]\s*;", re.M | re.S)

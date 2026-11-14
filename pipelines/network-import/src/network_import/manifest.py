@@ -91,11 +91,13 @@ def file_entries(dataset_dir: Path) -> list[dict[str, Any]]:
             continue
         if p.name.endswith((".part", ".tmp.nc")):
             raise RuntimeError(f"stray temporary file {p}; remove it and re-run")
-        out.append({
-            "path": p.relative_to(dataset_dir).as_posix(),
-            "sha256": sha256_file(p),
-            "bytes": p.stat().st_size,
-        })
+        out.append(
+            {
+                "path": p.relative_to(dataset_dir).as_posix(),
+                "sha256": sha256_file(p),
+                "bytes": p.stat().st_size,
+            }
+        )
     return out
 
 
@@ -119,22 +121,24 @@ def write_manifest(
     nc = dataset_dir / "network.nc"
     if nc.exists() and nc.stat().st_size > MAX_NETCDF_BYTES:
         raise RuntimeError(f"{nc} is {nc.stat().st_size} bytes > 10 MB; must not be committed")
-    manifest = DatasetManifest.model_validate({
-        "network_id": network_id,
-        "name": name,
-        "description": description,
-        "source": dict(source),
-        "retrieved_at": retrieved_at,
-        "files": file_entries(dataset_dir),
-        "license": dict(license),
-        "coverage": dict(coverage),
-        "units": dict(units if units is not None else BASE_UNITS),
-        "missing_value_policy": missing_value_policy,
-        "quality_flags": list(quality_flags),
-        "transformations": [dict(t) for t in transformations],
-        "engines": list(engines),
-        "provenance_class": provenance_class,
-    })
+    manifest = DatasetManifest.model_validate(
+        {
+            "network_id": network_id,
+            "name": name,
+            "description": description,
+            "source": dict(source),
+            "retrieved_at": retrieved_at,
+            "files": file_entries(dataset_dir),
+            "license": dict(license),
+            "coverage": dict(coverage),
+            "units": dict(units if units is not None else BASE_UNITS),
+            "missing_value_policy": missing_value_policy,
+            "quality_flags": list(quality_flags),
+            "transformations": [dict(t) for t in transformations],
+            "engines": list(engines),
+            "provenance_class": provenance_class,
+        }
+    )
     write_text(dataset_dir / MANIFEST_NAME, dump_json(manifest))
     return manifest
 

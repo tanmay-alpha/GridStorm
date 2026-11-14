@@ -53,19 +53,28 @@ def main(argv: list[str] | None = None) -> int:
         p.add_argument("--license", required=True, help="SPDX id")
         p.add_argument("--license-url", required=True)
         p.add_argument("--attribution", required=True)
-        p.add_argument("--redistribution", choices=["permitted", "restricted", "unknown"],
-                       default="unknown")
+        p.add_argument(
+            "--redistribution", choices=["permitted", "restricted", "unknown"], default="unknown"
+        )
         p.add_argument("--geographic", default="")
         p.add_argument("--temporal", default="")
-        p.add_argument("--provenance-class", default="modeled",
-                       choices=["observed", "estimated", "synthetic", "modeled"])
-        p.add_argument("--schematic", action="store_true",
-                       help="bus x/y are layout coordinates (crs null)")
+        p.add_argument(
+            "--provenance-class",
+            default="modeled",
+            choices=["observed", "estimated", "synthetic", "modeled"],
+        )
+        p.add_argument(
+            "--schematic", action="store_true", help="bus x/y are layout coordinates (crs null)"
+        )
         p.add_argument("--quality-flag", action="append", default=[])
         p.add_argument("--assumption", action="append", default=[])
-        p.add_argument("--field-provenance", action="append", default=[],
-                       metavar="COMPONENT.FIELD=CLASS",
-                       help="e.g. buses.x=observed (repeatable)")
+        p.add_argument(
+            "--field-provenance",
+            action="append",
+            default=[],
+            metavar="COMPONENT.FIELD=CLASS",
+            help="e.g. buses.x=observed (repeatable)",
+        )
         p.add_argument("--retrieved-at", default=None, help="ISO-8601 retrieval timestamp")
         p.add_argument("--null-field", action="append", default=[])
         a = p.parse_args(argv[1:])
@@ -73,8 +82,9 @@ def main(argv: list[str] | None = None) -> int:
 
         import_netcdf(a)
         return 0
-    p = argparse.ArgumentParser(prog="network_import",
-                                description="Import GridStorm networks into data/networks/.")
+    p = argparse.ArgumentParser(
+        prog="network_import", description="Import GridStorm networks into data/networks/."
+    )
     p.add_argument("target", help="network id or 'all' (also: validate, from-netcdf)")
     a = p.parse_args(argv)
     ids = _all_ids() if a.target == "all" else [a.target]

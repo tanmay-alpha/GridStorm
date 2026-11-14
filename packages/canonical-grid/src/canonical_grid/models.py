@@ -1,4 +1,4 @@
-"""Pydantic v2 models for ``canonical-grid/1.0``, ``dataset-manifest/1.0`` and ``network-catalog/1.0``.
+"""Pydantic v2 models for canonical-grid/1.0, dataset-manifest/1.0 and network-catalog/1.0.
 
 Shapes follow ``docs/architecture/contracts.md`` section 2 exactly. Unknown keys are rejected
 (``extra="forbid"``), missing physical values are ``null`` and never invented, and NaN/inf are
@@ -73,7 +73,8 @@ class Line(_Model):
     bus1: AssetId
     v_nom_kv: PositiveFloat | None
     s_nom_mva: NonNegFloat | None = Field(
-        description="Thermal rating; null when the source declares no limit (e.g. MATPOWER RATE_A=0)."
+        description="Thermal rating; null when the source declares no limit "
+        "(e.g. MATPOWER RATE_A=0)."
     )
     x_ohm: float | None
     r_ohm: float | None
@@ -109,7 +110,8 @@ class Generator(_Model):
     marginal_cost_eur_per_mwh: float | None
     p_nom_extendable: bool | None
     is_variable: bool | None = Field(
-        description="True if the generator has a time-varying availability profile (p_max_pu series)."
+        description="True if the generator has a time-varying availability profile "
+        "(p_max_pu series)."
     )
 
 

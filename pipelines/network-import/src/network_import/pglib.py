@@ -2,12 +2,13 @@
 
 Asset ids (contract): buses ``bus-<BUS_I>``, branches ``branch-<1-based row in mpc.branch>``,
 generators ``gen-<1-based row in mpc.gen>``, loads ``load-<BUS_I>``; bus shunts (Gs/Bs) become
-PyPSA ShuntImpedances ``shunt-<BUS_I>`` (not part of canonical-grid/1.0, used only by AC power flow).
+PyPSA ShuntImpedances ``shunt-<BUS_I>`` (outside canonical-grid/1.0, used by power flow).
 
 Unit conversion (MATPOWER per-unit on ``baseMVA`` and bus ``baseKV`` -> PyPSA):
 
 * Lines (same baseKV at both ends, ratio in {0, 1}, shift 0):
-  ``x_ohm = x_pu * baseKV**2 / baseMVA``, ``r_ohm`` likewise, ``b_siemens = b_pu * baseMVA / baseKV**2``.
+  ``x_ohm = x_pu * baseKV**2 / baseMVA``, ``r_ohm`` likewise;
+  ``b_siemens = b_pu * baseMVA / baseKV**2``.
   PyPSA then computes ``x_pu(1 MVA) = x_ohm / v_nom**2 = x_pu / baseMVA`` — identical impedance.
 * Transformers (ratio not in {0, 1}, or shift != 0, or different baseKV at the two ends):
   PyPSA transformer impedances are per unit on ``s_nom``, so ``x = x_pu * s_nom / baseMVA``,
@@ -15,11 +16,11 @@ Unit conversion (MATPOWER per-unit on ``baseMVA`` and bus ``baseKV`` -> PyPSA):
   from-bus, ``tap_side = 0``), ``phase_shift = angle`` (degrees, same sign convention as MATPOWER
   makeYbus/makeBdc), ``model = "pi"`` (MATPOWER uses the pi model).
 * ``RATE_A = 0`` means "no limit" in MATPOWER. PyPSA needs a finite ``s_nom`` so we set
-  ``UNLIMITED_RATING_MVA`` in ``network.nc``, emit ``s_nom_mva = null`` in canonical.json and list the
-  branch ids in the quality flags. No limit is ever invented.
+  ``UNLIMITED_RATING_MVA`` in ``network.nc``, emit ``s_nom_mva = null`` in canonical.json,
+  and list branch ids in the quality flags. No limit is ever invented.
 * Generators: ``p_nom = Pmax``, ``p_min_pu = Pmin / Pmax`` (0 if Pmax = 0), ``p_set = Pg``,
-  ``q_set = Qg``; ``status = 0`` -> ``active = False``. Control: first generator at the reference bus
-  (type 3) is ``Slack``; generators at PV buses ``PV``; others ``PQ``.
+  ``q_set = Qg``; ``status = 0`` -> ``active = False``. The first generator at the reference
+  bus (type 3) is ``Slack``; generators at PV buses ``PV``; others ``PQ``.
 * Costs: polynomial (model 2) ``c2*P^2 + c1*P + c0``. PyPSA's LOPF here is kept linear, so the
   marginal cost is the secant slope over ``[0, Pmax]``: ``c1 + c2 * Pmax`` (exact when c2 = 0; the
   fixed cost c0 is dropped). Labelled ``modeled``. Piecewise-linear costs (model 1) are rejected.
@@ -101,17 +102,35 @@ def build_network(case: MatpowerCase, name: str) -> tuple[pypsa.Network, BuildRe
         bus_kv[bid] = kv
         if int(b["type"]) == 4:
             rep.isolated_buses.append(bid)
-        n.add("Bus", bid, v_nom=kv, carrier="AC",
-              v_mag_pu_min=b["vmin"], v_mag_pu_max=b["vmax"], v_mag_pu_set=b["vm"])
+        n.add(
+            "Bus",
+            bid,
+            v_nom=kv,
+            carrier="AC",
+            v_mag_pu_min=b["vmin"],
+            v_mag_pu_max=b["vmax"],
+            v_mag_pu_set=b["vm"],
+        )
         if case.bus_name:
             n.c.buses.static.loc[bid, "location"] = case.bus_name[idx]
         if b["pd"] != 0 or b["qd"] != 0:
-            n.add("Load", f"load-{int(b['bus_i'])}", bus=bid, p_set=b["pd"], q_set=b["qd"],
-                  carrier="AC")
+            n.add(
+                "Load",
+                f"load-{int(b['bus_i'])}",
+                bus=bid,
+                p_set=b["pd"],
+                q_set=b["qd"],
+                carrier="AC",
+            )
         if b["gs"] != 0 or b["bs"] != 0:
             # MATPOWER Gs/Bs are MW/MVAr at V = 1 p.u.; PyPSA shunt g/b in siemens: P = g * V_kV^2.
-            n.add("ShuntImpedance", f"shunt-{int(b['bus_i'])}", bus=bid,
-                  g=b["gs"] / kv**2, b=b["bs"] / kv**2)
+            n.add(
+                "ShuntImpedance",
+                f"shunt-{int(b['bus_i'])}",
+                bus=bid,
+                g=b["gs"] / kv**2,
+                b=b["bs"] / kv**2,
+            )
             if b["gs"] != 0:
                 rep.nonzero_gs_buses.append(bid)
 
@@ -136,16 +155,40 @@ def build_network(case: MatpowerCase, name: str) -> tuple[pypsa.Network, BuildRe
         is_trafo = (ratio not in (0.0, 1.0)) or shift != 0.0 or bus_kv[b0] != bus_kv[b1]
         if is_trafo:
             rep.n_transformers += 1
-            n.add("Transformer", bid, bus0=b0, bus1=b1, model="pi", s_nom=rate,
-                  x=br["x"] * rate / base, r=br["r"] * rate / base, b=br["b"] * base / rate,
-                  g=0.0, tap_ratio=ratio if ratio != 0 else 1.0, tap_side=0,
-                  phase_shift=shift, active=active)
+            n.add(
+                "Transformer",
+                bid,
+                bus0=b0,
+                bus1=b1,
+                model="pi",
+                s_nom=rate,
+                x=br["x"] * rate / base,
+                r=br["r"] * rate / base,
+                b=br["b"] * base / rate,
+                g=0.0,
+                tap_ratio=ratio if ratio != 0 else 1.0,
+                tap_side=0,
+                phase_shift=shift,
+                active=active,
+            )
         else:
             rep.n_lines += 1
             kv = bus_kv[b0]
-            n.add("Line", bid, bus0=b0, bus1=b1, s_nom=rate,
-                  x=br["x"] * kv**2 / base, r=br["r"] * kv**2 / base, b=br["b"] * base / kv**2,
-                  g=0.0, length=0.0, num_parallel=1.0, carrier="AC", active=active)
+            n.add(
+                "Line",
+                bid,
+                bus0=b0,
+                bus1=b1,
+                s_nom=rate,
+                x=br["x"] * kv**2 / base,
+                r=br["r"] * kv**2 / base,
+                b=br["b"] * base / kv**2,
+                g=0.0,
+                length=0.0,
+                num_parallel=1.0,
+                carrier="AC",
+                active=active,
+            )
 
     slack_assigned: set[str] = set()
     carriers: set[str] = {"AC"}
@@ -176,9 +219,20 @@ def build_network(case: MatpowerCase, name: str) -> tuple[pypsa.Network, BuildRe
         active = int(g["status"]) != 0
         if not active:
             rep.out_of_service_gens.append(gid)
-        n.add("Generator", gid, bus=bid, carrier=carrier, control=control, p_nom=pmax,
-              p_min_pu=(pmin / pmax) if pmax > 0 else 0.0, p_max_pu=1.0, p_set=g["pg"],
-              q_set=g["qg"], marginal_cost=mc, active=active)
+        n.add(
+            "Generator",
+            gid,
+            bus=bid,
+            carrier=carrier,
+            control=control,
+            p_nom=pmax,
+            p_min_pu=(pmin / pmax) if pmax > 0 else 0.0,
+            p_max_pu=1.0,
+            p_set=g["pg"],
+            q_set=g["qg"],
+            marginal_cost=mc,
+            active=active,
+        )
 
     for car in sorted(carriers):
         n.add("Carrier", car, nice_name=FUEL_NAMES.get(car, car) if car != "AC" else "AC")
@@ -198,7 +252,9 @@ def schematic_layout(n: pypsa.Network, decimals: int = 4) -> pd.DataFrame:
             g.add_edge(b0, b1)
     pos = nx.kamada_kawai_layout(g, scale=1.0)
     return pd.DataFrame(
-        {"x": [round(float(pos[b][0]), decimals) for b in n.c.buses.static.index],
-         "y": [round(float(pos[b][1]), decimals) for b in n.c.buses.static.index]},
+        {
+            "x": [round(float(pos[b][0]), decimals) for b in n.c.buses.static.index],
+            "y": [round(float(pos[b][1]), decimals) for b in n.c.buses.static.index],
+        },
         index=n.c.buses.static.index,
     )

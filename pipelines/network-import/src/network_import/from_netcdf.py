@@ -1,4 +1,4 @@
-"""``from-netcdf``: canonicalise an existing PyPSA NetCDF (e.g. the PyPSA-Eur ``pypsa-eur-be`` build).
+"""``from-netcdf``: canonicalise an existing PyPSA NetCDF (e.g. a PyPSA-Eur build).
 
 The NetCDF is copied to ``data/networks/<id>/network.nc`` unchanged (unless it already is that
 file); canonical.json + manifest.json are generated and the catalog is refreshed. All field
@@ -45,7 +45,9 @@ def import_netcdf(a: argparse.Namespace) -> None:
         shutil.copyfile(src, dest)
     n = pypsa.Network(dest)
     canonical = from_pypsa(
-        n, a.network_id, a.name,
+        n,
+        a.network_id,
+        a.name,
         coordinate_kind="schematic" if a.schematic else "geographic",
         crs=None if a.schematic else f"EPSG:{int(n.srid)}",
         field_provenance=dict(kv.split("=", 1) for kv in a.field_provenance),
@@ -58,19 +60,34 @@ def import_netcdf(a: argparse.Namespace) -> None:
         network_id=a.network_id,
         name=a.name,
         description=a.description or a.name,
-        source={"url": a.source_url, "version": a.source_version,
-                "publication_date": None, "upstream_commit": a.upstream_commit},
+        source={
+            "url": a.source_url,
+            "version": a.source_version,
+            "publication_date": None,
+            "upstream_commit": a.upstream_commit,
+        },
         retrieved_at=_retrieved_at(a, d / MANIFEST_NAME),
-        license={"spdx": a.license, "url": a.license_url, "attribution": a.attribution,
-                 "redistribution": a.redistribution},
+        license={
+            "spdx": a.license,
+            "url": a.license_url,
+            "attribution": a.attribution,
+            "redistribution": a.redistribution,
+        },
         coverage={"geographic": a.geographic, "temporal": a.temporal},
         quality_flags=a.quality_flag,
         transformations=[
-            {"step": "copy", "tool": "network_import from-netcdf", "version": "1.0.0",
-             "description": f"Copied PyPSA NetCDF {src.name} unchanged to network.nc."},
-            {"step": "canonicalize", "tool": "network_import.canonical.from_pypsa",
-             "version": f"pypsa {pypsa.__version__}",
-             "description": "Converted to canonical-grid/1.0."},
+            {
+                "step": "copy",
+                "tool": "network_import from-netcdf",
+                "version": "1.0.0",
+                "description": f"Copied PyPSA NetCDF {src.name} unchanged to network.nc.",
+            },
+            {
+                "step": "canonicalize",
+                "tool": "network_import.canonical.from_pypsa",
+                "version": f"pypsa {pypsa.__version__}",
+                "description": "Converted to canonical-grid/1.0.",
+            },
         ],
         engines=["pypsa"],
         provenance_class=a.provenance_class,

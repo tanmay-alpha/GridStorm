@@ -44,7 +44,9 @@ PGLIB_CASES = {
     c.network_id: c
     for c in (
         PglibCase(
-            "pglib-case14-ieee", "pglib_opf_case14_ieee.m", "IEEE 14-bus (PGLib-OPF v23.07)",
+            "pglib-case14-ieee",
+            "pglib_opf_case14_ieee.m",
+            "IEEE 14-bus (PGLib-OPF v23.07)",
             "IEEE 14-bus test case (1962 AEP system) as curated in PGLib-OPF v23.07 'typical "
             "operations' benchmark: 14 buses, 20 branches, 5 generators, single operating point.",
             "PGLib-OPF v23.07 (c) IEEE PES Task Force on Benchmarks for Validation of Emerging "
@@ -52,7 +54,9 @@ PGLIB_CASES = {
             "IEEE 14-bus data (c) 1999 Richard D. Christie, University of Washington (CC-BY-4.0).",
         ),
         PglibCase(
-            "pglib-case118-ieee", "pglib_opf_case118_ieee.m", "IEEE 118-bus (PGLib-OPF v23.07)",
+            "pglib-case118-ieee",
+            "pglib_opf_case118_ieee.m",
+            "IEEE 118-bus (PGLib-OPF v23.07)",
             "IEEE 118-bus test case (AEP system, 1962) as curated in PGLib-OPF v23.07 'typical "
             "operations' benchmark: 118 buses, 186 branches, 54 generators, single operating "
             "point.",
@@ -73,8 +77,12 @@ PGLIB_UNITS = {
 
 
 def _flags(rep, case) -> list[str]:
-    flags = ["schematic_coordinates", "single_snapshot", "cost_currency_not_eur",
-             "marginal_cost_linearized_secant"]
+    flags = [
+        "schematic_coordinates",
+        "single_snapshot",
+        "cost_currency_not_eur",
+        "marginal_cost_linearized_secant",
+    ]
     if rep.unlimited_branches:
         flags.append(f"rate_a_zero_unlimited:{','.join(rep.unlimited_branches)}")
     if rep.out_of_service_branches:
@@ -96,8 +104,7 @@ def import_pglib(network_id: str, *, catalog: bool = True) -> None:
     src = d / "source"
     url = f"{PGLIB_RAW}/{spec.file}"
     rec = fetch(url, src / spec.file, record=src / f"retrieval-{spec.file}.json")
-    fetch(f"{PGLIB_RAW}/LICENSE", src / "LICENSE-pglib-opf",
-          record=src / "retrieval-LICENSE.json")
+    fetch(f"{PGLIB_RAW}/LICENSE", src / "LICENSE-pglib-opf", record=src / "retrieval-LICENSE.json")
 
     case = parse_matpower(src / spec.file)
     n, rep = build_network(case, spec.name)
@@ -140,24 +147,43 @@ def import_pglib(network_id: str, *, catalog: bool = True) -> None:
         "network.nc. RATE_B/RATE_C and branch angle limits are not represented.",
     ]
     canonical = from_pypsa(
-        n, network_id, spec.name, coordinate_kind="schematic", crs=None,
+        n,
+        network_id,
+        spec.name,
+        coordinate_kind="schematic",
+        crs=None,
         field_provenance={
-            "buses.x": "calculated", "buses.y": "calculated", "buses.v_nom_kv": "synthetic",
-            "buses.carrier": "synthetic", "buses.name": "synthetic",
-            "lines.s_nom_mva": "synthetic", "lines.x_ohm": "calculated",
-            "lines.r_ohm": "calculated", "lines.num_parallel": "synthetic",
+            "buses.x": "calculated",
+            "buses.y": "calculated",
+            "buses.v_nom_kv": "synthetic",
+            "buses.carrier": "synthetic",
+            "buses.name": "synthetic",
+            "lines.s_nom_mva": "synthetic",
+            "lines.x_ohm": "calculated",
+            "lines.r_ohm": "calculated",
+            "lines.num_parallel": "synthetic",
             "lines.carrier": "synthetic",
-            "transformers.s_nom_mva": "synthetic", "transformers.x_pu": "calculated",
-            "transformers.r_pu": "calculated", "transformers.tap_ratio": "synthetic",
-            "generators.carrier": "synthetic", "generators.p_nom_mw": "synthetic",
+            "transformers.s_nom_mva": "synthetic",
+            "transformers.x_pu": "calculated",
+            "transformers.r_pu": "calculated",
+            "transformers.tap_ratio": "synthetic",
+            "generators.carrier": "synthetic",
+            "generators.p_nom_mw": "synthetic",
             "generators.marginal_cost_eur_per_mwh": "modeled",
-            "loads.p_peak_mw": "synthetic", "loads.p_mean_mw": "synthetic",
-            "loads.energy_mwh": "calculated", "carriers.nice_name": "synthetic",
+            "loads.p_peak_mw": "synthetic",
+            "loads.p_mean_mw": "synthetic",
+            "loads.energy_mwh": "calculated",
+            "carriers.nice_name": "synthetic",
         },
         assumptions=assumptions,
-        null_fields=["lines.length_km", "buses.country", "generators.p_nom_extendable",
-                     "carriers.color", "carriers.co2_emissions_t_per_mwh",
-                     *([] if case.bus_name else ["buses.name"])],
+        null_fields=[
+            "lines.length_km",
+            "buses.country",
+            "generators.p_nom_extendable",
+            "carriers.color",
+            "carriers.co2_emissions_t_per_mwh",
+            *([] if case.bus_name else ["buses.name"]),
+        ],
         bus_name_column="location" if case.bus_name else None,
     )
     # RATE_A = 0: no limit in the source -> null in canonical.json (never the placeholder).
@@ -175,29 +201,52 @@ def import_pglib(network_id: str, *, catalog: bool = True) -> None:
         network_id=network_id,
         name=spec.name,
         description=spec.description,
-        source={"url": url, "version": f"PGLib-OPF {PGLIB_TAG}", "publication_date": "2023-07-23",
-                "upstream_commit": PGLIB_COMMIT},
+        source={
+            "url": url,
+            "version": f"PGLib-OPF {PGLIB_TAG}",
+            "publication_date": "2023-07-23",
+            "upstream_commit": PGLIB_COMMIT,
+        },
         retrieved_at=rec["retrieved_at"],
-        license={"spdx": "CC-BY-4.0", "url": PGLIB_LICENSE_URL, "attribution": spec.attribution,
-                 "redistribution": "permitted"},
-        coverage={"geographic": "Synthetic/benchmark test system (historic AEP-derived IEEE "
-                  "case); no geography, schematic layout only.",
-                  "temporal": "Single operating point (one snapshot), no date."},
+        license={
+            "spdx": "CC-BY-4.0",
+            "url": PGLIB_LICENSE_URL,
+            "attribution": spec.attribution,
+            "redistribution": "permitted",
+        },
+        coverage={
+            "geographic": "Synthetic/benchmark test system (historic AEP-derived IEEE "
+            "case); no geography, schematic layout only.",
+            "temporal": "Single operating point (one snapshot), no date.",
+        },
         quality_flags=_flags(rep, case),
         transformations=[
-            {"step": "download", "tool": "network_import.paths.fetch", "version": "1.0.0",
-             "description": f"Downloaded {spec.file} and LICENSE from pglib-opf at commit "
-             f"{PGLIB_COMMIT} into source/ (sha256 pinned in source/retrieval-*.json)."},
-            {"step": "parse", "tool": "network_import.matpower.parse_matpower",
-             "version": "1.0.0",
-             "description": "Strict MATPOWER v2 parser (bus, gen, branch, gencost, bus_name)."},
-            {"step": "build", "tool": "network_import.pglib.build_network",
-             "version": f"pypsa {pypsa.__version__}",
-             "description": "Per-unit -> PyPSA units, transformer detection, RATE_A=0 handling, "
-             "secant cost linearisation, Kamada-Kawai schematic layout; exported network.nc."},
-            {"step": "canonicalize", "tool": "network_import.canonical.from_pypsa",
-             "version": f"pypsa {pypsa.__version__}",
-             "description": "Converted to canonical-grid/1.0; unlimited ratings emitted as null."},
+            {
+                "step": "download",
+                "tool": "network_import.paths.fetch",
+                "version": "1.0.0",
+                "description": f"Downloaded {spec.file} and LICENSE from pglib-opf at commit "
+                f"{PGLIB_COMMIT} into source/ (sha256 pinned in source/retrieval-*.json).",
+            },
+            {
+                "step": "parse",
+                "tool": "network_import.matpower.parse_matpower",
+                "version": "1.0.0",
+                "description": "Strict MATPOWER v2 parser (bus, gen, branch, gencost, bus_name).",
+            },
+            {
+                "step": "build",
+                "tool": "network_import.pglib.build_network",
+                "version": f"pypsa {pypsa.__version__}",
+                "description": "Per-unit -> PyPSA units, transformer detection, RATE_A=0 handling, "
+                "secant cost linearisation, Kamada-Kawai schematic layout; exported network.nc.",
+            },
+            {
+                "step": "canonicalize",
+                "tool": "network_import.canonical.from_pypsa",
+                "version": f"pypsa {pypsa.__version__}",
+                "description": "Converted to canonical-grid/1.0; unlimited ratings emitted as null.",
+            },
         ],
         engines=["pypsa", "pandapower"],
         provenance_class="synthetic",

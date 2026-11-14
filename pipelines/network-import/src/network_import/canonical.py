@@ -23,7 +23,14 @@ import pypsa
 from canonical_grid import CanonicalNetwork, Provenance
 
 COMPONENT_LISTS = (
-    "buses", "lines", "transformers", "links", "generators", "loads", "storage_units", "stores",
+    "buses",
+    "lines",
+    "transformers",
+    "links",
+    "generators",
+    "loads",
+    "storage_units",
+    "stores",
     "carriers",
 )
 
@@ -60,8 +67,9 @@ def _bool(v: Any) -> bool | None:
     return bool(v)
 
 
-def _rows(df: pd.DataFrame, comp: str, spec: Mapping[str, tuple[str, Any]],
-          nulls: set[str]) -> list[dict[str, Any]]:
+def _rows(
+    df: pd.DataFrame, comp: str, spec: Mapping[str, tuple[str, Any]], nulls: set[str]
+) -> list[dict[str, Any]]:
     """Build canonical rows. ``spec`` maps canonical field -> (pypsa column, converter)."""
     out = []
     for name, row in df.iterrows():
@@ -85,8 +93,12 @@ def _snapshots(n: pypsa.Network) -> dict[str, Any]:
         start, end = snaps[0].isoformat(), snaps[-1].isoformat()
     else:
         start = end = None
-    return {"count": len(snaps), "start": start, "end": end,
-            "resolution_h": float(w[0]) if uniform and w[0] > 0 else None}
+    return {
+        "count": len(snaps),
+        "start": start,
+        "end": end,
+        "resolution_h": float(w[0]) if uniform and w[0] > 0 else None,
+    }
 
 
 def from_pypsa(
@@ -128,37 +140,80 @@ def from_pypsa(
 
     buses_df = c.buses.static.copy()
     buses_df["_name"] = buses_df[bus_name_column] if bus_name_column else None
-    buses = _rows(buses_df, "buses", {
-        "name": ("_name", _str), "x": ("x", _num), "y": ("y", _num),
-        "v_nom_kv": ("v_nom", _num), "carrier": ("carrier", _str),
-        "country": ("country", _str),
-    }, nulls)
+    buses = _rows(
+        buses_df,
+        "buses",
+        {
+            "name": ("_name", _str),
+            "x": ("x", _num),
+            "y": ("y", _num),
+            "v_nom_kv": ("v_nom", _num),
+            "carrier": ("carrier", _str),
+            "country": ("country", _str),
+        },
+        nulls,
+    )
 
-    lines = _rows(c.lines.static, "lines", {
-        "bus0": ("bus0", str), "bus1": ("bus1", str), "v_nom_kv": ("v_nom", _num),
-        "s_nom_mva": ("s_nom", _num), "x_ohm": ("x", _num), "r_ohm": ("r", _num),
-        "length_km": ("length", _num), "num_parallel": ("num_parallel", _num),
-        "carrier": ("carrier", _str),
-    }, nulls)
+    lines = _rows(
+        c.lines.static,
+        "lines",
+        {
+            "bus0": ("bus0", str),
+            "bus1": ("bus1", str),
+            "v_nom_kv": ("v_nom", _num),
+            "s_nom_mva": ("s_nom", _num),
+            "x_ohm": ("x", _num),
+            "r_ohm": ("r", _num),
+            "length_km": ("length", _num),
+            "num_parallel": ("num_parallel", _num),
+            "carrier": ("carrier", _str),
+        },
+        nulls,
+    )
 
-    transformers = _rows(c.transformers.static, "transformers", {
-        "bus0": ("bus0", str), "bus1": ("bus1", str), "s_nom_mva": ("s_nom", _num),
-        "x_pu": ("x", _num), "r_pu": ("r", _num), "tap_ratio": ("tap_ratio", _num),
-    }, nulls)
+    transformers = _rows(
+        c.transformers.static,
+        "transformers",
+        {
+            "bus0": ("bus0", str),
+            "bus1": ("bus1", str),
+            "s_nom_mva": ("s_nom", _num),
+            "x_pu": ("x", _num),
+            "r_pu": ("r", _num),
+            "tap_ratio": ("tap_ratio", _num),
+        },
+        nulls,
+    )
 
-    links = _rows(c.links.static, "links", {
-        "bus0": ("bus0", str), "bus1": ("bus1", str), "p_nom_mw": ("p_nom", _num),
-        "efficiency": ("efficiency", _num), "carrier": ("carrier", _str),
-    }, nulls)
+    links = _rows(
+        c.links.static,
+        "links",
+        {
+            "bus0": ("bus0", str),
+            "bus1": ("bus1", str),
+            "p_nom_mw": ("p_nom", _num),
+            "efficiency": ("efficiency", _num),
+            "carrier": ("carrier", _str),
+        },
+        nulls,
+    )
 
     gen_df = c.generators.static.copy()
     pmax_t = c.generators.dynamic.get("p_max_pu", pd.DataFrame())
     gen_df["_is_variable"] = gen_df.index.isin(pmax_t.columns)
-    generators = _rows(gen_df, "generators", {
-        "bus": ("bus", str), "carrier": ("carrier", _str), "p_nom_mw": ("p_nom", _num),
-        "marginal_cost_eur_per_mwh": ("marginal_cost", _num),
-        "p_nom_extendable": ("p_nom_extendable", _bool), "is_variable": ("_is_variable", bool),
-    }, nulls)
+    generators = _rows(
+        gen_df,
+        "generators",
+        {
+            "bus": ("bus", str),
+            "carrier": ("carrier", _str),
+            "p_nom_mw": ("p_nom", _num),
+            "marginal_cost_eur_per_mwh": ("marginal_cost", _num),
+            "p_nom_extendable": ("p_nom_extendable", _bool),
+            "is_variable": ("_is_variable", bool),
+        },
+        nulls,
+    )
     extra_assumptions: list[str] = []
     mc_t = c.generators.dynamic.get("marginal_cost", pd.DataFrame())
     if not mc_t.empty:
@@ -179,25 +234,53 @@ def from_pypsa(
     else:
         load_df["_peak"] = load_df["_mean"] = load_df["_energy"] = None
         peak_load = total_load = None
-    loads = _rows(load_df, "loads", {
-        "bus": ("bus", str), "p_peak_mw": ("_peak", _num), "p_mean_mw": ("_mean", _num),
-        "energy_mwh": ("_energy", _num),
-    }, nulls)
+    loads = _rows(
+        load_df,
+        "loads",
+        {
+            "bus": ("bus", str),
+            "p_peak_mw": ("_peak", _num),
+            "p_mean_mw": ("_mean", _num),
+            "energy_mwh": ("_energy", _num),
+        },
+        nulls,
+    )
 
-    storage_units = _rows(c.storage_units.static, "storage_units", {
-        "bus": ("bus", str), "carrier": ("carrier", _str), "p_nom_mw": ("p_nom", _num),
-        "max_hours": ("max_hours", _num), "efficiency_store": ("efficiency_store", _num),
-        "efficiency_dispatch": ("efficiency_dispatch", _num),
-    }, nulls)
+    storage_units = _rows(
+        c.storage_units.static,
+        "storage_units",
+        {
+            "bus": ("bus", str),
+            "carrier": ("carrier", _str),
+            "p_nom_mw": ("p_nom", _num),
+            "max_hours": ("max_hours", _num),
+            "efficiency_store": ("efficiency_store", _num),
+            "efficiency_dispatch": ("efficiency_dispatch", _num),
+        },
+        nulls,
+    )
 
-    stores = _rows(c.stores.static, "stores", {
-        "bus": ("bus", str), "carrier": ("carrier", _str), "e_nom_mwh": ("e_nom", _num),
-    }, nulls)
+    stores = _rows(
+        c.stores.static,
+        "stores",
+        {
+            "bus": ("bus", str),
+            "carrier": ("carrier", _str),
+            "e_nom_mwh": ("e_nom", _num),
+        },
+        nulls,
+    )
 
-    carriers = _rows(c.carriers.static, "carriers", {
-        "color": ("color", _str), "co2_emissions_t_per_mwh": ("co2_emissions", _num),
-        "nice_name": ("nice_name", _str),
-    }, nulls)
+    carriers = _rows(
+        c.carriers.static,
+        "carriers",
+        {
+            "color": ("color", _str),
+            "co2_emissions_t_per_mwh": ("co2_emissions", _num),
+            "nice_name": ("nice_name", _str),
+        },
+        nulls,
+    )
 
     capacity: dict[str, float] = {}
     for df in (c.generators.static, c.storage_units.static):
@@ -208,8 +291,15 @@ def from_pypsa(
                 capacity[key] = capacity.get(key, 0.0) + float(val)
 
     inactive = []
-    for comp in ("lines", "transformers", "links", "generators", "loads", "storage_units",
-                 "stores"):
+    for comp in (
+        "lines",
+        "transformers",
+        "links",
+        "generators",
+        "loads",
+        "storage_units",
+        "stores",
+    ):
         df = getattr(c, comp).static
         if "active" in df.columns and (~df["active"].astype(bool)).any():
             ids = [str(i) for i in df.index[~df["active"].astype(bool)]]
@@ -241,10 +331,20 @@ def from_pypsa(
         "stores": stores,
         "carriers": carriers,
         "summary": {
-            "counts": {k: len(v) for k, v in {
-                "buses": buses, "lines": lines, "transformers": transformers, "links": links,
-                "generators": generators, "loads": loads, "storage_units": storage_units,
-                "stores": stores, "carriers": carriers}.items()},
+            "counts": {
+                k: len(v)
+                for k, v in {
+                    "buses": buses,
+                    "lines": lines,
+                    "transformers": transformers,
+                    "links": links,
+                    "generators": generators,
+                    "loads": loads,
+                    "storage_units": storage_units,
+                    "stores": stores,
+                    "carriers": carriers,
+                }.items()
+            },
             "capacity_by_carrier_mw": dict(sorted(capacity.items())),
             "peak_load_mw": peak_load,
             "total_load_mwh": total_load,

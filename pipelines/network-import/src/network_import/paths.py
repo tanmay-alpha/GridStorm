@@ -68,8 +68,8 @@ def fetch(url: str, dest: Path, *, record: Path, expected_sha256: str | None = N
     digest = sha256_file(dest)
     if expected_sha256 and digest != expected_sha256:
         raise RuntimeError(
-            f"sha256 mismatch for {url}: got {digest}, expected {expected_sha256}. Upstream changed "
-            f"or download corrupted; delete {record} to re-baseline deliberately."
+            f"sha256 mismatch for {url}: got {digest}, expected {expected_sha256}. "
+            f"Upstream changed or download corrupted; delete {record} to re-baseline deliberately."
         )
     if rec is None:
         rec = {
