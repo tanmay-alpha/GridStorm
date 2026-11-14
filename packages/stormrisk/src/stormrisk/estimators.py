@@ -57,8 +57,9 @@ def mc_statistics(
         "lolp": lolp,
         "se_lolp": math.sqrt(lolp * (1.0 - lolp) / n),
         "n_loss_of_load_samples": n_shed,
-        "mean_unserved_given_shed_mwh": (float(np.sum(c[shed] * y[shed]) / n_shed)
-                                         if n_shed else None),
+        "mean_unserved_given_shed_mwh": (
+            float(np.sum(c[shed] * y[shed]) / n_shed) if n_shed else None
+        ),
         "p95_unserved_mwh": float(np.percentile(expanded, 95)),
         "max_unserved_mwh": float(y.max()),
     }
@@ -114,17 +115,24 @@ def importance_ranking(
         if n_out_shed == 0:
             continue
         n_in = n - n_out
-        rows.append({
-            "component": component,
-            "asset_id": aid,
-            "n_samples_out": int(n_out),
-            "n_samples_out_with_shed": int(n_out_shed),
-            "conditional_mean_unserved_if_out_mwh": e_out / n_out,
-            "conditional_mean_unserved_if_in_service_mwh": (
-                (total - e_out) / n_in if n_in else None
-            ),
-            "share_of_sampled_unserved_energy": (e_out / total) if total > 0 else None,
-        })
-    rows.sort(key=lambda r: (-(r["share_of_sampled_unserved_energy"] or 0.0),
-                             r["component"], r["asset_id"]))
+        rows.append(
+            {
+                "component": component,
+                "asset_id": aid,
+                "n_samples_out": int(n_out),
+                "n_samples_out_with_shed": int(n_out_shed),
+                "conditional_mean_unserved_if_out_mwh": e_out / n_out,
+                "conditional_mean_unserved_if_in_service_mwh": (
+                    (total - e_out) / n_in if n_in else None
+                ),
+                "share_of_sampled_unserved_energy": (e_out / total) if total > 0 else None,
+            }
+        )
+    rows.sort(
+        key=lambda r: (
+            -(r["share_of_sampled_unserved_energy"] or 0.0),
+            r["component"],
+            r["asset_id"],
+        )
+    )
     return rows

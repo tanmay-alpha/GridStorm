@@ -20,7 +20,9 @@ def test_published_studies_have_consistent_probability_weighted_results():
         artifact = json.loads((ARTIFACTS / entry["path"]).read_text(encoding="utf-8"))
         payload = artifact["payload"]
         canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
-        assert hashlib.sha256(canonical.encode()).hexdigest() == artifact["artifact"]["payload_sha256"]
+        assert (
+            hashlib.sha256(canonical.encode()).hexdigest() == artifact["artifact"]["payload_sha256"]
+        )
         assert payload["engine"]["engine"]["name"] == "pypsa"
         states = payload["states"]
         accounting = payload["sample_accounting"]
@@ -49,8 +51,11 @@ def test_published_studies_have_consistent_probability_weighted_results():
         half = NormalDist().inv_cdf(0.975) * se
         assert estimates["ci95_low_mwh"] == pytest.approx(max(0, expected - half), rel=2e-5)
         assert estimates["ci95_high_mwh"] == pytest.approx(expected + half, rel=2e-5)
-        shed = sum(s["count"] for s in feasible
-                   if s["unserved_energy_mwh"] > payload["sampling_spec"]["shed_tolerance_mwh"])
+        shed = sum(
+            s["count"]
+            for s in feasible
+            if s["unserved_energy_mwh"] > payload["sampling_spec"]["shed_tolerance_mwh"]
+        )
         assert estimates["lolp"] == pytest.approx(shed / nf, rel=2e-5)
         assert payload["convergence"][-1]["n"] == nf
         assert payload["convergence"][-1]["eens_mwh"] == pytest.approx(expected, rel=2e-5)

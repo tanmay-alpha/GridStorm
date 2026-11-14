@@ -99,9 +99,7 @@ class TruncatedNormalDemand(_Strict):
         return self
 
 
-DemandDistribution = Annotated[
-    DiscreteDemand | TruncatedNormalDemand, Field(discriminator="kind")
-]
+DemandDistribution = Annotated[DiscreteDemand | TruncatedNormalDemand, Field(discriminator="kind")]
 
 
 class SamplingSpec(_Strict):

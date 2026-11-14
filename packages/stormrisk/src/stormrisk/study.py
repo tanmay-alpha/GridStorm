@@ -102,14 +102,19 @@ def classify_result(result: dict) -> dict[str, Any]:
         elif e < -NEGATIVE_TOL_MWH:
             rec.update(outcome="error", error=f"negative unserved energy {e} MWh")
         else:
-            rec.update(outcome="feasible", unserved_energy_mwh=max(0.0, float(e)),
-                       peak_load_shed_mw=metrics.get("peak_load_shed_mw"))
+            rec.update(
+                outcome="feasible",
+                unserved_energy_mwh=max(0.0, float(e)),
+                peak_load_shed_mw=metrics.get("peak_load_shed_mw"),
+            )
     elif outcome == "infeasible":
         rec["outcome"] = "infeasible"
     else:
         warnings = result.get("warnings") or []
-        rec.update(outcome="error",
-                   error=f"engine outcome {outcome!r}; " + "; ".join(map(str, warnings))[:400])
+        rec.update(
+            outcome="error",
+            error=f"engine outcome {outcome!r}; " + "; ".join(map(str, warnings))[:400],
+        )
     return rec
 
 
@@ -120,8 +125,10 @@ def solve_state(engine: Engine, scenario: Scenario) -> dict[str, Any]:
     try:
         result = engine(scenario)
         rec = classify_result(result)
-        meta = {"engine": result.get("engine"),
-                "solver": {k: (result.get("solver") or {}).get(k) for k in ("name", "version")}}
+        meta = {
+            "engine": result.get("engine"),
+            "solver": {k: (result.get("solver") or {}).get(k) for k in ("name", "version")},
+        }
     except Exception as exc:  # engine and malformed-result errors are never dropped
         outcome = "invalid" if isinstance(exc, EngineRejected) else "error"
         rec = _unsolved(outcome, f"{type(exc).__name__}: {exc}"[:500])
@@ -214,8 +221,9 @@ def run_study(
                 progress(done, total)
 
     payload = _assemble(base, spec, population, samples, keys, scen_hashes, records)
-    worker_rss = [r["worker_peak_rss_mb"] for r in records
-                  if r and r.get("worker_peak_rss_mb") is not None]
+    worker_rss = [
+        r["worker_peak_rss_mb"] for r in records if r and r.get("worker_peak_rss_mb") is not None
+    ]
     payload["runtime"] = {
         "wall_time_s": time.perf_counter() - t_start,
         "solves": total,
@@ -230,9 +238,16 @@ def run_study(
 
 
 def _unsolved(outcome: str, error: str) -> dict[str, Any]:
-    return {"outcome": outcome, "unserved_energy_mwh": None, "peak_load_shed_mw": None,
-            "termination_condition": None, "solver_status": None, "solver_wall_time_s": None,
-            "error": error, "engine_meta": {}}
+    return {
+        "outcome": outcome,
+        "unserved_energy_mwh": None,
+        "peak_load_shed_mw": None,
+        "termination_condition": None,
+        "solver_status": None,
+        "solver_wall_time_s": None,
+        "error": error,
+        "engine_meta": {},
+    }
 
 
 def _assemble(
@@ -252,20 +267,24 @@ def _assemble(
     for j, (state, rec) in enumerate(zip(samples.states, records, strict=True)):
         assert rec is not None
         by_outcome[rec["outcome"]] += counts[j]
-        states_out.append({
-            "state_hash": keys[j],
-            "scenario_hash": scen_hashes[j],
-            "outages": [[population.assets[i].component, population.assets[i].asset_id]
-                        for i in state.outage_idx],
-            "demand_multiplier": state.demand_multiplier,
-            "count": counts[j],
-            "outcome": rec["outcome"],
-            "unserved_energy_mwh": rec["unserved_energy_mwh"],
-            "peak_load_shed_mw": rec["peak_load_shed_mw"],
-            "termination_condition": rec["termination_condition"],
-            "wall_time_s": rec.get("wall_time_s"),
-            "error": rec["error"],
-        })
+        states_out.append(
+            {
+                "state_hash": keys[j],
+                "scenario_hash": scen_hashes[j],
+                "outages": [
+                    [population.assets[i].component, population.assets[i].asset_id]
+                    for i in state.outage_idx
+                ],
+                "demand_multiplier": state.demand_multiplier,
+                "count": counts[j],
+                "outcome": rec["outcome"],
+                "unserved_energy_mwh": rec["unserved_energy_mwh"],
+                "peak_load_shed_mw": rec["peak_load_shed_mw"],
+                "termination_condition": rec["termination_condition"],
+                "wall_time_s": rec.get("wall_time_s"),
+                "error": rec["error"],
+            }
+        )
 
     feas = [j for j, r in enumerate(records) if r and r["outcome"] == "feasible"]
     n_feas = by_outcome["feasible"]
@@ -305,11 +324,17 @@ def _assemble(
                 "confidence interval is unreliable (rare-event regime); increase n_samples."
             )
         feas_set = set(feas)
-        seq = [records[j]["unserved_energy_mwh"] for j in samples.sample_state_index
-               if j in feas_set]
+        seq = [
+            records[j]["unserved_energy_mwh"] for j in samples.sample_state_index if j in feas_set
+        ]
         convergence = convergence_trace(seq)
-        outs = [[(population.assets[i].component, population.assets[i].asset_id)
-                 for i in samples.states[j].outage_idx] for j in feas]
+        outs = [
+            [
+                (population.assets[i].component, population.assets[i].asset_id)
+                for i in samples.states[j].outage_idx
+            ]
+            for j in feas
+        ]
         importance = importance_ranking(outs, ys, cs, tol=tol)
     else:
         warnings.append("no feasible samples: no estimates can be computed")
@@ -319,17 +344,24 @@ def _assemble(
     return {
         "schema_version": STUDY_SCHEMA_VERSION,
         "network_id": base.dataset.network_id,
-        "base_scenario": {"scenario_hash": scenario_hash(base),
-                          "spec": base.model_dump(mode="json")},
+        "base_scenario": {
+            "scenario_hash": scenario_hash(base),
+            "spec": base.model_dump(mode="json"),
+        },
         "sampling_spec": spec.model_dump(mode="json"),
         "engine": meta,
         "population": {
             "n_assets_sampled": len(population.assets),
             "expected_outages_per_sample": expected_out,
             "classes": [
-                {"name": c.name, "component": c.component, "unavailability": c.unavailability,
-                 "provenance": c.provenance, "source": c.source,
-                 "n_assets_matched": population.class_counts.get(c.name, 0)}
+                {
+                    "name": c.name,
+                    "component": c.component,
+                    "unavailability": c.unavailability,
+                    "provenance": c.provenance,
+                    "source": c.source,
+                    "n_assets_matched": population.class_counts.get(c.name, 0),
+                }
                 for c in spec.outage_classes
             ],
             "excluded_base_outaged": list(population.excluded_base_outaged),

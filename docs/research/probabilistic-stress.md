@@ -11,8 +11,8 @@ sampling uncertainty.
 > unserved energy of a single deterministic run (each entry of `payload.states`, or any ordinary
 > GridStorm scenario result) is `unserved_energy_mwh` and is never called EENS.
 
-> **Not a reliability assessment.** The outage probabilities are *modelled assumptions* taken
-> from generic test-system data (IEEE RTS-96) and scaled for a storm-stress case; the networks are
+> **Not a reliability assessment.** The outage probabilities are *modelled assumptions*, using
+> generic IEEE RTS-96 values as context and author-selected stress probabilities; the networks are
 > research/example datasets. Numbers below describe the model, not any real power system.
 
 ## Method
@@ -78,8 +78,7 @@ $$\mathrm{CV} = \mathrm{SE}/\widehat{\mathrm{EENS}},\qquad
     $q\approx\lambda r/8760$ gives order-$10^{-4}$ to order-$10^{-3}$ unavailability.
     Study values $q=0.01$–$0.05$ are author-selected stress assumptions, **not** calibrated
     weather-conditioned probabilities. Neither a storm multiplier nor a whole-horizon outage
-    probability is inferred from these stationary RTS data. The study input files retain their
-    original qualitative weather-model rationale; that rationale is not empirical validation.
+    probability is inferred from these stationary RTS data.
   * Transformers: RTS-96 Table 12 gives 0.02 /yr × 768 h,
     hence $q\approx0.00175$, rounded to 0.002.
   * Wind-farm and HVDC-link probabilities are illustrative proxies, not technology-specific
@@ -92,6 +91,36 @@ $$\mathrm{CV} = \mathrm{SE}/\widehat{\mathrm{EENS}},\qquad
   with load shedding at VOLL = 10 000 EUR/MWh: no AC feasibility, voltage, stability or
   protection behaviour.
 * Crude Monte Carlo: the CI covers sampling error only, not parameter or model uncertainty.
+
+## Measured result
+
+Artifact:
+[`stormrisk-ac-dc-meshed-storm-stress.json`](../../data/artifacts/stormrisk/stormrisk-ac-dc-meshed-storm-stress.json).
+The committed study uses 10 snapshots, seed `20261114`, line $q=0.05$, link $q=0.02$,
+gas-generator $q=0.05$, wind-generator $q=0.02$, and independent demand multipliers
+0.9/1.0/1.1 with probabilities 0.25/0.5/0.25. PyPSA 1.4.0 and HiGHS 1.16.0 solved all states.
+
+| Network / horizon | Samples | Distinct solves | EENS (MWh) | SE (MWh) | 95% CLT CI (MWh) | CV | LOLP | P95 unserved (MWh) | Wall time (s) | Peak RSS (MiB) |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| ac-dc-meshed / 10 h | 1,000 | 165 | 145.208 | 35.7634 | [75.113, 215.303] | 0.246291 | 0.087 | 183.585 | 385.856 | 302.41 |
+
+All 1,000 samples were feasible: zero infeasible, error or invalid samples; 87 shed load.
+The unconditional mean unserved energy equals EENS; conditional on shedding, the mean is
+1,669.06 MWh and the maximum sampled unserved energy is 19,956.8 MWh. The artifact contains
+87 convergence checkpoints, ending at 1,000 samples with EENS 145.208 MWh and a CI half-width
+of 70.0949 MWh. The broad interval (CV about 24.6%) shows substantial Monte Carlo uncertainty;
+this is not evidence of a tightly converged reliability estimate.
+
+The leading descriptive co-occurrences are `Manchester Gas` (68.2631% of sampled unserved
+energy) and `Frankfurt Gas` (48.2258%). These overlapping shares are not causal attribution.
+The solve collapse avoided 835 redundant engine calls. Time is measured around study preparation,
+solving and estimation, excluding artifact writing; peak RSS is the main process high-water mark
+on Windows, Python 3.11.15.
+
+The optional SciGRID-DE run was not performed. The small-network study alone took 385.856 s
+(about 6.4 minutes) for 165 solves; SciGRID solve times were not measured, so the 100-sample
+reduced-horizon study was not assumed to fit the 15-minute study budget. Its input specification
+is committed for reproducible future execution; there is no SciGRID Monte Carlo result claim.
 
 ## Reproduction and checks
 

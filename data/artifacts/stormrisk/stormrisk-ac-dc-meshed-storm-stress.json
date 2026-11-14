@@ -1,0 +1,5392 @@
+{
+ "artifact": {
+  "schema_version": "gridstorm-artifact/1.0",
+  "artifact_id": "stormrisk-ac-dc-meshed-storm-stress",
+  "kind": "risk",
+  "engine": "stormrisk",
+  "engine_version": "0.1.0",
+  "network_id": "ac-dc-meshed",
+  "created_at": "2026-11-14T21:20:38+00:00",
+  "command": "uv run --project packages/stormrisk python packages/stormrisk/scripts/run_study.py packages/stormrisk/studies/ac-dc-meshed-storm-stress.json --workers 1 --networks-root \"data/networks\" --out-dir \"data/artifacts/stormrisk\"",
+  "inputs": [
+   {
+    "path": "packages/stormrisk/studies/ac-dc-meshed-storm-stress.json",
+    "sha256": "6c18da12ad2b41ab322a245fa9903565ebd4eaec120ad2bbe385ce06b9a6cdc8"
+   },
+   {
+    "path": "data/networks/ac-dc-meshed/network.nc",
+    "sha256": "62e4e53555e2219a2ae48b7f91e576e2ea383cadd2f61db9919f3592503c932f"
+   },
+   {
+    "path": "data/networks/ac-dc-meshed/canonical.json",
+    "sha256": "c974af9fe4ede05eb077e2e53ff5e8d01155840e0127126874ea4b90fee184e1"
+   }
+  ],
+  "platform": "Windows-10-10.0.26300-SP0",
+  "execution_mode": "precomputed",
+  "payload_sha256": "048bc178eb633eb3641d78e85f3cf57b254e99e02a4d2b49a62a42025c021fc7"
+ },
+ "payload": {
+  "schema_version": "stormrisk-study/1.0",
+  "network_id": "ac-dc-meshed",
+  "base_scenario": {
+   "scenario_hash": "c4f6bad4fcc05baf7407caa02f0eda0980ba95fe7b415c6c6637f19b88f6b686",
+   "spec": {
+    "schema_version": "stormspec/1.0",
+    "id": "ac-dc-meshed-mc-storm-stress",
+    "name": "ac-dc-meshed Monte Carlo storm-stress base (10 snapshots)",
+    "description": "Base scenario for a StormRisk Monte Carlo study: the full 10-hour ac-dc-meshed horizon with load shedding at VOLL. Outages and demand are sampled by StormRisk from the modelled distributions in 'sampling'.",
+    "dataset": {
+     "network_id": "ac-dc-meshed",
+     "sha256": null
+    },
+    "horizon": {
+     "start": 0,
+     "snapshots": 10
+    },
+    "events": [],
+    "mitigation": {
+     "storage_dispatch": true,
+     "curtailment": true,
+     "load_shedding": {
+      "enabled": true,
+      "voll_eur_per_mwh": 10000.0
+     }
+    },
+    "execution": {
+     "engine": "pypsa",
+     "formulation": "lopf",
+     "solver": "highs",
+     "solver_options": {
+      "time_limit_s": 120.0,
+      "threads": 1
+     },
+     "deterministic": true,
+     "seed": 0
+    },
+    "assumptions": [
+     "ac-dc-meshed is the PyPSA example network (synthetic, illustrative); it does not represent the real UK/German/Norwegian system."
+    ]
+   }
+  },
+  "sampling_spec": {
+   "schema_version": "stormrisk-sampling/1.0",
+   "n_samples": 1000,
+   "seed": 20261114,
+   "outage_classes": [
+    {
+     "name": "ac-lines-storm",
+     "component": "line",
+     "unavailability": 0.05,
+     "carriers": null,
+     "asset_ids": [
+      "0",
+      "1",
+      "5",
+      "6"
+     ],
+     "provenance": "modeled",
+     "source": "MODELLED author-selected whole-horizon stress probability, not observed or calibrated. Context only: IEEE RTS-96 Table 12 (Grigg et al., The IEEE Reliability Test System-1996, IEEE Trans. Power Syst. 14(3):1010-1020, 1999; https://labs.ece.uw.edu/pstca/rts/rts96/Table-12.txt) lists branch outage rates 0.24-0.54 /yr and typical durations 10-16 h (some 35 h), giving stationary unavailability of order 1e-4 to 1e-3 via lambda*r/8760. q=0.05 is deliberately larger, an illustrative assumption, not a weather multiplier inferred from RTS-96."
+    },
+    {
+     "name": "dc-lines-storm",
+     "component": "line",
+     "unavailability": 0.05,
+     "carriers": null,
+     "asset_ids": [
+      "2",
+      "3",
+      "4"
+     ],
+     "provenance": "modeled",
+     "source": "MODELLED author-selected stress probability, not observed or calibrated: q=0.05, the same illustrative assumption as ac-lines-storm. IEEE RTS-96 Table 12 provides stationary branch-reliability context only, not DC-specific or weather-conditioned failure statistics."
+    },
+    {
+     "name": "hvdc-links-converters",
+     "component": "link",
+     "unavailability": 0.02,
+     "carriers": null,
+     "asset_ids": null,
+     "provenance": "modeled",
+     "source": "MODELLED assumption, not observed data: illustrative forced unavailability for HVDC converters/links of order 1e-2 (same order as the smaller thermal-unit forced outage rates in IEEE RTS-96, Grigg et al. 1999, Table 6). No HVDC-specific statistics are used."
+    },
+    {
+     "name": "gas-units",
+     "component": "generator",
+     "unavailability": 0.05,
+     "carriers": [
+      "gas"
+     ],
+     "asset_ids": null,
+     "provenance": "modeled",
+     "source": "MODELLED assumption, not observed data: forced outage rate of a mid-size thermal unit from IEEE RTS-96 generator reliability data (Grigg et al. 1999, Table 6, https://labs.ece.uw.edu/pstca/rts/rts96/Table-06.txt: thermal-unit FOR 0.02-0.12; 197 MW oil/steam = 0.05). Each ac-dc-meshed gas generator is an aggregated plant, so a whole-plant FOR is a strong simplification."
+    },
+    {
+     "name": "wind-farms",
+     "component": "generator",
+     "unavailability": 0.02,
+     "carriers": [
+      "wind"
+     ],
+     "asset_ids": null,
+     "provenance": "modeled",
+     "source": "MODELLED assumption, not observed data: whole-farm unavailability (e.g. export cable/substation fault) set to 0.02, of the order of the smaller IEEE RTS-96 unit FORs (Grigg et al. 1999, Table 6). Weather-driven wind variability is already in the network's p_max_pu series."
+    }
+   ],
+   "demand_multiplier": {
+    "kind": "discrete",
+    "values": [
+     0.9,
+     1.0,
+     1.1
+    ],
+    "probabilities": [
+     0.25,
+     0.5,
+     0.25
+    ],
+    "source": "MODELLED assumption, not observed data: +/-10 % demand uncertainty around the dataset's load series (illustrative three-point distribution)."
+   },
+   "shed_tolerance_mwh": 0.001,
+   "max_outages_per_sample": 200
+  },
+  "engine": {
+   "engine": {
+    "name": "pypsa",
+    "version": "1.4.0",
+    "formulation": "lopf"
+   },
+   "solver": {
+    "name": "highs",
+    "version": "1.16.0"
+   },
+   "package_versions": {
+    "pypsa": "1.4.0",
+    "linopy": "0.10.1",
+    "highspy": "1.16.0",
+    "gridstorm-pypsa": "0.1.0",
+    "stormspec": "1.0.0",
+    "numpy": "2.4.6"
+   }
+  },
+  "population": {
+   "n_assets_sampled": 17,
+   "expected_outages_per_sample": 0.64,
+   "classes": [
+    {
+     "name": "ac-lines-storm",
+     "component": "line",
+     "unavailability": 0.05,
+     "provenance": "modeled",
+     "source": "MODELLED author-selected whole-horizon stress probability, not observed or calibrated. Context only: IEEE RTS-96 Table 12 (Grigg et al., The IEEE Reliability Test System-1996, IEEE Trans. Power Syst. 14(3):1010-1020, 1999; https://labs.ece.uw.edu/pstca/rts/rts96/Table-12.txt) lists branch outage rates 0.24-0.54 /yr and typical durations 10-16 h (some 35 h), giving stationary unavailability of order 1e-4 to 1e-3 via lambda*r/8760. q=0.05 is deliberately larger, an illustrative assumption, not a weather multiplier inferred from RTS-96.",
+     "n_assets_matched": 4
+    },
+    {
+     "name": "dc-lines-storm",
+     "component": "line",
+     "unavailability": 0.05,
+     "provenance": "modeled",
+     "source": "MODELLED author-selected stress probability, not observed or calibrated: q=0.05, the same illustrative assumption as ac-lines-storm. IEEE RTS-96 Table 12 provides stationary branch-reliability context only, not DC-specific or weather-conditioned failure statistics.",
+     "n_assets_matched": 3
+    },
+    {
+     "name": "hvdc-links-converters",
+     "component": "link",
+     "unavailability": 0.02,
+     "provenance": "modeled",
+     "source": "MODELLED assumption, not observed data: illustrative forced unavailability for HVDC converters/links of order 1e-2 (same order as the smaller thermal-unit forced outage rates in IEEE RTS-96, Grigg et al. 1999, Table 6). No HVDC-specific statistics are used.",
+     "n_assets_matched": 4
+    },
+    {
+     "name": "gas-units",
+     "component": "generator",
+     "unavailability": 0.05,
+     "provenance": "modeled",
+     "source": "MODELLED assumption, not observed data: forced outage rate of a mid-size thermal unit from IEEE RTS-96 generator reliability data (Grigg et al. 1999, Table 6, https://labs.ece.uw.edu/pstca/rts/rts96/Table-06.txt: thermal-unit FOR 0.02-0.12; 197 MW oil/steam = 0.05). Each ac-dc-meshed gas generator is an aggregated plant, so a whole-plant FOR is a strong simplification.",
+     "n_assets_matched": 3
+    },
+    {
+     "name": "wind-farms",
+     "component": "generator",
+     "unavailability": 0.02,
+     "provenance": "modeled",
+     "source": "MODELLED assumption, not observed data: whole-farm unavailability (e.g. export cable/substation fault) set to 0.02, of the order of the smaller IEEE RTS-96 unit FORs (Grigg et al. 1999, Table 6). Weather-driven wind variability is already in the network's p_max_pu series.",
+     "n_assets_matched": 3
+    }
+   ],
+   "excluded_base_outaged": []
+  },
+  "sample_accounting": {
+   "n_samples": 1000,
+   "n_distinct_states": 165,
+   "n_feasible_samples": 1000,
+   "n_infeasible_samples": 0,
+   "n_error_samples": 0,
+   "n_invalid_samples": 0,
+   "n_distinct_states_by_outcome": {
+    "feasible": 165,
+    "infeasible": 0,
+    "error": 0,
+    "invalid": 0
+   }
+  },
+  "estimates": {
+   "metric": "EENS",
+   "estimator": "crude_monte_carlo_frequency_weighted",
+   "probability_model": {
+    "provenance": "modeled",
+    "description": "independent whole-horizon component unavailabilities (sampling_spec.outage_classes) and optional demand-multiplier distribution"
+   },
+   "basis": "all_samples",
+   "provenance": "modeled",
+   "n_samples": 1000,
+   "eens_mwh": 145.208,
+   "std_unserved_mwh": 1130.94,
+   "se_eens_mwh": 35.7634,
+   "ci95_low_mwh": 75.113,
+   "ci95_high_mwh": 215.303,
+   "cv_eens": 0.246291,
+   "lolp": 0.087,
+   "se_lolp": 0.00891241,
+   "n_loss_of_load_samples": 87,
+   "mean_unserved_given_shed_mwh": 1669.06,
+   "p95_unserved_mwh": 183.585,
+   "max_unserved_mwh": 19956.8,
+   "eens_lower_bound_all_samples_mwh": 145.208
+  },
+  "convergence": [
+   {
+    "n": 1,
+    "eens_mwh": 0.0,
+    "ci95_half_width_mwh": null
+   },
+   {
+    "n": 2,
+    "eens_mwh": 0.0,
+    "ci95_half_width_mwh": 0.0
+   },
+   {
+    "n": 3,
+    "eens_mwh": 0.0,
+    "ci95_half_width_mwh": 0.0
+   },
+   {
+    "n": 4,
+    "eens_mwh": 0.0,
+    "ci95_half_width_mwh": 0.0
+   },
+   {
+    "n": 5,
+    "eens_mwh": 0.0,
+    "ci95_half_width_mwh": 0.0
+   },
+   {
+    "n": 6,
+    "eens_mwh": 0.0,
+    "ci95_half_width_mwh": 0.0
+   },
+   {
+    "n": 7,
+    "eens_mwh": 0.0,
+    "ci95_half_width_mwh": 0.0
+   },
+   {
+    "n": 8,
+    "eens_mwh": 0.0,
+    "ci95_half_width_mwh": 0.0
+   },
+   {
+    "n": 9,
+    "eens_mwh": 0.0,
+    "ci95_half_width_mwh": 0.0
+   },
+   {
+    "n": 10,
+    "eens_mwh": 0.0,
+    "ci95_half_width_mwh": 0.0
+   },
+   {
+    "n": 11,
+    "eens_mwh": 0.0,
+    "ci95_half_width_mwh": 0.0
+   },
+   {
+    "n": 12,
+    "eens_mwh": 0.0,
+    "ci95_half_width_mwh": 0.0
+   },
+   {
+    "n": 13,
+    "eens_mwh": 0.0,
+    "ci95_half_width_mwh": 0.0
+   },
+   {
+    "n": 14,
+    "eens_mwh": 0.0,
+    "ci95_half_width_mwh": 0.0
+   },
+   {
+    "n": 15,
+    "eens_mwh": 0.0,
+    "ci95_half_width_mwh": 0.0
+   },
+   {
+    "n": 16,
+    "eens_mwh": 0.0,
+    "ci95_half_width_mwh": 0.0
+   },
+   {
+    "n": 17,
+    "eens_mwh": 0.0,
+    "ci95_half_width_mwh": 0.0
+   },
+   {
+    "n": 18,
+    "eens_mwh": 0.0,
+    "ci95_half_width_mwh": 0.0
+   },
+   {
+    "n": 19,
+    "eens_mwh": 0.0,
+    "ci95_half_width_mwh": 0.0
+   },
+   {
+    "n": 20,
+    "eens_mwh": 0.0,
+    "ci95_half_width_mwh": 0.0
+   },
+   {
+    "n": 22,
+    "eens_mwh": 0.0,
+    "ci95_half_width_mwh": 0.0
+   },
+   {
+    "n": 23,
+    "eens_mwh": 0.0,
+    "ci95_half_width_mwh": 0.0
+   },
+   {
+    "n": 24,
+    "eens_mwh": 0.0,
+    "ci95_half_width_mwh": 0.0
+   },
+   {
+    "n": 26,
+    "eens_mwh": 0.0,
+    "ci95_half_width_mwh": 0.0
+   },
+   {
+    "n": 27,
+    "eens_mwh": 0.0,
+    "ci95_half_width_mwh": 0.0
+   },
+   {
+    "n": 29,
+    "eens_mwh": 0.0,
+    "ci95_half_width_mwh": 0.0
+   },
+   {
+    "n": 31,
+    "eens_mwh": 0.0,
+    "ci95_half_width_mwh": 0.0
+   },
+   {
+    "n": 33,
+    "eens_mwh": 5.56318,
+    "ci95_half_width_mwh": 10.9036
+   },
+   {
+    "n": 34,
+    "eens_mwh": 5.39956,
+    "ci95_half_width_mwh": 10.5829
+   },
+   {
+    "n": 37,
+    "eens_mwh": 4.98266,
+    "ci95_half_width_mwh": 9.72381
+   },
+   {
+    "n": 39,
+    "eens_mwh": 4.72714,
+    "ci95_half_width_mwh": 9.22521
+   },
+   {
+    "n": 41,
+    "eens_mwh": 4.49655,
+    "ci95_half_width_mwh": 8.77525
+   },
+   {
+    "n": 44,
+    "eens_mwh": 4.18997,
+    "ci95_half_width_mwh": 8.177
+   },
+   {
+    "n": 46,
+    "eens_mwh": 4.0078,
+    "ci95_half_width_mwh": 7.82151
+   },
+   {
+    "n": 49,
+    "eens_mwh": 3.76242,
+    "ci95_half_width_mwh": 7.34269
+   },
+   {
+    "n": 52,
+    "eens_mwh": 3.93063,
+    "ci95_half_width_mwh": 6.94539
+   },
+   {
+    "n": 55,
+    "eens_mwh": 3.71624,
+    "ci95_half_width_mwh": 6.56736
+   },
+   {
+    "n": 58,
+    "eens_mwh": 3.52402,
+    "ci95_half_width_mwh": 6.22835
+   },
+   {
+    "n": 62,
+    "eens_mwh": 3.29666,
+    "ci95_half_width_mwh": 5.82728
+   },
+   {
+    "n": 65,
+    "eens_mwh": 3.14451,
+    "ci95_half_width_mwh": 5.55881
+   },
+   {
+    "n": 69,
+    "eens_mwh": 2.96222,
+    "ci95_half_width_mwh": 5.23711
+   },
+   {
+    "n": 73,
+    "eens_mwh": 13.9175,
+    "ci95_half_width_mwh": 22.271
+   },
+   {
+    "n": 78,
+    "eens_mwh": 13.0254,
+    "ci95_half_width_mwh": 20.848
+   },
+   {
+    "n": 82,
+    "eens_mwh": 255.765,
+    "ci95_half_width_mwh": 477.119
+   },
+   {
+    "n": 87,
+    "eens_mwh": 241.066,
+    "ci95_half_width_mwh": 449.715
+   },
+   {
+    "n": 93,
+    "eens_mwh": 225.513,
+    "ci95_half_width_mwh": 420.717
+   },
+   {
+    "n": 98,
+    "eens_mwh": 214.007,
+    "ci95_half_width_mwh": 399.264
+   },
+   {
+    "n": 104,
+    "eens_mwh": 276.455,
+    "ci95_half_width_mwh": 402.395
+   },
+   {
+    "n": 110,
+    "eens_mwh": 261.383,
+    "ci95_half_width_mwh": 380.528
+   },
+   {
+    "n": 117,
+    "eens_mwh": 245.744,
+    "ci95_half_width_mwh": 357.841
+   },
+   {
+    "n": 124,
+    "eens_mwh": 297.83,
+    "ci95_half_width_mwh": 360.282
+   },
+   {
+    "n": 131,
+    "eens_mwh": 294.312,
+    "ci95_half_width_mwh": 341.276
+   },
+   {
+    "n": 139,
+    "eens_mwh": 277.517,
+    "ci95_half_width_mwh": 321.763
+   },
+   {
+    "n": 147,
+    "eens_mwh": 262.414,
+    "ci95_half_width_mwh": 304.364
+   },
+   {
+    "n": 156,
+    "eens_mwh": 249.276,
+    "ci95_half_width_mwh": 286.894
+   },
+   {
+    "n": 165,
+    "eens_mwh": 240.598,
+    "ci95_half_width_mwh": 271.407
+   },
+   {
+    "n": 175,
+    "eens_mwh": 231.491,
+    "ci95_half_width_mwh": 256.058
+   },
+   {
+    "n": 186,
+    "eens_mwh": 217.909,
+    "ci95_half_width_mwh": 241.001
+   },
+   {
+    "n": 197,
+    "eens_mwh": 233.581,
+    "ci95_half_width_mwh": 233.539
+   },
+   {
+    "n": 209,
+    "eens_mwh": 220.17,
+    "ci95_half_width_mwh": 220.222
+   },
+   {
+    "n": 221,
+    "eens_mwh": 214.76,
+    "ci95_half_width_mwh": 208.622
+   },
+   {
+    "n": 234,
+    "eens_mwh": 202.828,
+    "ci95_half_width_mwh": 197.108
+   },
+   {
+    "n": 248,
+    "eens_mwh": 191.382,
+    "ci95_half_width_mwh": 186.05
+   },
+   {
+    "n": 263,
+    "eens_mwh": 182.685,
+    "ci95_half_width_mwh": 175.494
+   },
+   {
+    "n": 279,
+    "eens_mwh": 175.192,
+    "ci95_half_width_mwh": 165.543
+   },
+   {
+    "n": 296,
+    "eens_mwh": 165.13,
+    "ci95_half_width_mwh": 156.088
+   },
+   {
+    "n": 313,
+    "eens_mwh": 172.409,
+    "ci95_half_width_mwh": 148.86
+   },
+   {
+    "n": 332,
+    "eens_mwh": 167.314,
+    "ci95_half_width_mwh": 140.641
+   },
+   {
+    "n": 352,
+    "eens_mwh": 166.03,
+    "ci95_half_width_mwh": 133.08
+   },
+   {
+    "n": 373,
+    "eens_mwh": 188.26,
+    "ci95_half_width_mwh": 139.689
+   },
+   {
+    "n": 395,
+    "eens_mwh": 177.779,
+    "ci95_half_width_mwh": 131.968
+   },
+   {
+    "n": 419,
+    "eens_mwh": 169.536,
+    "ci95_half_width_mwh": 124.497
+   },
+   {
+    "n": 444,
+    "eens_mwh": 160.406,
+    "ci95_half_width_mwh": 117.533
+   },
+   {
+    "n": 470,
+    "eens_mwh": 172.581,
+    "ci95_half_width_mwh": 118.268
+   },
+   {
+    "n": 498,
+    "eens_mwh": 179.768,
+    "ci95_half_width_mwh": 113.549
+   },
+   {
+    "n": 528,
+    "eens_mwh": 202.249,
+    "ci95_half_width_mwh": 124.488
+   },
+   {
+    "n": 560,
+    "eens_mwh": 190.693,
+    "ci95_half_width_mwh": 117.432
+   },
+   {
+    "n": 593,
+    "eens_mwh": 180.391,
+    "ci95_half_width_mwh": 110.946
+   },
+   {
+    "n": 629,
+    "eens_mwh": 179.617,
+    "ci95_half_width_mwh": 105.199
+   },
+   {
+    "n": 666,
+    "eens_mwh": 169.913,
+    "ci95_half_width_mwh": 99.3985
+   },
+   {
+    "n": 706,
+    "eens_mwh": 161.436,
+    "ci95_half_width_mwh": 93.824
+   },
+   {
+    "n": 748,
+    "eens_mwh": 155.729,
+    "ci95_half_width_mwh": 88.6706
+   },
+   {
+    "n": 793,
+    "eens_mwh": 151.153,
+    "ci95_half_width_mwh": 83.9011
+   },
+   {
+    "n": 840,
+    "eens_mwh": 146.085,
+    "ci95_half_width_mwh": 79.485
+   },
+   {
+    "n": 890,
+    "eens_mwh": 139.839,
+    "ci95_half_width_mwh": 75.0771
+   },
+   {
+    "n": 944,
+    "eens_mwh": 152.286,
+    "ci95_half_width_mwh": 74.171
+   },
+   {
+    "n": 1000,
+    "eens_mwh": 145.208,
+    "ci95_half_width_mwh": 70.0949
+   }
+  ],
+  "importance": [
+   {
+    "component": "generator",
+    "asset_id": "Manchester Gas",
+    "n_samples_out": 37,
+    "n_samples_out_with_shed": 37,
+    "conditional_mean_unserved_if_out_mwh": 2679.01,
+    "conditional_mean_unserved_if_in_service_mwh": 47.8551,
+    "share_of_sampled_unserved_energy": 0.682631
+   },
+   {
+    "component": "generator",
+    "asset_id": "Frankfurt Gas",
+    "n_samples_out": 46,
+    "n_samples_out_with_shed": 37,
+    "conditional_mean_unserved_if_out_mwh": 1522.34,
+    "conditional_mean_unserved_if_in_service_mwh": 78.8052,
+    "share_of_sampled_unserved_energy": 0.482258
+   },
+   {
+    "component": "link",
+    "asset_id": "DC link",
+    "n_samples_out": 17,
+    "n_samples_out_with_shed": 4,
+    "conditional_mean_unserved_if_out_mwh": 2426.55,
+    "conditional_mean_unserved_if_in_service_mwh": 105.754,
+    "share_of_sampled_unserved_energy": 0.284085
+   },
+   {
+    "component": "line",
+    "asset_id": "6",
+    "n_samples_out": 49,
+    "n_samples_out_with_shed": 6,
+    "conditional_mean_unserved_if_out_mwh": 781.872,
+    "conditional_mean_unserved_if_in_service_mwh": 112.404,
+    "share_of_sampled_unserved_energy": 0.26384
+   },
+   {
+    "component": "generator",
+    "asset_id": "Norway Gas",
+    "n_samples_out": 48,
+    "n_samples_out_with_shed": 15,
+    "conditional_mean_unserved_if_out_mwh": 690.82,
+    "conditional_mean_unserved_if_in_service_mwh": 117.698,
+    "share_of_sampled_unserved_energy": 0.228358
+   },
+   {
+    "component": "line",
+    "asset_id": "1",
+    "n_samples_out": 48,
+    "n_samples_out_with_shed": 9,
+    "conditional_mean_unserved_if_out_mwh": 369.778,
+    "conditional_mean_unserved_if_in_service_mwh": 133.885,
+    "share_of_sampled_unserved_energy": 0.122234
+   },
+   {
+    "component": "line",
+    "asset_id": "5",
+    "n_samples_out": 55,
+    "n_samples_out_with_shed": 8,
+    "conditional_mean_unserved_if_out_mwh": 285.553,
+    "conditional_mean_unserved_if_in_service_mwh": 137.04,
+    "share_of_sampled_unserved_energy": 0.108158
+   },
+   {
+    "component": "line",
+    "asset_id": "0",
+    "n_samples_out": 53,
+    "n_samples_out_with_shed": 7,
+    "conditional_mean_unserved_if_out_mwh": 233.061,
+    "conditional_mean_unserved_if_in_service_mwh": 140.291,
+    "share_of_sampled_unserved_energy": 0.0850657
+   },
+   {
+    "component": "line",
+    "asset_id": "4",
+    "n_samples_out": 59,
+    "n_samples_out_with_shed": 2,
+    "conditional_mean_unserved_if_out_mwh": 99.1027,
+    "conditional_mean_unserved_if_in_service_mwh": 148.099,
+    "share_of_sampled_unserved_energy": 0.0402668
+   },
+   {
+    "component": "line",
+    "asset_id": "2",
+    "n_samples_out": 63,
+    "n_samples_out_with_shed": 4,
+    "conditional_mean_unserved_if_out_mwh": 87.7002,
+    "conditional_mean_unserved_if_in_service_mwh": 149.074,
+    "share_of_sampled_unserved_energy": 0.0380497
+   },
+   {
+    "component": "line",
+    "asset_id": "3",
+    "n_samples_out": 53,
+    "n_samples_out_with_shed": 7,
+    "conditional_mean_unserved_if_out_mwh": 100.914,
+    "conditional_mean_unserved_if_in_service_mwh": 147.687,
+    "share_of_sampled_unserved_energy": 0.0368329
+   },
+   {
+    "component": "link",
+    "asset_id": "Norwich Converter",
+    "n_samples_out": 19,
+    "n_samples_out_with_shed": 2,
+    "conditional_mean_unserved_if_out_mwh": 230.419,
+    "conditional_mean_unserved_if_in_service_mwh": 143.558,
+    "share_of_sampled_unserved_energy": 0.0301496
+   },
+   {
+    "component": "link",
+    "asset_id": "Norway Converter",
+    "n_samples_out": 19,
+    "n_samples_out_with_shed": 1,
+    "conditional_mean_unserved_if_out_mwh": 176.934,
+    "conditional_mean_unserved_if_in_service_mwh": 144.593,
+    "share_of_sampled_unserved_energy": 0.0231513
+   },
+   {
+    "component": "link",
+    "asset_id": "Bremen Converter",
+    "n_samples_out": 22,
+    "n_samples_out_with_shed": 1,
+    "conditional_mean_unserved_if_out_mwh": 116.678,
+    "conditional_mean_unserved_if_in_service_mwh": 145.85,
+    "share_of_sampled_unserved_energy": 0.0176775
+   },
+   {
+    "component": "generator",
+    "asset_id": "Manchester Wind",
+    "n_samples_out": 21,
+    "n_samples_out_with_shed": 3,
+    "conditional_mean_unserved_if_out_mwh": 84.1746,
+    "conditional_mean_unserved_if_in_service_mwh": 146.517,
+    "share_of_sampled_unserved_energy": 0.0121733
+   }
+  ],
+  "states": [
+   {
+    "state_hash": "b925b18d090149ef57d8f413c5e3851af807faf53c561df10c8cfdf89e4f10a6",
+    "scenario_hash": "3160fc72e28f159586808af4814dc356cbdae0a4b72ee2afb896f612e79b9e63",
+    "outages": [
+     [
+      "line",
+      "1"
+     ],
+     [
+      "link",
+      "DC link"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 7.61148,
+    "error": null
+   },
+   {
+    "state_hash": "5b2541970f1194e6c59642c80e521883ba589bf6b1d7019aa68c74ed3ade415b",
+    "scenario_hash": "40fe2698d5ea034b52d183f8bfec436e3055dd570b3dcb6f6e3a786e7a28ee42",
+    "outages": [],
+    "demand_multiplier": 1.0,
+    "count": 257,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.65339,
+    "error": null
+   },
+   {
+    "state_hash": "9aad2e1cc06b7fbd79502615d714b543fefb587166940db0dd1c8ca0fa31b70a",
+    "scenario_hash": "c942237a5f37fbc5e20b50d6b2cb7b6d7be5d6391a650a311d8122c717f39cd0",
+    "outages": [
+     [
+      "line",
+      "2"
+     ],
+     [
+      "line",
+      "5"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.65267,
+    "error": null
+   },
+   {
+    "state_hash": "88e773ff36b8e79a33f114235f5944e454c595e351820cbc3be57b8a944b127f",
+    "scenario_hash": "b78537680ba8e8c8aae1978b05d7ff0df8a1855b3ae3c390bcab1911521d31cc",
+    "outages": [
+     [
+      "generator",
+      "Norway Gas"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 17,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.68148,
+    "error": null
+   },
+   {
+    "state_hash": "94770ce371d9161f7c046c6d0c1b957bc2551084a3e703709be97d0cdcb54739",
+    "scenario_hash": "d61295b317abfb566b24d76c18c960f4dcc83eb42ff8e9eb0a1250cff1d74302",
+    "outages": [
+     [
+      "line",
+      "5"
+     ]
+    ],
+    "demand_multiplier": 1.1,
+    "count": 9,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.62599,
+    "error": null
+   },
+   {
+    "state_hash": "412a17fc935bcc86872076a9e9d3588402f7636163d710405d4d983807841c6c",
+    "scenario_hash": "85ea815617025eb3d6418f745ed11d45681cce714feabc04b8f4d3de179d168f",
+    "outages": [
+     [
+      "link",
+      "DC link"
+     ]
+    ],
+    "demand_multiplier": 1.1,
+    "count": 2,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.49769,
+    "error": null
+   },
+   {
+    "state_hash": "c45dc45ba5d501493aa7a12dbd267e1c5440bf76eace19c3a98cab9b3e55a4d4",
+    "scenario_hash": "32263cc1414ca2be5d9f07bc19b9219204c39a9d0db1e378e3dcc7e0444c53d2",
+    "outages": [],
+    "demand_multiplier": 1.1,
+    "count": 124,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.39526,
+    "error": null
+   },
+   {
+    "state_hash": "11ce10a27df39ee12a8804128041fe0b766d8ae3a1db2e7fd93584bedaf4cde1",
+    "scenario_hash": "41917f9503bc3787a4ae7a6be5c4ee69f9e3f8d146d3f3ea143a6589cea93bd8",
+    "outages": [],
+    "demand_multiplier": 0.9,
+    "count": 126,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.423,
+    "error": null
+   },
+   {
+    "state_hash": "729609b4564c5057b33f11d89e337ef56ac9e752951d52ca44b85a27b2d97648",
+    "scenario_hash": "b623bb58da9d966d4ee483a4b653082760a1867a13c4a492f05bf46dbbba4f0f",
+    "outages": [
+     [
+      "generator",
+      "Norway Wind"
+     ],
+     [
+      "line",
+      "1"
+     ]
+    ],
+    "demand_multiplier": 0.9,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.30149,
+    "error": null
+   },
+   {
+    "state_hash": "8ce9dcc03308984b8c478ceb00a0b74ec93c4b4360820a090c001ed29cbafba9",
+    "scenario_hash": "6fdc8a4f55ab129d46c2701b47c20bcc38ff15dadb9549a1493421b796637e8a",
+    "outages": [
+     [
+      "line",
+      "4"
+     ]
+    ],
+    "demand_multiplier": 0.9,
+    "count": 6,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.45165,
+    "error": null
+   },
+   {
+    "state_hash": "a661c696c3e8b879effaf6ec4f4d68e6d6355678421a02ea05c9021405efacad",
+    "scenario_hash": "57052e5313496c6718fd25c994e5ae68fbb37ed9664aa1c2da8e130bc53fb63a",
+    "outages": [
+     [
+      "generator",
+      "Frankfurt Gas"
+     ],
+     [
+      "line",
+      "0"
+     ]
+    ],
+    "demand_multiplier": 0.9,
+    "count": 2,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.47438,
+    "error": null
+   },
+   {
+    "state_hash": "98fe0e984426a312dc45518043b24c1470adddfb66b303d8b3292533b260a3a8",
+    "scenario_hash": "104c119ba9b9906290763da4c6e4b9f5fd1800b6d8e96aed89a5b3996020e89a",
+    "outages": [
+     [
+      "generator",
+      "Norway Wind"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 9,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.57906,
+    "error": null
+   },
+   {
+    "state_hash": "a56c4fda24561128eaef9c058e61f44e0d46bdeddaef6748b27dc8e0a724e76b",
+    "scenario_hash": "917422354eb249b48f6e5b75bdd7e789d82f53b2ceac2f8544f3be35dc8febed",
+    "outages": [
+     [
+      "line",
+      "4"
+     ]
+    ],
+    "demand_multiplier": 1.1,
+    "count": 14,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.39987,
+    "error": null
+   },
+   {
+    "state_hash": "8fc54a9e1f2bb9d586c2949040fa55c6ab251d191e2eb45d633942320c3cce6e",
+    "scenario_hash": "a36e84c1dcffd87fa7caf76a14a123624b6118b4c001f26c5e99835563c044f2",
+    "outages": [
+     [
+      "line",
+      "0"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 20,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.56372,
+    "error": null
+   },
+   {
+    "state_hash": "c90579300d66a5263645fc1304d7f2f2a04927931c0ac8a24f861c49f08d85b2",
+    "scenario_hash": "96180473b462ae52dcbf35927ef15ed64dcb79488429acbcf96cff4a56b415e1",
+    "outages": [
+     [
+      "line",
+      "6"
+     ]
+    ],
+    "demand_multiplier": 0.9,
+    "count": 12,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.72429,
+    "error": null
+   },
+   {
+    "state_hash": "7f2ceaa5637fc38ccbc275b06c41a13cbcc7530dac8b037c3ac9f17b69e5cd18",
+    "scenario_hash": "f076668f330e77df48937a9a34b0808dfdc9964e39b8020b0b6fd5519edc8b8f",
+    "outages": [
+     [
+      "line",
+      "3"
+     ]
+    ],
+    "demand_multiplier": 0.9,
+    "count": 11,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 3.06471,
+    "error": null
+   },
+   {
+    "state_hash": "cef79051e512520487968b051e62c8d958ef2c3d1a4214111912dce30acc1919",
+    "scenario_hash": "e44f5bee2268fedee3ee775ff8ec71f07fd25b05bf3ccbfee364cc9728cd7622",
+    "outages": [
+     [
+      "line",
+      "5"
+     ]
+    ],
+    "demand_multiplier": 0.9,
+    "count": 11,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.6847,
+    "error": null
+   },
+   {
+    "state_hash": "81fd4e9536707e7d9be4e9f01ebe5615112a727b8cf1631ab5178beaf3fa4b0a",
+    "scenario_hash": "e230d1277c07216ad78f633b3a2c2c4f5588217ec0e88e222198fb6721f07f00",
+    "outages": [
+     [
+      "link",
+      "DC link"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 5,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.61481,
+    "error": null
+   },
+   {
+    "state_hash": "659c2ecc7c76c4b4e37f41c39783bd15e100035791d34f0e15494e04eea45cc2",
+    "scenario_hash": "dfc72e987ed007e4a00d3a9c92bc65fe1802bdbfb700511fbe4a07130052c333",
+    "outages": [
+     [
+      "generator",
+      "Norway Wind"
+     ]
+    ],
+    "demand_multiplier": 0.9,
+    "count": 3,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.5554,
+    "error": null
+   },
+   {
+    "state_hash": "3ae43e0255bc0982fca4d2a0d64211bcde9fa22b63a903962167e9446cd5ad48",
+    "scenario_hash": "11d33f22c2e906d97f357f59377c45cea27ed916ee0a99d3a63df0acbfdabe67",
+    "outages": [
+     [
+      "line",
+      "2"
+     ]
+    ],
+    "demand_multiplier": 1.1,
+    "count": 11,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.53777,
+    "error": null
+   },
+   {
+    "state_hash": "9163d24a4c6a381b0dd161efff890ae7017352ce43b19ac427c00adfc670ae5a",
+    "scenario_hash": "e4b628b02f2d2fba568d73114ecc3e4cf6ea5487eacc7a7709a2562ff699d9e2",
+    "outages": [
+     [
+      "generator",
+      "Frankfurt Gas"
+     ]
+    ],
+    "demand_multiplier": 1.1,
+    "count": 7,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 183.585,
+    "peak_load_shed_mw": 183.585,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.70432,
+    "error": null
+   },
+   {
+    "state_hash": "1d59bdf403832d7bfee11846c1648bb77dea56c6a906c09aed14a014c7b14e42",
+    "scenario_hash": "e58e601278b3e1926cc3072d599599811e14140e9eda73d8057669a5b0dae5c5",
+    "outages": [
+     [
+      "generator",
+      "Frankfurt Gas"
+     ],
+     [
+      "link",
+      "Norwich Converter"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.773562,
+    "peak_load_shed_mw": 0.773562,
+    "termination_condition": "optimal",
+    "wall_time_s": 3.00597,
+    "error": null
+   },
+   {
+    "state_hash": "7a00ca272ffdf1975802903951c8326a9710b6f2659f6143ca8b027f18ae3243",
+    "scenario_hash": "5ecdee92f1afd659a90114e4360017179042eb28009a9a928832a3cdc3397d0c",
+    "outages": [
+     [
+      "generator",
+      "Norway Gas"
+     ],
+     [
+      "line",
+      "2"
+     ],
+     [
+      "line",
+      "4"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.61791,
+    "error": null
+   },
+   {
+    "state_hash": "090add8fea0efd25e5cc5b901a56f9afedf59ced8b5113b3d4f4be9b575f3ff9",
+    "scenario_hash": "ea9f56415fe112faaa97c793e8a1d1c44991c83fded2deff6d5a0240dedc3bf8",
+    "outages": [
+     [
+      "line",
+      "5"
+     ],
+     [
+      "line",
+      "6"
+     ]
+    ],
+    "demand_multiplier": 1.1,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.41597,
+    "error": null
+   },
+   {
+    "state_hash": "36bef91d0f1b4a8093057feb8861681c48bf420e2876707fa8683d69adec3d31",
+    "scenario_hash": "35c168e5ada6ccbd91605232c1bc0095f9585d2bb51eb8e2e44457bbebd48813",
+    "outages": [
+     [
+      "line",
+      "1"
+     ],
+     [
+      "line",
+      "4"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 2,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.7049,
+    "error": null
+   },
+   {
+    "state_hash": "b76309279a9be3e2dce9b06bd9561da914f0e6e19a5da4ee20036341d3aa15ad",
+    "scenario_hash": "4b7ed990570b6d23e289572a93f19b4ef4a987f9ae4125df79e991e142266724",
+    "outages": [
+     [
+      "link",
+      "DC link"
+     ]
+    ],
+    "demand_multiplier": 0.9,
+    "count": 2,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.70055,
+    "error": null
+   },
+   {
+    "state_hash": "53bba3070e2d33a0558e5da134faa70ac2754300d10b0cbdcd8c329e4d339933",
+    "scenario_hash": "a37b8ef5ae99f3cfe7345bfcb511ec5408de80409548ee266b4c36919f21b543",
+    "outages": [
+     [
+      "line",
+      "5"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 10,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.46049,
+    "error": null
+   },
+   {
+    "state_hash": "52f0645632922e88dc600fe9056373d21df2ea9a3c73bcdf7d7ebb534013efdb",
+    "scenario_hash": "411fad12cb179b1b7b028287362e639839f1bf73eae48e22b72f1321a321582a",
+    "outages": [
+     [
+      "generator",
+      "Norway Gas"
+     ]
+    ],
+    "demand_multiplier": 1.1,
+    "count": 6,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 20.0344,
+    "peak_load_shed_mw": 20.0344,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.60245,
+    "error": null
+   },
+   {
+    "state_hash": "3f0ce6b47e22d7e56ebde95a79063962d3bdda4611ee1c7eb46a63940fd54020",
+    "scenario_hash": "2de6331171d7e8431c387ccd7e7c06e907203279ff159bea705d63ff6047771f",
+    "outages": [
+     [
+      "line",
+      "3"
+     ],
+     [
+      "line",
+      "6"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.59429,
+    "error": null
+   },
+   {
+    "state_hash": "7ebbc4a1052e3090f4c8415de67b0154e2100a7ded10c48f6e4e180904a7d6b2",
+    "scenario_hash": "b40434534ee414d421d132469a4e66be35e31b0d93d8b295190f3b8c7fe5ed94",
+    "outages": [
+     [
+      "line",
+      "0"
+     ],
+     [
+      "link",
+      "Bremen Converter"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.46117,
+    "error": null
+   },
+   {
+    "state_hash": "ad7c2aaeb6c8a86e000f9ae371ba3cbd8820344593bbeabb7bed414ffe6fd884",
+    "scenario_hash": "09bce61ad473fe3980c41cbb9ed950d6d41431a0426328f93e0a6c9cb30a231a",
+    "outages": [
+     [
+      "generator",
+      "Norway Wind"
+     ],
+     [
+      "line",
+      "5"
+     ]
+    ],
+    "demand_multiplier": 1.1,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.41267,
+    "error": null
+   },
+   {
+    "state_hash": "513540875612b1eab36961fcef3747e5813abe2cbc3e2532e8824b691b54a4dd",
+    "scenario_hash": "c6be1d5d94f28780cee4351a77eab3daec9092917c1ad3b001007bcb868ee399",
+    "outages": [
+     [
+      "line",
+      "6"
+     ],
+     [
+      "link",
+      "Norway Converter"
+     ]
+    ],
+    "demand_multiplier": 1.1,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.43232,
+    "error": null
+   },
+   {
+    "state_hash": "a2b48943ddc26c96bf924e84a087a803d6d67cbb330e23e2309806cf431ad7be",
+    "scenario_hash": "3a081aa2dc56c15ca656e4d89c6739d35276b1dbac208c0aec7817bce394d5b6",
+    "outages": [
+     [
+      "line",
+      "1"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 11,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.46492,
+    "error": null
+   },
+   {
+    "state_hash": "7f07d4daa84cea0eb262b6c71ce306f5f1053816b95a4212bfd2a7f6a8b7db9d",
+    "scenario_hash": "38be2ed1a4568feac1216d6f7f28c376e4217d9f0cfad7e6e593c18100d71a3c",
+    "outages": [
+     [
+      "line",
+      "6"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 13,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.44282,
+    "error": null
+   },
+   {
+    "state_hash": "02c1e97d798791a170908101a31a4f42d47b7fbd1faf3f75e7f88170262aeac3",
+    "scenario_hash": "e5df5fe8d835d3e2a45c2b4d42c1be993b9c4e96f0fb07a7780af4f73dab1f2d",
+    "outages": [
+     [
+      "generator",
+      "Norway Wind"
+     ],
+     [
+      "line",
+      "5"
+     ]
+    ],
+    "demand_multiplier": 0.9,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.4538,
+    "error": null
+   },
+   {
+    "state_hash": "072582467715528fe982987bde647f4cedd9684d51e4e00c07e33a18cfdcce14",
+    "scenario_hash": "b612e19d0d862a4804193aa82747aa4ea9898e8a5292d7274da149464809e2a9",
+    "outages": [
+     [
+      "generator",
+      "Manchester Gas"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 13,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 811.585,
+    "peak_load_shed_mw": 552.169,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.49079,
+    "error": null
+   },
+   {
+    "state_hash": "7a066efc1d45d15edfd2fa0ef3ed7980463d6ce4dfb0312dd9a667dfba3e5137",
+    "scenario_hash": "8c061539c24d9af6ccee386c9e341f95cd86ffd0723a2e46112af678cc67f44a",
+    "outages": [
+     [
+      "generator",
+      "Norway Gas"
+     ],
+     [
+      "line",
+      "1"
+     ]
+    ],
+    "demand_multiplier": 0.9,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.49578,
+    "error": null
+   },
+   {
+    "state_hash": "c98da4221b2d40ad6bfd221f6fff36872521bc92a31e78336d66a4005f5b55ef",
+    "scenario_hash": "29229710dd8d38a7d9db494288741bf9f8b9cdbcc67f384a01b1f1eb8f9c9b91",
+    "outages": [
+     [
+      "generator",
+      "Manchester Wind"
+     ],
+     [
+      "line",
+      "2"
+     ]
+    ],
+    "demand_multiplier": 1.1,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.42998,
+    "error": null
+   },
+   {
+    "state_hash": "73442ca160d0439c996cd00ef10ae2780491bafcf40251622b1feb465db24cc2",
+    "scenario_hash": "6bd5b1ea66cac3bfd0fbdbaf0e0230e9550be3ee6313a9b4a81b9de30a50cebf",
+    "outages": [
+     [
+      "generator",
+      "Frankfurt Gas"
+     ]
+    ],
+    "demand_multiplier": 0.9,
+    "count": 4,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.42534,
+    "error": null
+   },
+   {
+    "state_hash": "b5807afd41103f76f0b9030b8c6e2176c583ef9054be5c2057c5b19696190269",
+    "scenario_hash": "ec19ba057b33cb9894ea2500c143dd1d761dbda1ca323a43e6d29a299cc5c057",
+    "outages": [
+     [
+      "generator",
+      "Manchester Wind"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 4,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.36888,
+    "error": null
+   },
+   {
+    "state_hash": "90ef101a78896404f006f269f9a966c81940453ce5e7c05bcf970ee0dee459b9",
+    "scenario_hash": "775f88b0e04a5f13bf17da8f2a82891478d9336c46938dfcb6beacbadd5f3ef5",
+    "outages": [
+     [
+      "generator",
+      "Frankfurt Gas"
+     ],
+     [
+      "generator",
+      "Manchester Gas"
+     ],
+     [
+      "link",
+      "DC link"
+     ]
+    ],
+    "demand_multiplier": 1.1,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 19956.8,
+    "peak_load_shed_mw": 3211.81,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.49724,
+    "error": null
+   },
+   {
+    "state_hash": "b358899af7053144c1ed20f68f6727e4d29566e9d40a66b56dbe91be8a2b2825",
+    "scenario_hash": "111d95c5c3546b0ad7bbe7e2df4565fb8914cc6679089df7a2471ed652f7df54",
+    "outages": [
+     [
+      "line",
+      "1"
+     ]
+    ],
+    "demand_multiplier": 1.1,
+    "count": 4,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.10338,
+    "error": null
+   },
+   {
+    "state_hash": "0dbef89c1c49d3987a8d64cc4d0770961040d15c8448798c0a4c7487de93d30f",
+    "scenario_hash": "536198fb36f08a4f865c43b19a2af4519f895cea597a5319e3a14916294fbcdf",
+    "outages": [
+     [
+      "generator",
+      "Frankfurt Wind"
+     ],
+     [
+      "generator",
+      "Norway Gas"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.25851,
+    "error": null
+   },
+   {
+    "state_hash": "ea5005e33ba5bd522b61a0ed529cb470952055cad7d0eace6426dd6db73b130b",
+    "scenario_hash": "ee10900ee569ca657807a47da5e36e72f0d638cb5e6ed2f6fda34bd06494ca8f",
+    "outages": [
+     [
+      "line",
+      "1"
+     ],
+     [
+      "line",
+      "3"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.07585,
+    "error": null
+   },
+   {
+    "state_hash": "d83a2e04e97d54eb355a50b5d8b11a936110808159f33aca7168204d3f34be73",
+    "scenario_hash": "bc4071d85c7613414f363684dc714d04ee95102fd72366d35acabc7b2f5a57b8",
+    "outages": [
+     [
+      "link",
+      "Norwich Converter"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 4,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.17679,
+    "error": null
+   },
+   {
+    "state_hash": "089be05ab326a27c8c46c099a90a3974066494e0d9a30453231e6c1276a0d043",
+    "scenario_hash": "c4d99e324375209a29b612a80a7ae90e1e0d64ae890dc06a737d84af5a77067c",
+    "outages": [
+     [
+      "generator",
+      "Norway Gas"
+     ],
+     [
+      "line",
+      "0"
+     ],
+     [
+      "line",
+      "5"
+     ],
+     [
+      "line",
+      "6"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 7778.6,
+    "peak_load_shed_mw": 1587.08,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.382,
+    "error": null
+   },
+   {
+    "state_hash": "41fa9997b5fc5a0b330da75cf051427e24bc9eae4f79b984bd114d221adc63e6",
+    "scenario_hash": "ba16ec0da34aedd313e43e0904eb51c3eae394ae8f5058d5e0d88fb8f3d07a5d",
+    "outages": [
+     [
+      "generator",
+      "Frankfurt Gas"
+     ],
+     [
+      "line",
+      "5"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.773562,
+    "peak_load_shed_mw": 0.773562,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.28335,
+    "error": null
+   },
+   {
+    "state_hash": "6a4b760a5d4584b9d7b2299990ae4f6def5f11ddb9480940b21c0112a147bea7",
+    "scenario_hash": "9991a65d77c12cc1ca2c40ed252eab1641ba1da9e879062c35781853b1bd06a2",
+    "outages": [
+     [
+      "generator",
+      "Manchester Wind"
+     ],
+     [
+      "line",
+      "0"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 2,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.14558,
+    "error": null
+   },
+   {
+    "state_hash": "be8345eaa430d103928eec135fce86ad306b415770aa6e1e40d93cc89348ed54",
+    "scenario_hash": "219a6aebfbaa269397c720f708d6d332a8a2bf507d375ee38b3381f7fd7868e3",
+    "outages": [
+     [
+      "generator",
+      "Frankfurt Gas"
+     ],
+     [
+      "generator",
+      "Norway Gas"
+     ],
+     [
+      "link",
+      "DC link"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 8178.8,
+    "peak_load_shed_mw": 1189.34,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.26873,
+    "error": null
+   },
+   {
+    "state_hash": "cb2109a098b8bdeabedd2c10a25b87023e89ad0fcbc24eef5cea4d1ffab8144d",
+    "scenario_hash": "c2b4088e2d3e0476d37a73eb45027ed38b40a2f795d56f2bd628b6bba049a130",
+    "outages": [
+     [
+      "link",
+      "Norway Converter"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 6,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.45321,
+    "error": null
+   },
+   {
+    "state_hash": "d4e3caf2b65a6b70a1c4cd0e6d63852c7ee0b7cc8049d44e72ceee1aacb1ef36",
+    "scenario_hash": "bea73602543ba28df97673117aeb761b3e6312da14609a69d74ccd44eff12e12",
+    "outages": [
+     [
+      "generator",
+      "Frankfurt Gas"
+     ],
+     [
+      "line",
+      "2"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.773562,
+    "peak_load_shed_mw": 0.773562,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.45788,
+    "error": null
+   },
+   {
+    "state_hash": "0472cd4617df386e0f366dfb8cabbb9f0268c6e68ca5398d630daae9e00bd52d",
+    "scenario_hash": "c72cc025254bf1111ee789250894457ecda8d6e094377e364dd10a78f15046d2",
+    "outages": [
+     [
+      "line",
+      "2"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 12,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.39106,
+    "error": null
+   },
+   {
+    "state_hash": "8d87d6987f84b929635879ba0c431e9cc8682f51d3ac8d0ef40315514ea951af",
+    "scenario_hash": "e31a6a57a22670f64b2c8d96414cc4d2c0dcebccc578092eee6edf63d3511fbd",
+    "outages": [
+     [
+      "generator",
+      "Frankfurt Wind"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 3,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.30761,
+    "error": null
+   },
+   {
+    "state_hash": "8d74b5605bb68dd4ea425b5561baf6039da86ed6be3eafa35c468efac5b34102",
+    "scenario_hash": "e8be6e4542a3012c2adcf85ee187fb49c14afd947f1de6a4058259db323b9ebc",
+    "outages": [
+     [
+      "generator",
+      "Manchester Wind"
+     ],
+     [
+      "line",
+      "4"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 2,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.20424,
+    "error": null
+   },
+   {
+    "state_hash": "7f6e05cb6edf68ac659c0dd410f881749c2d58e64b7ff10f13ebff2a15342e7e",
+    "scenario_hash": "a2621af83fe62ce5de7325537b85e9ee1e7667ed63b40202ff8ef6385da812be",
+    "outages": [
+     [
+      "line",
+      "4"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 15,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.17869,
+    "error": null
+   },
+   {
+    "state_hash": "c216c2b0624c54313f35a3a920817251266d8ca1096dfe5e43cae3de16a58b8e",
+    "scenario_hash": "010cf410fd1159c275f1541872bfdefbf6e5cb82c2f306edbc855a4569603f95",
+    "outages": [
+     [
+      "generator",
+      "Manchester Gas"
+     ],
+     [
+      "line",
+      "2"
+     ]
+    ],
+    "demand_multiplier": 0.9,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 312.123,
+    "peak_load_shed_mw": 312.123,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.10694,
+    "error": null
+   },
+   {
+    "state_hash": "d843857dda4f2796f8d1198b337a926f67434fa0766338fab37b3398ce1eab37",
+    "scenario_hash": "a9d4db24bcf393f8d060e63d35df95cf6ea055cbbe0179123fc4be3a9a4340e3",
+    "outages": [
+     [
+      "line",
+      "0"
+     ]
+    ],
+    "demand_multiplier": 1.1,
+    "count": 10,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.15814,
+    "error": null
+   },
+   {
+    "state_hash": "d521733762f51b706af8517d4201146047fae83587ad1b507416b2b4e30af287",
+    "scenario_hash": "fc55d497e879b8958e5e44f432df47ae9d59d37e4fd922a8685e6fdb838b6b21",
+    "outages": [
+     [
+      "generator",
+      "Frankfurt Gas"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 15,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.773562,
+    "peak_load_shed_mw": 0.773562,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.1888,
+    "error": null
+   },
+   {
+    "state_hash": "60bd62198ec5c998c5c2bd931a2c399172c7a682ab4774d9f6bb470b6124e49b",
+    "scenario_hash": "93c0cb8a719e317d70bc8b76f5791fcf02fafc4ba353cb5a3ef6f21888936d21",
+    "outages": [
+     [
+      "generator",
+      "Manchester Gas"
+     ],
+     [
+      "line",
+      "2"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 811.585,
+    "peak_load_shed_mw": 552.169,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.39513,
+    "error": null
+   },
+   {
+    "state_hash": "9b6d913afdd46a6756cf496fc53867841b125dfe9fb75f4ba888e46d3b08242e",
+    "scenario_hash": "b159d2f0b2d812ec10fe366c067163dc981b149a59b8221516fb6022151df8de",
+    "outages": [
+     [
+      "line",
+      "3"
+     ]
+    ],
+    "demand_multiplier": 1.1,
+    "count": 5,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.36768,
+    "error": null
+   },
+   {
+    "state_hash": "d9de7bb5eb8e4acf5f260350ce03b5c6e33ea5db679eac53b3f133a55a5c4604",
+    "scenario_hash": "972b4d8f89626602c256fccfb3fafd08e9b8b0881b19425daa02fe48295fa076",
+    "outages": [
+     [
+      "line",
+      "3"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 14,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.20333,
+    "error": null
+   },
+   {
+    "state_hash": "7e275b5c2a3124047106f8e8112de890d0038ffe9aed44420493d92d9b63ee03",
+    "scenario_hash": "b34d5a2055fa54e95f0650db444f72a9e7e73c6bb42a6fd1db8da1826a934fc4",
+    "outages": [
+     [
+      "generator",
+      "Norway Gas"
+     ],
+     [
+      "line",
+      "2"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 4,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.16821,
+    "error": null
+   },
+   {
+    "state_hash": "601e88557c238e92520a3bf5be38e86ac81af41ae537e51794484471f6f609da",
+    "scenario_hash": "9bcf43d5afb0e7892b0f4fdb037df6401aab77188212f28ca646601b33ec679f",
+    "outages": [
+     [
+      "generator",
+      "Frankfurt Gas"
+     ],
+     [
+      "line",
+      "1"
+     ],
+     [
+      "line",
+      "6"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 5464.4,
+    "peak_load_shed_mw": 888.526,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.07727,
+    "error": null
+   },
+   {
+    "state_hash": "cf67660711deb208c423a61895fc636a960efb0ed5842fa6caa460e3631ef298",
+    "scenario_hash": "8eb999aad96d67ff6d23fc09ad25b8bd30f1e3ffb11a6810d9f72faf3249940d",
+    "outages": [
+     [
+      "line",
+      "2"
+     ]
+    ],
+    "demand_multiplier": 0.9,
+    "count": 13,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.10683,
+    "error": null
+   },
+   {
+    "state_hash": "a846380ca181aa84b3d17f6e702d96df77214fbb77ad55db159287ce5e2c4be5",
+    "scenario_hash": "b1bb6f4b9df3d31bdb83d846959a6c18f2d831578c16f281765785665c1b30ca",
+    "outages": [
+     [
+      "link",
+      "Norwich Converter"
+     ]
+    ],
+    "demand_multiplier": 0.9,
+    "count": 3,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.09583,
+    "error": null
+   },
+   {
+    "state_hash": "8cf041a2444eeea64a862871ee03e5cdd633d1ac42358d5b326e50222cc2264d",
+    "scenario_hash": "ea31a706c9303ff5dd0ed2bba8512b89b8467cf2760a83f8e376c48617a439e3",
+    "outages": [
+     [
+      "line",
+      "5"
+     ],
+     [
+      "line",
+      "6"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.0576,
+    "error": null
+   },
+   {
+    "state_hash": "abf6eee5c9074ffb6ee274b12fc37e23311aa0ab6cadb0ee368d07ea759a387a",
+    "scenario_hash": "a82eb409bff788cd8afad547658bf203daf9b90faeca0f960faf40ec488a347a",
+    "outages": [
+     [
+      "line",
+      "1"
+     ]
+    ],
+    "demand_multiplier": 0.9,
+    "count": 2,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.08127,
+    "error": null
+   },
+   {
+    "state_hash": "686a69b715b1d370aef89744873355a8ee7b98f01db0310ba984269e6b15cbb7",
+    "scenario_hash": "21f947babbc39aeb45bf73378751633963d62ba8482fbccdd2c3d22b3c3f4277",
+    "outages": [
+     [
+      "generator",
+      "Manchester Gas"
+     ],
+     [
+      "line",
+      "3"
+     ]
+    ],
+    "demand_multiplier": 1.1,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 1446.43,
+    "peak_load_shed_mw": 792.214,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.16355,
+    "error": null
+   },
+   {
+    "state_hash": "a07d20a40a6bcc0faae041ea78efbd3b25a81a3f581d4d9e0f98d42b89c5b826",
+    "scenario_hash": "247e22ede801f067cc19809e9f7be5a518601a2aff686594d78c45a92327203f",
+    "outages": [
+     [
+      "line",
+      "6"
+     ]
+    ],
+    "demand_multiplier": 1.1,
+    "count": 5,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.01954,
+    "error": null
+   },
+   {
+    "state_hash": "3b046266039668f3fac80b549762b16c0e208760e2b569cdf542a3d5ae9d17ab",
+    "scenario_hash": "bcd0569ce287776d6a2b983256fa9cada7faa1157cbe79203d8690f3f2dcb20c",
+    "outages": [
+     [
+      "link",
+      "Norwich Converter"
+     ]
+    ],
+    "demand_multiplier": 1.1,
+    "count": 3,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.06041,
+    "error": null
+   },
+   {
+    "state_hash": "ffd5427ffc6c1e55f7561100a7c8f55178e6d75c2fed7f3029bb81ee2423ec09",
+    "scenario_hash": "79e723580f8c63a311920902c19b8ba9eeac25486ea85b5c14310299fba08bae",
+    "outages": [
+     [
+      "line",
+      "2"
+     ],
+     [
+      "line",
+      "4"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 4,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.01498,
+    "error": null
+   },
+   {
+    "state_hash": "72feb34eee5ef53fe34ccdcff6927e3ac96a82ba5904a3ae68438cc79d658e5e",
+    "scenario_hash": "c187f101df206baa866966bda91cb278d58db06d81a9f68a299d1dc58864c841",
+    "outages": [
+     [
+      "generator",
+      "Manchester Gas"
+     ]
+    ],
+    "demand_multiplier": 0.9,
+    "count": 2,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 312.123,
+    "peak_load_shed_mw": 312.123,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.09156,
+    "error": null
+   },
+   {
+    "state_hash": "7216e8122d9dc2c5b42a61ad127ddf926d64d49ec2ea47b0bb33cf035c54ce9a",
+    "scenario_hash": "b8c5978b27d608f387bf1e3a99412551b237695c6207a0c871993d82bb35ca23",
+    "outages": [
+     [
+      "line",
+      "1"
+     ],
+     [
+      "line",
+      "5"
+     ],
+     [
+      "line",
+      "6"
+     ]
+    ],
+    "demand_multiplier": 1.1,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 270.538,
+    "peak_load_shed_mw": 270.538,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.01368,
+    "error": null
+   },
+   {
+    "state_hash": "2a42c67c0b5554c0d79f4590592e7c7042869796cc78e017db7e6804c3824e10",
+    "scenario_hash": "e3885cdcee79fb4df29d101cf008a32bed01867cbb8df6ab3633307c22064c02",
+    "outages": [
+     [
+      "link",
+      "Bremen Converter"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 7,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.05243,
+    "error": null
+   },
+   {
+    "state_hash": "608a5c30dc5c54c09586b7e3574682e2b3c74fbe4377d5f03973f7964676031f",
+    "scenario_hash": "f9f49fa412565d2cc996bb96e56b9d030820f3446b0943ea7f60e7e4b16258f7",
+    "outages": [
+     [
+      "generator",
+      "Frankfurt Wind"
+     ]
+    ],
+    "demand_multiplier": 0.9,
+    "count": 5,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.01019,
+    "error": null
+   },
+   {
+    "state_hash": "9a6211a50da6788759bc1ed639ce5fbb642faa7fafb7bcd06b58a1ebe7ed5eef",
+    "scenario_hash": "99757e0c7a8e253c4f77b278ebb18950f0c21549d672c288fe191fca0555de4a",
+    "outages": [
+     [
+      "generator",
+      "Norway Gas"
+     ],
+     [
+      "line",
+      "0"
+     ],
+     [
+      "line",
+      "3"
+     ]
+    ],
+    "demand_multiplier": 1.1,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 20.0344,
+    "peak_load_shed_mw": 20.0344,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.01957,
+    "error": null
+   },
+   {
+    "state_hash": "478a911df27ebd3b9b86275e4771f479894b7e1b66ebc880718ce18546126cb5",
+    "scenario_hash": "b4fb7b6ce1757811ef4f7876a076720381aba8af98e88222503cf28c7cff41fe",
+    "outages": [
+     [
+      "generator",
+      "Manchester Wind"
+     ],
+     [
+      "line",
+      "4"
+     ],
+     [
+      "line",
+      "6"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.12812,
+    "error": null
+   },
+   {
+    "state_hash": "0a06f0f925cdf58fc0e1261ea90a613d53c9ad65651e0dc015f1b4e35fcd1916",
+    "scenario_hash": "1ee65ec13a1346deef2378a286c0153d12d956f970ca9be551a59c14f1b04860",
+    "outages": [
+     [
+      "link",
+      "Bremen Converter"
+     ]
+    ],
+    "demand_multiplier": 1.1,
+    "count": 4,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.0602,
+    "error": null
+   },
+   {
+    "state_hash": "46ff1ec9fef3bd0b006aba131c26b4da5efb37e7e3539667414cc3bc3450a616",
+    "scenario_hash": "d4e00b174b12c7a3eaf2d78168dbb15c1a803c0e7de751795ae57644fc6409b7",
+    "outages": [
+     [
+      "generator",
+      "Frankfurt Wind"
+     ],
+     [
+      "link",
+      "DC link"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.13132,
+    "error": null
+   },
+   {
+    "state_hash": "b93377d02044017e31ffc5a4855d93f0024d6dbbef092573a638e00046ed2c92",
+    "scenario_hash": "fa879eef430a4a7e188b463023d77b3f2c9256aa951f207834d024260dd6e489",
+    "outages": [
+     [
+      "generator",
+      "Manchester Gas"
+     ]
+    ],
+    "demand_multiplier": 1.1,
+    "count": 6,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 1446.43,
+    "peak_load_shed_mw": 792.214,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.19297,
+    "error": null
+   },
+   {
+    "state_hash": "f31ffc537ef7f2369873e8c9a5f4176d5956d23430c7aebfab961035f1f07705",
+    "scenario_hash": "03e06bc25a7f2f49fd8a74812fa569c95bc61556dec2a42d4377543c096dd510",
+    "outages": [
+     [
+      "line",
+      "0"
+     ]
+    ],
+    "demand_multiplier": 0.9,
+    "count": 6,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.25257,
+    "error": null
+   },
+   {
+    "state_hash": "e73568413448bf9b5c9475f4ad9d8d4e500fa1013ed5b6091fc889f9ecf99f8b",
+    "scenario_hash": "130f1fd199d3f3a90bd801cea733b8c7b69e484605dfc0de3d3905baa9f7f250",
+    "outages": [
+     [
+      "generator",
+      "Manchester Gas"
+     ],
+     [
+      "generator",
+      "Norway Gas"
+     ],
+     [
+      "line",
+      "0"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 2827.65,
+    "peak_load_shed_mw": 1060.26,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.15485,
+    "error": null
+   },
+   {
+    "state_hash": "6fae6be534a0a38c39cee2d9f37f53c19391bb7727626b424ae4598e0be1fc8d",
+    "scenario_hash": "3123aaf537d05f612f57382a603794055da9dd1904edd0f3be623dc16d07e47f",
+    "outages": [
+     [
+      "generator",
+      "Frankfurt Wind"
+     ]
+    ],
+    "demand_multiplier": 1.1,
+    "count": 3,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.17254,
+    "error": null
+   },
+   {
+    "state_hash": "6d1e6ca8919bb9e28b8f21b53c3e7480d2fdff5f46e78b1f6b3cd73ef648ba97",
+    "scenario_hash": "ea00a2cb1749d4fbe955c43d2d0eba451cb0df58062821a2a4a8d92d3a7be1cc",
+    "outages": [
+     [
+      "link",
+      "Bremen Converter"
+     ]
+    ],
+    "demand_multiplier": 0.9,
+    "count": 3,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.15897,
+    "error": null
+   },
+   {
+    "state_hash": "842e25499569f4d4d942316bd4582ba677a9a4549deeacfac80279aab7cfe30b",
+    "scenario_hash": "af4364e6526d51982d58cf4a03a76fa98abbcd8f50361311a73fa783a8d9fd83",
+    "outages": [
+     [
+      "generator",
+      "Manchester Gas"
+     ],
+     [
+      "generator",
+      "Manchester Wind"
+     ],
+     [
+      "line",
+      "0"
+     ]
+    ],
+    "demand_multiplier": 1.1,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 1583.31,
+    "peak_load_shed_mw": 840.502,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.23072,
+    "error": null
+   },
+   {
+    "state_hash": "6aca5c7d4d079c2e2a57ddf642b70cdf3b193a4b8739de0c58f1ef467f2c021d",
+    "scenario_hash": "5ebbcee1481ef3f59af3eec399ae83a20a4e536664c04fb705b92dcdbe75dfce",
+    "outages": [
+     [
+      "line",
+      "3"
+     ],
+     [
+      "line",
+      "4"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.16762,
+    "error": null
+   },
+   {
+    "state_hash": "c5ef0c4956492ca71072cec67bdfaf8d626f47dad1190e0477f687a1cf2c28f1",
+    "scenario_hash": "07d36c84c62ad6478db1a17f983047bfc331558a7e8c23ef5f8d6b87a8cef5c9",
+    "outages": [
+     [
+      "generator",
+      "Manchester Wind"
+     ]
+    ],
+    "demand_multiplier": 0.9,
+    "count": 3,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.17269,
+    "error": null
+   },
+   {
+    "state_hash": "32afc7890af57c7ead77e5351287dfa13092a8a36da53e62a70fcd330f2796b3",
+    "scenario_hash": "000f7fc8c2fc750127d57bb3ad90509c2bd9193df4c1eb581bafd310b6f29f63",
+    "outages": [
+     [
+      "generator",
+      "Norway Wind"
+     ],
+     [
+      "line",
+      "2"
+     ],
+     [
+      "link",
+      "DC link"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.16092,
+    "error": null
+   },
+   {
+    "state_hash": "846bf3576e7c88fa77a072ae0c6cd635d145d4162b5fd3557e1949bac01d73e8",
+    "scenario_hash": "e1fd46381b24b43b5a48d99fdbad0b910f11e5c1a2af2b325d04d1a16d7d94c6",
+    "outages": [
+     [
+      "generator",
+      "Manchester Gas"
+     ],
+     [
+      "line",
+      "6"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 11778.4,
+    "peak_load_shed_mw": 2057.57,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.19931,
+    "error": null
+   },
+   {
+    "state_hash": "a4517766f4e674bcdf6b3df6b91603dba6b0846665c437b898e931369570db96",
+    "scenario_hash": "67b8ab8d8bcfb8650222cfd9343aef4e8339e1c2b714140724580136cf7ea216",
+    "outages": [
+     [
+      "line",
+      "1"
+     ],
+     [
+      "link",
+      "Norwich Converter"
+     ]
+    ],
+    "demand_multiplier": 0.9,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.14496,
+    "error": null
+   },
+   {
+    "state_hash": "c9ced0ead6a46666c45f449ebc377fde800a998a183d87497aefc2c8b87452d4",
+    "scenario_hash": "8998ea3ac4ca4eb9691b9ef92038abfa577a53a40d2f491b4e025a5ac238b775",
+    "outages": [
+     [
+      "line",
+      "1"
+     ],
+     [
+      "line",
+      "2"
+     ]
+    ],
+    "demand_multiplier": 1.1,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.09576,
+    "error": null
+   },
+   {
+    "state_hash": "3a041f26a1a6c4dd42f2ff03c0f7a82b065ea5bddcd11755e26708452bb5866f",
+    "scenario_hash": "44117b1629ea75e764ed36d73bf426ca8dc135bcdcc70d7cf7494808f3da981c",
+    "outages": [
+     [
+      "generator",
+      "Frankfurt Gas"
+     ],
+     [
+      "line",
+      "3"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.773562,
+    "peak_load_shed_mw": 0.773562,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.146,
+    "error": null
+   },
+   {
+    "state_hash": "168467333e3b5a1f84341243d85afa183625b234f9b8dffeb7ddcede67262878",
+    "scenario_hash": "bd6bc17214b4bf6013ea0239b73f945a8d6d936d36570a5eace0ed66dcfac12e",
+    "outages": [
+     [
+      "generator",
+      "Frankfurt Gas"
+     ],
+     [
+      "line",
+      "0"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.773562,
+    "peak_load_shed_mw": 0.773562,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.10524,
+    "error": null
+   },
+   {
+    "state_hash": "64544682bfbd98f8d147ac29b5dab155dd1c4748b2eb761e5526ab77da90ca2e",
+    "scenario_hash": "b475350f4a30eeb4383b8071b5d9f0e128476f2fc66cef9f08b7eccd485a8592",
+    "outages": [
+     [
+      "link",
+      "Norway Converter"
+     ]
+    ],
+    "demand_multiplier": 0.9,
+    "count": 3,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.15151,
+    "error": null
+   },
+   {
+    "state_hash": "cdab9aa4a57e07fa45353a7b6b82443e68807b3bc4ee758396055f03c6564b53",
+    "scenario_hash": "2f59650608816ebeef9c16e1e9fc9d918e5433525f560e9f19de4efdf2a04998",
+    "outages": [
+     [
+      "generator",
+      "Norway Gas"
+     ],
+     [
+      "link",
+      "Norwich Converter"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.07464,
+    "error": null
+   },
+   {
+    "state_hash": "39791b15196cb6e58bad7c884571a9a794cdefcbf646f94b6f27c4bd97b768e5",
+    "scenario_hash": "8a904bc8a9249ea5fd65e78addd855598ef3fedf2fbd101b0d6305a0931bb571",
+    "outages": [
+     [
+      "generator",
+      "Norway Gas"
+     ],
+     [
+      "line",
+      "5"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.05615,
+    "error": null
+   },
+   {
+    "state_hash": "4a972775ebb91f659749aff3cb6aa6990884963a70b184667c682ed953642868",
+    "scenario_hash": "3f4346e8286dbe782d0c3b52ce11c002527064873d3ed2614e67ec898eceb3c1",
+    "outages": [
+     [
+      "line",
+      "3"
+     ],
+     [
+      "line",
+      "5"
+     ],
+     [
+      "link",
+      "Norwich Converter"
+     ]
+    ],
+    "demand_multiplier": 1.1,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.02262,
+    "error": null
+   },
+   {
+    "state_hash": "c8f1f03464c8936e2f8733b6cc2163269859526f78e79744dae096d28146e529",
+    "scenario_hash": "9454e25eb149fade1b2b1389205976d32bf02fbcae70136252f1ad0539b64037",
+    "outages": [
+     [
+      "line",
+      "3"
+     ],
+     [
+      "link",
+      "Bremen Converter"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.13551,
+    "error": null
+   },
+   {
+    "state_hash": "5461d0d43d801f412297951b2272c3b66a20c92c2cd1fe3e2a515ec5673d7351",
+    "scenario_hash": "214bc38ed1b167f70bf774260a914aea44a42ff076facff90e4a8ad89f64a838",
+    "outages": [
+     [
+      "generator",
+      "Norway Gas"
+     ],
+     [
+      "line",
+      "6"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 2,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.04926,
+    "error": null
+   },
+   {
+    "state_hash": "d1698cc0057c3761df845691c2f495b2062d283ee42320cf114fc87817e2c2ef",
+    "scenario_hash": "3a1d0cafb183e388baaf091edd75bcfbaea80aeb829ec711957bf5910535fce2",
+    "outages": [
+     [
+      "generator",
+      "Frankfurt Wind"
+     ],
+     [
+      "line",
+      "0"
+     ],
+     [
+      "line",
+      "1"
+     ]
+    ],
+    "demand_multiplier": 0.9,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.0629,
+    "error": null
+   },
+   {
+    "state_hash": "b22622f224c924c6df4e47f902462b4a1b40a26d0f28586b77fca1152f442ac1",
+    "scenario_hash": "f354fb31a609c6d61428254e843cc5ad3cdbbd45316cae4f4d48543f882541a5",
+    "outages": [
+     [
+      "line",
+      "4"
+     ],
+     [
+      "link",
+      "Norwich Converter"
+     ]
+    ],
+    "demand_multiplier": 1.1,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.06496,
+    "error": null
+   },
+   {
+    "state_hash": "317cfcd60a73d29edd66ecd6d3d05e29048b099bcedd3616bccdc1d0b4792e67",
+    "scenario_hash": "1772845794ece35f7d0904e630a034ddada95c45436d23b444a35037068b94df",
+    "outages": [
+     [
+      "line",
+      "2"
+     ],
+     [
+      "link",
+      "Bremen Converter"
+     ]
+    ],
+    "demand_multiplier": 1.1,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.13816,
+    "error": null
+   },
+   {
+    "state_hash": "e0f7607d988c48a353f39d7d4bd865ceb4d4bee29672cfaa0d5181c5990c495e",
+    "scenario_hash": "c764c0a41a044d17e92f87dadd2bab441eadf81c1eabe90816106277f954d5c9",
+    "outages": [
+     [
+      "generator",
+      "Frankfurt Gas"
+     ],
+     [
+      "generator",
+      "Norway Gas"
+     ],
+     [
+      "link",
+      "DC link"
+     ]
+    ],
+    "demand_multiplier": 1.1,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 9893.15,
+    "peak_load_shed_mw": 1412.97,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.14853,
+    "error": null
+   },
+   {
+    "state_hash": "0dd26788afe9b86561014417ef6386a046fcc6fa376fe8410f0d945641564cdf",
+    "scenario_hash": "bd09e78c95bd06ab97669d6eae1fbf4718ae5e1f9a2c719c64c21ed28467485f",
+    "outages": [
+     [
+      "generator",
+      "Frankfurt Wind"
+     ],
+     [
+      "line",
+      "0"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 2,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.19492,
+    "error": null
+   },
+   {
+    "state_hash": "ef0e6475d78a7fa58024ded94a332e8418f1a238d36474e297afa4422b58f429",
+    "scenario_hash": "e47b74818f08b4f50b996072bda3fce9643b53e68a6dcbbe8da1b297d7f888e5",
+    "outages": [
+     [
+      "generator",
+      "Manchester Gas"
+     ],
+     [
+      "link",
+      "Norwich Converter"
+     ]
+    ],
+    "demand_multiplier": 0.9,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 4377.18,
+    "peak_load_shed_mw": 1212.12,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.1329,
+    "error": null
+   },
+   {
+    "state_hash": "d8b0b76b534ad1ccd6180b401ae1729886b8f6ad9a615f2d9ebb168b5e213c25",
+    "scenario_hash": "7a7522d7fc1b94a5b581feecf71d8067abf7c3d0ad114fd532063605c876d2c4",
+    "outages": [
+     [
+      "generator",
+      "Norway Gas"
+     ],
+     [
+      "line",
+      "1"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.20814,
+    "error": null
+   },
+   {
+    "state_hash": "b46e36d670a0f2dc9848e74987651838eedba9ef8f08a355dc75bf25deeb4bd1",
+    "scenario_hash": "3e131bb90b5bedebd56c5ac0b644adc187f6891f04e228d5c1fd768d0d62504e",
+    "outages": [
+     [
+      "generator",
+      "Frankfurt Gas"
+     ],
+     [
+      "link",
+      "DC link"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 3222.64,
+    "peak_load_shed_mw": 900.774,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.14003,
+    "error": null
+   },
+   {
+    "state_hash": "7b0fa01cec0a60c2160cc10f17b1bec94e3106df3a51309cd6937ba1e10da912",
+    "scenario_hash": "c9f4f2de07b971b3a5c53f5fb7bd4076114749e6a794d48498e3c3d42546c4f4",
+    "outages": [
+     [
+      "line",
+      "2"
+     ],
+     [
+      "link",
+      "Norway Converter"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.03992,
+    "error": null
+   },
+   {
+    "state_hash": "5ee2f9b147964131370f762b55c52b469c10e52945520b140c4f44669f93abef",
+    "scenario_hash": "2e203be522bee6a5e52977ac6650ce41f7800b5a97c353097e09b4b56e8df7b3",
+    "outages": [
+     [
+      "link",
+      "Norway Converter"
+     ]
+    ],
+    "demand_multiplier": 1.1,
+    "count": 3,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.0553,
+    "error": null
+   },
+   {
+    "state_hash": "c6ef2e10607fe2efde353cb8a3b40afe7c5344a0c9c2cd6db059481ac5614fa2",
+    "scenario_hash": "2ebc28fedb138dcabe0413dc2bda0f56f90d3009b1d87248f85a0b387573586c",
+    "outages": [
+     [
+      "generator",
+      "Frankfurt Gas"
+     ],
+     [
+      "generator",
+      "Manchester Gas"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 17242.8,
+    "peak_load_shed_mw": 2828.36,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.05505,
+    "error": null
+   },
+   {
+    "state_hash": "24cc83a30a68e87dbff5068cfb05556503002d884670b4e4b0dcdfbe893dea4e",
+    "scenario_hash": "19376b2d2b768ab54432679f265466ab95ce60b380ef34599be6ff7e6f19ff5a",
+    "outages": [
+     [
+      "line",
+      "5"
+     ],
+     [
+      "link",
+      "Bremen Converter"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.11004,
+    "error": null
+   },
+   {
+    "state_hash": "ab51b81b62500ebb8f220e6da12dccd4cf769e96d6d7c9b590ce8bf28d82b5aa",
+    "scenario_hash": "65d7f9b749155a9abcda74d7ce6608b5aa27f1f0dc3b589674e11c413488f538",
+    "outages": [
+     [
+      "line",
+      "4"
+     ],
+     [
+      "line",
+      "5"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.01069,
+    "error": null
+   },
+   {
+    "state_hash": "9b256b79c00100d11813e7aa35ec2bd24515e1fc67b1457e797b2afa2039c043",
+    "scenario_hash": "1cace25d72bdd81baf3d7d957c1c58c521ccd0209cd82d0f09e2dd428801972b",
+    "outages": [
+     [
+      "generator",
+      "Frankfurt Gas"
+     ],
+     [
+      "line",
+      "1"
+     ]
+    ],
+    "demand_multiplier": 0.9,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.32446,
+    "error": null
+   },
+   {
+    "state_hash": "f78207bf5d7e190fd5517c5fb17b671c5d06e29ccf6a95d44fb89fbaf3fc59b7",
+    "scenario_hash": "3e9703646def051106e418a9b4aad03d79f31c6ce7f992d1cd614e777e4628e2",
+    "outages": [
+     [
+      "generator",
+      "Frankfurt Gas"
+     ],
+     [
+      "line",
+      "5"
+     ],
+     [
+      "link",
+      "Norway Converter"
+     ]
+    ],
+    "demand_multiplier": 0.9,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.18206,
+    "error": null
+   },
+   {
+    "state_hash": "6ab5de1434816e84862a7e77cb5cd7d38256bee69a0b772df0b296eb01c30814",
+    "scenario_hash": "13039e0952bd5e65b9cfb4e5b693d107c0e061807326b13534a1b8f046da5aa5",
+    "outages": [
+     [
+      "generator",
+      "Norway Gas"
+     ],
+     [
+      "line",
+      "5"
+     ]
+    ],
+    "demand_multiplier": 0.9,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.2117,
+    "error": null
+   },
+   {
+    "state_hash": "a79a23263e5df6b2b38897fa03a22b09998678ace83be06f9b93dcd691a5dc9c",
+    "scenario_hash": "1baa5dd3d66e97e8b663d77017fdf600aba36a22ff672c6d8f070493159bbf14",
+    "outages": [
+     [
+      "generator",
+      "Frankfurt Gas"
+     ],
+     [
+      "generator",
+      "Manchester Wind"
+     ]
+    ],
+    "demand_multiplier": 1.1,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 183.585,
+    "peak_load_shed_mw": 183.585,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.03105,
+    "error": null
+   },
+   {
+    "state_hash": "1ff2eee14a1699ae68b5e83f32e1433102790929abb9a36321865850a1a75bde",
+    "scenario_hash": "5787297284fb39d8a59dd23f4545761c4be3806bedd16c38b6fc8ff38454cdac",
+    "outages": [
+     [
+      "generator",
+      "Frankfurt Wind"
+     ],
+     [
+      "generator",
+      "Manchester Wind"
+     ],
+     [
+      "line",
+      "4"
+     ],
+     [
+      "line",
+      "5"
+     ],
+     [
+      "link",
+      "Bremen Converter"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 1.95927,
+    "error": null
+   },
+   {
+    "state_hash": "10d0c0e9225ab1f32e2f2a483f9149d45f99bbacfa174757a8c48cbd4bab8842",
+    "scenario_hash": "a5d894a90d3b44f8faa141192a835b93894d27ac79cad94772208b86fae536bc",
+    "outages": [
+     [
+      "line",
+      "1"
+     ],
+     [
+      "line",
+      "2"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 2,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.26562,
+    "error": null
+   },
+   {
+    "state_hash": "57a654436d040645390f2a31670869d7fc8b24ff14b452cae2f266cb83f005a4",
+    "scenario_hash": "209d0958dcf5e45241e174c2179a75f5359c2df9de2d90f14f9e3671f9b6672a",
+    "outages": [
+     [
+      "generator",
+      "Frankfurt Gas"
+     ],
+     [
+      "line",
+      "5"
+     ]
+    ],
+    "demand_multiplier": 1.1,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 183.585,
+    "peak_load_shed_mw": 183.585,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.48528,
+    "error": null
+   },
+   {
+    "state_hash": "fc12ab58680ef0da61ce814db143973636437a08f733b68185616d5f97f4b11b",
+    "scenario_hash": "9d7b396b3a4b9a3d9183651fe7f3bcb01b7cc3cf8cee62c1359bb5d9fd7a37ac",
+    "outages": [
+     [
+      "line",
+      "1"
+     ],
+     [
+      "line",
+      "5"
+     ],
+     [
+      "line",
+      "6"
+     ],
+     [
+      "link",
+      "Norway Converter"
+     ]
+    ],
+    "demand_multiplier": 1.1,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 3361.76,
+    "peak_load_shed_mw": 1170.54,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.3549,
+    "error": null
+   },
+   {
+    "state_hash": "243ebcd7d6a98b291e0bb59cac374a6e08633bc8c44f9012bb747f3d4e871ae6",
+    "scenario_hash": "845e23de18c8c3340e8bdf173e78a38a8d8caabead0dab3ea176bb8ea91aad7c",
+    "outages": [
+     [
+      "link",
+      "Bremen Converter"
+     ],
+     [
+      "link",
+      "Norway Converter"
+     ]
+    ],
+    "demand_multiplier": 1.1,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.42812,
+    "error": null
+   },
+   {
+    "state_hash": "c2e8604d9ddf49fc1c1c194c4da3724b90d2dcb5407dbb581e65af868833569b",
+    "scenario_hash": "beb8687e60443c73f486d39fc4bb210e36fcfa9075a27a7c39b66592b5923e09",
+    "outages": [
+     [
+      "generator",
+      "Frankfurt Wind"
+     ],
+     [
+      "line",
+      "3"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.19475,
+    "error": null
+   },
+   {
+    "state_hash": "efd466bbcef206bd39b1d3113ef82ee4b36816b14ce4025bc328140436242087",
+    "scenario_hash": "92117c519988a6627d476e1e6ffe629e5168d74727360245c85637dfec894b17",
+    "outages": [
+     [
+      "generator",
+      "Norway Wind"
+     ]
+    ],
+    "demand_multiplier": 1.1,
+    "count": 3,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.21319,
+    "error": null
+   },
+   {
+    "state_hash": "c6ffce457edabeb95e9ec02f71bd99f26eea5a61e54c9d96d9335302cb5d947a",
+    "scenario_hash": "853bd8d7992a391ab58a7e803edf1a1984ecc65315e2b4b3d089cb5527d41638",
+    "outages": [
+     [
+      "line",
+      "1"
+     ],
+     [
+      "line",
+      "4"
+     ]
+    ],
+    "demand_multiplier": 1.1,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.11619,
+    "error": null
+   },
+   {
+    "state_hash": "4656c482bf4f0cf6ece22b43cb96407cd126ee557b88a85216271e9987b2c161",
+    "scenario_hash": "a8d8f983e04c9d40ea2cecd84ccff32ce5aae9aa9c8f1749b7bee508f99f1141",
+    "outages": [
+     [
+      "line",
+      "3"
+     ],
+     [
+      "link",
+      "Norway Converter"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.05682,
+    "error": null
+   },
+   {
+    "state_hash": "271972a0e834694b9b7d4446e8d49ec0e1d55b0e5cc5a2a022fe5be074912140",
+    "scenario_hash": "23358510600f0b63d11b8580362c12b0604fdbd96d987bf45e5df0e4675aa478",
+    "outages": [
+     [
+      "line",
+      "1"
+     ],
+     [
+      "line",
+      "2"
+     ]
+    ],
+    "demand_multiplier": 0.9,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.00489,
+    "error": null
+   },
+   {
+    "state_hash": "98599523c29a6be92a80bd23b541ec7bbf0c54e5b8e43d680618ee27e5c21f72",
+    "scenario_hash": "1626b033899be4f23468866bc5974820a503de296342ef8eec27aac6a0f85511",
+    "outages": [
+     [
+      "generator",
+      "Frankfurt Gas"
+     ],
+     [
+      "line",
+      "3"
+     ]
+    ],
+    "demand_multiplier": 0.9,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.05066,
+    "error": null
+   },
+   {
+    "state_hash": "3b17292bdc412afdecde2b800c40332b0ec997aed2b89ddd8c34280370d07d49",
+    "scenario_hash": "fa0b9d81e0b630884904254baf7d2994ffc09ddcd017c100147119d309f31655",
+    "outages": [
+     [
+      "line",
+      "2"
+     ],
+     [
+      "line",
+      "5"
+     ]
+    ],
+    "demand_multiplier": 0.9,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.28297,
+    "error": null
+   },
+   {
+    "state_hash": "8ee8d7d2a6df0c402eafd5a15c9dfeab958a2a0caf1b60ffd3450a41d3f6f0a9",
+    "scenario_hash": "aa950db3ae41eb8832e40b9a9ff96f49acda52c3dba9773fce63cd01a14fc6e7",
+    "outages": [
+     [
+      "generator",
+      "Frankfurt Wind"
+     ],
+     [
+      "line",
+      "2"
+     ]
+    ],
+    "demand_multiplier": 0.9,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.0528,
+    "error": null
+   },
+   {
+    "state_hash": "0567fd2634003fa1f49497a2b24df956cbf3cca35d3f6edfb7abbd7064c2fe23",
+    "scenario_hash": "a6b3ff1b4ea4056f1d0cd0a8d3fb5fb2f5d05acf9d03bdfdb86cff80b00b9ddc",
+    "outages": [
+     [
+      "line",
+      "2"
+     ],
+     [
+      "line",
+      "5"
+     ],
+     [
+      "link",
+      "Norwich Converter"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 1.98857,
+    "error": null
+   },
+   {
+    "state_hash": "ca8be2890172b88f3e819abecf02c997b24bcbd48b659b4ba2a9964ab0f488fa",
+    "scenario_hash": "e079d86fa15a4b6e2cb90fd8468c54be470d8af9e964522738877b8aa697825c",
+    "outages": [
+     [
+      "line",
+      "1"
+     ],
+     [
+      "line",
+      "5"
+     ]
+    ],
+    "demand_multiplier": 0.9,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.12149,
+    "error": null
+   },
+   {
+    "state_hash": "c6ecf70020368bbb9556014aa4e4f7113b2feddd27432100f4ea321a723a15d0",
+    "scenario_hash": "86e5b9bf042d5091d6a53102aa42a2df81999e766fc66fe9abda1a3330bfdc9e",
+    "outages": [
+     [
+      "line",
+      "3"
+     ],
+     [
+      "link",
+      "Norwich Converter"
+     ]
+    ],
+    "demand_multiplier": 0.9,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.21907,
+    "error": null
+   },
+   {
+    "state_hash": "4a01274ae86deb5e1846e61205cb55d2b5444a3f795c5275ebc4e248791d6220",
+    "scenario_hash": "f28ad83091bcd3ceb3734c9f1c4f5ec86add3975aa933791d2e25800cc6786cf",
+    "outages": [
+     [
+      "line",
+      "1"
+     ],
+     [
+      "line",
+      "5"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 70.0591,
+    "peak_load_shed_mw": 70.0591,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.47153,
+    "error": null
+   },
+   {
+    "state_hash": "5609456ab1023f0e3dedb0cac8b13dc0a867687471198350e2f78bf0c78efee8",
+    "scenario_hash": "b5d84d9789dfb62dd5d21568640de5bd400d1878f764055abfd7fa2817ae108d",
+    "outages": [
+     [
+      "generator",
+      "Manchester Gas"
+     ],
+     [
+      "line",
+      "3"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 3,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 811.585,
+    "peak_load_shed_mw": 552.169,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.23294,
+    "error": null
+   },
+   {
+    "state_hash": "8255d6b02da08ba3eaf8e1330552258577a186ce9a13f1f4519946fc5f26f0be",
+    "scenario_hash": "8ed78c459689fe13193f73d3be1b0973653dec2da97e7f58e8b666abf2ec3798",
+    "outages": [
+     [
+      "line",
+      "1"
+     ],
+     [
+      "line",
+      "3"
+     ]
+    ],
+    "demand_multiplier": 1.1,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.16245,
+    "error": null
+   },
+   {
+    "state_hash": "9e0d1e910dac9438584a89ba3a079f8d8f2ff5419d1b57feb2a5444fa250d2a6",
+    "scenario_hash": "3c7acb7081a5e36544d8d21b09b5f226417176d29dcd83664104dd0bcefa1354",
+    "outages": [
+     [
+      "generator",
+      "Frankfurt Wind"
+     ],
+     [
+      "line",
+      "4"
+     ]
+    ],
+    "demand_multiplier": 1.1,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.57784,
+    "error": null
+   },
+   {
+    "state_hash": "dc2e57cf3713f532f3077abd2ec1d0c3df3027088cb7a0d2a1991be7cc13392d",
+    "scenario_hash": "236c1c96d462b4fd0dd1ce39d1bc5ae4cba5a5542e8e4c000bc6c1df0ad7e96d",
+    "outages": [
+     [
+      "generator",
+      "Norway Gas"
+     ]
+    ],
+    "demand_multiplier": 0.9,
+    "count": 2,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.52737,
+    "error": null
+   },
+   {
+    "state_hash": "63abf27d0a5e2ca37aa796c71ce57ea5a7213723a850352614df5492881fe443",
+    "scenario_hash": "3e85fa214381a16eba3a57a219c80db7c2131fdfd0778f9bc04ad21e53a23535",
+    "outages": [
+     [
+      "line",
+      "3"
+     ],
+     [
+      "line",
+      "6"
+     ]
+    ],
+    "demand_multiplier": 0.9,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.37681,
+    "error": null
+   },
+   {
+    "state_hash": "9f83ed8e007581bd787be60469bb546656307ef42a12126db494ce7c4e73a289",
+    "scenario_hash": "743b27127d9a7ac907137ddbf23fc0846ff7a7f410e66e4ba601313674611994",
+    "outages": [
+     [
+      "generator",
+      "Manchester Gas"
+     ],
+     [
+      "line",
+      "1"
+     ],
+     [
+      "line",
+      "5"
+     ],
+     [
+      "link",
+      "Bremen Converter"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 2566.91,
+    "peak_load_shed_mw": 788.564,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.37045,
+    "error": null
+   },
+   {
+    "state_hash": "508dfe56153a8196814c1367adcb308578fba68f0e6f797851b7535a10ed64c5",
+    "scenario_hash": "9583d81e666298216bdc6ac9520d1a495fd0348545d89c237730135961d6158e",
+    "outages": [
+     [
+      "generator",
+      "Manchester Gas"
+     ],
+     [
+      "generator",
+      "Norway Gas"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 2827.65,
+    "peak_load_shed_mw": 1060.26,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.42401,
+    "error": null
+   },
+   {
+    "state_hash": "f2ae13b84d48539dc8e787b7aa421f9a04e765b3f437a986935b43d10b1b173f",
+    "scenario_hash": "8ddf0f3571ccf02848d9202237eae9b7cd9e2cfc535224063f995cc06c143172",
+    "outages": [
+     [
+      "generator",
+      "Manchester Wind"
+     ],
+     [
+      "line",
+      "1"
+     ],
+     [
+      "line",
+      "3"
+     ]
+    ],
+    "demand_multiplier": 0.9,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.48128,
+    "error": null
+   },
+   {
+    "state_hash": "5b4e053b9cbe9423b898c8465c529130ebf203e2ffeea348008044fb16263f25",
+    "scenario_hash": "b45c8d544e229a55a43291a58a9871a8bcc6b053bc93d0f8ea8fd1386e7f17c0",
+    "outages": [
+     [
+      "generator",
+      "Manchester Wind"
+     ],
+     [
+      "line",
+      "3"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.39776,
+    "error": null
+   },
+   {
+    "state_hash": "42e6b667f13c558bc3dcd5c9fe04fb9453ee7047ef03a9cc94c273f9713487ba",
+    "scenario_hash": "a123fc2daf55561a54dc5709dbc892b6b72ece99a9fac8a98438221e79ccc16d",
+    "outages": [
+     [
+      "generator",
+      "Norway Gas"
+     ],
+     [
+      "line",
+      "1"
+     ]
+    ],
+    "demand_multiplier": 1.1,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 20.0344,
+    "peak_load_shed_mw": 20.0344,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.23502,
+    "error": null
+   },
+   {
+    "state_hash": "53f65341f492c2ba1676f0bcba97cbeef9018d25f391a22ce4008216e3e55ee9",
+    "scenario_hash": "9259748998fa7d6c9e2b570a4b4e23e863a2145e1e97fa518196af4bd0d15459",
+    "outages": [
+     [
+      "line",
+      "1"
+     ],
+     [
+      "line",
+      "3"
+     ]
+    ],
+    "demand_multiplier": 0.9,
+    "count": 2,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.42401,
+    "error": null
+   },
+   {
+    "state_hash": "19ad1fdae28aa9184000355f3b1d5cea6ac8e9d41f86e466903f517227f99315",
+    "scenario_hash": "a7faafd4d24c95c32b424d62d18e4b422efad7cb53342976fa1df3163224d21a",
+    "outages": [
+     [
+      "generator",
+      "Manchester Wind"
+     ]
+    ],
+    "demand_multiplier": 1.1,
+    "count": 2,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.45109,
+    "error": null
+   },
+   {
+    "state_hash": "dd542061926d7529ab4310649ddc468d30411f1b57194b94e29f12400b200b67",
+    "scenario_hash": "dbb340eed5146c8b230913e8fdc5f0e189d0a561add3adcae460832036a9d16e",
+    "outages": [
+     [
+      "line",
+      "0"
+     ],
+     [
+      "line",
+      "1"
+     ]
+    ],
+    "demand_multiplier": 1.1,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 121.817,
+    "peak_load_shed_mw": 96.2166,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.64565,
+    "error": null
+   },
+   {
+    "state_hash": "e9b7b06d224f98aecdcdc78531b3ac41e0c7f66833b4edfd43363537746b4d07",
+    "scenario_hash": "20cedad7827bd4a372c6c1527bcdcb4a6363f70d1baae50737dbc86f3a916344",
+    "outages": [
+     [
+      "generator",
+      "Frankfurt Wind"
+     ],
+     [
+      "generator",
+      "Norway Gas"
+     ]
+    ],
+    "demand_multiplier": 0.9,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.43562,
+    "error": null
+   },
+   {
+    "state_hash": "9db43bc0d55dfeaa2b9d7d1ce6749eb61fb8695b253c82fc935e61bbed24c0b2",
+    "scenario_hash": "c63dc4b622b2b6bf3a192fdc64c3df47a79e4a509748378416aefaeb79b084c4",
+    "outages": [
+     [
+      "line",
+      "4"
+     ],
+     [
+      "line",
+      "6"
+     ]
+    ],
+    "demand_multiplier": 1.1,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.50868,
+    "error": null
+   },
+   {
+    "state_hash": "4a9e09dda417f4039ad16a3146203c95d9fedcbb70ff117e8ebc94f1573aae78",
+    "scenario_hash": "825c879a7ec29abd3ee3ac5cd0a67f4e54d2823874b29fbb1f1750448c2b05b6",
+    "outages": [
+     [
+      "line",
+      "3"
+     ],
+     [
+      "line",
+      "4"
+     ],
+     [
+      "line",
+      "5"
+     ],
+     [
+      "line",
+      "6"
+     ]
+    ],
+    "demand_multiplier": 1.1,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.5355,
+    "error": null
+   },
+   {
+    "state_hash": "8256186adb3c16f3009bcdec4964b867c4a6703fcd9b2d7bf80c0be1e6bef5b8",
+    "scenario_hash": "cef8e994040e203f08a03e36015ebbfdad778cbb8ce9f0208b5b0021a15572a5",
+    "outages": [
+     [
+      "generator",
+      "Norway Wind"
+     ],
+     [
+      "line",
+      "2"
+     ],
+     [
+      "line",
+      "4"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.84452,
+    "error": null
+   },
+   {
+    "state_hash": "7ad25db7ef9588aeb38be09717fe19358ce1a02b66798f2c380e9045ffcedc22",
+    "scenario_hash": "0dbdf87ba14a4987789f3d195358706156f8f35239d16c04bcdee03f712df26a",
+    "outages": [
+     [
+      "line",
+      "0"
+     ],
+     [
+      "link",
+      "Norwich Converter"
+     ]
+    ],
+    "demand_multiplier": 1.1,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.81749,
+    "error": null
+   },
+   {
+    "state_hash": "9eb03bc5f0cc66a8292ff839b5812baec11779ec00a2281277f150a8cbbd4853",
+    "scenario_hash": "453282536508dc540cf02fde428d00c3dc1ed25f88baf38e4c5b29629e6ed578",
+    "outages": [
+     [
+      "generator",
+      "Frankfurt Wind"
+     ],
+     [
+      "line",
+      "6"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.73027,
+    "error": null
+   },
+   {
+    "state_hash": "3e8f1901084069c819ad0455da8727a454f4ef476b9575bd6483f0a5f5d2a8aa",
+    "scenario_hash": "20c6f6d501346d8af37de9f8061004cb499e16b67a353e5835402cf7129ea647",
+    "outages": [
+     [
+      "line",
+      "2"
+     ],
+     [
+      "line",
+      "6"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.48708,
+    "error": null
+   },
+   {
+    "state_hash": "9cbd172c89c70025b7c3c0ace3200398071ea947011346d516341a68d46500b6",
+    "scenario_hash": "07315545924f74b413c441f83f48bd690d12f102e0086fcb7baa24ea9f6b5ebc",
+    "outages": [
+     [
+      "line",
+      "4"
+     ],
+     [
+      "line",
+      "5"
+     ],
+     [
+      "link",
+      "Norway Converter"
+     ]
+    ],
+    "demand_multiplier": 0.9,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.39165,
+    "error": null
+   },
+   {
+    "state_hash": "8b9a9a48fa1df98657b93e8e561e598b41877ffec48c00eae19a0cd880633043",
+    "scenario_hash": "e6f4e5a5ac4af3b37b8b27b1368c489a3810588fd6efdf2aca5fe8b0a15bb43e",
+    "outages": [
+     [
+      "generator",
+      "Norway Gas"
+     ],
+     [
+      "line",
+      "1"
+     ],
+     [
+      "line",
+      "5"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 1473.21,
+    "peak_load_shed_mw": 400.069,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.50969,
+    "error": null
+   },
+   {
+    "state_hash": "6bcfbe9c3916b8703cc586ce22d50666c210cfc3fd97da94fb7c7217fec8ce22",
+    "scenario_hash": "c290bae66ca43533121c0531fc1183616db37a6b40cd6d87a7146b609f5ebbad",
+    "outages": [
+     [
+      "line",
+      "1"
+     ],
+     [
+      "line",
+      "6"
+     ]
+    ],
+    "demand_multiplier": 0.9,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.32819,
+    "error": null
+   },
+   {
+    "state_hash": "c0bbd1111607e1c5fae8feb8e30b7591d1f8c72f72d47dd0b9dc13cd3f47e3d8",
+    "scenario_hash": "20ad3e4684a479e2eb527b6c1257f00bb837c8db01f61fefabcdfd1e88647513",
+    "outages": [
+     [
+      "generator",
+      "Manchester Gas"
+     ],
+     [
+      "line",
+      "6"
+     ]
+    ],
+    "demand_multiplier": 0.9,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 9658.0,
+    "peak_load_shed_mw": 1756.98,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.23602,
+    "error": null
+   },
+   {
+    "state_hash": "c42534897348b727c4f0edbe86873ccd3fc8ede7fc61a0f8e72a46e7a92111ab",
+    "scenario_hash": "cdcef29deafd8fe15e3c757820dc8bb99cffa2aebf2e21999058a41f0e9297cd",
+    "outages": [
+     [
+      "generator",
+      "Frankfurt Gas"
+     ],
+     [
+      "line",
+      "1"
+     ],
+     [
+      "line",
+      "2"
+     ],
+     [
+      "line",
+      "4"
+     ]
+    ],
+    "demand_multiplier": 1.1,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 4400.63,
+    "peak_load_shed_mw": 1083.59,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.14777,
+    "error": null
+   },
+   {
+    "state_hash": "ef23f41ffc0e979619b510168875206b9999eb8a2bb5897e75fb9e213e6dee68",
+    "scenario_hash": "4a249c371f405c292f04f56546683c6adf174437833556370db1727e0af39754",
+    "outages": [
+     [
+      "generator",
+      "Norway Gas"
+     ],
+     [
+      "line",
+      "0"
+     ]
+    ],
+    "demand_multiplier": 1.1,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 20.0344,
+    "peak_load_shed_mw": 20.0344,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.27729,
+    "error": null
+   },
+   {
+    "state_hash": "b2adda411649421e75405cfe33ca06dbe6cd6644977b27e23ce7e126dc2f99b3",
+    "scenario_hash": "c48228ece9f81f9101232dbb2bcd3807ffec01619e0eba72af475bcc04574d7a",
+    "outages": [
+     [
+      "generator",
+      "Manchester Gas"
+     ],
+     [
+      "line",
+      "3"
+     ],
+     [
+      "line",
+      "4"
+     ]
+    ],
+    "demand_multiplier": 1.1,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 1446.43,
+    "peak_load_shed_mw": 792.214,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.6114,
+    "error": null
+   },
+   {
+    "state_hash": "f28c29536d030621fd3d6ef0c31dadb7360f7450bc02fdf23aea6b3efb188222",
+    "scenario_hash": "11cf636df70be2f513049409a4b0f1f91ab31c82b0784c6494952f0812010612",
+    "outages": [
+     [
+      "line",
+      "4"
+     ],
+     [
+      "link",
+      "DC link"
+     ]
+    ],
+    "demand_multiplier": 0.9,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.2223,
+    "error": null
+   },
+   {
+    "state_hash": "f2748ce046d57d6d79893a9623e221e2b8216d742b7f9ce3d4b4f922522a6521",
+    "scenario_hash": "f0d521c6358532efe95d1b08eb6bed9213dd2b517e962db0a7b063dce0a35a31",
+    "outages": [
+     [
+      "generator",
+      "Frankfurt Wind"
+     ],
+     [
+      "line",
+      "0"
+     ]
+    ],
+    "demand_multiplier": 0.9,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.22598,
+    "error": null
+   },
+   {
+    "state_hash": "260a4a8d5e1b5dcfaced9bb244925f2213f67d9fa4aeb91edc4ca40fc8cc2918",
+    "scenario_hash": "5af09bb441a3ea2a6ed574eec53d997fede79576912950e5f42cc00709dbb215",
+    "outages": [
+     [
+      "line",
+      "1"
+     ],
+     [
+      "link",
+      "Bremen Converter"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.2792,
+    "error": null
+   },
+   {
+    "state_hash": "3e27af81c6177b796ca2589c4fc90a4ac32493c4a79f0062047a4b44f01a6727",
+    "scenario_hash": "cb60b2d3f13e7e23bf8f2e2f4bb704abbc3c4011c1bfbd41011386b51abe52e4",
+    "outages": [
+     [
+      "generator",
+      "Norway Wind"
+     ],
+     [
+      "line",
+      "4"
+     ]
+    ],
+    "demand_multiplier": 0.9,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.0,
+    "peak_load_shed_mw": 0.0,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.26282,
+    "error": null
+   },
+   {
+    "state_hash": "285b9f944f5c5a9b3f477ffd3eea720235862657e10f0e07121ed6e4be686a1c",
+    "scenario_hash": "927a850a773cfabe0f20dc18e8906279f4a25557976b06113bd5f8bb4dda0a3c",
+    "outages": [
+     [
+      "generator",
+      "Frankfurt Gas"
+     ],
+     [
+      "generator",
+      "Manchester Wind"
+     ]
+    ],
+    "demand_multiplier": 1.0,
+    "count": 1,
+    "outcome": "feasible",
+    "unserved_energy_mwh": 0.773562,
+    "peak_load_shed_mw": 0.773562,
+    "termination_condition": "optimal",
+    "wall_time_s": 2.29672,
+    "error": null
+   }
+  ],
+  "sample_state_index": [
+   0,
+   1,
+   2,
+   3,
+   1,
+   4,
+   5,
+   6,
+   7,
+   1,
+   7,
+   8,
+   1,
+   9,
+   10,
+   11,
+   1,
+   12,
+   6,
+   13,
+   6,
+   14,
+   15,
+   16,
+   16,
+   6,
+   17,
+   18,
+   19,
+   6,
+   7,
+   20,
+   1,
+   7,
+   21,
+   6,
+   1,
+   6,
+   6,
+   1,
+   7,
+   6,
+   6,
+   22,
+   1,
+   23,
+   24,
+   25,
+   26,
+   27,
+   6,
+   28,
+   1,
+   14,
+   7,
+   1,
+   1,
+   29,
+   15,
+   30,
+   1,
+   1,
+   14,
+   31,
+   7,
+   1,
+   6,
+   32,
+   33,
+   34,
+   35,
+   36,
+   37,
+   7,
+   38,
+   39,
+   6,
+   7,
+   40,
+   7,
+   1,
+   41,
+   7,
+   1,
+   12,
+   1,
+   1,
+   42,
+   43,
+   1,
+   6,
+   4,
+   44,
+   1,
+   3,
+   33,
+   6,
+   33,
+   4,
+   32,
+   1,
+   1,
+   6,
+   45,
+   46,
+   7,
+   1,
+   1,
+   1,
+   6,
+   19,
+   6,
+   1,
+   7,
+   1,
+   1,
+   19,
+   47,
+   48,
+   19,
+   7,
+   7,
+   7,
+   49,
+   35,
+   11,
+   7,
+   50,
+   1,
+   35,
+   17,
+   33,
+   1,
+   6,
+   1,
+   51,
+   27,
+   7,
+   52,
+   52,
+   7,
+   1,
+   9,
+   53,
+   3,
+   12,
+   1,
+   7,
+   54,
+   1,
+   6,
+   1,
+   1,
+   55,
+   39,
+   15,
+   56,
+   6,
+   1,
+   1,
+   7,
+   6,
+   1,
+   35,
+   6,
+   7,
+   7,
+   57,
+   6,
+   1,
+   14,
+   58,
+   1,
+   7,
+   59,
+   9,
+   27,
+   1,
+   60,
+   7,
+   7,
+   61,
+   7,
+   1,
+   7,
+   7,
+   27,
+   1,
+   62,
+   54,
+   61,
+   26,
+   6,
+   1,
+   6,
+   61,
+   56,
+   26,
+   1,
+   6,
+   1,
+   6,
+   12,
+   63,
+   64,
+   65,
+   7,
+   13,
+   1,
+   13,
+   1,
+   66,
+   1,
+   1,
+   3,
+   67,
+   3,
+   33,
+   63,
+   6,
+   15,
+   1,
+   1,
+   54,
+   6,
+   19,
+   7,
+   47,
+   1,
+   54,
+   1,
+   60,
+   12,
+   56,
+   1,
+   1,
+   1,
+   15,
+   68,
+   57,
+   1,
+   7,
+   1,
+   61,
+   1,
+   1,
+   69,
+   6,
+   18,
+   12,
+   19,
+   6,
+   51,
+   70,
+   6,
+   71,
+   26,
+   57,
+   11,
+   1,
+   72,
+   1,
+   66,
+   73,
+   35,
+   1,
+   38,
+   74,
+   14,
+   7,
+   3,
+   7,
+   75,
+   6,
+   44,
+   6,
+   1,
+   57,
+   76,
+   6,
+   77,
+   6,
+   1,
+   1,
+   1,
+   69,
+   1,
+   7,
+   1,
+   59,
+   6,
+   1,
+   6,
+   1,
+   13,
+   13,
+   78,
+   1,
+   26,
+   1,
+   15,
+   1,
+   1,
+   79,
+   7,
+   80,
+   6,
+   35,
+   56,
+   6,
+   54,
+   6,
+   81,
+   6,
+   82,
+   19,
+   1,
+   83,
+   25,
+   1,
+   1,
+   84,
+   1,
+   1,
+   57,
+   1,
+   1,
+   10,
+   1,
+   6,
+   19,
+   1,
+   79,
+   16,
+   57,
+   63,
+   63,
+   1,
+   54,
+   85,
+   5,
+   57,
+   6,
+   6,
+   80,
+   1,
+   16,
+   6,
+   79,
+   1,
+   86,
+   7,
+   1,
+   87,
+   13,
+   7,
+   1,
+   6,
+   1,
+   3,
+   88,
+   7,
+   7,
+   70,
+   1,
+   6,
+   89,
+   32,
+   1,
+   1,
+   90,
+   86,
+   1,
+   1,
+   7,
+   1,
+   7,
+   13,
+   7,
+   57,
+   54,
+   60,
+   26,
+   1,
+   6,
+   54,
+   91,
+   14,
+   1,
+   1,
+   7,
+   1,
+   6,
+   33,
+   1,
+   11,
+   92,
+   1,
+   1,
+   1,
+   6,
+   6,
+   60,
+   1,
+   93,
+   33,
+   7,
+   94,
+   35,
+   7,
+   1,
+   1,
+   95,
+   1,
+   74,
+   1,
+   1,
+   57,
+   12,
+   14,
+   16,
+   96,
+   6,
+   39,
+   57,
+   1,
+   7,
+   1,
+   12,
+   63,
+   93,
+   20,
+   6,
+   7,
+   12,
+   60,
+   1,
+   63,
+   59,
+   1,
+   97,
+   7,
+   51,
+   49,
+   19,
+   98,
+   99,
+   100,
+   1,
+   101,
+   1,
+   33,
+   13,
+   4,
+   1,
+   52,
+   102,
+   14,
+   44,
+   6,
+   103,
+   1,
+   1,
+   1,
+   56,
+   1,
+   93,
+   1,
+   1,
+   69,
+   35,
+   6,
+   9,
+   104,
+   38,
+   7,
+   1,
+   7,
+   105,
+   6,
+   6,
+   54,
+   106,
+   17,
+   13,
+   51,
+   18,
+   107,
+   33,
+   7,
+   73,
+   44,
+   6,
+   74,
+   1,
+   1,
+   3,
+   6,
+   7,
+   1,
+   12,
+   6,
+   59,
+   6,
+   1,
+   108,
+   17,
+   7,
+   1,
+   109,
+   73,
+   1,
+   7,
+   98,
+   1,
+   6,
+   80,
+   110,
+   6,
+   49,
+   27,
+   111,
+   7,
+   1,
+   7,
+   7,
+   112,
+   6,
+   6,
+   1,
+   38,
+   1,
+   1,
+   7,
+   7,
+   7,
+   7,
+   1,
+   54,
+   1,
+   13,
+   51,
+   113,
+   6,
+   6,
+   114,
+   56,
+   11,
+   57,
+   77,
+   12,
+   56,
+   6,
+   6,
+   54,
+   6,
+   26,
+   1,
+   1,
+   6,
+   7,
+   1,
+   1,
+   7,
+   7,
+   77,
+   1,
+   13,
+   7,
+   115,
+   7,
+   1,
+   116,
+   32,
+   7,
+   7,
+   19,
+   117,
+   1,
+   1,
+   1,
+   3,
+   1,
+   16,
+   16,
+   16,
+   12,
+   1,
+   1,
+   7,
+   1,
+   68,
+   3,
+   49,
+   1,
+   15,
+   6,
+   1,
+   6,
+   108,
+   6,
+   1,
+   20,
+   35,
+   60,
+   118,
+   79,
+   3,
+   1,
+   9,
+   1,
+   54,
+   1,
+   1,
+   7,
+   7,
+   63,
+   27,
+   119,
+   6,
+   1,
+   1,
+   1,
+   56,
+   6,
+   14,
+   1,
+   63,
+   13,
+   120,
+   16,
+   1,
+   121,
+   122,
+   32,
+   1,
+   6,
+   11,
+   6,
+   73,
+   7,
+   12,
+   20,
+   4,
+   73,
+   1,
+   1,
+   123,
+   7,
+   1,
+   1,
+   1,
+   1,
+   1,
+   124,
+   6,
+   6,
+   1,
+   6,
+   1,
+   6,
+   1,
+   7,
+   1,
+   7,
+   1,
+   11,
+   51,
+   7,
+   49,
+   6,
+   1,
+   51,
+   26,
+   32,
+   32,
+   15,
+   63,
+   125,
+   33,
+   1,
+   1,
+   6,
+   11,
+   1,
+   16,
+   7,
+   60,
+   14,
+   117,
+   6,
+   68,
+   35,
+   1,
+   63,
+   1,
+   1,
+   80,
+   126,
+   127,
+   6,
+   6,
+   128,
+   7,
+   1,
+   129,
+   74,
+   6,
+   60,
+   73,
+   59,
+   1,
+   1,
+   79,
+   20,
+   32,
+   130,
+   131,
+   83,
+   6,
+   1,
+   1,
+   132,
+   6,
+   133,
+   13,
+   1,
+   7,
+   60,
+   54,
+   6,
+   7,
+   32,
+   103,
+   3,
+   122,
+   1,
+   1,
+   7,
+   1,
+   68,
+   7,
+   1,
+   1,
+   1,
+   60,
+   7,
+   4,
+   56,
+   1,
+   1,
+   63,
+   73,
+   74,
+   1,
+   6,
+   6,
+   26,
+   1,
+   13,
+   1,
+   134,
+   1,
+   82,
+   53,
+   1,
+   1,
+   63,
+   135,
+   7,
+   6,
+   32,
+   13,
+   6,
+   1,
+   7,
+   6,
+   136,
+   3,
+   83,
+   137,
+   3,
+   33,
+   7,
+   80,
+   6,
+   35,
+   138,
+   6,
+   1,
+   1,
+   6,
+   6,
+   139,
+   140,
+   7,
+   6,
+   80,
+   7,
+   60,
+   1,
+   141,
+   142,
+   3,
+   70,
+   51,
+   1,
+   1,
+   1,
+   6,
+   32,
+   7,
+   1,
+   3,
+   1,
+   51,
+   7,
+   7,
+   77,
+   51,
+   7,
+   6,
+   12,
+   9,
+   6,
+   1,
+   13,
+   7,
+   6,
+   64,
+   60,
+   41,
+   143,
+   24,
+   136,
+   1,
+   1,
+   144,
+   7,
+   1,
+   133,
+   1,
+   1,
+   145,
+   15,
+   7,
+   146,
+   17,
+   7,
+   13,
+   7,
+   6,
+   6,
+   1,
+   1,
+   1,
+   147,
+   39,
+   7,
+   6,
+   148,
+   35,
+   7,
+   33,
+   70,
+   1,
+   6,
+   13,
+   144,
+   7,
+   1,
+   1,
+   1,
+   51,
+   1,
+   108,
+   7,
+   1,
+   82,
+   6,
+   1,
+   41,
+   1,
+   33,
+   149,
+   1,
+   6,
+   1,
+   1,
+   6,
+   20,
+   6,
+   1,
+   7,
+   150,
+   71,
+   6,
+   14,
+   6,
+   151,
+   133,
+   1,
+   152,
+   51,
+   7,
+   7,
+   7,
+   41,
+   57,
+   13,
+   79,
+   35,
+   1,
+   26,
+   153,
+   56,
+   1,
+   68,
+   60,
+   7,
+   154,
+   7,
+   155,
+   156,
+   6,
+   14,
+   7,
+   157,
+   7,
+   20,
+   6,
+   3,
+   64,
+   1,
+   7,
+   1,
+   7,
+   7,
+   15,
+   7,
+   6,
+   1,
+   1,
+   158,
+   4,
+   54,
+   122,
+   6,
+   7,
+   6,
+   143,
+   86,
+   159,
+   19,
+   7,
+   7,
+   7,
+   1,
+   1,
+   160,
+   11,
+   57,
+   1,
+   1,
+   54,
+   1,
+   1,
+   6,
+   1,
+   1,
+   4,
+   7,
+   60,
+   16,
+   7,
+   7,
+   15,
+   161,
+   7,
+   1,
+   1,
+   162,
+   4,
+   1,
+   7,
+   6,
+   57,
+   7,
+   49,
+   57,
+   1,
+   7,
+   163,
+   7,
+   63,
+   1,
+   13,
+   1,
+   164,
+   1
+  ],
+  "assumptions": [
+   "Component unavailabilities are MODELLED inputs (see sampling_spec.outage_classes[].source); they are not observed failure statistics of the studied network.",
+   "Components fail independently of each other and of demand; class probabilities do not represent common-mode or weather-correlated failures.",
+   "Every sampled outage lasts the whole study horizon (the PyPSA adapter supports topology changes for the whole horizon only); no repair or restoration within the horizon.",
+   "Each sampled state is solved as a DC linearised optimal power flow (PyPSA LOPF, HiGHS) with load shedding at VOLL; no AC feasibility, voltage, stability or protection behaviour.",
+   "Crude (unstratified) Monte Carlo; uncertainty is sampling error only (CLT normal approximation). Model/parameter uncertainty is not included in the confidence interval.",
+   "ac-dc-meshed is the PyPSA example network (synthetic, illustrative); it does not represent the real UK/German/Norwegian system."
+  ],
+  "limitations": [
+   "Not a reliability assessment of any real power system: the probabilities are generic modelled values and the network models are research/example datasets.",
+   "EENS here is the expected unserved energy over the study horizon conditional on the base scenario (e.g. its snapshots and demand), not an annual adequacy index.",
+   "Importance ranking is descriptive co-occurrence, not causal attribution."
+  ],
+  "warnings": [],
+  "runtime": {
+   "wall_time_s": 385.856,
+   "solves": 165,
+   "workers": 1,
+   "solve_wall_time_s_sum": 385.811,
+   "peak_rss_mb_main_process": 302.41,
+   "peak_rss_mb_max_worker": null,
+   "python": "3.11.15",
+   "platform": "win32"
+  },
+  "study_title": "ac-dc-meshed: Monte Carlo storm-stress EENS (modelled outage probabilities, 10 h)"
+ }
+}

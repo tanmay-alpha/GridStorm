@@ -51,8 +51,9 @@ def test_shed_tolerance():
     assert s["n_loss_of_load_samples"] == 1
 
 
-@pytest.mark.parametrize("vals,cnts", [([], []), ([-1.0], [1]), ([float("nan")], [1]),
-                                       ([1.0], [0]), ([1.0, 2.0], [1])])
+@pytest.mark.parametrize(
+    "vals,cnts", [([], []), ([-1.0], [1]), ([float("nan")], [1]), ([1.0], [0]), ([1.0, 2.0], [1])]
+)
 def test_rejects_bad_input(vals, cnts):
     with pytest.raises(ValueError):
         mc_statistics(vals, cnts)

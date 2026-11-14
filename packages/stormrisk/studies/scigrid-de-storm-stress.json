@@ -25,7 +25,7 @@
   "outage_classes": [
    {"name": "lines-storm", "component": "line", "unavailability": 0.01,
     "carriers": null, "asset_ids": null, "provenance": "modeled",
-    "source": "MODELLED storm-stress assumption, not observed data. IEEE RTS-96 branch data (Grigg et al., 'The IEEE Reliability Test System-1996', IEEE Trans. Power Syst. 14(3):1010-1020, 1999, Table 12: permanent outage rate 0.24-0.54 /yr, duration 10-16 h) gives normal-weather q = lambda*r/8760 ~ 3e-4 to 1e-3; adverse-weather rates are modelled as one to two orders of magnitude higher (two-state weather model, Billinton & Allan, 'Reliability Evaluation of Power Systems', 2nd ed., 1996, ch. 7). q = 0.01 is an illustrative value in that envelope."},
+    "source": "MODELLED author-selected whole-horizon stress probability, not observed or calibrated. Context only: IEEE RTS-96 Table 12 (Grigg et al., The IEEE Reliability Test System-1996, IEEE Trans. Power Syst. 14(3):1010-1020, 1999; https://labs.ece.uw.edu/pstca/rts/rts96/Table-12.txt) lists branch outage rates 0.24-0.54 /yr and typical durations 10-16 h (some 35 h), giving stationary unavailability of order 1e-4 to 1e-3 via lambda*r/8760. q=0.01 is deliberately larger, an illustrative assumption, not a weather multiplier inferred from RTS-96."},
    {"name": "transformers", "component": "transformer", "unavailability": 0.002,
     "carriers": null, "asset_ids": null, "provenance": "modeled",
     "source": "MODELLED assumption, not observed data: IEEE RTS-96 transformer branches (Grigg et al. 1999, Table 12: 0.02 outages/yr x 768 h) give q ~ 1.75e-3; rounded to 0.002 and not storm-scaled (substation equipment assumed less weather-exposed than overhead lines)."},

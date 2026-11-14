@@ -21,13 +21,24 @@ def _demand(scenario):
 
 
 def _result(outcome, unserved=None):
-    metrics = {} if unserved is None else {"unserved_energy_mwh": unserved,
-                                          "peak_load_shed_mw": unserved / 4}
-    return {"schema_version": "gridstorm-result/1.0", "outcome": outcome,
-            "engine": {"name": "mock", "version": "0", "formulation": "lopf"},
-            "solver": {"name": "mock", "version": "0", "status": "ok",
-                       "termination_condition": "optimal" if outcome == "feasible" else outcome},
-            "metrics": metrics, "warnings": []}
+    metrics = (
+        {}
+        if unserved is None
+        else {"unserved_energy_mwh": unserved, "peak_load_shed_mw": unserved / 4}
+    )
+    return {
+        "schema_version": "gridstorm-result/1.0",
+        "outcome": outcome,
+        "engine": {"name": "mock", "version": "0", "formulation": "lopf"},
+        "solver": {
+            "name": "mock",
+            "version": "0",
+            "status": "ok",
+            "termination_condition": "optimal" if outcome == "feasible" else outcome,
+        },
+        "metrics": metrics,
+        "warnings": [],
+    }
 
 
 def toy_engine(scenario):

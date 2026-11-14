@@ -12,8 +12,10 @@ def toy_network() -> dict:
         "network_id": "toy-net",
         "snapshots": {"count": 4},
         "buses": [{"id": "b1"}, {"id": "b2"}],
-        "lines": [{"id": "L1", "bus0": "b1", "bus1": "b2", "carrier": "AC"},
-                  {"id": "L2", "bus0": "b1", "bus1": "b2", "carrier": "AC"}],
+        "lines": [
+            {"id": "L1", "bus0": "b1", "bus1": "b2", "carrier": "AC"},
+            {"id": "L2", "bus0": "b1", "bus1": "b2", "carrier": "AC"},
+        ],
         "transformers": [],
         "links": [],
         "generators": [
@@ -30,11 +32,13 @@ def toy_network() -> dict:
 
 @pytest.fixture
 def base_scenario() -> Scenario:
-    return Scenario.model_validate({
-        "id": "toy-base",
-        "name": "Toy base",
-        "dataset": {"network_id": "toy-net"},
-        "horizon": {"start": 0, "snapshots": 4},
-        "events": [],
-        "execution": {"engine": "pypsa", "formulation": "lopf", "solver": "highs"},
-    })
+    return Scenario.model_validate(
+        {
+            "id": "toy-base",
+            "name": "Toy base",
+            "dataset": {"network_id": "toy-net"},
+            "horizon": {"start": 0, "snapshots": 4},
+            "events": [],
+            "execution": {"engine": "pypsa", "formulation": "lopf", "solver": "highs"},
+        }
+    )

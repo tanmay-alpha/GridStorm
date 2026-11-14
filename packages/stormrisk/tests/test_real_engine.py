@@ -22,21 +22,37 @@ def test_real_engine_weighted_energy_and_outage_probability(tmp_path):
     n.add("Generator", "supply", bus="bus", carrier="gas", p_nom=60, marginal_cost=10)
     n.add("Load", "demand", bus="bus", p_set=100)
     n.export_to_netcdf(network_dir / "network.nc")
-    base = Scenario.model_validate({
-        "id": "weighted-deficit",
-        "name": "Known supply deficit",
-        "dataset": {"network_id": network_dir.name},
-        "horizon": {"start": 0, "snapshots": 2},
-        "events": [],
-        "mitigation": {"load_shedding": {"enabled": True, "voll_eur_per_mwh": 10000}},
-        "execution": {"engine": "pypsa", "formulation": "lopf", "solver": "highs",
-                      "solver_options": {"threads": 1}, "deterministic": True},
-    })
-    spec = SamplingSpec.model_validate({
-        "n_samples": 200, "seed": 321,
-        "outage_classes": [{"name": "supply", "component": "generator",
-                            "unavailability": 0.25, "source": "synthetic integration fixture"}],
-    })
+    base = Scenario.model_validate(
+        {
+            "id": "weighted-deficit",
+            "name": "Known supply deficit",
+            "dataset": {"network_id": network_dir.name},
+            "horizon": {"start": 0, "snapshots": 2},
+            "events": [],
+            "mitigation": {"load_shedding": {"enabled": True, "voll_eur_per_mwh": 10000}},
+            "execution": {
+                "engine": "pypsa",
+                "formulation": "lopf",
+                "solver": "highs",
+                "solver_options": {"threads": 1},
+                "deterministic": True,
+            },
+        }
+    )
+    spec = SamplingSpec.model_validate(
+        {
+            "n_samples": 200,
+            "seed": 321,
+            "outage_classes": [
+                {
+                    "name": "supply",
+                    "component": "generator",
+                    "unavailability": 0.25,
+                    "source": "synthetic integration fixture",
+                }
+            ],
+        }
+    )
     results = []
 
     def engine(scenario):
@@ -61,4 +77,6 @@ def test_real_engine_weighted_energy_and_outage_probability(tmp_path):
     assert abs(study["estimates"]["eens_mwh"] - 220) < 4 * study["estimates"]["se_eens_mwh"]
     for result in results:
         assert result["metrics"]["balance_residual_max_mw"] < 1e-6
-        assert result["metrics"]["served_load_mwh"] + result["metrics"]["unserved_energy_mwh"] == pytest.approx(400)
+        assert (
+            result["metrics"]["served_load_mwh"] + result["metrics"]["unserved_energy_mwh"]
+        ) == pytest.approx(400)

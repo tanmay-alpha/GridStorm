@@ -1,0 +1,14 @@
+{
+ "schema_version": "gridstorm-artifact-index/1.0",
+ "engine": "stormrisk",
+ "artifacts": [
+  {
+   "artifact_id": "stormrisk-ac-dc-meshed-storm-stress",
+   "kind": "risk",
+   "network_id": "ac-dc-meshed",
+   "title": "ac-dc-meshed: Monte Carlo storm-stress EENS (modelled outage probabilities, 10 h)",
+   "path": "stormrisk-ac-dc-meshed-storm-stress.json",
+   "payload_sha256": "048bc178eb633eb3641d78e85f3cf57b254e99e02a4d2b49a62a42025c021fc7"
+  }
+ ]
+}

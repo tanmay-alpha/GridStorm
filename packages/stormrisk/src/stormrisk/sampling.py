@@ -68,8 +68,7 @@ class SampledState:
     def outages(self, population: Population) -> list[tuple[str, str]]:
         """Sorted (component, asset_id) pairs (component disambiguates colliding ids)."""
         return sorted(
-            (population.assets[i].component, population.assets[i].asset_id)
-            for i in self.outage_idx
+            (population.assets[i].component, population.assets[i].asset_id) for i in self.outage_idx
         )
 
     def key(self, population: Population) -> str:
@@ -105,9 +104,7 @@ def _base_outaged_assets(base: Scenario) -> set[tuple[str, str]]:
     return out
 
 
-def resolve_population(
-    base: Scenario, spec: SamplingSpec, network: dict[str, Any]
-) -> Population:
+def resolve_population(base: Scenario, spec: SamplingSpec, network: dict[str, Any]) -> Population:
     """Map outage classes onto the network's assets (canonical-grid/1.0 dict).
 
     Raises :class:`StudyInputError` if a class matches no asset, names unknown asset ids, or an
@@ -218,8 +215,12 @@ def state_scenario(
     events = list(doc["events"])
     if state.demand_multiplier is not None:
         events.append(
-            {"type": "demand_multiplier", "value": state.demand_multiplier, "buses": None,
-             "window": None}
+            {
+                "type": "demand_multiplier",
+                "value": state.demand_multiplier,
+                "buses": None,
+                "window": None,
+            }
         )
     for i in state.outage_idx:
         events.append(population.assets[i].event())

@@ -19,7 +19,7 @@ from pathlib import Path
 
 from stormspec import Scenario, file_sha256
 
-from stormrisk import SamplingSpec, run_study
+from stormrisk import SamplingSpec, __version__, run_study
 from stormrisk.artifact import build_artifact, write_artifact
 from stormrisk.engines import PypsaEngine
 
@@ -70,18 +70,22 @@ def main(argv: list[str] | None = None) -> int:
 
     def progress(done: int, total: int) -> None:
         if done == total or done % max(1, total // 20) == 0:
-            print(f"solved {done}/{total} distinct states  ({time.perf_counter() - t0:.1f} s)",
-                  flush=True)
+            print(
+                f"solved {done}/{total} distinct states  ({time.perf_counter() - t0:.1f} s)",
+                flush=True,
+            )
 
-    payload = run_study(base, spec, network, PypsaEngine(network_dir), workers=args.workers,
-                        progress=progress)
+    payload = run_study(
+        base, spec, network, PypsaEngine(network_dir), workers=args.workers, progress=progress
+    )
     versions = PypsaEngine.versions()
     payload["engine"]["package_versions"] = versions
     payload["study_title"] = study["title"]
 
     cmd = [
         "uv run --project packages/stormrisk python packages/stormrisk/scripts/run_study.py",
-        _rel(args.study), f"--workers {args.workers}",
+        _rel(args.study),
+        f"--workers {args.workers}",
         f'--networks-root "{_rel(args.networks_root)}"',
         f'--out-dir "{_rel(args.out_dir)}"',
     ]
@@ -95,26 +99,45 @@ def main(argv: list[str] | None = None) -> int:
         if p.exists():
             inputs.append({"path": _rel(p), "sha256": file_sha256(p)})
 
-    art = build_artifact(payload, artifact_id=study["artifact_id"], network_id=network_id,
-                         engine_version=versions.get("pypsa"), command=" ".join(cmd),
-                         inputs=inputs)
+    art = build_artifact(
+        payload,
+        artifact_id=study["artifact_id"],
+        network_id=network_id,
+        engine_version=__version__,
+        command=" ".join(cmd),
+        inputs=inputs,
+    )
     path = write_artifact(art, args.out_dir, title=study["title"])
 
     e = payload["estimates"]
     acc = payload["sample_accounting"]
     rt = payload["runtime"]
-    print(json.dumps({
-        "artifact": _rel(path), "bytes": path.stat().st_size,
-        "n_samples": acc["n_samples"], "distinct_states": acc["n_distinct_states"],
-        "feasible": acc["n_feasible_samples"], "infeasible": acc["n_infeasible_samples"],
-        "error": acc["n_error_samples"], "invalid": acc["n_invalid_samples"],
-        "eens_mwh": e.get("eens_mwh"), "ci95": [e.get("ci95_low_mwh"), e.get("ci95_high_mwh")],
-        "se_eens_mwh": e.get("se_eens_mwh"), "cv": e.get("cv_eens"), "lolp": e.get("lolp"),
-        "p95_unserved_mwh": e.get("p95_unserved_mwh"),
-        "wall_time_s": rt["wall_time_s"], "solves": rt["solves"],
-        "peak_rss_mb_main": rt["peak_rss_mb_main_process"],
-        "peak_rss_mb_worker": rt["peak_rss_mb_max_worker"], "warnings": payload["warnings"],
-    }, indent=1))
+    print(
+        json.dumps(
+            {
+                "artifact": _rel(path),
+                "bytes": path.stat().st_size,
+                "n_samples": acc["n_samples"],
+                "distinct_states": acc["n_distinct_states"],
+                "feasible": acc["n_feasible_samples"],
+                "infeasible": acc["n_infeasible_samples"],
+                "error": acc["n_error_samples"],
+                "invalid": acc["n_invalid_samples"],
+                "eens_mwh": e.get("eens_mwh"),
+                "ci95": [e.get("ci95_low_mwh"), e.get("ci95_high_mwh")],
+                "se_eens_mwh": e.get("se_eens_mwh"),
+                "cv": e.get("cv_eens"),
+                "lolp": e.get("lolp"),
+                "p95_unserved_mwh": e.get("p95_unserved_mwh"),
+                "wall_time_s": rt["wall_time_s"],
+                "solves": rt["solves"],
+                "peak_rss_mb_main": rt["peak_rss_mb_main_process"],
+                "peak_rss_mb_worker": rt["peak_rss_mb_max_worker"],
+                "warnings": payload["warnings"],
+            },
+            indent=1,
+        )
+    )
     return 0
 
 
