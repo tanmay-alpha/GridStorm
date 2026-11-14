@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import subprocess
 import sys
+import types
 import warnings
 
 import numpy as np
@@ -13,6 +14,7 @@ import stormspec
 from conftest import RESULT_SCHEMA, network_dir, run_cached, scenario
 
 from gridstorm_pypsa import STAGES, ScenarioRejected, run_scenario
+from gridstorm_pypsa.runner import objective_eur
 
 AC = "ac-dc-meshed"
 SG = "scigrid-de"
@@ -220,6 +222,13 @@ def test_reproducible_objective_and_result_hash():
     assert a["solver"]["objective_eur"] == b["solver"]["objective_eur"]
     assert a["manifest"]["result_sha256"] == b["manifest"]["result_sha256"]
     assert a["scenario_hash"] == b["scenario_hash"] == stormspec.scenario_hash(spec)
+    # VER-006: one objective definition for solver.objective_eur and total_system_cost_eur
+    assert a["solver"]["objective_eur"] == a["metrics"]["total_system_cost_eur"]
+
+
+def test_objective_includes_objective_constant():
+    stub = types.SimpleNamespace(objective=10.0, objective_constant=2.5)
+    assert objective_eur(stub) == 12.5
 
 
 def test_pglib_setpoints_released_and_generator_outage_sheds_expected_energy():

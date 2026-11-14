@@ -265,6 +265,8 @@ export interface ScenarioRecord {
   name?: string
   network_id?: string
   visibility?: 'public' | 'private'
+  /** false for anonymous saves: readable by id, never in GET /scenarios. */
+  listed?: boolean
 }
 
 // ---------- §6 Job ----------
@@ -469,7 +471,7 @@ export interface Comparison {
 }
 
 // ---------- §5 precomputed artifacts ----------
-export type ArtifactKind = 'n_minus_1' | 'advisor' | 'episode' | 'benchmark' | 'simulation'
+export type ArtifactKind = 'n_minus_1' | 'advisor' | 'episode' | 'benchmark' | 'simulation' | 'timeseries' | 'risk'
 
 export interface ArtifactHeader {
   schema_version: 'gridstorm-artifact/1.0'

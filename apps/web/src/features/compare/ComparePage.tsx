@@ -22,10 +22,10 @@ import {
   type ChartOption,
   type Column,
 } from '../../components/ui'
-import { formatDelta, formatNumber, labelFromFieldName, type Unit } from '../../lib/format'
+import { formatDelta, formatNumber, type Unit } from '../../lib/format'
 import { downloadJson, downloadText } from '../../lib/download'
 import { branchLoadingAt, snapshotLabels } from '../runs/result'
-import { comparableJobs, deltaAt, deltaValues, jobLabel } from './compare'
+import { comparableJobs, deltaAt, deltaValues, jobLabel, metricLabel } from './compare'
 
 const KNOWN_UNITS: Unit[] = ['MW', 'MWh', 'EUR', 'EUR/MWh', '%', 'h', 't']
 
@@ -34,12 +34,7 @@ const metricColumns: Column<MetricDelta>[] = [
     key: 'metric',
     header: 'Metric',
     sortValue: (r) => r.metric,
-    render: (r) => (
-      <span title={r.metric}>
-        {r.metric === 'unserved_energy_mwh' ? 'Unserved energy (MWh)' : labelFromFieldName(r.metric)}
-        {r.unit && <span className="text-fg-subtle"> [{r.unit}]</span>}
-      </span>
-    ),
+    render: (r) => <span title={r.metric}>{metricLabel(r.metric, r.unit)}</span>,
   },
   { key: 'b', header: 'Baseline', align: 'right', sortValue: (r) => r.baseline, render: (r) => formatNumber(r.baseline) },
   { key: 's', header: 'Scenario', align: 'right', sortValue: (r) => r.scenario, render: (r) => formatNumber(r.scenario) },

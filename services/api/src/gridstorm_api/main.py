@@ -25,6 +25,7 @@ from .errors import install_error_handlers
 from .ratelimit import BodySizeLimitMiddleware
 from .readiness import SolverProbe
 from .routers import artifacts, comparisons, health, networks, scenarios, simulations
+from .security_headers import SecurityHeadersMiddleware
 from .sync import sync_catalog, sync_presets
 
 log = logging.getLogger("gridstorm_api")
@@ -114,6 +115,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     )
     # outermost: reject oversized bodies before anything else reads them
     app.add_middleware(BodySizeLimitMiddleware, max_bytes=settings.max_body_bytes)
+    # wraps everything, so 413s and error responses carry the headers too (VER-011)
+    app.add_middleware(SecurityHeadersMiddleware, trust_proxy=settings.trust_proxy)
 
     for module in (health, networks, scenarios, simulations, comparisons, artifacts):
         app.include_router(module.router)

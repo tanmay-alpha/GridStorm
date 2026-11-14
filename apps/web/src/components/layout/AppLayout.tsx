@@ -108,7 +108,6 @@ export function AppLayout() {
           <Zap aria-hidden className="size-4 text-warn" />
           GridStorm
         </NavLink>
-        <span className="hidden text-2xs text-fg-subtle xl:inline">Research tool · not a real-time control system</span>
         <nav aria-label="Main" className="ml-2 hidden min-w-0 flex-1 overflow-x-auto lg:block">
           <NavItems />
         </nav>
@@ -148,6 +147,13 @@ export function AppLayout() {
       <main id="main" tabIndex={-1} className="relative min-h-0 flex-1 overflow-auto focus:outline-none">
         <Outlet />
       </main>
+      {/* Safety disclaimer: one line at every width, every route (VER-012). */}
+      <footer
+        data-testid="safety-disclaimer"
+        className="shrink-0 border-t border-line bg-surface px-3 py-0.5 text-center text-2xs text-fg-subtle"
+      >
+        Research tool · not a real-time control system
+      </footer>
     </div>
   )
 }

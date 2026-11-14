@@ -4,9 +4,9 @@ import uuid
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import func, select
+from sqlalchemy import false, func, or_, select
 
-from ..access import audit, can_read, ensure_profile, resolve_visibility, visible
+from ..access import audit, can_read, ensure_profile, resolve_visibility
 from ..db.models import ScenarioDefinition
 from ..deps import Ctx, CurrentPrincipal, DBSession, Paging, rate_limit_post
 from ..errors import NotFound, Unprocessable
@@ -35,7 +35,14 @@ def scenario_to_dict(row: ScenarioDefinition) -> dict[str, Any]:
         "name": row.name,
         "network_id": row.network_id,
         "visibility": row.visibility,
+        "listed": is_listed(row),
     }
+
+
+def is_listed(row: ScenarioDefinition) -> bool:
+    """Presets are listed to everyone, owned saves to their owner only. Anonymous saves
+    (``owner_id`` null) are unlisted: never in ``GET /scenarios``, retrievable by id (VER-013)."""
+    return row.is_preset or row.owner_id is not None
 
 
 def get_visible_scenario(session: Any, principal: Any, scenario_id: str) -> ScenarioDefinition:
@@ -49,7 +56,13 @@ def get_visible_scenario(session: Any, principal: Any, scenario_id: str) -> Scen
     return row
 
 
-@router.get("", response_model=Page[ScenarioRecord], summary="Preset and saved scenarios")
+@router.get(
+    "",
+    response_model=Page[ScenarioRecord],
+    summary="Preset scenarios and the caller's own saved scenarios",
+    description="Saves by other users and anonymous saves are not listed; public ones remain "
+    "readable via `GET /api/v1/scenarios/{id}`.",
+)
 def list_scenarios(
     session: DBSession,
     principal: CurrentPrincipal,
@@ -57,7 +70,12 @@ def list_scenarios(
     network_id: Annotated[str | None, Query()] = None,
     preset: Annotated[bool | None, Query(description="Only presets (true) / saved (false)")] = None,
 ) -> dict[str, Any]:
-    cond = [visible(ScenarioDefinition, principal)]
+    own = (
+        ScenarioDefinition.owner_id == principal.user_id
+        if principal.user_id is not None
+        else false()
+    )
+    cond = [or_(ScenarioDefinition.is_preset.is_(True), own)]
     if network_id is not None:
         cond.append(ScenarioDefinition.network_id == network_id)
     if preset is not None:

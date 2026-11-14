@@ -74,8 +74,13 @@ def _new_job(
 ) -> SimulationJob:
     sc = outcome.scenario
     assert sc is not None and outcome.entry is not None and outcome.scenario_hash is not None
+    # Explicit, not the column default (evaluated at flush): reused/precomputed completions set
+    # started_at/finished_at before the INSERT and must not precede created_at (VER-009).
+    now = utcnow()
     return SimulationJob(
         id=uuid.uuid4(),
+        created_at=now,
+        updated_at=now,
         scenario_id=sc.id,
         scenario_definition_id=scenario_record_id,
         scenario_hash=outcome.scenario_hash,
@@ -87,7 +92,7 @@ def _new_job(
         visibility=visibility,
         status="queued",
         stage="queued",
-        stage_history=[stage_event("queued")],
+        stage_history=[stage_event("queued", now)],
     )
 
 

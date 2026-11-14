@@ -40,7 +40,8 @@ The API uses an optional Supabase bearer JWT verifier: HS256 with `SUPABASE_JWT_
 asymmetric JWKS at `SUPABASE_URL/auth/v1/.well-known/jwks.json`. Expiry, UUID subject, signature
 and audience (`authenticated` by default) are checked. Invalid/expired supplied credentials
 return 401, never anonymous fallback. Tokens are not logged. With no credentials, public data
-and demo submission remain available; anonymous saved records are public and anonymous jobs
+and demo submission remain available; anonymous saved scenarios are readable by id but unlisted
+(`listed: false`, never returned by `GET /scenarios`), and anonymous jobs
 are cancellable by anyone. Authenticated records default to private. Reads enforce public-or-
 owner visibility and modifications enforce ownership; private misses return 404. RLS mirrors
 ownership for direct database clients; the privileged backend connection bypasses RLS, so API

@@ -98,6 +98,22 @@ def test_cors_allows_configured_origin_only(client):
     assert "access-control-allow-origin" not in other.headers
 
 
+def test_security_headers(client_factory):
+    # VER-011: nosniff/Referrer-Policy everywhere (incl. errors), HSTS only over HTTPS
+    plain = client_factory()
+    for r in (plain.get("/health"), plain.get("/api/v1/networks/nope")):
+        assert r.headers["x-content-type-options"] == "nosniff"
+        assert r.headers["referrer-policy"] == "no-referrer"
+        assert r.headers["x-frame-options"] == "DENY"
+        assert "strict-transport-security" not in r.headers
+    assert "max-age=" in plain.get("https://testserver/health").headers["strict-transport-security"]
+    forwarded = {"X-Forwarded-Proto": "https"}
+    assert "strict-transport-security" not in plain.get("/health", headers=forwarded).headers
+    proxied = client_factory(trust_proxy=True)
+    assert "strict-transport-security" in proxied.get("/health", headers=forwarded).headers
+    assert "strict-transport-security" not in proxied.get("/health").headers
+
+
 def test_openapi_matches_contract_paths(client):
     spec = client.get("/openapi.json").json()
     expected = {

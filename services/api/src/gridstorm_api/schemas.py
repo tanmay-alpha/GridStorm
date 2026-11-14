@@ -21,6 +21,10 @@ JobStage = Literal[
 ]
 Outcome = Literal["feasible", "infeasible", "error"]
 Visibility = Literal["public", "private"]
+# contract §5 artifact header `kind` (precomputed engine artifacts)
+ArtifactKind = Literal[
+    "n_minus_1", "advisor", "episode", "benchmark", "simulation", "timeseries", "risk"
+]
 AssetType = Literal[
     "buses",
     "lines",
@@ -179,6 +183,9 @@ class ScenarioRecord(BaseModel):
     name: str
     network_id: str
     visibility: Visibility
+    listed: bool = Field(
+        description="false for anonymous saves: readable by id but never in GET /scenarios"
+    )
 
 
 # --- simulations ------------------------------------------------------------------------------
@@ -295,7 +302,7 @@ class Comparison(BaseModel):
 class PrecomputedArtifact(_Open):
     engine: str
     artifact_id: str
-    kind: str | None
+    kind: ArtifactKind
     network_id: str | None
     title: str | None
     bytes: int | None

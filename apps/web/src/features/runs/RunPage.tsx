@@ -205,7 +205,7 @@ function ResultView({ job, result }: { job: Job; result: GridstormResult }) {
         <MetricCard label="Total load" value={m.total_load_mwh} unit="MWh" />
         <MetricCard label="Served load" value={m.served_load_mwh} unit="MWh" />
         <MetricCard label="Curtailment" value={m.curtailment_mwh} unit="MWh" />
-        <MetricCard label="Generation cost" value={m.generation_cost_eur} unit="EUR" />
+        <MetricCard label="Generation cost" value={m.generation_cost_eur} unit="EUR" hint="total system cost − load-shedding cost" />
         <MetricCard label="CO₂ emissions" value={m.co2_emissions_t} unit="t" />
         <MetricCard label="Mean line loading" value={m.mean_line_loading_pct} unit="%" />
       </section>

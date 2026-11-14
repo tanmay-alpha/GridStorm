@@ -16,6 +16,20 @@ import refused from './__fixtures__/simulation-422-live-execution-unavailable.js
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } })
 
+// VER-013: an anonymous save as returned by POST/GET /api/v1/scenarios (derived from a captured
+// preset record; anonymous saves are not in GET /api/v1/scenarios).
+const captured = scenarios.items[0]!
+const unlisted = {
+  ...captured,
+  id: '7d0c9d55-0000-4000-8000-000000000001',
+  name: 'My unlisted case',
+  spec: { ...captured.spec, name: 'My unlisted case' },
+  preset: false,
+  owner_id: null,
+  visibility: 'public',
+  listed: false,
+}
+
 let posts: { path: string; body: unknown }[] = []
 
 beforeEach(() => {
@@ -33,10 +47,12 @@ beforeEach(() => {
           return json(200, edited ? validateEdited : validateBaseline)
         }
         if (p === '/api/v1/simulations') return json(422, refused)
+        if (p === '/api/v1/scenarios') return json(201, unlisted)
       }
       if (p === '/api/v1/networks') return json(200, networks)
       if (p === '/api/v1/networks/scigrid-de') return json(200, scigrid)
       if (p === '/api/v1/scenarios') return json(200, scenarios)
+      if (p === `/api/v1/scenarios/${unlisted.id}`) return json(200, unlisted)
       if (p === '/api/v1/artifacts') return json(200, artifacts)
       // Asset pages for the pickers are not needed by these assertions; keep them pending.
       if (p.startsWith('/api/v1/networks/scigrid-de/assets')) return new Promise<Response>(() => {})
@@ -95,5 +111,21 @@ describe('Crisis Studio on a network without live execution', () => {
     const sim = posts.find((x) => x.path === '/api/v1/simulations')
     expect(sim?.body).toMatchObject({ scenario: { execution: { solver_options: { time_limit_s: 120 } } } })
     expect(screen.queryByText('run page')).not.toBeInTheDocument()
+  })
+})
+
+describe('Unlisted (anonymous) saved scenarios', () => {
+  it('opens a scenario that is not in the list by its id', async () => {
+    renderStudio(`/studio?preset=${unlisted.id}`)
+    await waitFor(() => expect(screen.getByTestId('scenario-name')).toHaveValue('My unlisted case'))
+    expect(screen.queryByText('My unlisted case', { selector: '[data-testid=preset-item] *' })).not.toBeInTheDocument()
+  })
+
+  it('tells the user a save is unlisted and links to it', async () => {
+    renderStudio('/studio?preset=scigrid-de-baseline')
+    fireEvent.click(await screen.findByTestId('save-scenario'))
+    const status = await screen.findByTestId('save-status')
+    expect(status).toHaveTextContent('Unlisted')
+    expect(within(status).getByTestId('saved-link')).toHaveAttribute('href', `/studio?preset=${unlisted.id}`)
   })
 })

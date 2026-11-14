@@ -1,10 +1,17 @@
 import type { BranchLoadingDelta, GridstormResult, Job } from '../../api/types'
 import { assetKey } from '../../components/map/features'
+import { labelFromFieldName } from '../../lib/format'
 import { branchLoadingAt } from '../runs/result'
 
 /** Jobs eligible as comparison inputs: completed, with a stored result. */
 export function comparableJobs(jobs: Job[]): Job[] {
   return jobs.filter((j) => j.status === 'completed' && j.network_id)
+}
+
+/** Metric table label "Name [unit]": the unit suffix is stripped from the field name, so it appears once. */
+export function metricLabel(metric: string, unit: string | null): string {
+  const name = labelFromFieldName(metric)
+  return unit ? `${name} [${unit}]` : name
 }
 
 /** Map values from the report's branch_loading rows (delta of max loading, percentage points). */

@@ -184,9 +184,10 @@ Infeasible scenarios return `outcome: infeasible` with empty series — never fa
 ## 5. Precomputed engine artifacts — `data/artifacts/<engine>/<artifact_id>.json`
 
 Every artifact (pandapower N-1, advisor runs, grid2op episodes, stormbench results, precomputed PyPSA
-results) is a JSON object with a top-level `artifact` header:
+results, distribution time series, stormrisk outage risk) is a JSON object with a top-level `artifact`
+header:
 ```jsonc
-{"artifact": {"schema_version": "gridstorm-artifact/1.0", "artifact_id": "...", "kind": "n_minus_1|advisor|episode|benchmark|simulation",
+{"artifact": {"schema_version": "gridstorm-artifact/1.0", "artifact_id": "...", "kind": "n_minus_1|advisor|episode|benchmark|simulation|timeseries|risk",
               "engine": "pandapower", "engine_version": "...", "network_id": "...", "created_at": "...",
               "command": "uv run python -m ...", "inputs": [{"path", "sha256"}], "platform": "...",
               "execution_mode": "precomputed", "payload_sha256": "..."},

@@ -21,7 +21,7 @@ HEADER_KEYS = {
     "execution_mode",
     "payload_sha256",
 }
-KINDS = {"n_minus_1", "advisor", "episode", "benchmark", "simulation"}
+KINDS = {"n_minus_1", "advisor", "episode", "benchmark", "simulation", "timeseries", "risk"}
 
 
 @pytest.fixture(scope="module")

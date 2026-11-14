@@ -533,6 +533,15 @@ def _co2(n: pypsa.Network, p: pd.DataFrame, real: list[str], w: np.ndarray):
     return float((p[real].mul(factor.fillna(0.0), axis=1).sum(axis=1).to_numpy() * w).sum())
 
 
+def objective_eur(n: pypsa.Network) -> float:
+    """Full LP objective: ``n.objective`` plus PyPSA's ``objective_constant``.
+
+    Single definition for ``solver.objective_eur`` and ``metrics.total_system_cost_eur``. The
+    constant (capital cost of existing extendable capacity) is 0 here because capacities are fixed.
+    """
+    return float(n.objective) + float(getattr(n, "objective_constant", 0.0) or 0.0)
+
+
 def _postprocess(n: pypsa.Network, scenario: Scenario, applied: _Applied) -> dict:
     snaps = n.snapshots
     w = n.snapshot_weightings.generators.reindex(snaps).to_numpy(dtype=float)
@@ -549,7 +558,7 @@ def _postprocess(n: pypsa.Network, scenario: Scenario, applied: _Applied) -> dic
     if shed:
         mc = n.generators.loc[shed, "marginal_cost"].astype(float)
         shed_cost = float((shed_mw.mul(mc, axis=1).sum(axis=1).to_numpy() * w).sum())
-    objective = float(n.objective) + float(getattr(n, "objective_constant", 0.0) or 0.0)
+    objective = objective_eur(n)
 
     su = n.storage_units
     if len(su):
@@ -824,7 +833,9 @@ def run_scenario(
             "version": _version("highspy"),
             "status": status if status in {"ok", "warning"} else "error",
             "termination_condition": condition,
-            "objective_eur": _num(n.objective, METRIC_DECIMALS) if outcome == "feasible" else None,
+            "objective_eur": _num(objective_eur(n), METRIC_DECIMALS)
+            if outcome == "feasible"
+            else None,
             "wall_time_s": round(wall, 3),
         },
         "outcome": outcome,

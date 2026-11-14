@@ -3,7 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import uuid
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from fastapi.testclient import TestClient
 
@@ -79,6 +79,23 @@ def test_identical_scenario_reuses_result(client):
     # opting out forces a fresh run
     fresh = run_job(client, scenario("reuse-me", demand=1.1), reuse=False)
     assert fresh["reused"] is False and fresh["status"] == "completed"
+
+
+def _assert_ordered_timestamps(job: dict) -> None:
+    created, started, finished = (
+        datetime.fromisoformat(job[k].replace("Z", "+00:00"))
+        for k in ("created_at", "started_at", "finished_at")
+    )
+    assert created <= started <= finished, job
+
+
+def test_reused_job_timestamps_are_ordered(client):
+    # VER-009: created_at came from the column default at flush time, i.e. after started_at
+    run_job(client, scenario("reuse-ts", demand=1.1))
+    r = client.post("/api/v1/simulations", json={"scenario": scenario("reuse-ts", demand=1.1)})
+    assert r.status_code == 202 and r.json()["reused"] is True
+    _assert_ordered_timestamps(r.json())
+    _assert_ordered_timestamps(client.get(f"/api/v1/simulations/{r.json()['id']}").json())
 
 
 def test_run_by_scenario_id(client):
@@ -250,6 +267,7 @@ def test_precomputed_mode(client_factory):
     r = client.post("/api/v1/simulations", json={"scenario": scenario("not-precomputed")})
     assert r.status_code == 409
     assert r.json()["error"]["code"] == "precomputed_result_unavailable"
+    _assert_ordered_timestamps(job)
 
 
 def test_workers_disabled_returns_503(client_factory):

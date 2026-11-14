@@ -2,12 +2,15 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import uuid
 
 import pytest
 
 from conftest import NETWORK_ID, auth, run_job, scenario
 from gridstorm_api.comparisons import branch_max_loading, compare_results, delta_row
+from gridstorm_api.config import REPO_ROOT
+from gridstorm_api.precomputed import ARTIFACT_KINDS, PrecomputedArtifacts
 
 ALICE = uuid.UUID("11111111-1111-4111-8111-111111111111")
 BOB = uuid.UUID("22222222-2222-4222-8222-222222222222")
@@ -177,3 +180,27 @@ def test_precomputed_artifact_index_and_documents(client):
     assert client.get("/api/v1/artifacts/pandapower/listed-but-missing").status_code == 404
     assert client.get("/api/v1/artifacts/pandapower/..%2Fsecrets").status_code == 404
     assert client.get("/api/v1/artifacts/nope/n1-tiny").status_code == 404
+    r = client.get("/api/v1/artifacts?kind=no-such-kind")
+    assert r.status_code == 422 and r.json()["error"]["code"]
+
+
+def test_artifact_kinds_match_contract_and_committed_data(tmp_path):
+    # VER-008: the API kind enum is the contract §5 list, and covers every committed artifact
+    text = (REPO_ROOT / "docs" / "architecture" / "contracts.md").read_text(encoding="utf-8")
+    contract = re.search(r'"kind": "([a-z0-9_|]+)"', text.split("## 5.")[1]).group(1).split("|")
+    assert ARTIFACT_KINDS == tuple(contract)
+    assert {"timeseries", "risk"} <= set(ARTIFACT_KINDS)
+
+    root = REPO_ROOT / "data" / "artifacts"
+    committed = []
+    for index in root.glob("*/index.json"):
+        raw = json.loads(index.read_text(encoding="utf-8"))
+        committed += raw.get("artifacts", []) if isinstance(raw, dict) else raw
+    assert committed and {e["kind"] for e in committed} <= set(ARTIFACT_KINDS)
+    assert len(PrecomputedArtifacts(root).index()) == len(committed)
+
+    # an entry with an unknown kind is skipped instead of breaking the index response
+    (tmp_path / "eng").mkdir()
+    entries = [{"artifact_id": "a", "kind": "bogus"}, {"artifact_id": "b", "kind": "risk"}]
+    (tmp_path / "eng" / "index.json").write_text(json.dumps(entries))
+    assert [i["artifact_id"] for i in PrecomputedArtifacts(tmp_path).index()] == ["b"]

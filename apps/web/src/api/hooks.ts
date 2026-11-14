@@ -19,6 +19,7 @@ export const qk = {
   network: (id: string) => ['network', id] as const,
   assets: (id: string, type: string) => ['assets', id, type] as const,
   scenarios: ['scenarios'] as const,
+  scenario: (id: string) => ['scenario', id] as const,
   jobs: ['jobs'] as const,
   job: (id: string) => ['job', id] as const,
   result: (id: string) => ['result', id] as const,
@@ -116,6 +117,15 @@ export function useNetworkAssets(networkId: string | null | undefined) {
 
 export function useScenarios() {
   return useQuery({ queryKey: qk.scenarios, queryFn: ({ signal }) => api.scenarios(signal), select: (p) => p.items })
+}
+
+/** One scenario by id: unlisted (anonymous) saves are not in useScenarios() but readable by id. */
+export function useScenario(id: string | null, enabled: boolean) {
+  return useQuery({
+    queryKey: qk.scenario(id ?? ''),
+    queryFn: ({ signal }) => api.scenario(id!, signal),
+    enabled: enabled && !!id,
+  })
 }
 
 export function useJobs(opts: { refetchInterval?: number } = {}) {

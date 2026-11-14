@@ -17,15 +17,15 @@ to as `$VT`); their full source is reproduced in the details where they are shor
 | VER-003 | S2 | packages/stormspec | No preset scenarios in `packages/stormspec/presets/`; own test `test_presets_parse_and_are_unique` fails | FIXED |
 | VER-004 | S2 | workers/pypsa | No test suite (`workers/pypsa/tests/` empty) although TODO P2-02 acceptance requires outage/demand/storage tests | FIXED |
 | VER-005 | S3 | workers/advisor | DC sensitivity failure silently yields zero candidates (no warning in the payload) | FIXED |
-| VER-006 | S4 | workers/pypsa | `generation_cost_eur` also contains link/storage marginal costs; `solver.objective_eur` omits `objective_constant` while `total_system_cost_eur` includes it | OPEN |
+| VER-006 | S4 | workers/pypsa | `generation_cost_eur` also contains link/storage marginal costs; `solver.objective_eur` omits `objective_constant` while `total_system_cost_eur` includes it | FIXED |
 | VER-007 | S2 | services/api (Render deploy) | Live API restarted while live jobs ran under the integration suite: 502s, dropped connections, job list wiped, one job requeued with `worker_restart` | OPEN |
-| VER-008 | S2 | data/artifacts, services/api | Artifact `kind` values `timeseries` (distribution) and `risk` (stormrisk) are outside the contract §5 enum | OPEN |
-| VER-009 | S4 | services/api | Reused/precomputed jobs report `created_at` later than `started_at`/`finished_at` | OPEN |
+| VER-008 | S2 | data/artifacts, services/api | Artifact `kind` values `timeseries` (distribution) and `risk` (stormrisk) are outside the contract §5 enum | FIXED |
+| VER-009 | S4 | services/api | Reused/precomputed jobs report `created_at` later than `started_at`/`finished_at` | FIXED |
 | VER-010 | S4 | render.yaml | Production CORS allow-list includes the dev origin `http://localhost:5173` | OPEN |
-| VER-011 | S4 | services/api (deploy) | API responses carry no `Strict-Transport-Security` / `X-Content-Type-Options` headers | OPEN |
-| VER-012 | S3 | apps/web | "Not a real-time control system" disclaimer is hidden below 1280 px wide (only `xl:inline` in the header) | OPEN |
-| VER-013 | S3 | services/api, apps/web | Anonymous `POST /api/v1/scenarios` saves are listed to every visitor in Crisis Studio (owner `null`); test/junk scenarios appear in the public list | OPEN |
-| VER-014 | S4 | apps/web | Compare table label shows the unit twice: "Unserved energy (MWh) [MWh]" | OPEN |
+| VER-011 | S4 | services/api (deploy) | API responses carry no `Strict-Transport-Security` / `X-Content-Type-Options` headers | FIXED |
+| VER-012 | S3 | apps/web | "Not a real-time control system" disclaimer is hidden below 1280 px wide (only `xl:inline` in the header) | FIXED |
+| VER-013 | S3 | services/api, apps/web | Anonymous `POST /api/v1/scenarios` saves are listed to every visitor in Crisis Studio (owner `null`); test/junk scenarios appear in the public list | FIXED |
+| VER-014 | S4 | apps/web | Compare table label shows the unit twice: "Unserved energy (MWh) [MWh]" | FIXED |
 
 ## Details
 
@@ -132,7 +132,7 @@ Fix verified (round 4): `advisor.py` writes `payload.candidate_generation = {sta
 warnings: [...]}`. `uv run pytest -q -k sensitivity_failure` (workers/advisor) → 1 passed
 (`test_sensitivity_failure_is_explicit` asserts `status == "unavailable"` and the warning text).
 
-### VER-006 — pypsa: cost labels (S4, OPEN)
+### VER-006 — pypsa: cost labels (S4, FIXED)
 
 `runner.py` `_postprocess`: `generation_cost_eur = objective - shed_cost`, which also includes
 link/storage marginal costs. `solver.objective_eur = n.objective`, while `total_system_cost_eur =
@@ -142,6 +142,19 @@ excluding load shedding" and use one objective definition.
 
 Round 4: unchanged. `runner.py:552` (`objective = n.objective + objective_constant`), `:608`
 (`generation_cost_eur = objective − shed_cost`), `:827` (`solver.objective_eur = n.objective`).
+
+Fix (round 5, local; not yet deployed): `runner.py::objective_eur(n)` (= `n.objective +
+objective_constant`) is now the single definition used for both `solver.objective_eur` and
+`metrics.total_system_cost_eur`. Committed artifact numbers are unchanged: in all 11
+`data/artifacts/pypsa/*.json`, `solver.objective_eur == metrics.total_system_cost_eur` already held
+(the constant is 0 because capacities are fixed), so nothing was regenerated. The field
+`generation_cost_eur` keeps its contract name (§4). Its meaning, objective − load-shedding cost
+including link/storage operating terms, is already documented in `docs/architecture/scientific-spec.md:49`
+and `docs/user-guide.md:218`. The Run page metric card now carries the hint "total system cost −
+load-shedding cost". Tests (workers/pypsa): `test_objective_includes_objective_constant` (stub
+network, 10 + 2.5 → 12.5; fails before because the helper did not exist) and
+`test_reproducible_objective_and_result_hash`, which now also asserts `solver.objective_eur ==
+metrics.total_system_cost_eur`.
 
 ### VER-007 — live API restarts during live jobs on Render free (S2, OPEN)
 
@@ -179,7 +192,7 @@ exceed Render's 512 MB, and the container is then killed before the worker's own
 fires. Owner action: read the Render service events/metrics for 21:54–21:56 UTC. If OOM is
 confirmed, lower `GRIDSTORM_JOB_MEMORY_MB` to fit inside 512 MB together with the API RSS.
 
-### VER-008 — artifact kinds outside the contract (S2, OPEN)
+### VER-008 — artifact kinds outside the contract (S2, FIXED)
 
 Contract §5 (`docs/architecture/contracts.md:189`) fixes
 `kind: n_minus_1|advisor|episode|benchmark|simulation`. The committed indexes and the live API use
@@ -193,7 +206,21 @@ curl -s "https://gridstorm-api.onrender.com/api/v1/artifacts?limit=100" | jq -c 
 `test_artifacts.py::test_index_entries` fails for this reason. Fix: either extend the contract enum
 (and the API docs), or map these artifacts to existing kinds.
 
-### VER-009 — reused job timestamps out of order (S4, OPEN)
+Fix (round 5, local; not yet deployed): contract §5 now lists
+`n_minus_1|advisor|episode|benchmark|simulation|timeseries|risk`. The API has one enum,
+`schemas.ArtifactKind`, used by three things. `PrecomputedArtifact.kind` takes it as the response
+type. `GET /api/v1/artifacts?kind=` uses it to validate the parameter, so an unknown kind now
+returns 422 where it used to return 200 with an empty list. `PrecomputedArtifacts` uses it through
+`ARTIFACT_KINDS` and skips index entries with an unknown kind, logging an error. The web
+`ArtifactKind` type was extended to match. Test:
+`services/api/tests/test_comparisons_artifacts.py::test_artifact_kinds_match_contract_and_committed_data`
+parses contract §5 and compares it with the API enum. It also checks that every committed
+`data/artifacts/*/index.json` kind is accepted and that all committed entries are served. Pre-fix
+it fails on import (no enum). `test_precomputed_artifact_index_and_documents` asserts the 422.
+Remaining: `tests/integration/test_artifacts.py` still hard-codes the old five-kind `KINDS` set.
+That file was outside this fix's scope and must add `timeseries` and `risk`.
+
+### VER-009 — reused job timestamps out of order (S4, FIXED)
 
 `services/api/src/gridstorm_api/jobs/service.py::_complete_from` (and `_complete_precomputed`) set
 `job.started_at = job.finished_at = utcnow()` before the INSERT flush. `created_at` comes from the
@@ -202,6 +229,13 @@ Live evidence: job `6cd6355c` has `created_at 21:58:44.946175Z`, `started_at = f
 21:58:44.945414Z`. The second run gave `22:03:49.007430Z` vs `22:03:49.007159Z`. Failing test:
 `test_simulations.py::test_job_lifecycle_and_result` (`finished_at >= created_at`). Fix: set
 `created_at` explicitly when the job object is created, or take `now` after the flush.
+
+Fix (round 5, local; not yet deployed): `jobs/service.py::_new_job` sets `created_at`,
+`updated_at` and the `queued` stage event from one explicit `utcnow()`. It no longer relies on the
+column default evaluated at flush time, so `created_at <= started_at <= finished_at` also holds for
+reused and precomputed completions. Tests: `services/api/tests/test_jobs.py::test_reused_job_timestamps_are_ordered`
+(new) and an added assertion in `test_precomputed_mode`. Both failed before the fix, e.g.
+`created_at …56.304774` > `started_at …56.303135`, and both pass after it.
 
 ### VER-010 — dev origin in production CORS (S4, OPEN)
 
@@ -212,13 +246,23 @@ Live evidence: job `6cd6355c` has `created_at 21:58:44.946175Z`, `started_at = f
 (`https://evil.example`, `https://gridstorm-evil.vercel.app`, `https://gridstorm.vercel.app.evil.com`,
 `null`) correctly receive no ACAO, and their preflight gets 400.
 
-### VER-011 — no transport-security headers on the API (S4, OPEN)
+### VER-011 — no transport-security headers on the API (S4, FIXED)
 
 `curl -s -D - -o /dev/null https://gridstorm-api.onrender.com/health` shows no
 `Strict-Transport-Security`, `X-Content-Type-Options`, or `X-Frame-Options`. The API serves only JSON, and
 Render/Cloudflare enforce HTTPS, so this is defence-in-depth only.
 
-### VER-012 — safety disclaimer hidden on narrower screens (S3, OPEN)
+Fix (round 5, local; not yet deployed): new `security_headers.py::SecurityHeadersMiddleware` is the
+outermost middleware. Every HTTP response, including errors and 413s, gets `X-Content-Type-Options:
+nosniff`, `Referrer-Policy: no-referrer` and `X-Frame-Options: DENY`.
+`Strict-Transport-Security: max-age=31536000; includeSubDomains` is added only for HTTPS
+requests: the ASGI scheme is `https`, or `GRIDSTORM_TRUST_PROXY=true` (set in the Dockerfile) and
+the first `X-Forwarded-Proto` hop is `https`. Test:
+`services/api/tests/test_networks.py::test_security_headers` covers plain HTTP, HTTPS, a spoofed
+`X-Forwarded-Proto` without trusted-proxy mode, and a trusted proxy. Pre-fix it fails with
+`KeyError: 'x-content-type-options'`.
+
+### VER-012 — safety disclaimer hidden on narrower screens (S3, FIXED)
 
 `apps/web/src/components/layout/AppLayout.tsx:111`:
 `<span className="hidden … xl:inline">Research tool · not a real-time control system</span>`.
@@ -229,7 +273,14 @@ real-time control system." paragraph. Common laptop widths (1024–1279 px) and 
 never see it on Explorer/Studio/Run/Compare. Fix: keep a short form visible at all breakpoints, for
 example in the mobile menu or a footer line.
 
-### VER-013 — anonymous saved scenarios are public (S3, OPEN)
+Fix (round 5, local; not yet deployed): the header span is gone. `AppLayout` now renders a one-line
+`<footer data-testid="safety-disclaimer">Research tool · not a real-time control system</footer>`
+below `<main>`, with no breakpoint classes, so it shows at every width and on every route. Test:
+`apps/web/src/components/layout/AppLayout.test.tsx` asserts that exactly one disclaimer exists and
+that neither it nor any ancestor has the Tailwind `hidden` class. Pre-fix it fails. No real-browser
+check at 390/1024 px has been run yet.
+
+### VER-013 — anonymous saved scenarios are public (S3, FIXED)
 
 With auth not configured (live), `POST /api/v1/scenarios` stores scenarios with `owner_id: null`, and
 `GET /api/v1/scenarios` returns them to everyone. Crisis Studio lists them next to the presets:
@@ -243,8 +294,24 @@ users can "read public data and run demo jobs"; it does not document public anon
 document this, or keep anonymous saves client-side, or hide `owner_id: null` non-presets from the list.
 The POST rate limit (20 burst, 60/min) bounds the spam rate.
 
-### VER-014 — duplicated unit in Compare (S4, OPEN)
+Fix (round 5, local; not yet deployed): `GET /api/v1/scenarios` now lists only presets plus the
+caller's own saves (`owner_id == caller`). Anonymous saves and other users' public saves are no
+longer listed. Public records stay readable via `GET /api/v1/scenarios/{id}`. `ScenarioRecord`
+gains `listed: bool`, which is `false` for anonymous saves. Crisis Studio opens `?preset=<id>` by
+id when the record is not in the list. After an unlisted save it says "Unlisted: … reopen it via
+this link". Tests: `services/api/tests/test_scenarios_auth.py::test_save_scenario_anonymous_is_unlisted`
+and `::test_public_saves_are_listed_to_their_owner_only` (both fail before the fix), and
+`apps/web/src/features/studio/StudioPage.test.tsx` › "Unlisted (anonymous) saved scenarios" (2 tests,
+both fail before the fix). `docs/architecture/backend.md:43` still says "anonymous saved records are
+public". They are still public by id, but no longer listed, and that doc was outside this fix's
+scope.
+
+### VER-014 — duplicated unit in Compare (S4, FIXED)
 
 `apps/web/src/features/compare/ComparePage.tsx:39` hard-codes the label `'Unserved energy (MWh)'`,
 and the table appends `[MWh]`. Live Compare (baseline `57a7acec` vs `fc6c5fef`) renders
 "Unserved energy (MWh) [MWh]". Every other row reads "Name [unit]".
+
+Fix (round 5, local; not yet deployed): the hard-coded label is gone. Rows use
+`compare.ts::metricLabel(metric, unit)`, which gives "Name [unit]" with the unit suffix stripped
+from the field name, e.g. "Unserved energy [MWh]". Test: `apps/web/src/features/compare/compare.test.ts`.

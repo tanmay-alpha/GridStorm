@@ -14,13 +14,15 @@ import logging
 import re
 import threading
 from pathlib import Path
-from typing import Any
+from typing import Any, get_args
 
 from .errors import NotFound
+from .schemas import ArtifactKind
 
 log = logging.getLogger("gridstorm_api.precomputed")
 
 _SAFE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,199}$")
+ARTIFACT_KINDS: tuple[str, ...] = get_args(ArtifactKind)
 
 
 def canonical_sha256(obj: Any) -> str:
@@ -66,6 +68,15 @@ class PrecomputedArtifacts:
             entries = raw.get("artifacts", []) if isinstance(raw, dict) else raw
             for entry in entries or []:
                 if not isinstance(entry, dict) or not _SAFE.match(str(entry.get("artifact_id"))):
+                    continue
+                if entry.get("kind") not in ARTIFACT_KINDS:
+                    log.error(
+                        "skipping %s/%s: kind %r is not a contract §5 artifact kind %s",
+                        engine_dir.name,
+                        entry["artifact_id"],
+                        entry.get("kind"),
+                        ARTIFACT_KINDS,
+                    )
                     continue
                 artifact_id = str(entry["artifact_id"])
                 path = engine_dir / f"{artifact_id}.json"

@@ -73,12 +73,20 @@ def test_request_validation_errors(client):
     assert r.status_code == 422
 
 
-def test_save_scenario_anonymous_is_public(client):
+def test_save_scenario_anonymous_is_unlisted(client):
     r = client.post("/api/v1/scenarios", json={"scenario": scenario("my-case", demand=1.1)})
     assert r.status_code == 201, r.text
     rec = r.json()
     assert rec["visibility"] == "public" and rec["owner_id"] is None and rec["preset"] is False
+    assert rec["listed"] is False
     assert client.get(f"/api/v1/scenarios/{rec['id']}").json()["hash"] == rec["hash"]
+    # VER-013: anonymous saves are never listed to other visitors (only presets are)
+    for params in ({}, {"preset": "false"}):
+        items = client.get("/api/v1/scenarios", params=params).json()["items"]
+        assert rec["id"] not in {s["id"] for s in items}
+        assert all(s["preset"] and s["listed"] for s in items)
+    alice = client.get("/api/v1/scenarios", headers=auth(ALICE)).json()["items"]
+    assert rec["id"] not in {s["id"] for s in alice}
     r = client.post("/api/v1/scenarios", json={"scenario": scenario(), "visibility": "private"})
     assert r.status_code == 422 and r.json()["error"]["code"] == "auth_required_for_private"
     bad = scenario(events=[{"type": "generator_outage", "asset_id": "missing"}])
@@ -107,6 +115,23 @@ def test_owner_isolation_for_private_scenarios(client):
     # Bob cannot run Alice's private scenario by id
     r = client.post("/api/v1/simulations", json={"scenario_id": sid}, headers=auth(BOB))
     assert r.status_code == 404
+
+
+def test_public_saves_are_listed_to_their_owner_only(client):
+    r = client.post(
+        "/api/v1/scenarios",
+        json={"scenario": scenario("alice-public"), "visibility": "public"},
+        headers=auth(ALICE),
+    )
+    rec = r.json()
+    assert r.status_code == 201 and rec["visibility"] == "public" and rec["listed"] is True
+
+    def listed(headers=None):
+        return {s["id"] for s in client.get("/api/v1/scenarios", headers=headers).json()["items"]}
+
+    assert rec["id"] in listed(auth(ALICE))
+    assert rec["id"] not in listed(auth(BOB)) and rec["id"] not in listed()
+    assert client.get(f"/api/v1/scenarios/{rec['id']}", headers=auth(BOB)).status_code == 200
 
 
 def test_jwt_validation(client):

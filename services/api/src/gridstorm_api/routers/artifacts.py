@@ -5,7 +5,7 @@ from typing import Annotated, Any
 from fastapi import APIRouter, Query, Response
 
 from ..deps import Ctx, Paging
-from ..schemas import ErrorResponse, Page, PrecomputedArtifact
+from ..schemas import ArtifactKind, ErrorResponse, Page, PrecomputedArtifact
 
 router = APIRouter(prefix="/api/v1/artifacts", tags=["artifacts"])
 
@@ -22,7 +22,7 @@ def list_artifacts(
     ctx: Ctx,
     page: Paging,
     engine: Annotated[str | None, Query()] = None,
-    kind: Annotated[str | None, Query()] = None,
+    kind: Annotated[ArtifactKind | None, Query()] = None,
     network_id: Annotated[str | None, Query()] = None,
 ) -> dict[str, Any]:
     items = [

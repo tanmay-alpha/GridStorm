@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router'
+import { Link, useNavigate, useSearchParams } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Play, Plus, RotateCcw, Save } from 'lucide-react'
 import { ApiError, api } from '../../api/client'
-import { qk, useArtifactIndex, useNetwork, useNetworkAssets, useNetworks, useScenarios } from '../../api/hooks'
+import { qk, useArtifactIndex, useNetwork, useNetworkAssets, useNetworks, useScenario, useScenarios } from '../../api/hooks'
 import { LIMITS, type EventType, type StormEvent, type StormSpec } from '../../api/stormspec'
 import type { ScenarioRecord, ValidationReport } from '../../api/types'
 import { NetworkSelect } from '../../components/network/NetworkSelect'
@@ -106,7 +106,10 @@ export default function StudioPage() {
 
   const presetId = params.get('preset')
   const records = useMemo(() => scenarios.data ?? [], [scenarios.data])
-  const presetRecord = presetId ? (records.find((r) => r.id === presetId) ?? null) : null
+  const listedRecord = presetId ? (records.find((r) => r.id === presetId) ?? null) : null
+  // Unlisted (anonymous) saves are not in the list but can be opened by id via ?preset=<id>.
+  const unlisted = useScenario(presetId, scenarios.isSuccess && !listedRecord)
+  const presetRecord = listedRecord ?? unlisted.data ?? null
   const netList = networks.data ?? []
   const requestedNet = params.get('network')
   const network = netList.find((n) => n.id === requestedNet) ?? netList[0] ?? null
@@ -539,6 +542,16 @@ export default function StudioPage() {
               {save.data && (
                 <p role="status" className="text-xs text-ok" data-testid="save-status">
                   Saved as <code className="font-mono">{save.data.id}</code> (hash {shortHash(save.data.hash)}).
+                  {save.data.listed === false && (
+                    <>
+                      {' '}
+                      Unlisted: it is not shown in the scenario list; reopen it via{' '}
+                      <Link to={`/studio?preset=${encodeURIComponent(save.data.id)}`} className="underline" data-testid="saved-link">
+                        this link
+                      </Link>
+                      .
+                    </>
+                  )}
                 </p>
               )}
             </div>
