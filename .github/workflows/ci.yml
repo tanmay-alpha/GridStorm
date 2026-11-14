@@ -1,0 +1,245 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  RUFF_VERSION: "0.14.0"
+  PYTEST_MARKERS: "not slow and not network and not docker"
+
+jobs:
+  discover:
+    name: discover python components
+    runs-on: ubuntu-latest
+    outputs:
+      components: ${{ steps.find.outputs.components }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: find
+        name: List uv projects with a lockfile
+        run: |
+          comps=$(for f in packages/*/uv.lock workers/*/uv.lock services/*/uv.lock pipelines/*/uv.lock tests/*/uv.lock; do
+            [ -f "$f" ] && dirname "$f"
+          done | jq -R . | jq -cs .)
+          echo "components=$comps" >> "$GITHUB_OUTPUT"
+          echo "Components: $comps"
+
+  python:
+    name: py · ${{ matrix.component }}
+    needs: discover
+    if: needs.discover.outputs.components != '[]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        component: ${{ fromJSON(needs.discover.outputs.components) }}
+    defaults:
+      run:
+        working-directory: ${{ matrix.component }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: ${{ matrix.component }}/uv.lock
+      - name: Sync locked environment
+        run: uv sync --locked --python 3.11
+      - name: Lint (ruff)
+        run: uvx "ruff@${RUFF_VERSION}" check --output-format github .
+      - name: Format check (ruff)
+        run: uvx "ruff@${RUFF_VERSION}" format --check .
+      - name: Tests (fast; slow/network/docker deselected)
+        run: |
+          set +e
+          uv run --no-sync pytest -q -m "$PYTEST_MARKERS"
+          rc=$?
+          if [ "$rc" -eq 5 ]; then
+            echo "::warning::${{ matrix.component }}: no tests collected"
+            exit 0
+          fi
+          exit "$rc"
+      - name: Dependency audit (report-only)
+        run: |
+          uv export --locked --no-dev --no-emit-project --no-hashes --format requirements-txt \
+            | grep -vE '^\s*-e |^\s*(\.|/)' > "$RUNNER_TEMP/req.txt"
+          uvx pip-audit@2.9.0 -r "$RUNNER_TEMP/req.txt" --disable-pip --no-deps \
+            || echo "::warning::pip-audit reported findings for ${{ matrix.component }}"
+
+  scripts:
+    name: repo scripts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uvx "ruff@${RUFF_VERSION}" check scripts
+      - run: uvx "ruff@${RUFF_VERSION}" format --check scripts
+      - name: compare_artifacts self-test
+        run: python3 scripts/selftest_compare_artifacts.py
+      - name: shellcheck
+        run: shellcheck scripts/*.sh
+
+  web:
+    name: web
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+        env:
+          VITE_API_BASE_URL: https://example.invalid
+      - name: npm audit (production deps, report-only)
+        run: npm audit --omit=dev --audit-level=high || echo "::warning::npm audit reported findings"
+
+  e2e:
+    name: web e2e (playwright)
+    needs: [web]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # Informational on PRs: a failing e2e run does not block merge.
+    continue-on-error: ${{ github.event_name == 'pull_request' }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: specs
+        name: Check for Playwright specs
+        run: |
+          if [ -n "$(find apps/web -path apps/web/node_modules -prune -o \( -name '*.spec.ts' -o -name '*.e2e.ts' \) -print | head -n1)" ] \
+             && ls apps/web/playwright.config.* >/dev/null 2>&1; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::No Playwright config/specs in apps/web yet; e2e skipped"
+          fi
+      - if: steps.specs.outputs.present == 'true'
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: services/api/uv.lock
+      - if: steps.specs.outputs.present == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - if: steps.specs.outputs.present == 'true'
+        name: Start API (uvicorn :8000)
+        working-directory: services/api
+        run: |
+          uv sync --locked --python 3.11
+          nohup uv run --no-sync uvicorn gridstorm_api.main:app --host 127.0.0.1 --port 8000 \
+            > "$RUNNER_TEMP/api.log" 2>&1 &
+          for _ in $(seq 1 60); do curl -fsS http://127.0.0.1:8000/health && exit 0; sleep 2; done
+          cat "$RUNNER_TEMP/api.log"; exit 1
+      - if: steps.specs.outputs.present == 'true'
+        name: Build web and run Playwright against vite preview
+        working-directory: apps/web
+        env:
+          VITE_API_BASE_URL: http://127.0.0.1:8000
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+          npm run build
+          nohup npm run preview > "$RUNNER_TEMP/preview.log" 2>&1 &
+          for _ in $(seq 1 30); do curl -fsS http://127.0.0.1:4173/ >/dev/null && break; sleep 1; done
+          npm run e2e
+      - if: failure() && steps.specs.outputs.present == 'true'
+        name: Server logs
+        run: cat "$RUNNER_TEMP/api.log" "$RUNNER_TEMP/preview.log" || true
+
+  api-container:
+    name: api container smoke + trivy
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+      - id: df
+        name: Check Dockerfile
+        run: |
+          if [ -f services/api/Dockerfile ]; then echo "present=true" >> "$GITHUB_OUTPUT";
+          else echo "present=false" >> "$GITHUB_OUTPUT"; echo "::warning::services/api/Dockerfile missing; container job skipped"; fi
+      - if: steps.df.outputs.present == 'true'
+        name: Build image
+        run: docker build -f services/api/Dockerfile -t gridstorm-api:ci .
+      - if: steps.df.outputs.present == 'true'
+        name: Start and probe
+        run: |
+          docker run -d --name api -p 8000:8000 -e PORT=8000 gridstorm-api:ci
+          ok=0
+          for _ in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:8000/health; then ok=1; break; fi
+            sleep 2
+          done
+          [ "$ok" = 1 ] || exit 1
+          echo
+          curl -fsS http://127.0.0.1:8000/health | jq -e '.status'
+          curl -sS -o "$RUNNER_TEMP/ready.json" -w '%{http_code}\n' http://127.0.0.1:8000/ready
+          jq . "$RUNNER_TEMP/ready.json"
+          curl -fsS http://127.0.0.1:8000/api/v1/networks | jq -e 'type == "object"' > /dev/null
+          curl -fsS http://127.0.0.1:8000/api/v1/networks | head -c 600; echo
+      - if: steps.df.outputs.present == 'true' && hashFiles('tests/integration/uv.lock') != ''
+        name: Set up uv
+        uses: astral-sh/setup-uv@v6
+      - if: steps.df.outputs.present == 'true' && hashFiles('tests/integration/uv.lock') != ''
+        name: Run tests/integration (informational; no DB in this container)
+        continue-on-error: true
+        working-directory: tests/integration
+        env:
+          GRIDSTORM_API_URL: http://127.0.0.1:8000
+        run: uv run --locked --python 3.11 pytest -q
+      - if: failure() && steps.df.outputs.present == 'true'
+        name: Container logs
+        run: docker logs api
+      - if: steps.df.outputs.present == 'true'
+        name: Trivy scan (report-only)
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          image-ref: gridstorm-api:ci
+          format: sarif
+          output: trivy.sarif
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: "0"
+      - if: steps.df.outputs.present == 'true' && github.event_name != 'pull_request'
+        name: Upload Trivy SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        continue-on-error: true
+        with:
+          sarif_file: trivy.sarif
+          category: trivy-api-image
+
+  secrets:
+    name: secret scan (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # Free for personal-account repositories; organisations need GITLEAKS_LICENSE.
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

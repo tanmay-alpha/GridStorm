@@ -1,0 +1,21 @@
+# Shared GridStorm ruff baseline. Applies to files not covered by a closer config
+# (e.g. scripts/). Components with their own [tool.ruff] in pyproject.toml use that
+# instead (ruff picks the nearest config); keep them aligned with this file.
+line-length = 100
+target-version = "py311"
+extend-exclude = [
+  "**/.venv",
+  "**/node_modules",
+  "data",
+  "benchmarks/**/results",
+  "pipelines/pypsa-eur",
+]
+
+[lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM"]
+
+[lint.per-file-ignores]
+"**/tests/**" = ["B011"]
+
+[format]
+quote-style = "double"

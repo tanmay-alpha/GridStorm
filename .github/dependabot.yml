@@ -1,0 +1,59 @@
+version: 2
+updates:
+  # Every uv project (pyproject.toml + uv.lock). Dependabot's "uv" ecosystem updates uv.lock.
+  # Listed explicitly (globs would also match manifest-less dirs such as pipelines/pypsa-eur);
+  # add new components here when they commit a uv.lock.
+  - package-ecosystem: uv
+    directories:
+      - /packages/canonical-grid
+      - /packages/stormbench
+      - /packages/stormml
+      - /packages/stormrisk
+      - /packages/stormspec
+      - /workers/advisor
+      - /workers/distribution
+      - /workers/grid2op
+      - /workers/pandapower
+      - /workers/pypsa
+      - /services/analytics
+      - /services/api
+      - /pipelines/network-import
+      - /pipelines/observed
+      - /tests/integration
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      python-minor-patch:
+        update-types: [minor, patch]
+    ignore:
+      # Scientific engines are pinned deliberately (results reproducibility); bump by hand.
+      - dependency-name: pypsa
+        update-types: [version-update:semver-major, version-update:semver-minor]
+      - dependency-name: pandapower
+        update-types: [version-update:semver-major, version-update:semver-minor]
+      - dependency-name: grid2op
+        update-types: [version-update:semver-major, version-update:semver-minor]
+      - dependency-name: linopy
+        update-types: [version-update:semver-major, version-update:semver-minor]
+      - dependency-name: highspy
+        update-types: [version-update:semver-major, version-update:semver-minor]
+
+  - package-ecosystem: npm
+    directory: /apps/web
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      web-minor-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+
+  - package-ecosystem: docker
+    directory: /services/api
+    schedule:
+      interval: monthly

@@ -1,0 +1,65 @@
+name: Scientific reproducibility
+
+on:
+  workflow_dispatch:
+    inputs:
+      engines:
+        description: "Space-separated engines (pypsa pandapower stormbench); empty = all"
+        required: false
+        default: ""
+      full_tests:
+        description: "Also run slow/network-marked tests in every component"
+        type: boolean
+        default: false
+  schedule:
+    - cron: "17 4 * * 1" # Mondays 04:17 UTC
+
+permissions:
+  contents: read
+
+jobs:
+  regenerate:
+    name: regenerate + compare reference artifacts
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: "**/uv.lock"
+      - name: Regenerate and compare
+        env:
+          ENGINES: ${{ inputs.engines }}
+        run: |
+          # shellcheck disable=SC2086 # word-splitting of the engine list is intended
+          bash scripts/regenerate_reference.sh "$RUNNER_TEMP/regen" $ENGINES
+      - name: Upload regenerated artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: regenerated-artifacts
+          path: ${{ runner.temp }}/regen
+          if-no-files-found: ignore
+          retention-days: 14
+
+  full-tests:
+    name: full test suite (incl. slow/network)
+    if: github.event_name == 'schedule' || inputs.full_tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: "**/uv.lock"
+      - name: Run every component's tests
+        run: bash scripts/test_all.sh --all
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-logs
+          path: .test-logs
+          retention-days: 14
