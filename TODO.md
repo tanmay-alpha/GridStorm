@@ -43,13 +43,14 @@ Last updated: 2026-11-14
 
 | ID | Task | Pri | Owner | Deps | Status | Acceptance criteria |
 |---|---|---|---|---|---|---|
-| P2-01 | StormSpec package (models, schema, hash, capabilities, validation, manifest) | P0 | B/ScienceCore | P0-03 | IMPLEMENTING | Schema exported; hash stable; unsupported ops rejected (tests) |
-| P2-02 | PyPSA adapter (`gridstorm_pypsa`) + CLI | P0 | B/ScienceCore | P2-01 | IMPLEMENTING | Balance residual < 1e-3 MW; outage/demand/storage tests pass |
-| P2-03 | Preset scenarios with real asset ids + precomputed artifacts | P0 | B/ScienceCore | P1-02, P2-02 | IMPLEMENTING | ≥ 4 presets solved; artifacts with manifests; peak RSS measured |
+| P2-01 | StormSpec package (models, schema, hash, capabilities, validation, manifest) | P0 | B/ScienceCore | P0-03 | VERIFIED | 30 tests pass (commit `96f3f3a`); JSON schema exported; unsupported ops rejected |
+| P2-02 | PyPSA adapter (`gridstorm_pypsa`) + CLI | P0 | B/ScienceCore | P2-01 | VERIFIED | 30 tests pass incl. balance residual, outage, demand scaling, storage SOC, infeasible, reproducibility |
+| P2-03 | Preset scenarios with real asset ids + precomputed artifacts | P0 | B/ScienceCore | P1-02, P2-02 | VERIFIED | 11 presets solved with HiGHS → `data/artifacts/pypsa/`; peak RSS: scigrid-de 541–550 MiB (> Render 512 MB → precomputed only), small networks 277–280 MiB |
+| P2-03b | Per-network live-execution policy (no live scigrid-de on 512 MB) | P0 | E/Backend + C/Frontend | P2-03 | IMPLEMENTING | Non-live networks serve labelled precomputed results or 422 `live_execution_unavailable`; UI explains; tests |
 | P2-04 | Simulation jobs: persistent queue, subprocess, timeout, cancel, recovery | P0 | E/Backend | P1-06, P2-02 | IMPLEMENTING | Lifecycle tests pass (success/fail/timeout/cancel/restart) |
 | P2-05 | Baseline vs crisis comparison + reports | P1 | E/Backend | P2-04 | IMPLEMENTING | Comparison math tests; MD/JSON report with manifests |
 | P2-06 | Crisis Studio + Simulation Dashboard UI | P0 | C/Frontend | P2-04 | IMPLEMENTING | Run preset end-to-end in browser; real stages; no % progress |
-| P2-07 | Scientific specification document | P1 | B/ScienceCore | P2-02 | IMPLEMENTING | `scientific-spec.md` with equations, units, citations |
+| P2-07 | Scientific specification document | P1 | B/ScienceCore | P2-02 | VERIFIED | `docs/architecture/scientific-spec.md` with equations, units, citations, measured memory limits |
 | P2-08 | StormRisk: Monte Carlo outage sampling → EENS ± CI, LOLP, convergence | P1 | B/StormRisk | P2-02 | IMPLEMENTING | Deterministic (seeded) study artifact; estimator tests vs hand-computed values |
 | P2-09 | Observed-analogue scenarios (OPSD load/wind/solar → StormSpec events on scigrid-de) | P2 | D/ObservedEvents | P1-02, P2-02 | IMPLEMENTING | ≥ 2 scenarios validate + solve; data license + checksums documented |
 | P2-10 | Distribution-grid AC time-series stress (SimBench LV/MV: heat wave, PV over-voltage, PV loss, mitigation) | P2 | B/SimBenchAC | — | IMPLEMENTING | ≥ 4 artifacts with per-step vm/loading; SimBench license verified; tests |
