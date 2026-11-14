@@ -82,7 +82,7 @@ Last updated: 2026-11-14
 | P5-02 | Grid2Viz audit (MPL-2.0) and KPI concepts | P2 | B/Sequential | — | VERIFIED | `docs/audit/grid2viz-audit.md` (SHA `b416eba4`); KPIs re-implemented, no MPL code copied |
 | P5-03 | StormBench PTDF/LODF screening vs DC/AC exact N-1 | P1 | B/StormBench | — | VERIFIED | 6 PGLib cases (14/30/57/118/300/1354-PEGASE); DC screening matches exact DC re-solve (max severity diff 2.4e-11 pp); metrics recomputed from per-contingency lists with 0 diffs; 17 tests; CI regeneration case14/30 matches at 1e-4 (commit `f91e96c`). Limits: AC ignores Q limits; full-case timings not re-measured |
 | P5-04 | Operations replay + Benchmarks + Contingency + Methods UI pages | P1 | C/FrontendResearch | P4-02, P5-01, P5-03 | VERIFIED | `research.spec.ts` (Playwright) checks values against the same `data/artifacts` files; parser tests check CI = EENS ± 1.96·SE, class counts sum, ordering |
-| P5-05 | ML contingency screening on simulator-derived labels vs DC-LODF/heuristic baselines | P3 | B/StormML | P5-03 | IMPLEMENTING | Operating-point and leave-one-network-out splits; bootstrap CIs; honest verdict vs baselines |
+| P5-05 | ML contingency screening on simulator-derived labels vs DC-LODF/heuristic baselines | P3 | B/StormML | P5-03 | VERIFIED | 24 664 labelled outages from 158 AC-OPF operating points; within-network GB PR-AUC 0.973 vs DC-LODF 0.765 (mostly voltage violations DC cannot see); held-out case300 no reliable gain; calibration doesn't transfer; 15 tests. Labels are simulator-generated |
 | P5-06 | User guide, engineering story, glossary, deployment docs | P1 | D/DocsWriter | all | VERIFIED | Commands/features checked against code (commit `130efd4`); Vercel URL to add |
 
 ## Phase 6 — Deployment and hardening
