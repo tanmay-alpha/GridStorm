@@ -20,6 +20,14 @@ def f(x, nd=4):
 def main() -> None:
     s = json.loads(RES.read_text(encoding="utf-8"))
     cases = s["cases"]
+    print("| case | recall@k (DC) | Kendall tau (DC) | Spearman (DC) |")
+    print("|---|---|---|---|")
+    for c in cases:
+        d = c["screening_vs_dc"]
+        print(
+            f"| {c['case']} | {f(d['recall_at_k'])} | {f(d['kendall_tau'])} | {f(d['spearman'])} |"
+        )
+    print()
     print("| case | buses | branches | RATE_A=0 | islanding | screened | operating point |")
     print("|---|---|---|---|---|---|---|")
     for c in cases:
