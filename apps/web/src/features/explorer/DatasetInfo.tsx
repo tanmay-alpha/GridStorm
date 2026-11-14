@@ -22,6 +22,9 @@ export function DatasetInfo({ summary, detail }: { summary: NetworkSummary; deta
         )}
       </div>
       {summary.description && <p className="text-xs text-fg-muted">{summary.description}</p>}
+      <details className="rounded-lg border border-line bg-surface-2/40 p-2 text-xs">
+        <summary className="cursor-pointer font-semibold text-fg">Technical details, attribution and quality flags ({flags.length})</summary>
+        <div className="mt-2 space-y-3">
       <KeyValue
         rows={[
           ['Source', src?.url ? <a className="text-accent underline" href={src.url} target="_blank" rel="noreferrer">{src.url}</a> : NO_VALUE],
@@ -58,6 +61,8 @@ export function DatasetInfo({ summary, detail }: { summary: NetworkSummary; deta
           </ul>
         </details>
       )}
+        </div>
+      </details>
     </div>
   )
 }
