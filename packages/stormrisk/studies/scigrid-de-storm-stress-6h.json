@@ -1,0 +1,114 @@
+{
+ "artifact_id": "stormrisk-scigrid-de-storm-stress-6h",
+ "title": "scigrid-de: Monte Carlo storm-stress EENS (modelled outage probabilities, reduced 6 h horizon, 350 samples)",
+ "base_scenario": {
+  "schema_version": "stormspec/1.0",
+  "id": "scigrid-de-mc-storm-stress-6h",
+  "name": "scigrid-de Monte Carlo storm-stress base (snapshots 0-5)",
+  "description": "Base scenario for a StormRisk Monte Carlo study on the PyPSA SciGRID-DE example (reduced 6-snapshot horizon). Load shedding at VOLL. Outages are sampled by StormRisk from the modelled distributions in 'sampling' (same RTS-96-derived classes as studies/scigrid-de-storm-stress.json). n_samples=350 was sized from a measured pilot: 8 single-threaded solves of this 6-snapshot horizon took 3.56-3.81 s each after a 7.13 s first solve, so 350 solves (all sampled states are distinct) fit a ~25 min single-threaded budget.",
+  "dataset": {
+   "network_id": "scigrid-de",
+   "sha256": null
+  },
+  "horizon": {
+   "start": 0,
+   "snapshots": 6
+  },
+  "events": [],
+  "mitigation": {
+   "storage_dispatch": true,
+   "curtailment": true,
+   "load_shedding": {
+    "enabled": true,
+    "voll_eur_per_mwh": 10000.0
+   }
+  },
+  "execution": {
+   "engine": "pypsa",
+   "formulation": "lopf",
+   "solver": "highs",
+   "solver_options": {
+    "time_limit_s": 300.0,
+    "threads": 1
+   },
+   "deterministic": true,
+   "seed": 0
+  },
+  "assumptions": [
+   "SciGRID-DE (PyPSA example, 2011 data) is a research model of the German transmission grid; results are not statements about the real German system."
+  ]
+ },
+ "sampling": {
+  "schema_version": "stormrisk-sampling/1.0",
+  "n_samples": 350,
+  "seed": 20261114,
+  "outage_classes": [
+   {
+    "name": "lines-storm",
+    "component": "line",
+    "unavailability": 0.01,
+    "carriers": null,
+    "asset_ids": null,
+    "provenance": "modeled",
+    "source": "MODELLED author-selected whole-horizon stress probability, not observed or calibrated. Context only: IEEE RTS-96 Table 12 (Grigg et al., The IEEE Reliability Test System-1996, IEEE Trans. Power Syst. 14(3):1010-1020, 1999; https://labs.ece.uw.edu/pstca/rts/rts96/Table-12.txt) lists branch outage rates 0.24-0.54 /yr and typical durations 10-16 h (some 35 h), giving stationary unavailability of order 1e-4 to 1e-3 via lambda*r/8760. q=0.01 is deliberately larger, an illustrative assumption, not a weather multiplier inferred from RTS-96."
+   },
+   {
+    "name": "transformers",
+    "component": "transformer",
+    "unavailability": 0.002,
+    "carriers": null,
+    "asset_ids": null,
+    "provenance": "modeled",
+    "source": "MODELLED assumption, not observed data: IEEE RTS-96 transformer branches (Grigg et al. 1999, Table 12: 0.02 outages/yr x 768 h) give q ~ 1.75e-3; rounded to 0.002 and not storm-scaled (substation equipment assumed less weather-exposed than overhead lines)."
+   },
+   {
+    "name": "nuclear",
+    "component": "generator",
+    "unavailability": 0.12,
+    "carriers": [
+     "Nuclear"
+    ],
+    "asset_ids": null,
+    "provenance": "modeled",
+    "source": "MODELLED assumption: IEEE RTS-96 generator reliability data (Grigg et al. 1999, Table 6), 400 MW nuclear unit forced outage rate 0.12. Not German fleet statistics."
+   },
+   {
+    "name": "coal",
+    "component": "generator",
+    "unavailability": 0.08,
+    "carriers": [
+     "Brown Coal",
+     "Hard Coal"
+    ],
+    "asset_ids": null,
+    "provenance": "modeled",
+    "source": "MODELLED assumption: IEEE RTS-96 (Grigg et al. 1999, Table 6), 350 MW coal/steam unit forced outage rate 0.08. Not German fleet statistics."
+   },
+   {
+    "name": "gas",
+    "component": "generator",
+    "unavailability": 0.05,
+    "carriers": [
+     "Gas"
+    ],
+    "asset_ids": null,
+    "provenance": "modeled",
+    "source": "MODELLED assumption: IEEE RTS-96 has no gas units; the 197 MW oil/steam forced outage rate 0.05 (Grigg et al. 1999, Table 6) is used as a proxy for mid-size thermal plant."
+   },
+   {
+    "name": "oil",
+    "component": "generator",
+    "unavailability": 0.1,
+    "carriers": [
+     "Oil"
+    ],
+    "asset_ids": null,
+    "provenance": "modeled",
+    "source": "MODELLED assumption: IEEE RTS-96 (Grigg et al. 1999, Table 6), 20 MW oil combustion turbine forced outage rate 0.10."
+   }
+  ],
+  "demand_multiplier": null,
+  "shed_tolerance_mwh": 0.001,
+  "max_outages_per_sample": 200
+ }
+}

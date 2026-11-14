@@ -117,10 +117,9 @@ The solve collapse avoided 835 redundant engine calls. Time is measured around s
 solving and estimation, excluding artifact writing; peak RSS is the main process high-water mark
 on Windows, Python 3.11.15.
 
-The optional SciGRID-DE run was not performed. The small-network study alone took 385.856 s
-(about 6.4 minutes) for 165 solves; SciGRID solve times were not measured, so the 100-sample
-reduced-horizon study was not assumed to fit the 15-minute study budget. Its input specification
-is committed for reproducible future execution; there is no SciGRID Monte Carlo result claim.
+A SciGRID-DE study was run separately with a 6-snapshot horizon and 350 samples; see
+[SciGRID-DE reduced-horizon study](#scigrid-de-reduced-horizon-study-measured) below. The
+100-sample, 4-hour spec `studies/scigrid-de-storm-stress.json` remains committed but unrun.
 
 ## Reproduction and checks
 
@@ -144,3 +143,57 @@ collisions, and explicit infeasible/error/invalid accounting. A real-engine one-
 power balance and the physically known 160/400 MWh supply-deficit energies with unequal snapshot
 weights; it then checks their empirical probability-weighted estimate. Published artifacts are
 checked independently from their stored state counts and energies, including the normal CI.
+
+## SciGRID-DE reduced-horizon study (measured)
+
+Artifact:
+[`stormrisk-scigrid-de-storm-stress-6h.json`](../../data/artifacts/stormrisk/stormrisk-scigrid-de-storm-stress-6h.json),
+spec `packages/stormrisk/studies/scigrid-de-storm-stress-6h.json`. It is the same
+**modelled** outage-class set as `studies/scigrid-de-storm-stress.json` (RTS-96-derived; see
+*Assumptions*; Grigg et al. 1999, Tables 6 and 12), with the horizon reduced to snapshots 0–5
+(6 h) and no demand-multiplier sampling. Seed `20261114`; VOLL 10 000 EUR/MWh; DC LOPF,
+HiGHS 1.16.0, PyPSA 1.4.0, one thread, one worker.
+
+| Class | Component | Matched assets | $q$ (modelled) |
+|---|---|---:|---:|
+| lines-storm | line | 852 | 0.01 |
+| transformers | transformer | 96 | 0.002 |
+| nuclear | generator (Nuclear) | 8 | 0.12 |
+| coal | generator (Brown/Hard Coal) | 94 | 0.08 |
+| gas | generator (Gas) | 155 | 0.05 |
+| oil | generator (Oil) | 28 | 0.10 |
+
+1,233 assets are sampled; the expected number of outages per sample is 27.742 (sampled: 15–46,
+mean 28.15), so every sample is a distinct state and no solve is saved by state collapse.
+
+**Sample-size choice (measured pilot).** Eight single-threaded solves of sampled 6-snapshot
+states took 7.13 s (first, including network load) and then 3.56–3.81 s each, with main-process
+RSS 356–412 MiB. A ~25-minute single-threaded budget therefore admits about 400 solves; $N=350$
+was chosen to leave margin.
+
+| Network / horizon | Samples | Distinct solves | EENS (MWh) | SE (MWh) | 95% CLT CI (MWh) | CV | LOLP | P95 unserved (MWh) | Wall time (s) | Peak RSS (MiB) |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| scigrid-de / 6 h | 350 | 350 | 400.675 | 34.5441 | [332.970, 468.381] | 0.0862 | 0.5343 (SE 0.0267) | 1,911.50 | 1,370.84 | 461.71 |
+
+All 350 samples were feasible (zero infeasible, error or invalid); 187 shed load
+($\widehat{\mathrm{LOLP}}=0.534$). Mean unserved energy given shedding is 749.927 MWh; the
+maximum sampled unserved energy is 3,065.5 MWh. Per-solve wall time was 3.49–7.74 s (mean
+3.92 s; solve time sum 1,370.43 s). The study's measured wall time is 1,370.84 s (22.8 min);
+the enclosing `uv run` command took 22 min 52 s. Peak RSS 461.71 MiB is the main-process
+high-water mark (Windows, Python 3.11.15); it exceeds the hosted API's 330 MB job budget, so this
+study is offline-only and is not runnable as a hosted job. The final convergence checkpoint
+(78 checkpoints) has a CI half-width of 67.7052 MWh (±16.9% of EENS).
+
+Leading descriptive co-occurrences: `468 Oil` (18.04% of sampled unserved energy, out in 49
+samples), `26_220kV Nuclear` (15.53%, 53), `465 Oil` (15.50%, 34). These overlapping shares are
+not causal attribution.
+
+Interpretation limits: with $q=0.01$ on all 852 lines (about 8.5 simultaneous line outages per
+sample), the high LOLP is a property of the author-selected stress assumption on a 2011 research
+dataset, not a statement about Germany's grid. The 6-hour horizon covers only the first hours of
+1 January 2011.
+
+```bash
+cd packages/stormrisk
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 uv run python scripts/run_study.py studies/scigrid-de-storm-stress-6h.json --workers 1
+```

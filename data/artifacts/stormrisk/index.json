@@ -9,6 +9,14 @@
    "title": "ac-dc-meshed: Monte Carlo storm-stress EENS (modelled outage probabilities, 10 h)",
    "path": "stormrisk-ac-dc-meshed-storm-stress.json",
    "payload_sha256": "048bc178eb633eb3641d78e85f3cf57b254e99e02a4d2b49a62a42025c021fc7"
+  },
+  {
+   "artifact_id": "stormrisk-scigrid-de-storm-stress-6h",
+   "kind": "risk",
+   "network_id": "scigrid-de",
+   "title": "scigrid-de: Monte Carlo storm-stress EENS (modelled outage probabilities, reduced 6 h horizon, 350 samples)",
+   "path": "stormrisk-scigrid-de-storm-stress-6h.json",
+   "payload_sha256": "4bab8df553ef6940a92fc44488d276b2a62007781f5a874a5392832e16858ca4"
   }
  ]
 }
