@@ -14,7 +14,7 @@ Open-source power-grid resilience and crisis-simulation research platform.
 
 ## What you can do
 
-1. **Explore a documented network.** There are four datasets, each with a checksummed manifest and licence: PyPSA `ac-dc-meshed`, SciGRID Germany `scigrid-de`, and PGLib-OPF IEEE 14- and 118-bus. Explore them on a MapLibre map, or on a labelled schematic layout where the data has no coordinates.
+1. **Explore a documented network.** There are five datasets, each with a checksummed manifest and licence: PyPSA `ac-dc-meshed`, SciGRID Germany `scigrid-de`, PGLib-OPF IEEE 14- and 118-bus, and a reduced PyPSA-Eur Belgium model (`pypsa-eur-be`, ODbL-1.0, with modelled CC-BY demand). Explore them on a MapLibre map, or on a labelled schematic layout where the data has no coordinates.
 2. **Build a crisis in Crisis Studio.** Crisis events are line, transformer, link or generator outages, demand multipliers and renewable availability shortfalls. Mitigation options are storage dispatch, curtailment and priced load shedding. The scenario is written as a typed StormSpec scenario: JSON-Schema validated and hashed. Operations an engine cannot represent are rejected, never silently approximated.
 3. **Run a real solve.** PyPSA linear optimal power flow solves the scenario with HiGHS in a subprocess with a timeout and an RSS memory watchdog. The job shows its real stages, with no fake percentages. Networks too large for the free instance (`scigrid-de`, about 550 MiB peak) return clearly labelled precomputed results instead.
 4. **Inspect results.** The run dashboard shows unserved energy (Σ shed·Δt), cost, curtailment, CO₂, line loading on the map with a replay slider, storage, and solver termination.
@@ -26,7 +26,7 @@ Open-source power-grid resilience and crisis-simulation research platform.
 | Component | What it does | Evidence |
 |---|---|---|
 | `packages/stormspec` | Typed crisis-scenario spec, hashing, engine capabilities, validation, manifests | [contracts](docs/architecture/contracts.md) |
-| `workers/pypsa` | StormSpec → PyPSA LOPF adapter, 11 solved presets | [scientific spec](docs/architecture/scientific-spec.md) |
+| `workers/pypsa` | StormSpec → PyPSA LOPF adapter, 12 solved presets | [scientific spec](docs/architecture/scientific-spec.md) |
 | `workers/pandapower` | AC power flow: 13 reference comparisons passed; N-1/N-2 with explicit outcome classes (secure, thermal overload, voltage violation, islanding, non-convergent, error) | [AC validation](docs/research/ac-validation.md) |
 | `workers/advisor` | Deterministic Crisis Response Advisor; candidates accepted only after AC re-solve | [advisor](docs/research/crisis-advisor.md) |
 | `packages/stormbench` | PTDF/LODF contingency screening vs exact DC/AC N-1 on 6 PGLib cases | [StormBench](docs/benchmarks/stormbench.md) |
@@ -34,8 +34,8 @@ Open-source power-grid resilience and crisis-simulation research platform.
 | `packages/stormrisk` | Monte Carlo outage sampling → EENS with 95 % CI, LOLP | [probabilistic stress](docs/research/probabilistic-stress.md) |
 | `workers/grid2op` | Sequential operation, 3 agents × 2 chronics, deterministic traces | [Grid2Op](docs/research/grid2op-integration.md) |
 | `workers/distribution` | SimBench LV AC time-series: PV over-voltage, curtailment, Q(U) | [SimBench](docs/research/simbench-distribution.md) |
-| `pipelines/observed` | OPSD-derived historical-analogue stress scenarios on SciGRID-DE | [observed analogues](docs/research/observed-analogue-scenarios.md) |
-| `pipelines/pypsa-eur` | Reproducible reduced PyPSA-Eur Belgium build (kept local pending licence decision) | [build report](docs/research/pypsa-eur-build.md) |
+| `pipelines/observed` | Historical-analogue stress scenarios on SciGRID-DE from the open ENTSO-E day-ahead load forecast (CC BY 4.0) | [observed analogues](docs/research/observed-analogue-scenarios.md) |
+| `pipelines/pypsa-eur` | Reproducible reduced PyPSA-Eur Belgium build, published with licence-compliant synthetic demand | [build report](docs/research/pypsa-eur-build.md) · [licensing](docs/research/pypsa-eur-be-licensing.md) |
 | `services/analytics` | PyPSA-Explorer analytics port (MIT, attributed) | [baseline audit](docs/audit/pypsa-explorer-baseline.md) |
 
 ## Architecture

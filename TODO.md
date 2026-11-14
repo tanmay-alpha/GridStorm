@@ -12,14 +12,13 @@ Last updated: 2026-11-15
 
 ## Progress dashboard
 
-**58 tracked tasks: 54 done (45 VERIFIED + 9 DEPLOYED) · 3 in progress · 1 blocked (≈ 93 %).**
+**58 tracked tasks: 57 done (46 VERIFIED + 11 DEPLOYED) · 0 in progress · 1 blocked on the owner (≈ 98 %).**
 
 | State | Count | Tasks |
 |---|---|---|
-| DEPLOYED (observed live) | 9 | API on Render, web on Vercel, live jobs, comparisons/reports, Studio + Run dashboard, line-loading replay, Explorer map, OOM fix, a11y/perf fixes |
-| VERIFIED (evidence recorded) | 45 | research, licensing, all science engines, data, CI, verification, security, a11y/perf audit, EENS wording |
-| IN PROGRESS | 3 | P0-10 + P2-09 observed-analogue licence remediation (ObservedFix) · P1-04b PyPSA-Eur BE licence evidence (EurLicence; publish decision needs the owner) |
-| BLOCKED (user action) | 1 | P6-02 Supabase: accept Vercel Marketplace terms |
+| DEPLOYED (observed live) | 11 | API on Render, web on Vercel, live jobs, comparisons/reports, Studio + Run dashboard, line-loading replay, Explorer map, OOM fix, a11y/perf fixes, audit defect fixes, PyPSA-Eur BE live |
+| VERIFIED (evidence recorded) | 46 | research, licensing (incl. ENTSO-E remediation), all science engines, data, CI, verification, security, a11y/perf audit, EENS wording |
+| BLOCKED (owner action) | 1 | P6-02 Supabase: accept Vercel Marketplace terms → then apply migrations and set `DATABASE_URL` on Render (runbook in `docs/deployment/backend.md`) |
 
 Live: https://gridstorm.vercel.app · https://gridstorm-api.onrender.com · CI green on `49ad242`.
 
@@ -46,8 +45,8 @@ Live: https://gridstorm.vercel.app · https://gridstorm-api.onrender.com · CI g
 | P1-01 | Public GitHub repo `tanmay-alpha/GridStorm` | P0 | I | P0-02 | VERIFIED | https://github.com/tanmay-alpha/GridStorm public; commit `ea921fc` pushed to `main` |
 | P1-02 | canonical-grid schemas + network importers (ac-dc-meshed, scigrid-de, PGLib case14/118) | P0 | D/DataPipelines | P0-03 | VERIFIED | 4 networks validated (0 errors); DC balance case14 259 MW / case118 4242 MW, zero mismatch; network-import 20 + canonical-grid 17 tests pass (commits `866d985`, `309e9f7`) |
 | P1-03 | Data catalog with provenance | P1 | D/DataPipelines | P1-02 | VERIFIED | `docs/research/data-catalog.md`; open caveat: original SciGRID release licence not recovered — PyPSA CC-BY grant + conservative ODbL obligations documented |
-| P1-04 | PyPSA-Eur reduced Belgium network | P2 | B/PypsaEurBuilder | — | VERIFIED (local) | Upstream build 58/58 rules in 912.6 s; 5 AC buses, 7 daily snapshots; validation 0 errors; HiGHS LOPF optimal 49 987 630.77 EUR, 2.05 s, 300 MiB; 7 tests. Not published: OPSD/ENTSO-E load + CORINE redistribution unresolved → files gitignored, not in catalog |
-| P1-04b | Publish PyPSA-Eur BE build legally | P2 | I/EurLicence → EurPublish | P1-04 | IMPLEMENTING | Evidence (`pypsa-eur-be-licensing.md`): OPSD/ENTSO-E 2013 load is all-rights-reserved → replace with CC-BY-4.0 synthetic demand (Zenodo 10820928), relicense ODbL-1.0 (OSM grid); validate + LOPF; then catalog + preset |
+| P1-04 | PyPSA-Eur reduced Belgium network | P2 | B/PypsaEurBuilder | — | VERIFIED | Upstream build 58/58 rules in 912.6 s; 5 AC buses, 7 daily snapshots; validation 0 errors |
+| P1-04b | Publish PyPSA-Eur BE build legally | P2 | I/EurLicence → EurPublish | P1-04 | DEPLOYED | ENTSO-E-derived load replaced by CC-BY-4.0 synthetic demand (Zenodo 10820928; 0/35 values equal old); ODbL-1.0 + attribution; LOPF optimal 49 392 841.28 EUR, peak 281 MiB → live-eligible. Live: `pypsa-eur-be-baseline` optimal 56 023 127.86 EUR = precomputed artifact (commit `63ae887`) |
 | P1-05 | PyPSA-Explorer analytics port (`gridstorm_analytics`) | P1 | B/ExplorerPort | P0-06 | VERIFIED | 45 tests pass (commit `daa6f3e`); known gap: legacy demo CAPEX/OPEX differs from stored objective by ~2.3 %, cause unestablished |
 | P1-06 | FastAPI API per contract §6 + OpenAPI | P0 | E/Backend | P0-03 | VERIFIED | 45 local tests pass, ruff clean; live `/api/v1/networks` lists 4 networks and `/api/v1/scenarios` lists 11 presets on Render |
 | P1-07 | Postgres schema, Supabase migrations, RLS | P0 | E/Backend | P1-06 | VERIFIED | Migrations + RLS apply on postgres:16 (3 docker tests; 12 tables RLS-on, 15 policies); psql runbook in `docs/deployment/backend.md`; not yet applied to Supabase (P6-02) |
