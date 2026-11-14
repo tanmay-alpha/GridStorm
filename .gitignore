@@ -1,0 +1,53 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Node
+node_modules/
+dist/
+.vite/
+playwright-report/
+test-results/
+blob-report/
+*.tsbuildinfo
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+!**/.env.example
+.vercel/
+
+# Runtime state
+var/
+*.sqlite
+*.sqlite3
+*.db
+artifacts-store/
+logs/
+*.log
+
+# Large / restricted data (keep curated small files only)
+data/raw/
+data/cache/
+*.zip
+*.tar.gz
+*.h5
+*.parquet.tmp
+
+# Research clones live outside the repo
+upstream/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
