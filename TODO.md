@@ -12,14 +12,13 @@ Last updated: 2026-11-15
 
 ## Progress dashboard
 
-**58 tracked tasks: 53 done (46 VERIFIED + 7 DEPLOYED) · 2 in progress · 2 now being worked by agents · 1 blocked (≈ 91 %).**
+**58 tracked tasks: 54 done (45 VERIFIED + 9 DEPLOYED) · 3 in progress · 1 blocked (≈ 93 %).**
 
 | State | Count | Tasks |
 |---|---|---|
-| DEPLOYED (observed live) | 7 | API on Render, web on Vercel, live jobs, comparisons/reports, Studio + Run dashboard, line-loading replay, Explorer map |
-| VERIFIED (evidence recorded) | 46 | research, licensing, all science engines, data, CI, verification, security, a11y/perf audit, EENS wording |
-| IN PROGRESS | 2 | P6-10 API OOM fix (fixed locally: 350.7 MB peak under 512 MB, deploy pending) · P6-12 a11y/perf fixes (UIFixer) |
-| BACKLOG → in progress | 2 | P0-10 ENTSO-E item re-check (EntsoeCheck) · P1-04b PyPSA-Eur BE licence evidence (EurLicence; final publish decision needs the owner) |
+| DEPLOYED (observed live) | 9 | API on Render, web on Vercel, live jobs, comparisons/reports, Studio + Run dashboard, line-loading replay, Explorer map, OOM fix, a11y/perf fixes |
+| VERIFIED (evidence recorded) | 45 | research, licensing, all science engines, data, CI, verification, security, a11y/perf audit, EENS wording |
+| IN PROGRESS | 3 | P0-10 + P2-09 observed-analogue licence remediation (ObservedFix) · P1-04b PyPSA-Eur BE licence evidence (EurLicence; publish decision needs the owner) |
 | BLOCKED (user action) | 1 | P6-02 Supabase: accept Vercel Marketplace terms |
 
 Live: https://gridstorm.vercel.app · https://gridstorm-api.onrender.com · CI green on `49ad242`.
@@ -37,7 +36,7 @@ Live: https://gridstorm.vercel.app · https://gridstorm-api.onrender.com · CI g
 | P0-07 | Research papers matrix (5 papers) | P1 | D/Research | — | VERIFIED | `research-papers.md`: 8-column matrix + per-paper LaTeX equations for PyPSA, PyPSA-Eur, L2RPN, DemandCast, X-GridAgent; 27 links; full arXiv PDFs read |
 | P0-08 | Tool decision matrix (PowerModels, PGLib, SimBench, ANDES, PyPSA-Earth, ORNL, GO) | P1 | D/Research | — | VERIFIED | `tool-decision-matrix.md`: PGLib data-only; ORNL/CoogGrid/NVIDIA/Grid2Game concepts-only; PowerModels/SimBench/ANDES/PyPSA-Earth/GOC3 deferred; GO Evaluation rejected (no licence) |
 | P0-09 | External data sources licensing (OPSD, ENTSO-E, ERA5, NASA POWER, GEM, OSM, CEA, EIA) | P1 | D/Research | — | VERIFIED | `external-data-sources.md`: 10 sources checked 2026-11-14 (ERA5 CC BY 4.0 since 2025-07-02; EIA needs key (HTTP 403); CEA needs permission; ENTSO-E free re-use list appears to exclude actual load/generation) |
-| P0-10 | Manually re-check ENTSO-E free re-use item numbers before any ingestion | P2 | D/ObservedEvents | P0-09 | BACKLOG | Each ENTSO-E-derived column used has a manifest licence entry matching the current re-use list, else only derived parameters are committed |
+| P0-10 | Manually re-check ENTSO-E free re-use item numbers before any ingestion | P2 | D/EntsoeCheck → ObservedFix | P0-09 | IMPLEMENTING | Checked 2026-11-15 (`docs/research/entsoe-reuse-check.md`): actual load (Art. 6.1.a) and actual generation (Art. 16) NOT on CC BY list; committed multipliers allowed reconstruction of 72 h DE load (≤ 2.4 MW). Remediation: use open day-ahead forecast (item #1), non-reversible renewable values, reconstruction test |
 | P0-11 | "EENS" label only for probability-weighted scenario sets | P1 | B/StormRisk + C/Frontend | P2-08 | VERIFIED | StormRisk artifacts use `metric: "EENS"` only for weighted estimates; Run/Compare pages say "Unserved energy"; Studio test + live run page checked |
 
 ## Phase 1 — Functional foundation
@@ -67,7 +66,7 @@ Live: https://gridstorm.vercel.app · https://gridstorm-api.onrender.com · CI g
 | P2-06 | Crisis Studio + Simulation Dashboard UI | P0 | C/Frontend | P2-04 | DEPLOYED | Live browser: preset run on gridstorm.vercel.app → real stage timestamps queued→done, HiGHS optimal 1.29 s, metrics + charts; no % progress. Fixed snapshot-label timezone bug (regression test, TZ pinned) |
 | P2-07 | Scientific specification document | P1 | B/ScienceCore | P2-02 | VERIFIED | `docs/architecture/scientific-spec.md` with equations, units, citations, measured memory limits |
 | P2-08 | StormRisk: Monte Carlo outage sampling → EENS ± CI, LOLP, convergence | P1 | B/StormRisk | P2-02 | VERIFIED | ac-dc-meshed, seed-fixed: 1000 samples / 165 distinct solves, 0 infeasible; EENS 145.21 MWh (SE 35.76, 95 % CI 75.11–215.30), LOLP 0.087; outage rates MODELLED from IEEE RTS-96; 38 tests; scigrid-de not run |
-| P2-09 | Observed-analogue scenarios (OPSD load/wind/solar → StormSpec events on scigrid-de) | P2 | D/ObservedEvents | P1-02, P2-02 | VERIFIED | 3 scenarios solved optimal; unserved energy baseline 0 / Dunkelflaute 3 237.1 / peak-load 5 647.7 / combined 20 499.7 MWh; residual ≤ 3.2e-7 MW; no raw ENTSO-E data committed; 25 tests (commit `4f944b5`) |
+| P2-09 | Observed-analogue scenarios (OPSD load/wind/solar → StormSpec events on scigrid-de) | P2 | D/ObservedEvents | P1-02, P2-02 | TESTING | Solves verified (commit `4f944b5`), but licence check found reconstructable non-open ENTSO-E data → being rebuilt from open items (P0-10) |
 | P2-10 | Distribution-grid AC time-series stress (SimBench LV/MV: heat wave, PV over-voltage, PV loss, mitigation) | P2 | B/SimBenchAC | — | VERIFIED | 9 studies, 672/672 steps converged; PV×1.5 → max 1.108 pu, 17 h over-voltage; 50 % cap → 8.25 h; Q(U) → 0 h but transformer up to 241 %; deterministic rerun; 10 tests; ruff clean |
 
 ## Phase 3 — Mapping and analytics
@@ -112,7 +111,7 @@ Live: https://gridstorm.vercel.app · https://gridstorm-api.onrender.com · CI g
 | P6-07 | Independent verification (components, science spot checks, API black-box, live browser audit) | P0 | F/Verifier | all | VERIFIED | `docs/audit/verification-report.md`: 12 components VERIFIED, live integration 176 passed / 2 failed (real defects) / 4 skipped; science recomputations match (unserved energy, balance, EENS CI, N-1 classes, Grid2Op hashes). Open defects VER-006…014 being fixed |
 | P6-08 | Security: secret scan, dependency audit (pip-audit, npm audit), container scan, authz tests | P1 | F/Verifier + E/CIDevOps | P6-01 | VERIFIED | gitleaks: 0 leaks (51 commits + bundles); CORS rejects foreign origins; 413 > 256 KiB; 10 path-traversal variants blocked; forged JWT 401; 429 + Retry-After. Prod CORS now excludes localhost (verified live). Job cap trial at 330 MB broke live jobs (memory_limit at loading_network) → reverted to 400 MB, live job `db70c183` optimal |
 | P6-09 | Fix audit defects VER-006, 008, 009, 011, 012, 013, 014 | P1 | E+C/DefectFixer | P6-07 | VERIFIED | Commit `e00d7d0`: API 52 tests, PyPSA 31, web 76 + build; each fix has a regression test that failed before; issues.md updated (live re-check pending deploy) |
-| P6-10 | Root-cause VER-007 (API restart under live jobs; suspected OOM on 512 MB) | P1 | E/MemoryProbe → MemoryFix | P6-03 | IMPLEMENTING | Root cause measured: API imports pypsa for analytics (API 379–409 MB) + solver peak 348 MB > 512 MB → kernel kills uvicorn (OOMKilled reproduced). Fix: precomputed analytics (no pypsa in API), solver oom_score_adj=1000, keep cap ≥ 384 MB; verify under --memory=512m |
+| P6-10 | Root-cause VER-007 (API restart under live jobs; suspected OOM on 512 MB) | P1 | E/MemoryProbe → MemoryFix | P6-03 | DEPLOYED | Cause: pypsa imported in API (379–409 MB) + solver 348 MB > 512 MB. Fix (`c190e80`): precomputed analytics, solver oom_score_adj=1000, SIGKILL → `memory_limit`. Docker 512 MB: peak 350.7 MB, no OOM. Live: analytics `execution_mode: precomputed`; case118 live job optimal |
 | P6-11 | Live accessibility (axe) + web performance (LCP/CLS, JS bytes, map load, API latency) | P2 | C/A11yPerf | P6-04 | VERIFIED | 0 critical axe violations; serious: contrast (#6b7686 at 4.1–4.2:1), TeX aria, link-in-text, target size; keyboard path to Run OK; LCP 0.46–1.1 s; /benchmarks CLS 0.33–0.52; run-page map crash 2/6 desktop loads |
-| P6-12 | Fix a11y/perf findings (run-page map race, 404 state, CLS, contrast, ARIA, caching headers) | P1 | C+E/UIFixer | P6-11 | IMPLEMENTING | Regression tests; gates green; docs "Fixes applied" sections |
+| P6-12 | Fix a11y/perf findings (run-page map race, 404 state, CLS, contrast, ARIA, caching headers) | P1 | C+E/UIFixer | P6-11 | DEPLOYED | Live: /runs 5/5 loads no crash; "Job not found" page + titles; /benchmarks CLS 0.0002 (was 0.33–0.52); summary view 2.7 KB vs 1.24 MB; ETag + 304, HSTS + nosniff. Local axe: 0 violations on 11 routes; web 93 tests, API 86 |
 | P2-11 | StormRisk Monte Carlo on scigrid-de (offline, reduced horizon) | P3 | B/RiskSciGrid | P2-08 | VERIFIED | 6 snapshots, 350 samples (all distinct, all feasible): EENS 400.68 MWh (SE 34.54, 95 % CI 332.97–468.38), LOLP 0.534; 22.8 min, peak 461.7 MiB → offline only; LOLP driven by modelled line rate 0.01 on 852 lines |
