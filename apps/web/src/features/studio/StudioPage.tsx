@@ -217,6 +217,9 @@ export default function StudioPage() {
   const liveNetworks = netList.filter((n) => n.live_execution).map((n) => n.id)
   const currentHash = presetRecord && !edited ? presetRecord.hash : (report?.scenario_hash ?? null)
   const precomputedMatch = currentHash && simArtifacts.data ? policy.precomputed.has(currentHash) : null
+  // Never offer a submit button for a scenario the deployment is guaranteed to reject.
+  const liveRunUnavailable = liveExecution === false && precomputedMatch !== true
+  const canRun = !blocked && report?.valid === true && !validating && !run.isPending && !liveRunUnavailable
   const netPresets = presets.filter((r) => (r.network_id ?? r.spec.dataset.network_id) === spec.dataset.network_id)
   const runnablePresets = netPresets.filter((r) => policy.precomputed.has(r.hash))
   const liveUnavailable =
@@ -489,11 +492,11 @@ export default function StudioPage() {
               <Button
                 variant="primary"
                 onClick={() => run.mutate(spec)}
-                disabled={blocked || run.isPending}
+                disabled={!canRun}
                 data-testid="run-scenario"
               >
                 <Play aria-hidden className="size-4" />
-                {run.isPending ? 'Submitting…' : 'Run simulation'}
+                {run.isPending ? 'Submitting…' : liveExecution === false ? 'Open verified result' : 'Run simulation'}
               </Button>
               <Button onClick={() => save.mutate(spec)} disabled={blocked || save.isPending} data-testid="save-scenario">
                 <Save aria-hidden className="size-4" />
@@ -517,9 +520,18 @@ export default function StudioPage() {
                   {precomputedMatch === true
                     ? 'This exact scenario matches a precomputed result; the server will return it (execution mode: precomputed).'
                     : precomputedMatch === false
-                      ? 'No precomputed result matches this scenario hash; the server is expected to refuse it (live solves disabled for this network).'
+                      ? 'This edited scenario cannot run here. Choose an existing verified preset or switch to a live-capable network.'
                       : 'Checking for a matching precomputed result…'}
                 </p>
+              )}
+              {liveExecution === false && precomputedMatch === false && !blocked && (
+                <div data-testid="unavailable-guidance" role="status" className="rounded-lg border border-warn/40 bg-warn-soft p-3 text-xs text-fg">
+                  <p className="font-semibold">This scenario is not available for execution on the hosted demo.</p>
+                  <p className="mt-1 text-fg-muted">Your edits are still valid to save. For an immediate result, use a verified preset from the list or start with a smaller network.</p>
+                  <Link className="mt-2 inline-flex font-semibold text-accent underline underline-offset-2" to="/studio?preset=pglib-case14-ieee-baseline">
+                    Try the runnable IEEE 14-bus example
+                  </Link>
+                </div>
               )}
               {liveUnavailable ? (
                 <div role="alert" className="rounded border border-warn/50 bg-warn-soft p-3 text-sm" data-testid="live-unavailable">
