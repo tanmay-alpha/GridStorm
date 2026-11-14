@@ -40,7 +40,35 @@ def test_files_match_manifest_and_size_limit(manifest: dict) -> None:
         assert entry["sha256"] == hashlib.sha256(data).hexdigest()
     assert entries["network.nc"]["bytes"] <= 10 * 1024 * 1024
     assert manifest["source"]["upstream_commit"] == "c8209014468dbb3bf43257f45d34abc6e3c8c898"
-    assert manifest["license"]["redistribution"] == "unknown"
+    assert manifest["license"]["spdx"] == "ODbL-1.0"
+    assert manifest["license"]["redistribution"] == "permitted"
+    assert "OpenStreetMap contributors" in manifest["license"]["attribution"]
+    assert "10.5281/zenodo.10820928" in manifest["license"]["attribution"]
+    assert "synthetic demand, not observed 2013 load" in manifest["quality_flags"]
+    steps = [t["step"] for t in manifest["transformations"]]
+    assert steps == ["build", "replace_load", "import"]
+
+
+def test_load_is_synthetic_replacement(net: pypsa.Network) -> None:
+    import xarray as xr
+
+    with xr.open_dataset(NETWORK) as ds:
+        attrs = dict(ds.attrs)
+    assert attrs["license"] == "ODbL-1.0"
+    replacement = json.loads(attrs["gridstorm_load_replacement"])
+    source = replacement["source"]
+    assert source["sha256"] == "1c96ff5a041abbb85d6d24f880455e13a931c5cbaf0e54e3f7fc0f7644b12bc0"
+    assert (source["license"], source["column"]) == ("CC-BY-4.0", "BE")
+    # National daily means of the synthetic BE series (replace_load.py report, 2026-11-15).
+    expected_mw = [11178.892, 10000.780, 9920.443, 10791.649, 10158.634, 9941.437, 10045.990]
+    total_mw = net.get_switchable_as_dense("Load", "p_set").sum(axis=1)
+    assert total_mw.to_numpy() == pytest.approx(expected_mw, abs=1e-3)
+    assert float((total_mw * net.snapshot_weightings.objective).sum()) == pytest.approx(
+        1_728_907.786, abs=1e-3
+    )
+    canonical = json.loads((DATASET / "canonical.json").read_text(encoding="utf-8"))
+    for field in ("p_peak_mw", "p_mean_mw", "energy_mwh"):
+        assert canonical["field_provenance"][f"loads.{field}"] == "modeled"
 
 
 def test_network_is_belgian_tutorial_scope(net: pypsa.Network) -> None:
@@ -57,8 +85,8 @@ def test_load_and_renewable_profiles_are_physical(net: pypsa.Network) -> None:
     load = net.get_switchable_as_dense("Load", "p_set")
     assert (load.values > 0).all()
     total_mw = load.sum(axis=1)
-    # Belgian average electricity demand is of order 9-12 GW.
-    assert total_mw.between(5_000, 16_000).all()
+    # Synthetic BE daily means span 9,920-11,179 MW over the week.
+    assert total_mw.between(9_900, 11_200).all()
     p_max_pu = net.get_switchable_as_dense("Generator", "p_max_pu")
     assert ((p_max_pu.values >= 0) & (p_max_pu.values <= 1 + 1e-9)).all()
 
@@ -83,4 +111,5 @@ def test_lopf_solves_optimally_with_nodal_balance() -> None:
     assert (report["status"], report["termination_condition"]) == ("ok", "optimal")
     assert report["snapshots"] == 7 and report["snapshot_weight_sum_h"] == 168
     assert report["balance_residual_max_mw"] < 1e-4
-    assert report["objective_eur"] > 0
+    # Measured 2026-11-15 in the core env (HiGHS 1.16.0, threads=1): 49,392,841.28 EUR.
+    assert report["objective_eur"] == pytest.approx(49_392_841.28, rel=1e-6)

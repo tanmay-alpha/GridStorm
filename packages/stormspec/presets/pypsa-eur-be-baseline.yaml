@@ -1,0 +1,23 @@
+schema_version: stormspec/1.0
+id: pypsa-eur-be-baseline
+name: PyPSA-Eur Belgium — baseline week
+description: >-
+  Reference dispatch of the PyPSA-Eur Belgium tutorial network (5 clustered 380 kV buses, 6 lines,
+  33 generators, battery/H2 storage) for 2013-03-01..07, 7 daily snapshots, no crisis events.
+  Load is the synthetic Interannual Electricity Demand Calculator series, not observed 2013 demand.
+  Capacities are the dataset nominal values (expansion disabled).
+dataset: {network_id: pypsa-eur-be, sha256: 7eaa427bd3437bb1c15e1135375f385cc72dd620bace9dfa8b82cfe0fc41f857}
+horizon: {start: 0, snapshots: 7}
+events: []
+mitigation:
+  storage_dispatch: true
+  curtailment: true
+  load_shedding: {enabled: true, voll_eur_per_mwh: 10000}
+execution:
+  engine: pypsa
+  formulation: lopf
+  solver: highs
+  solver_options: {time_limit_s: 300, threads: 1}
+  deterministic: true
+  seed: 0
+assumptions: []

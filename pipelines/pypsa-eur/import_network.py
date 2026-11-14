@@ -1,25 +1,28 @@
 """Import the reduced PyPSA-Eur Belgium tutorial network into ``data/networks/pypsa-eur-be/``.
 
-Input is the *unsolved* network produced by ``build.sh`` (``composed_2050.nc``: clustered,
-temporally averaged, all carriers attached, before ``solve_network``). The file is copied
-byte-for-byte (so its sha256 is traceable to the upstream build), loaded with the GridStorm
-PyPSA (1.4.x) to prove compatibility, converted with ``network_import.canonical.from_pypsa`` and
-described by a ``dataset-manifest/1.0``.
+Input is the output of ``replace_load.py``: the *unsolved* upstream ``composed_2050.nc``
+(clustered, temporally averaged, all carriers attached, before ``solve_network``) with
+``loads_t.p_set`` replaced by the CC-BY-4.0 synthetic demand series. Networks without the
+``gridstorm_load_replacement`` attribute (i.e. still carrying the ENTSO-E/OPSD load) are
+rejected. The file is copied byte-for-byte, loaded with the GridStorm PyPSA (1.4.x) to prove
+compatibility, converted with ``network_import.canonical.from_pypsa`` and described by a
+``dataset-manifest/1.0`` (ODbL-1.0).
 
 Run in the pipelines env::
 
     uv run --project pipelines/network-import python pipelines/pypsa-eur/import_network.py \
-        --network <build-out>/composed_2050.nc
+        --network <build-out>/composed_2050_synthetic_load.nc
 """
 
 from __future__ import annotations
 
 import argparse
+import json
 import shutil
-from datetime import UTC, datetime
 from pathlib import Path
 
 import pypsa
+import xarray as xr
 from canonical_grid import (
     Coverage,
     DatasetManifest,
@@ -32,9 +35,10 @@ from canonical_grid import (
 from network_import.canonical import from_pypsa
 from network_import.manifest import file_entries
 from network_import.paths import networks_dir, sha256_file, write_text
+from replace_load import ATTRIBUTION, LICENSE_SPDX, LICENSE_URL, REPLACEMENT_ATTR
 
 NETWORK_ID = "pypsa-eur-be"
-NAME = "PyPSA-Eur Belgium tutorial (5 clusters, 2013-03-01..08, 24 h)"
+NAME = "PyPSA-Eur Belgium tutorial (5 clusters, 2013-03-01..07, 24 h)"
 PYPSA_EUR_TAG = "v2026.09.0"
 PYPSA_EUR_SHA = "c8209014468dbb3bf43257f45d34abc6e3c8c898"
 PYPSA_EUR_RELEASE_DATE = "2026-09"
@@ -73,6 +77,10 @@ FIELD_PROVENANCE = {
     "carriers.color": "modeled",
     "carriers.co2_emissions_t_per_mwh": "modeled",
     "carriers.nice_name": "modeled",
+    # Load is the synthetic (temperature-regression model) series, not observed demand.
+    "loads.p_peak_mw": "modeled",
+    "loads.p_mean_mw": "modeled",
+    "loads.energy_mwh": "modeled",
 }
 
 ASSUMPTIONS = [
@@ -90,31 +98,32 @@ ASSUMPTIONS = [
 ]
 
 QUALITY_FLAGS = [
+    "synthetic demand, not observed 2013 load",
+    "Load is the Interannual Electricity Demand Calculator BE series (temperature-regression "
+    "model on ERA5 2013 weather, Zenodo 10820928) averaged to 24 h and split across buses with "
+    "the upstream JRC Energy Atlas keys; the upstream ENTSO-E/OPSD load was removed.",
     "Snapshots are 24 h averages; intra-day peaks are smoothed out.",
-    "Load time series for BE 2013 come from OPSD/ENTSO-E (licence 'unknown' in the PyPSA-Eur data "
-    "inventory); see license.redistribution.",
     "Capital-cost-bearing extendable components: a plain n.optimize() is a capacity-expansion "
     "LOPF, not a dispatch run.",
+    "NUTS 2021 (GISCO) boundaries shaped the clustering and potentials indirectly; their "
+    "download provisions exclude commercial use (no NUTS geometry is stored).",
+    "technology-data v0.15.0 cost assumptions: CC-BY-4.0 per the PyPSA-Eur data inventory, "
+    "GPL-3.0 on the Zenodo release record.",
 ]
 
 LICENSE = License(
-    spdx="ODbL-1.0 AND CC-BY-4.0 AND LicenseRef-Copernicus-Land AND LicenseRef-ENTSOE-OPSD-unknown",
-    url="https://pypsa-eur.readthedocs.io/en/latest/data_sources/",
-    attribution=(
-        "PyPSA-Eur contributors (code MIT, https://github.com/PyPSA/pypsa-eur); grid topology "
-        "© OpenStreetMap contributors (ODbL-1.0) via the PyPSA-Eur OSM prebuilt network; power "
-        "plants: powerplantmatching (CC-BY-4.0); costs: PyPSA technology-data (CC-BY-4.0); "
-        "weather: Copernicus Climate Change Service ERA5 (CC-BY-4.0); land cover: Copernicus "
-        "CORINE; protected areas: EEA Natura 2000 (CC-BY-4.0); electricity demand: Open Power "
-        "System Data time series / ENTSO-E."
-    ),
-    redistribution="unknown",
+    spdx=LICENSE_SPDX,
+    url=LICENSE_URL,
+    attribution=ATTRIBUTION,
+    redistribution="permitted",
 )
 
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--network", type=Path, required=True, help="composed_2050.nc from build.sh")
+    ap.add_argument(
+        "--network", type=Path, required=True, help="replace_load.py output (synthetic load)"
+    )
     ap.add_argument("--out", type=Path, default=networks_dir() / NETWORK_ID)
     args = ap.parse_args()
 
@@ -122,7 +131,12 @@ def main() -> None:
     size = src.stat().st_size
     if size > MAX_BYTES:
         raise SystemExit(f"{src} is {size} bytes > 10 MB contract limit")
-    built_at = datetime.fromtimestamp(src.stat().st_mtime, UTC).replace(microsecond=0)
+    with xr.open_dataset(src) as ds:
+        attrs = dict(ds.attrs)
+    if REPLACEMENT_ATTR not in attrs or attrs.get("license") != LICENSE_SPDX:
+        raise SystemExit(f"{src} was not produced by replace_load.py (ENTSO-E/OPSD load)")
+    replacement = json.loads(attrs[REPLACEMENT_ATTR])
+    source = replacement["source"]
 
     n = pypsa.Network(src)
     print(f"loaded with pypsa {pypsa.__version__}: {n}")
@@ -155,8 +169,12 @@ def main() -> None:
             publication_date=PYPSA_EUR_RELEASE_DATE,
             upstream_commit=PYPSA_EUR_SHA,
         ),
-        retrieved_at=built_at.isoformat(),
-        files=[FileEntry(**entry) for entry in file_entries(out)],
+        retrieved_at=replacement["input_network_mtime"],
+        files=[
+            FileEntry(**entry)
+            for entry in file_entries(out)
+            if entry["path"] in {"network.nc", "canonical.json"}
+        ],
         license=LICENSE,
         coverage=Coverage(
             geographic="Belgium (BE), 5 clustered transmission buses",
@@ -177,8 +195,8 @@ def main() -> None:
         },
         missing_value_policy=(
             "Values PyPSA-Eur does not provide are null in canonical.json; nothing is imputed by "
-            "GridStorm. Gaps in upstream load data were filled by PyPSA-Eur (interpolation, time "
-            "shift, synthetic supplement) before import."
+            "GridStorm. The synthetic BE load has no gaps in the 168 h window (checked by "
+            "replace_load.py)."
         ),
         quality_flags=QUALITY_FLAGS,
         transformations=[
@@ -190,6 +208,19 @@ def main() -> None:
                     "pipelines/pypsa-eur/build.sh: snakemake results/test-elec/networks/"
                     "solved_2050.nc with config/test/config.electricity.yaml; "
                     "resources/test-elec/networks/composed_2050.nc taken before solving."
+                ),
+            ),
+            Transformation(
+                step=replacement["step"],
+                tool=replacement["tool"],
+                version=f"synthetic demand sha256 {source['sha256']}",
+                description=(
+                    "Removed the upstream ENTSO-E Power Statistics/OPSD BE load (not "
+                    f"redistributable). {replacement['method']} Source: {source['url']} "
+                    f"(doi:{source['doi']}, {source['license']}, {source['bytes']} bytes). "
+                    f"Input composed_2050.nc sha256 {replacement['input_network_sha256']}; "
+                    "all other variables unchanged; ODbL-1.0 licence and attribution stored "
+                    "as NetCDF global attributes."
                 ),
             ),
             Transformation(

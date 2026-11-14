@@ -113,6 +113,28 @@
       "created_at": "2026-11-14T20:56:18.109Z"
     },
     {
+      "artifact_id": "pypsa-eur-be-baseline",
+      "kind": "simulation",
+      "network_id": "pypsa-eur-be",
+      "title": "PyPSA-Eur Belgium — baseline week",
+      "scenario_id": "pypsa-eur-be-baseline",
+      "scenario_hash": "24cf897ac454c1123917b7025c1415938051ed80bd3f9d3dd051dcc255acf242",
+      "outcome": "feasible",
+      "objective_eur": 56023127.857557,
+      "unserved_energy_mwh": 0.0,
+      "measurements": {
+        "run_scenario_wall_time_s": 4.108,
+        "solver_wall_time_s": 0.152,
+        "process_wall_time_s": 6.998,
+        "peak_rss_mb": 281.0,
+        "rss_method": "psutil peak_wset (Windows)",
+        "cpu": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+        "threads": 1
+      },
+      "payload_sha256": "db5538974359c25d7b8e990e1daca5e63ce40c4b18721529051f214431db542f",
+      "created_at": "2026-11-14T23:14:11.927Z"
+    },
+    {
       "artifact_id": "scigrid-de-baseline",
       "kind": "simulation",
       "network_id": "scigrid-de",

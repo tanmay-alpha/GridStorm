@@ -52,8 +52,3 @@ Thumbs.db
 .idea/
 .vscode/
 .test-logs/
-
-# PyPSA-Eur build output: redistribution status unknown (OPSD/ENTSO-E load, CORINE); kept local only
-data/networks/pypsa-eur-be/network.nc
-data/networks/pypsa-eur-be/canonical.json
-data/networks/pypsa-eur-be/manifest.json

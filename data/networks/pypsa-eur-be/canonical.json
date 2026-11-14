@@ -1,0 +1,858 @@
+{
+  "schema_version": "canonical-grid/1.0",
+  "network_id": "pypsa-eur-be",
+  "name": "PyPSA-Eur Belgium tutorial (5 clusters, 2013-03-01..07, 24 h)",
+  "coordinate_kind": "geographic",
+  "crs": "EPSG:4326",
+  "snapshots": {
+    "count": 7,
+    "start": "2013-03-01T00:00:00",
+    "end": "2013-03-07T00:00:00",
+    "resolution_h": 24.0
+  },
+  "buses": [
+    {
+      "id": "BE0 0AC",
+      "name": null,
+      "x": 4.846018665,
+      "y": 51.151622015,
+      "v_nom_kv": 380.0,
+      "carrier": "AC",
+      "country": "BE"
+    },
+    {
+      "id": "BE0 1AC",
+      "name": null,
+      "x": 4.72247706,
+      "y": 50.501549929999996,
+      "v_nom_kv": 380.0,
+      "carrier": "AC",
+      "country": "BE"
+    },
+    {
+      "id": "BE0 2AC",
+      "name": null,
+      "x": 4.266435446666667,
+      "y": 50.711058236666666,
+      "v_nom_kv": 380.0,
+      "carrier": "AC",
+      "country": "BE"
+    },
+    {
+      "id": "BE0 3AC",
+      "name": null,
+      "x": 5.6129933038095245,
+      "y": 50.472187514761906,
+      "v_nom_kv": 380.0,
+      "carrier": "AC",
+      "country": "BE"
+    },
+    {
+      "id": "BE0 4AC",
+      "name": null,
+      "x": 4.2951130257142855,
+      "y": 51.23445637857143,
+      "v_nom_kv": 380.0,
+      "carrier": "AC",
+      "country": "BE"
+    },
+    {
+      "id": "BE0 0AC H2",
+      "name": null,
+      "x": 4.846018665,
+      "y": 51.151622015,
+      "v_nom_kv": 1.0,
+      "carrier": "H2",
+      "country": "BE"
+    },
+    {
+      "id": "BE0 1AC H2",
+      "name": null,
+      "x": 4.72247706,
+      "y": 50.501549929999996,
+      "v_nom_kv": 1.0,
+      "carrier": "H2",
+      "country": "BE"
+    },
+    {
+      "id": "BE0 2AC H2",
+      "name": null,
+      "x": 4.266435446666667,
+      "y": 50.711058236666666,
+      "v_nom_kv": 1.0,
+      "carrier": "H2",
+      "country": "BE"
+    },
+    {
+      "id": "BE0 3AC H2",
+      "name": null,
+      "x": 5.6129933038095245,
+      "y": 50.472187514761906,
+      "v_nom_kv": 1.0,
+      "carrier": "H2",
+      "country": "BE"
+    },
+    {
+      "id": "BE0 4AC H2",
+      "name": null,
+      "x": 4.2951130257142855,
+      "y": 51.23445637857143,
+      "v_nom_kv": 1.0,
+      "carrier": "H2",
+      "country": "BE"
+    }
+  ],
+  "lines": [
+    {
+      "id": "0",
+      "bus0": "BE0 0AC",
+      "bus1": "BE0 3AC",
+      "v_nom_kv": 380.0,
+      "s_nom_mva": 3396.205223481055,
+      "x_ohm": 11.414149198917613,
+      "r_ohm": 1.391969414502148,
+      "length_km": 92.79796096680988,
+      "num_parallel": 2.0000000000000004,
+      "carrier": "AC"
+    },
+    {
+      "id": "1",
+      "bus0": "BE0 0AC",
+      "bus1": "BE0 3AC",
+      "v_nom_kv": 380.0,
+      "s_nom_mva": 3396.21,
+      "x_ohm": 11.41413314575839,
+      "r_ohm": 1.3919674567998037,
+      "length_km": 92.79796096680988,
+      "num_parallel": 2.000002812856486,
+      "carrier": "AC"
+    },
+    {
+      "id": "2",
+      "bus0": "BE0 0AC",
+      "bus1": "BE0 4AC",
+      "v_nom_kv": 380.0,
+      "s_nom_mva": 3396.205223481055,
+      "x_ohm": 4.855993223456859,
+      "r_ohm": 0.5921942955435194,
+      "length_km": 39.4796197029013,
+      "num_parallel": 2.0000000000000004,
+      "carrier": "AC"
+    },
+    {
+      "id": "3",
+      "bus0": "BE0 1AC",
+      "bus1": "BE0 2AC",
+      "v_nom_kv": 380.0,
+      "s_nom_mva": 3396.205223481055,
+      "x_ohm": 4.886713754828826,
+      "r_ohm": 0.5959407018083935,
+      "length_km": 39.729380120559576,
+      "num_parallel": 2.0000000000000004,
+      "carrier": "AC"
+    },
+    {
+      "id": "4",
+      "bus0": "BE0 1AC",
+      "bus1": "BE0 3AC",
+      "v_nom_kv": 380.0,
+      "s_nom_mva": 3396.205223481055,
+      "x_ohm": 7.759664313428725,
+      "r_ohm": 0.9463005260278932,
+      "length_km": 63.0867017351929,
+      "num_parallel": 2.0000000000000004,
+      "carrier": "AC"
+    },
+    {
+      "id": "5",
+      "bus0": "BE0 2AC",
+      "bus1": "BE0 4AC",
+      "v_nom_kv": 380.0,
+      "s_nom_mva": 3396.205223481055,
+      "x_ohm": 7.1627629370677175,
+      "r_ohm": 0.8735076752521607,
+      "length_km": 58.233845016810726,
+      "num_parallel": 2.0000000000000004,
+      "carrier": "AC"
+    }
+  ],
+  "transformers": [],
+  "links": [
+    {
+      "id": "BE0 0AC H2 Electrolysis",
+      "bus0": "BE0 0AC",
+      "bus1": "BE0 0AC H2",
+      "p_nom_mw": 0.0,
+      "efficiency": 0.6994,
+      "carrier": "H2 Electrolysis"
+    },
+    {
+      "id": "BE0 1AC H2 Electrolysis",
+      "bus0": "BE0 1AC",
+      "bus1": "BE0 1AC H2",
+      "p_nom_mw": 0.0,
+      "efficiency": 0.6994,
+      "carrier": "H2 Electrolysis"
+    },
+    {
+      "id": "BE0 2AC H2 Electrolysis",
+      "bus0": "BE0 2AC",
+      "bus1": "BE0 2AC H2",
+      "p_nom_mw": 0.0,
+      "efficiency": 0.6994,
+      "carrier": "H2 Electrolysis"
+    },
+    {
+      "id": "BE0 3AC H2 Electrolysis",
+      "bus0": "BE0 3AC",
+      "bus1": "BE0 3AC H2",
+      "p_nom_mw": 0.0,
+      "efficiency": 0.6994,
+      "carrier": "H2 Electrolysis"
+    },
+    {
+      "id": "BE0 4AC H2 Electrolysis",
+      "bus0": "BE0 4AC",
+      "bus1": "BE0 4AC H2",
+      "p_nom_mw": 0.0,
+      "efficiency": 0.6994,
+      "carrier": "H2 Electrolysis"
+    },
+    {
+      "id": "BE0 0AC H2 Fuel Cell",
+      "bus0": "BE0 0AC H2",
+      "bus1": "BE0 0AC",
+      "p_nom_mw": 0.0,
+      "efficiency": 0.5,
+      "carrier": "H2 Fuel Cell"
+    },
+    {
+      "id": "BE0 1AC H2 Fuel Cell",
+      "bus0": "BE0 1AC H2",
+      "bus1": "BE0 1AC",
+      "p_nom_mw": 0.0,
+      "efficiency": 0.5,
+      "carrier": "H2 Fuel Cell"
+    },
+    {
+      "id": "BE0 2AC H2 Fuel Cell",
+      "bus0": "BE0 2AC H2",
+      "bus1": "BE0 2AC",
+      "p_nom_mw": 0.0,
+      "efficiency": 0.5,
+      "carrier": "H2 Fuel Cell"
+    },
+    {
+      "id": "BE0 3AC H2 Fuel Cell",
+      "bus0": "BE0 3AC H2",
+      "bus1": "BE0 3AC",
+      "p_nom_mw": 0.0,
+      "efficiency": 0.5,
+      "carrier": "H2 Fuel Cell"
+    },
+    {
+      "id": "BE0 4AC H2 Fuel Cell",
+      "bus0": "BE0 4AC H2",
+      "bus1": "BE0 4AC",
+      "p_nom_mw": 0.0,
+      "efficiency": 0.5,
+      "carrier": "H2 Fuel Cell"
+    }
+  ],
+  "generators": [
+    {
+      "id": "BE0 0AC CCGT",
+      "bus": "BE0 0AC",
+      "carrier": "CCGT",
+      "p_nom_mw": 455.0,
+      "marginal_cost_eur_per_mwh": 43.27286666666667,
+      "p_nom_extendable": true,
+      "is_variable": false
+    },
+    {
+      "id": "BE0 1AC CCGT",
+      "bus": "BE0 1AC",
+      "carrier": "CCGT",
+      "p_nom_mw": 106.0,
+      "marginal_cost_eur_per_mwh": 43.27286666666667,
+      "p_nom_extendable": true,
+      "is_variable": false
+    },
+    {
+      "id": "BE0 2AC CCGT",
+      "bus": "BE0 2AC",
+      "carrier": "CCGT",
+      "p_nom_mw": 921.0,
+      "marginal_cost_eur_per_mwh": 43.27286666666667,
+      "p_nom_extendable": true,
+      "is_variable": false
+    },
+    {
+      "id": "BE0 2AC oil",
+      "bus": "BE0 2AC",
+      "carrier": "oil",
+      "p_nom_mw": 18.6,
+      "marginal_cost_eur_per_mwh": 124.76737142857142,
+      "p_nom_extendable": false,
+      "is_variable": false
+    },
+    {
+      "id": "BE0 2AC waste",
+      "bus": "BE0 2AC",
+      "carrier": "waste",
+      "p_nom_mw": 45.0,
+      "marginal_cost_eur_per_mwh": 34.1135,
+      "p_nom_extendable": false,
+      "is_variable": false
+    },
+    {
+      "id": "BE0 3AC CCGT",
+      "bus": "BE0 3AC",
+      "carrier": "CCGT",
+      "p_nom_mw": 2436.0,
+      "marginal_cost_eur_per_mwh": 43.27286666666667,
+      "p_nom_extendable": true,
+      "is_variable": false
+    },
+    {
+      "id": "BE0 3AC biomass",
+      "bus": "BE0 3AC",
+      "carrier": "biomass",
+      "p_nom_mw": 68.0,
+      "marginal_cost_eur_per_mwh": 19.979914529914527,
+      "p_nom_extendable": false,
+      "is_variable": false
+    },
+    {
+      "id": "BE0 3AC nuclear",
+      "bus": "BE0 3AC",
+      "carrier": "nuclear",
+      "p_nom_mw": 2098.0,
+      "marginal_cost_eur_per_mwh": 27.322803680981593,
+      "p_nom_extendable": true,
+      "is_variable": false
+    },
+    {
+      "id": "BE0 3AC oil",
+      "bus": "BE0 3AC",
+      "carrier": "oil",
+      "p_nom_mw": 18.6,
+      "marginal_cost_eur_per_mwh": 124.76737142857142,
+      "p_nom_extendable": false,
+      "is_variable": false
+    },
+    {
+      "id": "BE0 3AC waste",
+      "bus": "BE0 3AC",
+      "carrier": "waste",
+      "p_nom_mw": 62.0,
+      "marginal_cost_eur_per_mwh": 34.1135,
+      "p_nom_extendable": false,
+      "is_variable": false
+    },
+    {
+      "id": "BE0 4AC CCGT",
+      "bus": "BE0 4AC",
+      "carrier": "CCGT",
+      "p_nom_mw": 2716.2,
+      "marginal_cost_eur_per_mwh": 43.27286666666668,
+      "p_nom_extendable": true,
+      "is_variable": false
+    },
+    {
+      "id": "BE0 4AC biomass",
+      "bus": "BE0 4AC",
+      "carrier": "biomass",
+      "p_nom_mw": 45.0,
+      "marginal_cost_eur_per_mwh": 19.979914529914527,
+      "p_nom_extendable": false,
+      "is_variable": false
+    },
+    {
+      "id": "BE0 4AC nuclear",
+      "bus": "BE0 4AC",
+      "carrier": "nuclear",
+      "p_nom_mw": 1998.0,
+      "marginal_cost_eur_per_mwh": 27.322803680981593,
+      "p_nom_extendable": true,
+      "is_variable": false
+    },
+    {
+      "id": "BE0 4AC oil",
+      "bus": "BE0 4AC",
+      "carrier": "oil",
+      "p_nom_mw": 93.0,
+      "marginal_cost_eur_per_mwh": 124.76737142857144,
+      "p_nom_extendable": false,
+      "is_variable": false
+    },
+    {
+      "id": "BE0 4AC waste",
+      "bus": "BE0 4AC",
+      "carrier": "waste",
+      "p_nom_mw": 186.8,
+      "marginal_cost_eur_per_mwh": 34.1135,
+      "p_nom_extendable": false,
+      "is_variable": false
+    },
+    {
+      "id": "BE0 0AC 0 onwind",
+      "bus": "BE0 0AC",
+      "carrier": "onwind",
+      "p_nom_mw": 244.0,
+      "marginal_cost_eur_per_mwh": 0.015,
+      "p_nom_extendable": true,
+      "is_variable": true
+    },
+    {
+      "id": "BE0 1AC 0 onwind",
+      "bus": "BE0 1AC",
+      "carrier": "onwind",
+      "p_nom_mw": 199.0,
+      "marginal_cost_eur_per_mwh": 0.015,
+      "p_nom_extendable": true,
+      "is_variable": true
+    },
+    {
+      "id": "BE0 2AC 0 onwind",
+      "bus": "BE0 2AC",
+      "carrier": "onwind",
+      "p_nom_mw": 239.0,
+      "marginal_cost_eur_per_mwh": 0.015,
+      "p_nom_extendable": true,
+      "is_variable": true
+    },
+    {
+      "id": "BE0 3AC 0 onwind",
+      "bus": "BE0 3AC",
+      "carrier": "onwind",
+      "p_nom_mw": 455.0,
+      "marginal_cost_eur_per_mwh": 0.015,
+      "p_nom_extendable": true,
+      "is_variable": true
+    },
+    {
+      "id": "BE0 4AC 0 onwind",
+      "bus": "BE0 4AC",
+      "carrier": "onwind",
+      "p_nom_mw": 587.0,
+      "marginal_cost_eur_per_mwh": 0.015,
+      "p_nom_extendable": true,
+      "is_variable": true
+    },
+    {
+      "id": "BE0 0AC 0 solar-hsat",
+      "bus": "BE0 0AC",
+      "carrier": "solar-hsat",
+      "p_nom_mw": 0.0,
+      "marginal_cost_eur_per_mwh": 0.01,
+      "p_nom_extendable": true,
+      "is_variable": true
+    },
+    {
+      "id": "BE0 1AC 0 solar-hsat",
+      "bus": "BE0 1AC",
+      "carrier": "solar-hsat",
+      "p_nom_mw": 0.0,
+      "marginal_cost_eur_per_mwh": 0.01,
+      "p_nom_extendable": true,
+      "is_variable": true
+    },
+    {
+      "id": "BE0 2AC 0 solar-hsat",
+      "bus": "BE0 2AC",
+      "carrier": "solar-hsat",
+      "p_nom_mw": 0.0,
+      "marginal_cost_eur_per_mwh": 0.01,
+      "p_nom_extendable": true,
+      "is_variable": true
+    },
+    {
+      "id": "BE0 3AC 0 solar-hsat",
+      "bus": "BE0 3AC",
+      "carrier": "solar-hsat",
+      "p_nom_mw": 0.0,
+      "marginal_cost_eur_per_mwh": 0.01,
+      "p_nom_extendable": true,
+      "is_variable": true
+    },
+    {
+      "id": "BE0 4AC 0 solar-hsat",
+      "bus": "BE0 4AC",
+      "carrier": "solar-hsat",
+      "p_nom_mw": 0.0,
+      "marginal_cost_eur_per_mwh": 0.01,
+      "p_nom_extendable": true,
+      "is_variable": true
+    },
+    {
+      "id": "BE0 4AC 0 offwind-ac",
+      "bus": "BE0 4AC",
+      "carrier": "offwind-ac",
+      "p_nom_mw": 2752.2,
+      "marginal_cost_eur_per_mwh": 0.015,
+      "p_nom_extendable": true,
+      "is_variable": true
+    },
+    {
+      "id": "BE0 0AC 0 solar",
+      "bus": "BE0 0AC",
+      "carrier": "solar",
+      "p_nom_mw": 57.699999999999996,
+      "marginal_cost_eur_per_mwh": 0.01,
+      "p_nom_extendable": true,
+      "is_variable": true
+    },
+    {
+      "id": "BE0 1AC 0 solar",
+      "bus": "BE0 1AC",
+      "carrier": "solar",
+      "p_nom_mw": 86.6,
+      "marginal_cost_eur_per_mwh": 0.01,
+      "p_nom_extendable": true,
+      "is_variable": true
+    },
+    {
+      "id": "BE0 2AC 0 solar",
+      "bus": "BE0 2AC",
+      "carrier": "solar",
+      "p_nom_mw": 126.4,
+      "marginal_cost_eur_per_mwh": 0.01,
+      "p_nom_extendable": true,
+      "is_variable": true
+    },
+    {
+      "id": "BE0 3AC 0 solar",
+      "bus": "BE0 3AC",
+      "carrier": "solar",
+      "p_nom_mw": 128.7,
+      "marginal_cost_eur_per_mwh": 0.01,
+      "p_nom_extendable": true,
+      "is_variable": true
+    },
+    {
+      "id": "BE0 4AC 0 solar",
+      "bus": "BE0 4AC",
+      "carrier": "solar",
+      "p_nom_mw": 538.2,
+      "marginal_cost_eur_per_mwh": 0.01,
+      "p_nom_extendable": true,
+      "is_variable": true
+    },
+    {
+      "id": "BE0 4AC 0 offwind-dc",
+      "bus": "BE0 4AC",
+      "carrier": "offwind-dc",
+      "p_nom_mw": 0.0,
+      "marginal_cost_eur_per_mwh": 0.015,
+      "p_nom_extendable": true,
+      "is_variable": true
+    },
+    {
+      "id": "BE0 4AC 0 offwind-float",
+      "bus": "BE0 4AC",
+      "carrier": "offwind-float",
+      "p_nom_mw": 0.0,
+      "marginal_cost_eur_per_mwh": 0.015,
+      "p_nom_extendable": true,
+      "is_variable": true
+    }
+  ],
+  "loads": [
+    {
+      "id": "BE0 0AC",
+      "bus": "BE0 0AC",
+      "p_peak_mw": 1621.713050029421,
+      "p_mean_mw": 1492.924400173823,
+      "energy_mwh": 250811.29922920227
+    },
+    {
+      "id": "BE0 1AC",
+      "bus": "BE0 1AC",
+      "p_peak_mw": 866.8521005741957,
+      "p_mean_mw": 798.0108763789447,
+      "energy_mwh": 134065.8272316627
+    },
+    {
+      "id": "BE0 2AC",
+      "bus": "BE0 2AC",
+      "p_peak_mw": 1878.9732113170576,
+      "p_mean_mw": 1729.7541968952576,
+      "energy_mwh": 290598.7050784033
+    },
+    {
+      "id": "BE0 3AC",
+      "bus": "BE0 3AC",
+      "p_peak_mw": 1601.189931359269,
+      "p_mean_mw": 1474.0311288705075,
+      "energy_mwh": 247637.22965024522
+    },
+    {
+      "id": "BE0 4AC",
+      "bus": "BE0 4AC",
+      "p_peak_mw": 5210.163277507207,
+      "p_mean_mw": 4796.397171336206,
+      "energy_mwh": 805794.7247844825
+    }
+  ],
+  "storage_units": [
+    {
+      "id": "BE0 0AC battery",
+      "bus": "BE0 0AC",
+      "carrier": "battery",
+      "p_nom_mw": 0.0,
+      "max_hours": 6.0,
+      "efficiency_store": 0.9797958971132712,
+      "efficiency_dispatch": 0.9797958971132712
+    },
+    {
+      "id": "BE0 1AC battery",
+      "bus": "BE0 1AC",
+      "carrier": "battery",
+      "p_nom_mw": 0.0,
+      "max_hours": 6.0,
+      "efficiency_store": 0.9797958971132712,
+      "efficiency_dispatch": 0.9797958971132712
+    },
+    {
+      "id": "BE0 2AC battery",
+      "bus": "BE0 2AC",
+      "carrier": "battery",
+      "p_nom_mw": 0.0,
+      "max_hours": 6.0,
+      "efficiency_store": 0.9797958971132712,
+      "efficiency_dispatch": 0.9797958971132712
+    },
+    {
+      "id": "BE0 3AC battery",
+      "bus": "BE0 3AC",
+      "carrier": "battery",
+      "p_nom_mw": 0.0,
+      "max_hours": 6.0,
+      "efficiency_store": 0.9797958971132712,
+      "efficiency_dispatch": 0.9797958971132712
+    },
+    {
+      "id": "BE0 4AC battery",
+      "bus": "BE0 4AC",
+      "carrier": "battery",
+      "p_nom_mw": 0.0,
+      "max_hours": 6.0,
+      "efficiency_store": 0.9797958971132712,
+      "efficiency_dispatch": 0.9797958971132712
+    }
+  ],
+  "stores": [
+    {
+      "id": "BE0 0AC H2",
+      "bus": "BE0 0AC H2",
+      "carrier": "H2",
+      "e_nom_mwh": 0.0
+    },
+    {
+      "id": "BE0 1AC H2",
+      "bus": "BE0 1AC H2",
+      "carrier": "H2",
+      "e_nom_mwh": 0.0
+    },
+    {
+      "id": "BE0 2AC H2",
+      "bus": "BE0 2AC H2",
+      "carrier": "H2",
+      "e_nom_mwh": 0.0
+    },
+    {
+      "id": "BE0 3AC H2",
+      "bus": "BE0 3AC H2",
+      "carrier": "H2",
+      "e_nom_mwh": 0.0
+    },
+    {
+      "id": "BE0 4AC H2",
+      "bus": "BE0 4AC H2",
+      "carrier": "H2",
+      "e_nom_mwh": 0.0
+    }
+  ],
+  "carriers": [
+    {
+      "id": "DC",
+      "color": "#8a1caf",
+      "co2_emissions_t_per_mwh": 0.0,
+      "nice_name": "DC"
+    },
+    {
+      "id": "AC",
+      "color": "#70af1d",
+      "co2_emissions_t_per_mwh": 0.0,
+      "nice_name": "AC"
+    },
+    {
+      "id": "biomass",
+      "color": "#baa741",
+      "co2_emissions_t_per_mwh": 0.0,
+      "nice_name": "biomass"
+    },
+    {
+      "id": "waste",
+      "color": "#e3d37d",
+      "co2_emissions_t_per_mwh": 0.2571,
+      "nice_name": "waste"
+    },
+    {
+      "id": "oil",
+      "color": "#c9c9c9",
+      "co2_emissions_t_per_mwh": 0.2571,
+      "nice_name": "oil"
+    },
+    {
+      "id": "nuclear",
+      "color": "#ff8c00",
+      "co2_emissions_t_per_mwh": 0.0,
+      "nice_name": "nuclear"
+    },
+    {
+      "id": "CCGT",
+      "color": "#a85522",
+      "co2_emissions_t_per_mwh": 0.198,
+      "nice_name": "Combined-Cycle Gas"
+    },
+    {
+      "id": "onwind",
+      "color": "#235ebc",
+      "co2_emissions_t_per_mwh": 0.0,
+      "nice_name": "Onshore Wind"
+    },
+    {
+      "id": "solar-hsat",
+      "color": "#fdb915",
+      "co2_emissions_t_per_mwh": 0.0,
+      "nice_name": "solar-hsat"
+    },
+    {
+      "id": "offwind-ac",
+      "color": "#6895dd",
+      "co2_emissions_t_per_mwh": 0.0,
+      "nice_name": "Offshore Wind (AC)"
+    },
+    {
+      "id": "solar",
+      "color": "#f9d002",
+      "co2_emissions_t_per_mwh": 0.0,
+      "nice_name": "Solar"
+    },
+    {
+      "id": "offwind-dc",
+      "color": "#74c6f2",
+      "co2_emissions_t_per_mwh": 0.0,
+      "nice_name": "Offshore Wind (DC)"
+    },
+    {
+      "id": "offwind-float",
+      "color": "#b5e2fa",
+      "co2_emissions_t_per_mwh": 0.0,
+      "nice_name": "Offshore Wind (Floating)"
+    },
+    {
+      "id": "battery",
+      "color": "#ace37f",
+      "co2_emissions_t_per_mwh": 0.0,
+      "nice_name": "Battery Storage"
+    },
+    {
+      "id": "H2",
+      "color": "#bf13a0",
+      "co2_emissions_t_per_mwh": 0.0,
+      "nice_name": "Hydrogen Storage"
+    },
+    {
+      "id": "H2 Electrolysis",
+      "color": "#ff29d9",
+      "co2_emissions_t_per_mwh": 0.0,
+      "nice_name": "H2 Electrolysis"
+    },
+    {
+      "id": "H2 Fuel Cell",
+      "color": "#c251ae",
+      "co2_emissions_t_per_mwh": 0.0,
+      "nice_name": "H2 Fuel Cell"
+    },
+    {
+      "id": "electricity",
+      "color": "#110d63",
+      "co2_emissions_t_per_mwh": 0.0,
+      "nice_name": "electricity"
+    }
+  ],
+  "summary": {
+    "counts": {
+      "buses": 10,
+      "lines": 6,
+      "transformers": 0,
+      "links": 10,
+      "generators": 33,
+      "loads": 5,
+      "storage_units": 5,
+      "stores": 5,
+      "carriers": 18
+    },
+    "capacity_by_carrier_mw": {
+      "CCGT": 6634.2,
+      "battery": 0.0,
+      "biomass": 113.0,
+      "nuclear": 4096.0,
+      "offwind-ac": 2752.2,
+      "offwind-dc": 0.0,
+      "offwind-float": 0.0,
+      "oil": 130.2,
+      "onwind": 1724.0,
+      "solar": 937.6,
+      "solar-hsat": 0.0,
+      "waste": 293.8
+    },
+    "peak_load_mw": 11178.89157078715,
+    "total_load_mwh": 1728907.7859739964
+  },
+  "field_provenance": {
+    "buses.carrier": "modeled",
+    "buses.country": "observed",
+    "buses.v_nom_kv": "modeled",
+    "buses.x": "calculated",
+    "buses.y": "calculated",
+    "carriers.co2_emissions_t_per_mwh": "modeled",
+    "carriers.color": "modeled",
+    "carriers.nice_name": "modeled",
+    "generators.carrier": "observed",
+    "generators.is_variable": "calculated",
+    "generators.marginal_cost_eur_per_mwh": "modeled",
+    "generators.p_nom_extendable": "modeled",
+    "generators.p_nom_mw": "estimated",
+    "lines.carrier": "modeled",
+    "lines.length_km": "calculated",
+    "lines.num_parallel": "modeled",
+    "lines.r_ohm": "modeled",
+    "lines.s_nom_mva": "modeled",
+    "lines.v_nom_kv": "calculated",
+    "lines.x_ohm": "modeled",
+    "links.carrier": "modeled",
+    "links.efficiency": "modeled",
+    "links.p_nom_mw": "modeled",
+    "loads.energy_mwh": "modeled",
+    "loads.p_mean_mw": "modeled",
+    "loads.p_peak_mw": "modeled",
+    "storage_units.carrier": "observed",
+    "storage_units.efficiency_dispatch": "modeled",
+    "storage_units.efficiency_store": "modeled",
+    "storage_units.max_hours": "modeled",
+    "storage_units.p_nom_mw": "estimated",
+    "stores.carrier": "modeled",
+    "stores.e_nom_mwh": "modeled"
+  },
+  "assumptions": [
+    "Built with the upstream PyPSA-Eur tutorial configuration config/test/config.electricity.yaml (v2026.09.0, c8209014468d) without changes: BE only, 5 clusters, snapshots 2013-03-01..2013-03-08 averaged to 24 h, renewable profiles from the pre-built ERA5 cutout be-03-2013-era5.",
+    "network.nc is the composed network before solve_network: extendable generators, storage, H2 store/links and lines (transmission_limit vopt) carry capital costs; a plain n.optimize() therefore solves capacity expansion, not fixed-capacity dispatch.",
+    "Line ratings include dynamic line rating (max_line_rating 1.3) as time-varying s_max_pu; canonical s_nom_mva is the static nominal rating.",
+    "Buses are k-means clusters of the OSM-derived transmission grid; coordinates are cluster representative points, not individual substations.",
+    "summary.capacity_by_carrier_mw sums p_nom of active generators and storage units by carrier; summary.peak_load_mw is the coincident peak of total load p_set."
+  ]
+}

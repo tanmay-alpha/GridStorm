@@ -201,3 +201,30 @@ Local (pinned clone `D:/New folder (4)/upstream/pypsa-eur` @ `c8209014`, build v
   - `build-pypsa-eur/build6.log` (24 retrieved URLs) and `build-pypsa-eur/out/snakemake.log` (rule inputs);
   - volume: `logs/test-elec/build_transmission_projects.log`, `resources/test-elec/transmission_projects/new_lines.csv`, `resources/test-elec/electricity_demand.csv` vs the OPSD raw `BE` column (168 h, diff 0.0), the ENTSO-E raw year counts (2015+), and the synthetic `load_synthetic_raw.csv` BE 2013-03-01 rows;
   - `composed_2050.nc` read back: component lists, line `1` = TYNDP2020_77, nuclear `p_max_pu` 0.781, `loads_t.p_set`, empty `n.shapes`.
+
+## 6. Outcome (2026-11-15)
+
+The remedy in the verdict was applied. The dataset is published under ODbL-1.0.
+
+- **Load replaced.** `pipelines/pypsa-eur/replace_load.py` takes upstream `composed_2050.nc` (sha256
+  `0648933a…2b36`) and `demand_hourly.csv` (Zenodo 10820928, CC-BY-4.0, 464,620,414 bytes, sha256
+  `1c96ff5a041abbb85d6d24f880455e13a931c5cbaf0e54e3f7fc0f7644b12bc0`; md5 matches the Zenodo API).
+  - It writes the 24 h means of the BE column × the upstream JRC Energy Atlas shares. The shares are
+    time-invariant to 4.0e-10.
+  - Only `loads_t_p_set` changes. Its checks: 0 of 35 values equal the OPSD-derived values, and none is
+    within 1 MW. Max |diff| is 266.58 MW. Correlation is 0.702 for the national daily series and 0.998
+    for per-bus values (shared shares).
+  - Daily totals match the synthetic daily means to 1.8e-12 MW. Weighted energy is 1,728,907.786 MWh, the
+    same as the 168 h synthetic sum.
+- **Published file:** `data/networks/pypsa-eur-be/network.nc`, 310,377 bytes, sha256
+  `7eaa427bd3437bb1c15e1135375f385cc72dd620bace9dfa8b82cfe0fc41f857`.
+  - The NetCDF global attributes carry `license` ODbL-1.0, `license_url`, the §4 `attribution` block and
+    the replacement provenance (§4.2.b).
+  - Manifest: `license.spdx` `ODbL-1.0`, `redistribution: permitted`, the same attribution and loads
+    `modeled`. Quality flags: "synthetic demand, not observed 2013 load", the NUTS non-commercial clause
+    and the technology-data licence mismatch. Transformations: `build`, `replace_load`, `import`.
+- **Method offer (§4.6.b):** `pipelines/pypsa-eur/` (build, replace, import scripts).
+- **Regenerated numbers:** peak 11,178.9 MW and LOPF objective 49,392,841.28 EUR (HiGHS, `optimal`), in
+  [pypsa-eur-build.md](pypsa-eur-build.md). The `pypsa-eur-be` dataset is listed in
+  `data/networks/catalog.json` and has a baseline preset/artifact. Its `.gitignore` entries were removed.
+- **Open caveats (non-blocking):** unchanged from §3.4.

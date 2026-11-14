@@ -1,0 +1,80 @@
+{
+  "schema_version": "dataset-manifest/1.0",
+  "network_id": "pypsa-eur-be",
+  "name": "PyPSA-Eur Belgium tutorial (5 clusters, 2013-03-01..07, 24 h)",
+  "description": "Reduced PyPSA-Eur electricity-only model of Belgium built from the upstream tutorial configuration: OSM-based transmission grid clustered to 5 buses, conventional and renewable generators, battery/H2 storage, one week of March 2013 at daily resolution.",
+  "source": {
+    "url": "https://github.com/PyPSA/pypsa-eur",
+    "version": "v2026.09.0",
+    "publication_date": "2026-09",
+    "upstream_commit": "c8209014468dbb3bf43257f45d34abc6e3c8c898"
+  },
+  "retrieved_at": "2026-11-14T21:26:02+00:00",
+  "files": [
+    {
+      "path": "canonical.json",
+      "sha256": "751a50281380d4b924b063dd7199c6d98e5655de62b3be0d71506b12afa3b6f2",
+      "bytes": 21495
+    },
+    {
+      "path": "network.nc",
+      "sha256": "7eaa427bd3437bb1c15e1135375f385cc72dd620bace9dfa8b82cfe0fc41f857",
+      "bytes": 310377
+    }
+  ],
+  "license": {
+    "spdx": "ODbL-1.0",
+    "url": "https://opendatacommons.org/licenses/odbl/1-0/",
+    "attribution": "PyPSA-Eur Belgium tutorial network (5 clusters, 2013-03-01..07, daily), built with PyPSA-Eur v2026.09.0 (commit c8209014; code MIT, © Contributors to PyPSA-Eur) and converted by GridStorm. Load replaced by a synthetic series; see the transformation history. Licensed under the Open Database License (ODbL) 1.0, https://opendatacommons.org/licenses/odbl/1-0/. Contains information from the Prebuilt Electricity Network for PyPSA-Eur based on OpenStreetMap Data v0.7 (Xiong et al., https://doi.org/10.5281/zenodo.18619025), © OpenStreetMap contributors, available under the ODbL (https://www.openstreetmap.org/copyright). Electricity demand: Frysztacki, van der Most, Neumann, Interannual Electricity Demand Calculator, https://doi.org/10.5281/zenodo.10820928 (CC BY 4.0), daily mean. Spatial split: JRC Energy Atlas, © European Union, 1995-2026 (CC BY 4.0). Modified. Weather: generated using Copernicus Climate Change Service ERA5 information (CC BY 4.0), via a PyPSA-Eur atlite cutout. Modified. Land cover: generated using European Union's Copernicus Land Monitoring Service information (CORINE Land Cover). Protected areas: Natura 2000, © European Environment Agency (CC BY 4.0), rasterised by J. Hampp (https://doi.org/10.5281/zenodo.16881818). Shipping density: World Bank, Global Shipping Traffic Density (CC BY 4.0). Maritime boundaries: Flanders Marine Institute, MarineRegions.org World EEZ v12 (CC BY 4.0). Power plants: powerplantmatching 0.8.1, Contributors to powerplantmatching (CC BY 4.0). Costs: PyPSA technology-data v0.15.0 (https://doi.org/10.5281/zenodo.3994163). Nuclear availability: IAEA, via PyPSA-Eur (CC BY 4.0). Transmission project TYNDP2020_77: PyPSA-Eur Authors / ENTSO-E TYNDP 2020 (CC BY 4.0). © EuroGeographics for the administrative boundaries (NUTS 2021, GISCO; non-commercial use). None of these providers endorses GridStorm. All values were modified by aggregation, clustering and modelling.",
+    "redistribution": "permitted"
+  },
+  "coverage": {
+    "geographic": "Belgium (BE), 5 clustered transmission buses",
+    "temporal": "2013-03-01T00:00:00 .. 2013-03-07T00:00:00, 7 snapshots at 24.0 h"
+  },
+  "units": {
+    "v_nom": "kV",
+    "p_nom": "MW",
+    "s_nom": "MVA",
+    "e_nom": "MWh",
+    "x": "ohm (lines)",
+    "r": "ohm (lines)",
+    "length": "km",
+    "marginal_cost": "EUR/MWh",
+    "capital_cost": "EUR/MW/a (annuitised, per snapshot-weighted horizon)",
+    "co2_emissions": "t/MWh"
+  },
+  "missing_value_policy": "Values PyPSA-Eur does not provide are null in canonical.json; nothing is imputed by GridStorm. The synthetic BE load has no gaps in the 168 h window (checked by replace_load.py).",
+  "quality_flags": [
+    "synthetic demand, not observed 2013 load",
+    "Load is the Interannual Electricity Demand Calculator BE series (temperature-regression model on ERA5 2013 weather, Zenodo 10820928) averaged to 24 h and split across buses with the upstream JRC Energy Atlas keys; the upstream ENTSO-E/OPSD load was removed.",
+    "Snapshots are 24 h averages; intra-day peaks are smoothed out.",
+    "Capital-cost-bearing extendable components: a plain n.optimize() is a capacity-expansion LOPF, not a dispatch run.",
+    "NUTS 2021 (GISCO) boundaries shaped the clustering and potentials indirectly; their download provisions exclude commercial use (no NUTS geometry is stored).",
+    "technology-data v0.15.0 cost assumptions: CC-BY-4.0 per the PyPSA-Eur data inventory, GPL-3.0 on the Zenodo release record."
+  ],
+  "transformations": [
+    {
+      "step": "build",
+      "tool": "pypsa-eur (snakemake, pixi env)",
+      "version": "v2026.09.0 (c8209014468d)",
+      "description": "pipelines/pypsa-eur/build.sh: snakemake results/test-elec/networks/solved_2050.nc with config/test/config.electricity.yaml; resources/test-elec/networks/composed_2050.nc taken before solving."
+    },
+    {
+      "step": "replace_load",
+      "tool": "pipelines/pypsa-eur/replace_load.py",
+      "version": "synthetic demand sha256 1c96ff5a041abbb85d6d24f880455e13a931c5cbaf0e54e3f7fc0f7644b12bc0",
+      "description": "Removed the upstream ENTSO-E Power Statistics/OPSD BE load (not redistributable). loads_t.p_set[snapshot, bus] = mean of the 24 hourly synthetic BE values in [snapshot, snapshot + 24 h) x the bus's upstream JRC Energy Atlas share (time-invariant p_set / national total of the input network). Source: https://zenodo.org/records/10820928/files/demand_hourly.csv (doi:10.5281/zenodo.10820928, CC-BY-4.0, 464620414 bytes). Input composed_2050.nc sha256 0648933ae2cbffdbf61bcd80df999a7af6eedc84cc56b69d0e9acdb65c532b36; all other variables unchanged; ODbL-1.0 licence and attribution stored as NetCDF global attributes."
+    },
+    {
+      "step": "import",
+      "tool": "pipelines/pypsa-eur/import_network.py + network_import.canonical",
+      "version": "pypsa 1.4.0",
+      "description": "File copied unchanged; canonical.json derived via from_pypsa."
+    }
+  ],
+  "engines": [
+    "pypsa"
+  ],
+  "provenance_class": "modeled"
+}

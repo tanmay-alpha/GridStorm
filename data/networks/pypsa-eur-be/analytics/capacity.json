@@ -1,0 +1,327 @@
+{
+ "schema_version": "gridstorm-analytics/1.0",
+ "kind": "capacity",
+ "available": true,
+ "reason": null,
+ "provenance": "calculated",
+ "network_solved": false,
+ "filters": {
+  "carriers": null,
+  "countries": null
+ },
+ "units": {
+  "generator_power.installed_mw": "MW",
+  "generator_power.optimal_mw": "MW",
+  "storage_unit_power.installed_mw": "MW",
+  "storage_unit_power.optimal_mw": "MW",
+  "storage_unit_energy.installed_mwh": "MWh",
+  "storage_unit_energy.optimal_mwh": "MWh",
+  "store_energy.installed_mwh": "MWh",
+  "store_energy.optimal_mwh": "MWh",
+  "line_rating.installed_mva": "MVA",
+  "line_rating.optimal_mva": "MVA",
+  "link_power.installed_mw": "MW",
+  "link_power.optimal_mw": "MW"
+ },
+ "assumptions": [
+  "Installed capacity = nominal attribute (p_nom, s_nom, e_nom; p_nom*max_hours for StorageUnit energy) as stored in the network input; valid without optimisation.",
+  "Optimal capacity = *_opt attribute written by the PyPSA optimisation; null when the network is not solved (PyPSA-Explorer plots optimal capacity only, which is 0 for unsolved networks).",
+  "Units differ per component group (MW, MVA, MWh) and are never summed across groups.",
+  "Branch components (Line, Transformer, Link) are attributed to the country of bus0.",
+  "Assets on buses without a country code have country = null."
+ ],
+ "source": {
+  "upstream": "PyPSA-Explorer",
+  "url": "https://github.com/open-energy-transition/PyPSA-Explorer",
+  "sha": "c85252c98cab742b43245a18bcd310d095bab443",
+  "license": "MIT",
+  "derived_from": [
+   "src/pypsa_explorer/callbacks/visualizations.py:update_capacity_charts"
+  ],
+  "engine": {
+   "name": "pypsa",
+   "version": "1.4.0"
+  },
+  "pypsa_statistics": [
+   "installed_capacity",
+   "optimal_capacity"
+  ]
+ },
+ "carrier_names": {
+  "AC": "AC",
+  "CCGT": "Combined-Cycle Gas",
+  "DC": "DC",
+  "H2": "Hydrogen Storage",
+  "H2 Electrolysis": "H2 Electrolysis",
+  "H2 Fuel Cell": "H2 Fuel Cell",
+  "battery": "Battery Storage",
+  "biomass": "biomass",
+  "electricity": "electricity",
+  "nuclear": "nuclear",
+  "offwind-ac": "Offshore Wind (AC)",
+  "offwind-dc": "Offshore Wind (DC)",
+  "offwind-float": "Offshore Wind (Floating)",
+  "oil": "oil",
+  "onwind": "Onshore Wind",
+  "solar": "Solar",
+  "solar-hsat": "solar-hsat",
+  "waste": "waste"
+ },
+ "generation_capacity_by_carrier_mw": {
+  "CCGT": 6634.2,
+  "biomass": 113.0,
+  "nuclear": 4096.0,
+  "offwind-ac": 2752.2,
+  "offwind-dc": 0.0,
+  "offwind-float": 0.0,
+  "oil": 130.2,
+  "onwind": 1724.0,
+  "solar": 937.6,
+  "solar-hsat": 0.0,
+  "waste": 293.8
+ },
+ "groups": [
+  {
+   "key": "generator_power",
+   "component": "Generator",
+   "nominal_attribute": "p_nom",
+   "unit": "MW",
+   "rows": [
+    {
+     "carrier": "CCGT",
+     "country": "BE",
+     "installed_mw": 6634.2,
+     "optimal_mw": null
+    },
+    {
+     "carrier": "biomass",
+     "country": "BE",
+     "installed_mw": 113.0,
+     "optimal_mw": null
+    },
+    {
+     "carrier": "nuclear",
+     "country": "BE",
+     "installed_mw": 4096.0,
+     "optimal_mw": null
+    },
+    {
+     "carrier": "offwind-ac",
+     "country": "BE",
+     "installed_mw": 2752.2,
+     "optimal_mw": null
+    },
+    {
+     "carrier": "offwind-dc",
+     "country": "BE",
+     "installed_mw": 0.0,
+     "optimal_mw": null
+    },
+    {
+     "carrier": "offwind-float",
+     "country": "BE",
+     "installed_mw": 0.0,
+     "optimal_mw": null
+    },
+    {
+     "carrier": "oil",
+     "country": "BE",
+     "installed_mw": 130.2,
+     "optimal_mw": null
+    },
+    {
+     "carrier": "onwind",
+     "country": "BE",
+     "installed_mw": 1724.0,
+     "optimal_mw": null
+    },
+    {
+     "carrier": "solar",
+     "country": "BE",
+     "installed_mw": 937.6,
+     "optimal_mw": null
+    },
+    {
+     "carrier": "solar-hsat",
+     "country": "BE",
+     "installed_mw": 0.0,
+     "optimal_mw": null
+    },
+    {
+     "carrier": "waste",
+     "country": "BE",
+     "installed_mw": 293.8,
+     "optimal_mw": null
+    }
+   ],
+   "by_carrier": {
+    "CCGT": {
+     "installed_mw": 6634.2,
+     "optimal_mw": null
+    },
+    "biomass": {
+     "installed_mw": 113.0,
+     "optimal_mw": null
+    },
+    "nuclear": {
+     "installed_mw": 4096.0,
+     "optimal_mw": null
+    },
+    "offwind-ac": {
+     "installed_mw": 2752.2,
+     "optimal_mw": null
+    },
+    "offwind-dc": {
+     "installed_mw": 0.0,
+     "optimal_mw": null
+    },
+    "offwind-float": {
+     "installed_mw": 0.0,
+     "optimal_mw": null
+    },
+    "oil": {
+     "installed_mw": 130.2,
+     "optimal_mw": null
+    },
+    "onwind": {
+     "installed_mw": 1724.0,
+     "optimal_mw": null
+    },
+    "solar": {
+     "installed_mw": 937.6,
+     "optimal_mw": null
+    },
+    "solar-hsat": {
+     "installed_mw": 0.0,
+     "optimal_mw": null
+    },
+    "waste": {
+     "installed_mw": 293.8,
+     "optimal_mw": null
+    }
+   },
+   "total_installed_mw": 16681.0,
+   "total_optimal_mw": null
+  },
+  {
+   "key": "storage_unit_power",
+   "component": "StorageUnit",
+   "nominal_attribute": "p_nom",
+   "unit": "MW",
+   "rows": [
+    {
+     "carrier": "battery",
+     "country": "BE",
+     "installed_mw": 0.0,
+     "optimal_mw": null
+    }
+   ],
+   "by_carrier": {
+    "battery": {
+     "installed_mw": 0.0,
+     "optimal_mw": null
+    }
+   },
+   "total_installed_mw": 0.0,
+   "total_optimal_mw": null
+  },
+  {
+   "key": "storage_unit_energy",
+   "component": "StorageUnit",
+   "nominal_attribute": "p_nom*max_hours",
+   "unit": "MWh",
+   "rows": [
+    {
+     "carrier": "battery",
+     "country": "BE",
+     "installed_mwh": 0.0,
+     "optimal_mwh": null
+    }
+   ],
+   "by_carrier": {
+    "battery": {
+     "installed_mwh": 0.0,
+     "optimal_mwh": null
+    }
+   },
+   "total_installed_mwh": 0.0,
+   "total_optimal_mwh": null
+  },
+  {
+   "key": "store_energy",
+   "component": "Store",
+   "nominal_attribute": "e_nom",
+   "unit": "MWh",
+   "rows": [
+    {
+     "carrier": "H2",
+     "country": "BE",
+     "installed_mwh": 0.0,
+     "optimal_mwh": null
+    }
+   ],
+   "by_carrier": {
+    "H2": {
+     "installed_mwh": 0.0,
+     "optimal_mwh": null
+    }
+   },
+   "total_installed_mwh": 0.0,
+   "total_optimal_mwh": null
+  },
+  {
+   "key": "line_rating",
+   "component": "Line",
+   "nominal_attribute": "s_nom",
+   "unit": "MVA",
+   "rows": [
+    {
+     "carrier": "AC",
+     "country": "BE",
+     "installed_mva": 20377.236117405275,
+     "optimal_mva": null
+    }
+   ],
+   "by_carrier": {
+    "AC": {
+     "installed_mva": 20377.236117405275,
+     "optimal_mva": null
+    }
+   },
+   "total_installed_mva": 20377.236117405275,
+   "total_optimal_mva": null
+  },
+  {
+   "key": "link_power",
+   "component": "Link",
+   "nominal_attribute": "p_nom",
+   "unit": "MW",
+   "rows": [
+    {
+     "carrier": "H2 Electrolysis",
+     "country": "BE",
+     "installed_mw": 0.0,
+     "optimal_mw": null
+    },
+    {
+     "carrier": "H2 Fuel Cell",
+     "country": "BE",
+     "installed_mw": 0.0,
+     "optimal_mw": null
+    }
+   ],
+   "by_carrier": {
+    "H2 Electrolysis": {
+     "installed_mw": 0.0,
+     "optimal_mw": null
+    },
+    "H2 Fuel Cell": {
+     "installed_mw": 0.0,
+     "optimal_mw": null
+    }
+   },
+   "total_installed_mw": 0.0,
+   "total_optimal_mw": null
+  }
+ ]
+}

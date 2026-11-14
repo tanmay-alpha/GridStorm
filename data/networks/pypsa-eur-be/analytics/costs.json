@@ -1,0 +1,227 @@
+{
+ "schema_version": "gridstorm-analytics/1.0",
+ "kind": "costs",
+ "available": true,
+ "reason": null,
+ "provenance": "calculated",
+ "network_solved": false,
+ "filters": {
+  "carriers": null,
+  "countries": null
+ },
+ "units": {
+  "rows[].capex_installed_eur": "EUR",
+  "rows[].capex_optimal_eur": "EUR",
+  "rows[].opex_eur": "EUR",
+  "by_carrier.*": "EUR",
+  "totals.*": "EUR",
+  "objective_weighted_hours_h": "h"
+ },
+ "assumptions": [
+  "Monetary values are in the cost currency of the network data; PyPSA stores no currency unit, GridStorm assumes EUR (example-network costs are illustrative, not market data).",
+  "capex_installed_eur = nominal capacity (p_nom/s_nom/e_nom) x capital_cost (PyPSA statistics.installed_capex); available without optimisation.",
+  "capex_optimal_eur = optimal capacity (*_opt) x capital_cost (PyPSA statistics.capex, the quantity PyPSA-Explorer plots); null when the network is not solved.",
+  "opex_eur = dispatch x marginal cost (plus storage/spill/unit-commitment cost terms when present) weighted by snapshot_weightings.objective (PyPSA statistics.opex); null when the network is not solved.",
+  "capital_cost is the model's per-period (typically annualised) cost per unit capacity and is charged once for the modelled horizon (168 h of objective-weighted snapshots); CAPEX and OPEX are only on the same time basis if that horizon is one year.",
+  "Branch components (Line, Transformer, Link) are attributed to the country of bus0."
+ ],
+ "source": {
+  "upstream": "PyPSA-Explorer",
+  "url": "https://github.com/open-energy-transition/PyPSA-Explorer",
+  "sha": "c85252c98cab742b43245a18bcd310d095bab443",
+  "license": "MIT",
+  "derived_from": [
+   "src/pypsa_explorer/callbacks/visualizations.py:update_capex_charts",
+   "src/pypsa_explorer/callbacks/visualizations.py:update_opex_charts"
+  ],
+  "engine": {
+   "name": "pypsa",
+   "version": "1.4.0"
+  },
+  "pypsa_statistics": [
+   "installed_capex",
+   "capex",
+   "opex"
+  ]
+ },
+ "carrier_names": {
+  "AC": "AC",
+  "CCGT": "Combined-Cycle Gas",
+  "DC": "DC",
+  "H2": "Hydrogen Storage",
+  "H2 Electrolysis": "H2 Electrolysis",
+  "H2 Fuel Cell": "H2 Fuel Cell",
+  "battery": "Battery Storage",
+  "biomass": "biomass",
+  "electricity": "electricity",
+  "nuclear": "nuclear",
+  "offwind-ac": "Offshore Wind (AC)",
+  "offwind-dc": "Offshore Wind (DC)",
+  "offwind-float": "Offshore Wind (Floating)",
+  "oil": "oil",
+  "onwind": "Onshore Wind",
+  "solar": "Solar",
+  "solar-hsat": "solar-hsat",
+  "waste": "waste"
+ },
+ "opex_available": false,
+ "opex_reason": "network is not solved: no dispatch results",
+ "objective_weighted_hours_h": 168.0,
+ "rows": [
+  {
+   "component": "Generator",
+   "carrier": "CCGT",
+   "country": "BE",
+   "capex_installed_eur": 16086054.309591044,
+   "capex_optimal_eur": null,
+   "opex_eur": null
+  },
+  {
+   "component": "Generator",
+   "carrier": "biomass",
+   "country": "BE",
+   "capex_installed_eur": 804810.5411223033,
+   "capex_optimal_eur": null,
+   "opex_eur": null
+  },
+  {
+   "component": "Generator",
+   "carrier": "nuclear",
+   "country": "BE",
+   "capex_installed_eur": 74449713.25354818,
+   "capex_optimal_eur": null,
+   "opex_eur": null
+  },
+  {
+   "component": "Generator",
+   "carrier": "offwind-ac",
+   "country": "BE",
+   "capex_installed_eur": 14586626.036421588,
+   "capex_optimal_eur": null,
+   "opex_eur": null
+  },
+  {
+   "component": "Generator",
+   "carrier": "offwind-dc",
+   "country": "BE",
+   "capex_installed_eur": 0.0,
+   "capex_optimal_eur": null,
+   "opex_eur": null
+  },
+  {
+   "component": "Generator",
+   "carrier": "offwind-float",
+   "country": "BE",
+   "capex_installed_eur": 0.0,
+   "capex_optimal_eur": null,
+   "opex_eur": null
+  },
+  {
+   "component": "Generator",
+   "carrier": "oil",
+   "country": "BE",
+   "capex_installed_eur": 123173.51593071743,
+   "capex_optimal_eur": null,
+   "opex_eur": null
+  },
+  {
+   "component": "Generator",
+   "carrier": "onwind",
+   "country": "BE",
+   "capex_installed_eur": 3928543.599643759,
+   "capex_optimal_eur": null,
+   "opex_eur": null
+  },
+  {
+   "component": "Generator",
+   "carrier": "solar",
+   "country": "BE",
+   "capex_installed_eur": 663467.3982382932,
+   "capex_optimal_eur": null,
+   "opex_eur": null
+  },
+  {
+   "component": "Generator",
+   "carrier": "solar-hsat",
+   "country": "BE",
+   "capex_installed_eur": 0.0,
+   "capex_optimal_eur": null,
+   "opex_eur": null
+  },
+  {
+   "component": "Generator",
+   "carrier": "waste",
+   "country": "BE",
+   "capex_installed_eur": 5784820.764838095,
+   "capex_optimal_eur": null,
+   "opex_eur": null
+  },
+  {
+   "component": "Line",
+   "carrier": "AC",
+   "country": "BE",
+   "capex_installed_eur": 1403479.238341604,
+   "capex_optimal_eur": null,
+   "opex_eur": null
+  },
+  {
+   "component": "Link",
+   "carrier": "H2 Electrolysis",
+   "country": "BE",
+   "capex_installed_eur": 0.0,
+   "capex_optimal_eur": null,
+   "opex_eur": null
+  },
+  {
+   "component": "Link",
+   "carrier": "H2 Fuel Cell",
+   "country": "BE",
+   "capex_installed_eur": 0.0,
+   "capex_optimal_eur": null,
+   "opex_eur": null
+  },
+  {
+   "component": "StorageUnit",
+   "carrier": "battery",
+   "country": "BE",
+   "capex_installed_eur": 0.0,
+   "capex_optimal_eur": null,
+   "opex_eur": null
+  },
+  {
+   "component": "Store",
+   "carrier": "H2",
+   "country": "BE",
+   "capex_installed_eur": 0.0,
+   "capex_optimal_eur": null,
+   "opex_eur": null
+  }
+ ],
+ "by_carrier": {
+  "capex_installed_eur": {
+   "AC": 1403479.238341604,
+   "CCGT": 16086054.309591044,
+   "H2": 0.0,
+   "H2 Electrolysis": 0.0,
+   "H2 Fuel Cell": 0.0,
+   "battery": 0.0,
+   "biomass": 804810.5411223033,
+   "nuclear": 74449713.25354818,
+   "offwind-ac": 14586626.036421588,
+   "offwind-dc": 0.0,
+   "offwind-float": 0.0,
+   "oil": 123173.51593071743,
+   "onwind": 3928543.599643759,
+   "solar": 663467.3982382932,
+   "solar-hsat": 0.0,
+   "waste": 5784820.764838095
+  },
+  "capex_optimal_eur": null,
+  "opex_eur": null
+ },
+ "totals": {
+  "capex_installed_eur": 117830688.65767558,
+  "capex_optimal_eur": null,
+  "opex_eur": null
+ }
+}

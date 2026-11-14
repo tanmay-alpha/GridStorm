@@ -1,0 +1,98 @@
+{
+ "schema_version": "gridstorm-analytics/1.0",
+ "kind": "summary",
+ "available": true,
+ "reason": null,
+ "provenance": "calculated",
+ "network_solved": false,
+ "filters": {
+  "carriers": null,
+  "countries": null
+ },
+ "units": {
+  "snapshot_hours_h": "h",
+  "objective_eur": "EUR"
+ },
+ "assumptions": [
+  "Counts are numbers of static component rows (inactive assets included)."
+ ],
+ "source": {
+  "upstream": "PyPSA-Explorer",
+  "url": "https://github.com/open-energy-transition/PyPSA-Explorer",
+  "sha": "c85252c98cab742b43245a18bcd310d095bab443",
+  "license": "MIT",
+  "derived_from": [
+   "src/pypsa_explorer/layouts/components.py:create_header",
+   "src/pypsa_explorer/utils/helpers.py:summarize_network",
+   "src/pypsa_explorer/utils/helpers.py:get_bus_carrier_options",
+   "src/pypsa_explorer/utils/helpers.py:get_country_options"
+  ],
+  "engine": {
+   "name": "pypsa",
+   "version": "1.4.0"
+  },
+  "pypsa_statistics": []
+ },
+ "counts": {
+  "buses": 10,
+  "generators": 33,
+  "loads": 5,
+  "lines": 6,
+  "transformers": 0,
+  "links": 10,
+  "storage_units": 5,
+  "stores": 5
+ },
+ "bus_carriers": [
+  "AC",
+  "H2"
+ ],
+ "carriers": [
+  "AC",
+  "CCGT",
+  "DC",
+  "H2",
+  "H2 Electrolysis",
+  "H2 Fuel Cell",
+  "battery",
+  "biomass",
+  "electricity",
+  "nuclear",
+  "offwind-ac",
+  "offwind-dc",
+  "offwind-float",
+  "oil",
+  "onwind",
+  "solar",
+  "solar-hsat",
+  "waste"
+ ],
+ "carrier_names": {
+  "AC": "AC",
+  "CCGT": "Combined-Cycle Gas",
+  "DC": "DC",
+  "H2": "Hydrogen Storage",
+  "H2 Electrolysis": "H2 Electrolysis",
+  "H2 Fuel Cell": "H2 Fuel Cell",
+  "battery": "Battery Storage",
+  "biomass": "biomass",
+  "electricity": "electricity",
+  "nuclear": "nuclear",
+  "offwind-ac": "Offshore Wind (AC)",
+  "offwind-dc": "Offshore Wind (DC)",
+  "offwind-float": "Offshore Wind (Floating)",
+  "oil": "oil",
+  "onwind": "Onshore Wind",
+  "solar": "Solar",
+  "solar-hsat": "solar-hsat",
+  "waste": "waste"
+ },
+ "countries": [
+  "BE"
+ ],
+ "snapshot_count": 7,
+ "snapshot_start": "2013-03-01T00:00:00",
+ "snapshot_end": "2013-03-07T00:00:00",
+ "snapshot_hours_h": 168.0,
+ "objective_eur": null
+}
