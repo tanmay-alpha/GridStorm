@@ -97,7 +97,7 @@ horizon: {start: 0, snapshots: 24}            # snapshot indices into the networ
 events:                                       # discriminated union on `type`
   - {type: demand_multiplier, value: 1.18, buses: null, window: null}
   - {type: renewable_availability_multiplier, carrier: wind, value: 0.55, window: {start: 0, end: 12}}
-  - {type: line_outage, asset_id: "<real line id>"}                  # also transformers
+  - {type: line_outage, asset_id: "<real line id>", component: line}  # component: line | transformer (ids may collide across lists, e.g. scigrid-de)
   - {type: link_outage, asset_id: "..."}
   - {type: generator_outage, asset_id: "...", window: null}
   - {type: storage_state, asset_id: "...", initial_soc_fraction: 0.2}
