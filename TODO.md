@@ -20,9 +20,11 @@ Last updated: 2026-11-14
 | P0-04 | Upstream source inventory, SHAs, license audit, manifest | P0 | A | — | IMPLEMENTING | 21 repos audited with pinned SHAs; `source-inventory.md`, `license-audit.md`, `upstream-manifest.json` |
 | P0-05 | Dependency compatibility matrix with resolver evidence | P0 | A | — | IMPLEMENTING | `compatibility-matrix.md` with `uv pip compile` outcomes per engine pair |
 | P0-06 | PyPSA-Explorer unchanged baseline (run app + tests) | P0 | B/ExplorerPort | — | IMPLEMENTING | Test counts recorded; app served HTTP 200 with bundled network; `docs/audit/pypsa-explorer-baseline.md` |
-| P0-07 | Research papers matrix (5 papers) | P1 | D/Research | — | IMPLEMENTING | `research-papers.md` with required columns, equations, limitations, links |
-| P0-08 | Tool decision matrix (PowerModels, PGLib, SimBench, ANDES, PyPSA-Earth, ORNL, GO) | P1 | D/Research | — | IMPLEMENTING | `tool-decision-matrix.md` with decision + justification per tool |
-| P0-09 | External data sources licensing (OPSD, ENTSO-E, ERA5, NASA POWER, GEM, OSM, CEA, EIA) | P1 | D/Research | — | IMPLEMENTING | `external-data-sources.md` with redistribution verdicts and cited URLs |
+| P0-07 | Research papers matrix (5 papers) | P1 | D/Research | — | VERIFIED | `research-papers.md`: 8-column matrix + per-paper LaTeX equations for PyPSA, PyPSA-Eur, L2RPN, DemandCast, X-GridAgent; 27 links; full arXiv PDFs read |
+| P0-08 | Tool decision matrix (PowerModels, PGLib, SimBench, ANDES, PyPSA-Earth, ORNL, GO) | P1 | D/Research | — | VERIFIED | `tool-decision-matrix.md`: PGLib data-only; ORNL/CoogGrid/NVIDIA/Grid2Game concepts-only; PowerModels/SimBench/ANDES/PyPSA-Earth/GOC3 deferred; GO Evaluation rejected (no licence) |
+| P0-09 | External data sources licensing (OPSD, ENTSO-E, ERA5, NASA POWER, GEM, OSM, CEA, EIA) | P1 | D/Research | — | VERIFIED | `external-data-sources.md`: 10 sources checked 2026-11-14 (ERA5 CC BY 4.0 since 2025-07-02; EIA needs key (HTTP 403); CEA needs permission; ENTSO-E free re-use list appears to exclude actual load/generation) |
+| P0-10 | Manually re-check ENTSO-E free re-use item numbers before any ingestion | P2 | D/ObservedEvents | P0-09 | BACKLOG | Each ENTSO-E-derived column used has a manifest licence entry matching the current re-use list, else only derived parameters are committed |
+| P0-11 | "EENS" label only for probability-weighted scenario sets | P1 | B/StormRisk + C/Frontend | P2-08 | IMPLEMENTING | Test shows single-scenario outputs never carry the EENS label; UI uses "Unserved energy" for single runs |
 
 ## Phase 1 — Functional foundation
 
@@ -87,9 +89,9 @@ Last updated: 2026-11-14
 |---|---|---|---|---|---|---|
 | P6-01 | Dockerfile, docker-compose, render.yaml | P0 | E/Backend | P1-06 | IMPLEMENTING | Image builds; `/health` 200 in container |
 | P6-02 | Supabase project (free plan via Vercel Marketplace, fra1) + migrations applied | P0 | I/E | P1-07 | BLOCKED (user action) | Terms acceptance needed at vercel.com/…/accept-terms/supabase; then `/ready` database check ok against Supabase |
-| P6-03 | Render deployment (free web service) | P0 | I/E | P6-01 | BACKLOG | Live `/health` and `/ready` |
+| P6-03 | Render deployment (free web service, Docker, frankfurt) | P0 | I/E | P6-01 | IMPLEMENTING | Service `gridstorm-api` (srv-dbs8a30ae00c73cs4cog) created via API with autoDeploy on `main`; done when https://gridstorm-api.onrender.com `/health` and `/ready` respond live |
 | P6-04 | Vercel deployment of apps/web | P0 | I/C | P1-08 | IMPLEMENTING | Vercel project `gridstorm` created (tanmay-alphas-projects); live URL loads; API reachable (CORS) |
-| P6-05 | Artifact storage (R2 if available, else local + committed artifacts) | P2 | E | P2-04 | BACKLOG | Documented choice; integrity test |
+| P6-05 | Artifact storage (R2 if available, else local + committed artifacts) | P2 | E | P2-04 | RESEARCHED | No Cloudflare credentials available → LocalFS store + artifacts baked into image (ephemeral on Render free); S3/R2 adapter behind ArtifactStore interface; integrity test |
 | P6-06 | GitHub Actions CI (lint, types, tests per env, web build, API smoke, actionlint) | P0 | E/CIDevOps | P1-06, P1-08 | IMPLEMENTING | actionlint clean; `scripts/test_all.sh` real summary; green CI run on main |
 | P6-07 | Independent verification (components, science spot checks, API black-box, live browser audit) | P0 | F/Verifier | all | IMPLEMENTING | `docs/audit/verification-report.md` + `issues.md` with reproducible evidence |
 | P6-08 | Security: secret scan, dependency audit (pip-audit, npm audit), container scan, authz tests | P1 | F/Verifier + E/CIDevOps | P6-01 | IMPLEMENTING | Findings recorded and triaged in `docs/audit/issues.md` |
