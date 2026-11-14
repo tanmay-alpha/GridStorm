@@ -3,10 +3,15 @@ import {
   Map as MapLibreMap,
   NavigationControl,
   ScaleControl,
+  setWorkerUrl,
   type ExpressionSpecification,
   type GeoJSONSource,
   type StyleSpecification,
 } from 'maplibre-gl'
+// MapLibre 6 derives its worker from `new URL('./maplibre-gl-worker.mjs', import.meta.url)`, which
+// Vite cannot see once maplibre is bundled into a hashed chunk: the URL 404s (the SPA rewrite then
+// serves index.html) and the map never loads. Emit the self-contained worker as an asset instead.
+import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'
 import type { CoordinateKind } from '../../api/types'
 import { cssVar, useTheme } from '../../lib/theme'
 import {
@@ -17,6 +22,8 @@ import {
 } from '../../lib/scales'
 import { cn } from '../ui/cn'
 import { assetKey, type AssetRef, type MapFeatures } from './features'
+
+setWorkerUrl(maplibreWorkerUrl)
 
 export interface LayerVisibility {
   buses: boolean

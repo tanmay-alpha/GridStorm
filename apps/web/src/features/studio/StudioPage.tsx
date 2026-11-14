@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Play, Plus, RotateCcw, Save } from 'lucide-react'
 import { ApiError, api } from '../../api/client'
-import { qk, useNetwork, useNetworkAssets, useNetworks, useScenarios } from '../../api/hooks'
+import { qk, useArtifactIndex, useNetwork, useNetworkAssets, useNetworks, useScenarios } from '../../api/hooks'
 import { LIMITS, type EventType, type StormEvent, type StormSpec } from '../../api/stormspec'
 import type { ScenarioRecord, ValidationReport } from '../../api/types'
 import { NetworkSelect } from '../../components/network/NetworkSelect'
@@ -40,14 +40,24 @@ function reportFromError(err: unknown): ValidationReport | null {
   return null
 }
 
+/** Live-execution policy of the deployment: networks it solves live, plus verified precomputed hashes. */
+interface ExecutionPolicy {
+  /** network_id -> live_execution as reported by GET /api/v1/networks (undefined: not reported). */
+  live: Map<string, boolean | undefined>
+  /** scenario_hash values of available precomputed `kind=simulation` artifacts. */
+  precomputed: Set<string>
+}
+
 function PresetList({
   records,
   activeId,
   onPick,
+  policy,
 }: {
   records: ScenarioRecord[]
   activeId: string | null
   onPick: (r: ScenarioRecord) => void
+  policy: ExecutionPolicy
 }) {
   if (!records.length) return <p className="px-1 py-2 text-xs text-fg-muted">None.</p>
   return (
@@ -69,6 +79,15 @@ function PresetList({
             <span className="truncate font-mono text-2xs text-fg-subtle">
               {r.id} · {r.network_id ?? r.spec.dataset.network_id} · {r.spec.events?.length ?? 0} events
             </span>
+            {policy.live.get(r.network_id ?? r.spec.dataset.network_id) === false && (
+              <span className="mt-0.5" data-testid="preset-execution">
+                {policy.precomputed.has(r.hash) ? (
+                  <Badge tone="info">precomputed result</Badge>
+                ) : (
+                  <Badge tone="warn">not runnable here</Badge>
+                )}
+              </span>
+            )}
           </button>
         </li>
       ))}
@@ -98,6 +117,19 @@ export default function StudioPage() {
   const specNetwork = spec ? (netList.find((n) => n.id === spec.dataset.network_id) ?? null) : null
   const assets = useNetworkAssets(spec?.dataset.network_id)
   const networkDetail = useNetwork(spec?.dataset.network_id)
+  const simArtifacts = useArtifactIndex({ kind: 'simulation' })
+  const policy = useMemo<ExecutionPolicy>(
+    () => ({
+      live: new Map((networks.data ?? []).map((n) => [n.id, n.live_execution])),
+      precomputed: new Set(
+        (simArtifacts.data ?? [])
+          .filter((a) => a.available !== false)
+          .map((a) => a.scenario_hash)
+          .filter((h): h is string => typeof h === 'string'),
+      ),
+    }),
+    [networks.data, simArtifacts.data],
+  )
 
   const specJson = spec ? JSON.stringify(spec) : ''
   const debouncedJson = useDebounced(specJson, 400)
@@ -178,6 +210,17 @@ export default function StudioPage() {
   const saved = records.filter((r) => !r.preset)
   const snaps = specNetwork?.snapshots ?? null
   const durationH = snaps?.resolution_h != null ? spec.horizon.snapshots * snaps.resolution_h : null
+  const liveExecution = networkDetail.data?.live_execution ?? specNetwork?.live_execution
+  const liveNetworks = netList.filter((n) => n.live_execution).map((n) => n.id)
+  const currentHash = presetRecord && !edited ? presetRecord.hash : (report?.scenario_hash ?? null)
+  const precomputedMatch = currentHash && simArtifacts.data ? policy.precomputed.has(currentHash) : null
+  const netPresets = presets.filter((r) => (r.network_id ?? r.spec.dataset.network_id) === spec.dataset.network_id)
+  const runnablePresets = netPresets.filter((r) => policy.precomputed.has(r.hash))
+  const liveUnavailable =
+    run.error instanceof ApiError && run.error.code === 'live_execution_unavailable' ? run.error : null
+  const liveNetworksFromError = Array.isArray(liveUnavailable?.details.live_networks)
+    ? (liveUnavailable.details.live_networks as unknown[]).map(String)
+    : []
 
   const setEvent = (i: number, e: StormEvent) =>
     update((s) => ({ ...s, events: s.events.map((x, j) => (j === i ? e : x)) }))
@@ -197,13 +240,32 @@ export default function StudioPage() {
           )
         }
       />
-      {networkDetail.data?.live_execution === false && (
-        <div role="status" className="gs-panel border-warn/50 p-3 text-sm">
-          <h2 className="font-semibold">Precomputed preset results only</h2>
+      {liveExecution === false && (
+        <div role="status" className="gs-panel border-warn/50 p-3 text-sm" data-testid="live-execution-notice">
+          <h2 className="font-semibold">Live solves disabled for {spec.dataset.network_id} on this deployment</h2>
           <p>
-            Live execution is unavailable for this network: measured solver memory exceeds the deployment memory limit.
-            Select an unchanged preset below to access its available precomputed result. Edited scenarios cannot run live here.
+            This backend runs live solves only for networks within its memory budget
+            {liveNetworks.length > 0 && (
+              <>
+                {' '}
+                (<span className="font-mono">{liveNetworks.join(', ')}</span>)
+              </>
+            )}
+            . For this network a run is served only when a verified precomputed result exists for the exact scenario,
+            matched by its StormSpec hash. Edited scenarios without a matching result are rejected by the server (HTTP 422{' '}
+            <code className="font-mono">live_execution_unavailable</code>).
           </p>
+          {simArtifacts.data && (
+            <p className="mt-1 text-xs text-fg-muted">
+              {runnablePresets.length} of {netPresets.length} presets for this network have a precomputed result:{' '}
+              {runnablePresets.length > 0 ? (
+                <span className="font-mono">{runnablePresets.map((r) => r.id).join(', ')}</span>
+              ) : (
+                'none'
+              )}
+              .
+            </p>
+          )}
         </div>
       )}
       <div className="grid gap-3 lg:grid-cols-[16rem_minmax(0,1fr)_20rem]">
@@ -218,13 +280,13 @@ export default function StudioPage() {
                 <h3 id="presets-h" className="gs-label px-1">
                   Presets
                 </h3>
-                <PresetList records={presets} activeId={edited ? null : presetId} onPick={pickPreset} />
+                <PresetList records={presets} activeId={edited ? null : presetId} onPick={pickPreset} policy={policy} />
               </section>
               <section aria-labelledby="saved-h">
                 <h3 id="saved-h" className="gs-label px-1">
                   Saved
                 </h3>
-                <PresetList records={saved} activeId={edited ? null : presetId} onPick={pickPreset} />
+                <PresetList records={saved} activeId={edited ? null : presetId} onPick={pickPreset} policy={policy} />
               </section>
             </div>
           )}
@@ -447,7 +509,32 @@ export default function StudioPage() {
                 </Button>
               )}
               {blocked && <p className="text-2xs text-fg-muted">Fix the validation errors to enable running.</p>}
-              {run.error && !runReport && <ErrorState error={run.error} title="Submission failed" />}
+              {liveExecution === false && !blocked && (
+                <p className="text-2xs text-fg-muted" data-testid="execution-forecast">
+                  {precomputedMatch === true
+                    ? 'This exact scenario matches a precomputed result; the server will return it (execution mode: precomputed).'
+                    : precomputedMatch === false
+                      ? 'No precomputed result matches this scenario hash; the server is expected to refuse it (live solves disabled for this network).'
+                      : 'Checking for a matching precomputed result…'}
+                </p>
+              )}
+              {liveUnavailable ? (
+                <div role="alert" className="rounded border border-warn/50 bg-warn-soft p-3 text-sm" data-testid="live-unavailable">
+                  <p className="font-semibold">Run refused: live execution unavailable</p>
+                  <p className="text-xs text-fg">{liveUnavailable.message}</p>
+                  {liveNetworksFromError.length > 0 && (
+                    <p className="mt-1 text-xs text-fg-muted">
+                      Networks solved live on this deployment:{' '}
+                      <span className="font-mono">{liveNetworksFromError.join(', ')}</span>
+                    </p>
+                  )}
+                  <p className="mt-1 font-mono text-2xs text-fg-muted">
+                    HTTP {liveUnavailable.status} · {liveUnavailable.code}
+                  </p>
+                </div>
+              ) : (
+                run.error && !runReport && <ErrorState error={run.error} title="Submission failed" />
+              )}
               {save.error && <ErrorState error={save.error} title="Save failed" />}
               {save.data && (
                 <p role="status" className="text-xs text-ok" data-testid="save-status">

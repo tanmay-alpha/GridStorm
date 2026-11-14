@@ -6,7 +6,17 @@ import { ArtifactSection } from '../components/ArtifactPanel'
 import { ArtifactMeta } from '../components/ArtifactMeta'
 import { Disclaimer } from '../components/Disclaimer'
 import { useArtifactIndex, useArtifacts } from '../hooks'
-import { parseCrossEngine, parseRisk, parseStormBench, type CrossCheck, type RiskStudy, type StormBenchCase } from '../lib/bench'
+import {
+  parseAcReference,
+  parseCrossEngine,
+  parseRisk,
+  parseStormBench,
+  type AcReferenceRow,
+  type AcReferenceValidation,
+  type CrossCheck,
+  type RiskStudy,
+  type StormBenchCase,
+} from '../lib/bench'
 import { num, rec, str, type ParsedArtifact } from '../lib/parse'
 
 const ratio = (v: number | null) => formatNumber(v, 3)
@@ -390,6 +400,48 @@ function PypsaSection({ items }: { items: ArtifactIndexItem[] }) {
   )
 }
 
+/** Differences at floating-point scale are only meaningful in scientific notation. */
+const sci = (v: number | null) => (v === null ? NO_VALUE : v === 0 ? '0' : v.toExponential(2))
+
+const acRefColumns: Column<AcReferenceRow>[] = [
+  { key: 'group', header: 'Comparison', sortValue: (r) => r.group, render: (r) => r.group },
+  { key: 'case', header: 'Case', sortValue: (r) => r.case, render: (r) => <span className="font-mono">{r.case}</span> },
+  { key: 'ref', header: 'Reference', render: (r) => <span className="text-fg-muted">{r.reference ?? NO_VALUE}</span> },
+  { key: 'dvm', header: 'max |ΔVm| [p.u.]', align: 'right', sortValue: (r) => r.maxDvmPu, render: (r) => sci(r.maxDvmPu) },
+  { key: 'dva', header: 'max |Δθ| [deg]', align: 'right', sortValue: (r) => r.maxDvaDeg, render: (r) => sci(r.maxDvaDeg) },
+  { key: 'dp', header: 'max |ΔP branch| [MW]', align: 'right', sortValue: (r) => r.maxDpBranchMw, render: (r) => sci(r.maxDpBranchMw) },
+  {
+    key: 'loss',
+    header: 'Losses / reference [MW]',
+    align: 'right',
+    render: (r) => `${formatNumber(r.lossesMw, 4)} / ${formatNumber(r.referenceLossesMw, 4)}`,
+  },
+  {
+    key: 'pass',
+    header: 'Within tolerance',
+    sortValue: (r) => (r.pass === null ? null : Number(r.pass)),
+    render: (r) => (r.pass === null ? NO_VALUE : <Badge tone={r.pass ? 'ok' : 'danger'}>{r.pass ? 'pass' : 'fail'}</Badge>),
+  },
+]
+
+function AcReferenceView({ v }: { v: AcReferenceValidation }) {
+  const passed = v.rows.filter((r) => r.pass === true).length
+  return (
+    <div className="flex flex-col gap-3">
+      <p className="text-sm" data-testid="ac-reference-summary">
+        {passed} of {v.rows.length} comparisons within tolerance
+        {v.allPass !== null && <> · artifact verdict: {v.allPass ? 'all pass' : 'not all pass'}</>}
+      </p>
+      <KeyValue rows={Object.entries(v.tolerances).map(([k, t]) => [`Tolerance ${k}`, String(t)] as [string, string])} />
+      <DataTable columns={acRefColumns} rows={v.rows} rowKey={(r) => `${r.group}:${r.case}`} caption="AC power-flow comparisons against reference solvers" />
+      <details className="text-xs">
+        <summary className="cursor-pointer font-semibold">Method</summary>
+        <KeyValue rows={Object.entries(v.method)} />
+      </details>
+    </div>
+  )
+}
+
 function IndexGate({ engine, kind, children }: { engine: string; kind?: string; children: (items: ArtifactIndexItem[]) => ReactNode }) {
   const q = useArtifactIndex({ engine, kind })
   const items = useMemo(() => (q.data ?? []).filter((i) => i.available !== false), [q.data])
@@ -403,7 +455,7 @@ export function BenchmarksPage() {
     <div className="flex flex-col gap-4 p-4">
       <PageHeader
         title="Benchmarks"
-        subtitle="Measured results from published artifacts: contingency screening accuracy and speed, probabilistic stress estimates, cross-engine agreement and PyPSA preset runs."
+        subtitle="Measured results from published artifacts: contingency screening accuracy and speed, probabilistic stress estimates, cross-engine agreement, AC power-flow reference validation and PyPSA preset runs."
       />
       <Disclaimer>Numbers are measurements on research test cases and the hardware listed with each artifact; they do not generalise beyond them.</Disclaimer>
       <Panel title="StormBench — DC contingency screening vs exact N-1" id="stormbench">
@@ -427,6 +479,24 @@ export function BenchmarksPage() {
       </Panel>
       <Panel title="Cross-engine agreement" id="cross-engine">
         <IndexGate engine="cross-engine">{(items) => <CrossEngineSection items={items} />}</IndexGate>
+      </Panel>
+      <Panel
+        title="AC power-flow reference validation (pandapower)"
+        id="ac-reference"
+        description="pandapower Newton-Raphson against MATPOWER/PYPOWER reference solutions on the same cases."
+      >
+        <IndexGate engine="pandapower" kind="benchmark">
+          {(items) => (
+            <ArtifactSection
+              engine="pandapower"
+              items={items}
+              label="Validation"
+              emptyText="No pandapower benchmark artifact in data/artifacts/pandapower."
+              emptyTitle="No AC reference validation published"
+              render={(a) => <AcReferenceView v={parseAcReference(a.payload)} />}
+            />
+          )}
+        </IndexGate>
       </Panel>
       <Panel title="PyPSA preset runs" id="pypsa">
         <IndexGate engine="pypsa">{(items) => <PypsaSection items={items} />}</IndexGate>

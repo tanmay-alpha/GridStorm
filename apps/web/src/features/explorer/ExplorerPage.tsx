@@ -73,6 +73,7 @@ export default function ExplorerPage() {
 
   return (
     <div className="flex h-full min-h-0 flex-col md:flex-row">
+      <h1 className="sr-only">Grid Explorer</h1>
       {/* Control sidebar: left column on desktop, bottom sheet on mobile. */}
       <aside
         aria-label="Explorer controls"

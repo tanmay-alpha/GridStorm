@@ -1,0 +1,364 @@
+{
+  "items": [
+    {
+      "id": "scigrid-de-line-448-outage",
+      "hash": "68ea821b383ffbbd6e83b202d68bd3a9b64d5fcd83c52ca7b2a9d7a3f61d5b11",
+      "spec": {
+        "schema_version": "stormspec/1.0",
+        "id": "scigrid-de-line-448-outage",
+        "name": "SciGRID Germany — outage of congested line 448 (305–306)",
+        "description": "Line \"448\" (bus 305 – bus 306, s_nom 855.6 MVA) is at its thermal limit in all 24 snapshots of the baseline run (loading 100 %, flow 855.6 MW) — the most persistently loaded line with the largest rating among the always-congested set. It is taken out of service for the whole horizon (PyPSA cannot represent partial-window branch outages faithfully).",
+        "dataset": {
+          "network_id": "scigrid-de",
+          "sha256": "284850c8e922414f9da69ffda0623431148e0c28a3380ba370e4135ac5236500"
+        },
+        "horizon": {
+          "start": 0,
+          "snapshots": 24
+        },
+        "events": [
+          {
+            "type": "line_outage",
+            "asset_id": "448",
+            "component": "line",
+            "window": null
+          }
+        ],
+        "mitigation": {
+          "storage_dispatch": true,
+          "curtailment": true,
+          "load_shedding": {
+            "enabled": true,
+            "voll_eur_per_mwh": 10000.0
+          }
+        },
+        "execution": {
+          "engine": "pypsa",
+          "formulation": "lopf",
+          "solver": "highs",
+          "solver_options": {
+            "time_limit_s": 300.0,
+            "threads": 1
+          },
+          "deterministic": true,
+          "seed": 0
+        },
+        "assumptions": [
+          "Line 448 selected from the scigrid-de-baseline run (loading 100 % in 24/24 snapshots)"
+        ]
+      },
+      "preset": true,
+      "owner_id": null,
+      "created_at": "2026-11-14T21:10:46.055915Z",
+      "name": "SciGRID Germany — outage of congested line 448 (305–306)",
+      "network_id": "scigrid-de",
+      "visibility": "public"
+    },
+    {
+      "id": "scigrid-de-wind-lull",
+      "hash": "6a50b3b41dce1a9966c4dee3cc6a524d0e910dd99c0c62ee6d48dc2c1f6f093e",
+      "spec": {
+        "schema_version": "stormspec/1.0",
+        "id": "scigrid-de-wind-lull",
+        "name": "SciGRID Germany — wind lull (wind availability x0.3)",
+        "description": "Renewable shortfall: onshore and offshore wind availability scaled to 30 % of the dataset time series for the whole day (a synthetic stress, not an observed event).",
+        "dataset": {
+          "network_id": "scigrid-de",
+          "sha256": "284850c8e922414f9da69ffda0623431148e0c28a3380ba370e4135ac5236500"
+        },
+        "horizon": {
+          "start": 0,
+          "snapshots": 24
+        },
+        "events": [
+          {
+            "type": "renewable_availability_multiplier",
+            "carrier": "Wind Onshore",
+            "value": 0.3,
+            "window": null
+          },
+          {
+            "type": "renewable_availability_multiplier",
+            "carrier": "Wind Offshore",
+            "value": 0.3,
+            "window": null
+          }
+        ],
+        "mitigation": {
+          "storage_dispatch": true,
+          "curtailment": true,
+          "load_shedding": {
+            "enabled": true,
+            "voll_eur_per_mwh": 10000.0
+          }
+        },
+        "execution": {
+          "engine": "pypsa",
+          "formulation": "lopf",
+          "solver": "highs",
+          "solver_options": {
+            "time_limit_s": 300.0,
+            "threads": 1
+          },
+          "deterministic": true,
+          "seed": 0
+        },
+        "assumptions": [
+          "Synthetic multiplier applied uniformly to every wind generator's p_max_pu series"
+        ]
+      },
+      "preset": true,
+      "owner_id": null,
+      "created_at": "2026-11-14T21:10:46.055915Z",
+      "name": "SciGRID Germany — wind lull (wind availability x0.3)",
+      "network_id": "scigrid-de",
+      "visibility": "public"
+    },
+    {
+      "id": "scigrid-de-dunkelflaute-storage-on",
+      "hash": "ff6ff4d854757eb239e622ed6169ca8461455e90e5d00725f36caf1e4fe9041b",
+      "spec": {
+        "schema_version": "stormspec/1.0",
+        "id": "scigrid-de-dunkelflaute-storage-on",
+        "name": "SciGRID Germany — cold dark lull, storage dispatched",
+        "description": "Mitigation pair (identical crisis, only storage_dispatch differs; compare with scigrid-de-dunkelflaute-storage-off): demand x1.15, wind availability x0.3 and solar availability x0.5 for the whole day. The 38 pumped-hydro storage units start empty (dataset state_of_charge_initial = 0) and the dataset SOC is non-cyclic.",
+        "dataset": {
+          "network_id": "scigrid-de",
+          "sha256": "284850c8e922414f9da69ffda0623431148e0c28a3380ba370e4135ac5236500"
+        },
+        "horizon": {
+          "start": 0,
+          "snapshots": 24
+        },
+        "events": [
+          {
+            "type": "demand_multiplier",
+            "value": 1.15,
+            "buses": null,
+            "window": null
+          },
+          {
+            "type": "renewable_availability_multiplier",
+            "carrier": "Wind Onshore",
+            "value": 0.3,
+            "window": null
+          },
+          {
+            "type": "renewable_availability_multiplier",
+            "carrier": "Wind Offshore",
+            "value": 0.3,
+            "window": null
+          },
+          {
+            "type": "renewable_availability_multiplier",
+            "carrier": "Solar",
+            "value": 0.5,
+            "window": null
+          }
+        ],
+        "mitigation": {
+          "storage_dispatch": true,
+          "curtailment": true,
+          "load_shedding": {
+            "enabled": true,
+            "voll_eur_per_mwh": 10000.0
+          }
+        },
+        "execution": {
+          "engine": "pypsa",
+          "formulation": "lopf",
+          "solver": "highs",
+          "solver_options": {
+            "time_limit_s": 300.0,
+            "threads": 1
+          },
+          "deterministic": true,
+          "seed": 0
+        },
+        "assumptions": [
+          "Synthetic compound stress (demand, wind and solar multipliers) — not an observed event"
+        ]
+      },
+      "preset": true,
+      "owner_id": null,
+      "created_at": "2026-11-14T21:10:46.054894Z",
+      "name": "SciGRID Germany — cold dark lull, storage dispatched",
+      "network_id": "scigrid-de",
+      "visibility": "public"
+    },
+    {
+      "id": "scigrid-de-high-demand",
+      "hash": "be772882f1b854a1797fb23c6cbd02f365ee6d91920a8621b9034525d81268f0",
+      "spec": {
+        "schema_version": "stormspec/1.0",
+        "id": "scigrid-de-high-demand",
+        "name": "SciGRID Germany — high-demand event (+20 %)",
+        "description": "All loads scaled by 1.2 for the whole day (e.g. a cold spell). Synthetic stress applied to the dataset's load time series.",
+        "dataset": {
+          "network_id": "scigrid-de",
+          "sha256": "284850c8e922414f9da69ffda0623431148e0c28a3380ba370e4135ac5236500"
+        },
+        "horizon": {
+          "start": 0,
+          "snapshots": 24
+        },
+        "events": [
+          {
+            "type": "demand_multiplier",
+            "value": 1.2,
+            "buses": null,
+            "window": null
+          }
+        ],
+        "mitigation": {
+          "storage_dispatch": true,
+          "curtailment": true,
+          "load_shedding": {
+            "enabled": true,
+            "voll_eur_per_mwh": 10000.0
+          }
+        },
+        "execution": {
+          "engine": "pypsa",
+          "formulation": "lopf",
+          "solver": "highs",
+          "solver_options": {
+            "time_limit_s": 300.0,
+            "threads": 1
+          },
+          "deterministic": true,
+          "seed": 0
+        },
+        "assumptions": [
+          "Demand increase applied uniformly to every load (no spatial differentiation)"
+        ]
+      },
+      "preset": true,
+      "owner_id": null,
+      "created_at": "2026-11-14T21:10:46.054894Z",
+      "name": "SciGRID Germany — high-demand event (+20 %)",
+      "network_id": "scigrid-de",
+      "visibility": "public"
+    },
+    {
+      "id": "scigrid-de-dunkelflaute-storage-off",
+      "hash": "c410f7911a142152ee3ce969a770fcee75edf2d083a50a699656c8d5a2282d12",
+      "spec": {
+        "schema_version": "stormspec/1.0",
+        "id": "scigrid-de-dunkelflaute-storage-off",
+        "name": "SciGRID Germany — cold dark lull, storage held at zero",
+        "description": "Mitigation pair (identical crisis, only storage_dispatch differs; compare with scigrid-de-dunkelflaute-storage-on): demand x1.15, wind availability x0.3 and solar availability x0.5 for the whole day. The 38 pumped-hydro storage units start empty (dataset state_of_charge_initial = 0) and the dataset SOC is non-cyclic.",
+        "dataset": {
+          "network_id": "scigrid-de",
+          "sha256": "284850c8e922414f9da69ffda0623431148e0c28a3380ba370e4135ac5236500"
+        },
+        "horizon": {
+          "start": 0,
+          "snapshots": 24
+        },
+        "events": [
+          {
+            "type": "demand_multiplier",
+            "value": 1.15,
+            "buses": null,
+            "window": null
+          },
+          {
+            "type": "renewable_availability_multiplier",
+            "carrier": "Wind Onshore",
+            "value": 0.3,
+            "window": null
+          },
+          {
+            "type": "renewable_availability_multiplier",
+            "carrier": "Wind Offshore",
+            "value": 0.3,
+            "window": null
+          },
+          {
+            "type": "renewable_availability_multiplier",
+            "carrier": "Solar",
+            "value": 0.5,
+            "window": null
+          }
+        ],
+        "mitigation": {
+          "storage_dispatch": false,
+          "curtailment": true,
+          "load_shedding": {
+            "enabled": true,
+            "voll_eur_per_mwh": 10000.0
+          }
+        },
+        "execution": {
+          "engine": "pypsa",
+          "formulation": "lopf",
+          "solver": "highs",
+          "solver_options": {
+            "time_limit_s": 300.0,
+            "threads": 1
+          },
+          "deterministic": true,
+          "seed": 0
+        },
+        "assumptions": [
+          "Synthetic compound stress (demand, wind and solar multipliers) — not an observed event"
+        ]
+      },
+      "preset": true,
+      "owner_id": null,
+      "created_at": "2026-11-14T21:10:46.054375Z",
+      "name": "SciGRID Germany — cold dark lull, storage held at zero",
+      "network_id": "scigrid-de",
+      "visibility": "public"
+    },
+    {
+      "id": "scigrid-de-baseline",
+      "hash": "833d01f1a713b9367d598bb7b52c7dcd3b313019c647efe573736329d4dd7765",
+      "spec": {
+        "schema_version": "stormspec/1.0",
+        "id": "scigrid-de-baseline",
+        "name": "SciGRID Germany — baseline day",
+        "description": "Reference dispatch of the PyPSA SciGRID-DE example (585 buses, 852 lines, 96 transformers, 38 pumped-hydro storage units) for 2011-01-01, 24 hourly snapshots, no crisis events.",
+        "dataset": {
+          "network_id": "scigrid-de",
+          "sha256": "284850c8e922414f9da69ffda0623431148e0c28a3380ba370e4135ac5236500"
+        },
+        "horizon": {
+          "start": 0,
+          "snapshots": 24
+        },
+        "events": [],
+        "mitigation": {
+          "storage_dispatch": true,
+          "curtailment": true,
+          "load_shedding": {
+            "enabled": true,
+            "voll_eur_per_mwh": 10000.0
+          }
+        },
+        "execution": {
+          "engine": "pypsa",
+          "formulation": "lopf",
+          "solver": "highs",
+          "solver_options": {
+            "time_limit_s": 300.0,
+            "threads": 1
+          },
+          "deterministic": true,
+          "seed": 0
+        },
+        "assumptions": []
+      },
+      "preset": true,
+      "owner_id": null,
+      "created_at": "2026-11-14T21:10:46.052856Z",
+      "name": "SciGRID Germany — baseline day",
+      "network_id": "scigrid-de",
+      "visibility": "public"
+    }
+  ],
+  "total": 6,
+  "limit": 200,
+  "offset": 0
+}

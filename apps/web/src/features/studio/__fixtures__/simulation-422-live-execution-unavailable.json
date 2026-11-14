@@ -1,0 +1,1 @@
+{"error":{"code":"live_execution_unavailable","message":"Live execution is unavailable for network 'scigrid-de' on this deployment due to its memory budget, and no precomputed result matches this exact scenario. Select a supported network or a precomputed preset.","details":{"network_id":"scigrid-de","live_networks":["ac-dc-meshed","pglib-case118-ieee","pglib-case14-ieee"]}}}

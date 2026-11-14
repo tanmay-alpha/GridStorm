@@ -155,8 +155,9 @@ jobs:
       - if: steps.specs.outputs.present == 'true'
         name: Build web and run Playwright against vite preview
         working-directory: apps/web
+        # Same-origin: the vite preview proxy forwards /api to the local API, so no CORS is involved.
         env:
-          VITE_API_BASE_URL: http://127.0.0.1:8000
+          GRIDSTORM_API_PROXY: http://127.0.0.1:8000
         run: |
           npm ci
           npx playwright install --with-deps chromium

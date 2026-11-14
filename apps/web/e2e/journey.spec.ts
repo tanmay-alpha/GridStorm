@@ -1,6 +1,4 @@
 import { test, expect } from '@playwright/test'
-import { mkdir } from 'node:fs/promises'
-import path from 'node:path'
 import type { Map as MapLibreMap } from 'maplibre-gl'
 
 declare global {
@@ -9,12 +7,9 @@ declare global {
   }
 }
 
-const screenshots = path.resolve(import.meta.dirname, '../../../docs/audit/screenshots')
-
 test('real API: explorer, validation, live simulations, comparison, replay and exports', async ({ page }) => {
   const errors: string[] = []
   page.on('pageerror', (error) => errors.push(error.message))
-  await mkdir(screenshots, { recursive: true })
   await page.goto('/?network=pglib-case14-ieee')
   await expect(page.getByTestId('backend-status')).toHaveAttribute('data-state', 'up')
   await expect(page.getByTestId('network-select')).toHaveValue('pglib-case14-ieee')
@@ -29,10 +24,9 @@ test('real API: explorer, validation, live simulations, comparison, replay and e
   })
   await page.locator('.maplibregl-canvas').click({ position: point })
   await expect(page.getByTestId('asset-details')).toBeVisible()
-  await page.screenshot({ path: path.join(screenshots, 'explorer-desktop-light.png') })
   await page.getByRole('button', { name: 'Switch to dark theme' }).click()
   await page.waitForFunction(() => window.__gridstormMap?.loaded())
-  await page.screenshot({ path: path.join(screenshots, 'explorer-desktop-dark.png') })
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
 
   for (const route of ['/library', '/contingency', '/operations', '/benchmarks', '/methods', '/compare', '/studio']) {
     await page.getByRole('navigation', { name: 'Main', exact: true }).getByRole('link', { name: ({ '/library': 'Library', '/contingency': 'Contingency', '/operations': 'Operations', '/benchmarks': 'Benchmarks', '/methods': 'Methods', '/compare': 'Compare & Replay', '/studio': 'Crisis Studio' })[route], exact: true }).click()
@@ -62,12 +56,12 @@ test('real API: explorer, validation, live simulations, comparison, replay and e
     runs.push(page.url().split('/runs/')[1])
     await expect(page.getByTestId('metrics')).toBeVisible({ timeout: 120_000 })
     await expect(page.getByTestId('chart-generation').locator('canvas')).toBeVisible()
-    await expect(page.getByTestId('stage-timeline')).toContainText('completed')
+    await expect(page.getByTestId('job-status')).toHaveAttribute('data-status', 'completed')
+    await expect(page.getByTestId('stage-timeline')).toContainText('done')
     const download = page.waitForEvent('download')
     await page.getByTestId('download-result').click()
     expect((await download).suggestedFilename()).toContain('result')
   }
-  await page.screenshot({ path: path.join(screenshots, 'run-desktop-dark.png'), fullPage: true })
   await page.goto(`/compare?baseline=${runs[0]}&scenario=${runs[1]}`)
   await page.getByTestId('create-comparison').click()
   await expect(page.getByTestId('comparison')).toBeVisible()
@@ -76,21 +70,18 @@ test('real API: explorer, validation, live simulations, comparison, replay and e
   const download = page.waitForEvent('download')
   await page.getByTestId('export-md').click()
   expect((await download).suggestedFilename()).toMatch(/\.md$/)
-  await page.screenshot({ path: path.join(screenshots, 'comparison-desktop-dark.png'), fullPage: true })
   expect(errors).toEqual([])
 })
 
 test('mobile layout, navigation and both themes', async ({ page }) => {
-  await mkdir(screenshots, { recursive: true })
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/?network=pglib-case14-ieee')
   await expect(page.locator('.maplibregl-canvas')).toBeVisible()
   await page.waitForFunction(() => window.__gridstormMap?.loaded())
   await expect(page.getByRole('complementary', { name: 'Explorer controls' })).toBeVisible()
-  await page.screenshot({ path: path.join(screenshots, 'explorer-mobile-light.png') })
   await page.getByRole('button', { name: 'Switch to dark theme' }).click()
   await page.waitForFunction(() => window.__gridstormMap?.loaded())
-  await page.screenshot({ path: path.join(screenshots, 'explorer-mobile-dark.png') })
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
   await page.getByRole('button', { name: 'Open navigation menu' }).click()
   await page.getByRole('navigation', { name: 'Mobile' }).getByRole('link', { name: 'Crisis Studio' }).click()
   await expect(page.getByRole('heading', { name: 'Crisis Studio', exact: true })).toBeVisible()

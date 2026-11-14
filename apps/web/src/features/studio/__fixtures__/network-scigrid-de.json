@@ -1,0 +1,195 @@
+{
+  "id": "scigrid-de",
+  "name": "SciGRID Germany (PyPSA example)",
+  "description": "German 220/380 kV transmission grid from SciGRID v0.2 (derived from OpenStreetMap), with power plants, load and renewable availability for 24 hourly snapshots of 2011-01-01, as packaged by the PyPSA project (pypsa.examples.scigrid_de).",
+  "coordinate_kind": "geographic",
+  "crs": "EPSG:4326",
+  "snapshots": {
+    "count": 24,
+    "start": "2011-01-01T00:00:00",
+    "end": "2011-01-01T23:00:00",
+    "resolution_h": 1.0
+  },
+  "counts": {
+    "buses": 585,
+    "lines": 852,
+    "transformers": 96,
+    "links": 0,
+    "generators": 1423,
+    "loads": 489,
+    "storage_units": 38,
+    "stores": 0,
+    "carriers": 16
+  },
+  "capacity_by_carrier_mw": {
+    "Brown Coal": 20879.5,
+    "Gas": 23913.13,
+    "Geothermal": 31.7,
+    "Hard Coal": 25312.6,
+    "Multiple": 152.7,
+    "Nuclear": 12068.0,
+    "Oil": 2710.2,
+    "Other": 3027.8,
+    "Pumped Hydro": 9179.499999999998,
+    "Run of River": 3999.1,
+    "Solar": 37041.52477909075,
+    "Storage Hydro": 1445.0,
+    "Waste": 1645.9,
+    "Wind Offshore": 2973.5,
+    "Wind Onshore": 37339.89532919639
+  },
+  "peak_load_mw": 58424.79999999915,
+  "total_load_mwh": 1209951.6799999976,
+  "license": {
+    "spdx": "CC-BY-4.0",
+    "url": "https://github.com/PyPSA/PyPSA/blob/6c45594596cbc5612511ee9202a9e269e5001d88/REUSE.toml",
+    "attribution": "SciGRID Germany example network, (c) PyPSA Contributors (CC-BY-4.0, https://github.com/PyPSA/PyPSA); grid topology from SciGRID v0.2 (DLR Institute of Networked Energy Systems, formerly NEXT ENERGY, www.scigrid.de) based on OpenStreetMap data (c) OpenStreetMap contributors, ODbL-1.0.",
+    "redistribution": "permitted"
+  },
+  "provenance_class": "modeled",
+  "engines": [
+    "pypsa"
+  ],
+  "network_sha256": "284850c8e922414f9da69ffda0623431148e0c28a3380ba370e4135ac5236500",
+  "has_network_file": true,
+  "live_execution": false,
+  "source": {
+    "url": "https://data.pypsa.org/networks/examples/v1.4.0/scigrid_de.nc",
+    "version": "PyPSA v1.4.0 example network (scigrid_de)",
+    "publication_date": "Wed, 11 Nov 2026 16:06:48 GMT",
+    "upstream_commit": "6c45594596cbc5612511ee9202a9e269e5001d88"
+  },
+  "manifest": {
+    "schema_version": "dataset-manifest/1.0",
+    "network_id": "scigrid-de",
+    "name": "SciGRID Germany (PyPSA example)",
+    "description": "German 220/380 kV transmission grid from SciGRID v0.2 (derived from OpenStreetMap), with power plants, load and renewable availability for 24 hourly snapshots of 2011-01-01, as packaged by the PyPSA project (pypsa.examples.scigrid_de).",
+    "source": {
+      "url": "https://data.pypsa.org/networks/examples/v1.4.0/scigrid_de.nc",
+      "version": "PyPSA v1.4.0 example network (scigrid_de)",
+      "publication_date": "Wed, 11 Nov 2026 16:06:48 GMT",
+      "upstream_commit": "6c45594596cbc5612511ee9202a9e269e5001d88"
+    },
+    "retrieved_at": "2026-11-14T16:08:26+00:00",
+    "files": [
+      {
+        "path": "canonical.json",
+        "sha256": "3053614c8dc35924f15548106ea25dd8b55f46b886f6601272bea269d28e46e2",
+        "bytes": 752977
+      },
+      {
+        "path": "network.nc",
+        "sha256": "284850c8e922414f9da69ffda0623431148e0c28a3380ba370e4135ac5236500",
+        "bytes": 1527668
+      },
+      {
+        "path": "source/retrieval.json",
+        "sha256": "016c97b745ac6f2e6d0c877b6b2fe05bdd15d7e5a353edae944d4ed743fbe887",
+        "bytes": 336
+      }
+    ],
+    "license": {
+      "spdx": "CC-BY-4.0",
+      "url": "https://github.com/PyPSA/PyPSA/blob/6c45594596cbc5612511ee9202a9e269e5001d88/REUSE.toml",
+      "attribution": "SciGRID Germany example network, (c) PyPSA Contributors (CC-BY-4.0, https://github.com/PyPSA/PyPSA); grid topology from SciGRID v0.2 (DLR Institute of Networked Energy Systems, formerly NEXT ENERGY, www.scigrid.de) based on OpenStreetMap data (c) OpenStreetMap contributors, ODbL-1.0.",
+      "redistribution": "permitted"
+    },
+    "coverage": {
+      "geographic": "Germany, 220 kV and 380 kV transmission level (SciGRID v0.2, OSM-derived); lon/lat EPSG:4326.",
+      "temporal": "24 hourly snapshots 2011-01-01T00:00 to 2011-01-01T23:00."
+    },
+    "units": {
+      "buses.v_nom_kv": "kV",
+      "lines.v_nom_kv": "kV",
+      "lines.s_nom_mva": "MVA",
+      "lines.x_ohm": "ohm",
+      "lines.r_ohm": "ohm",
+      "lines.length_km": "km",
+      "transformers.s_nom_mva": "MVA",
+      "transformers.x_pu": "p.u. on transformers.s_nom_mva",
+      "transformers.r_pu": "p.u. on transformers.s_nom_mva",
+      "transformers.tap_ratio": "p.u. (dimensionless)",
+      "links.p_nom_mw": "MW",
+      "links.efficiency": "dimensionless (0,1]",
+      "generators.p_nom_mw": "MW",
+      "generators.marginal_cost_eur_per_mwh": "EUR/MWh",
+      "loads.p_peak_mw": "MW",
+      "loads.p_mean_mw": "MW",
+      "loads.energy_mwh": "MWh",
+      "storage_units.p_nom_mw": "MW",
+      "storage_units.max_hours": "h",
+      "stores.e_nom_mwh": "MWh",
+      "carriers.co2_emissions_t_per_mwh": "t/MWh (thermal input)",
+      "snapshots.resolution_h": "h"
+    },
+    "missing_value_policy": "Values the source does not provide are null in canonical.json and are never invented. PyPSA component defaults that would masquerade as data (e.g. line length 0) are emitted as null and listed in canonical.json assumptions. NaN/inf never appear in JSON. network.nc keeps PyPSA defaults because PyPSA requires finite values; flagged substitutions are listed in quality_flags.",
+    "quality_flags": [
+      "line_impedance_from_standard_types",
+      "line_rating_estimated",
+      "transformer_parameters_placeholder",
+      "load_spatially_disaggregated_model",
+      "marginal_cost_placeholder",
+      "co2_factors_missing",
+      "cross_component_id_collision"
+    ],
+    "transformations": [
+      {
+        "step": "download",
+        "tool": "network_import.paths.fetch",
+        "version": "1.0.0",
+        "description": "Downloaded https://data.pypsa.org/networks/examples/v1.4.0/scigrid_de.nc (the URL pypsa.examples uses for v1.4.0); sha256 pinned in source/retrieval.json. network.nc is byte-identical upstream."
+      },
+      {
+        "step": "canonicalize",
+        "tool": "network_import.canonical.from_pypsa",
+        "version": "pypsa 1.4.0",
+        "description": "Converted to canonical-grid/1.0; derived impedances via calculate_dependent_values; defaults masquerading as data emitted as null."
+      }
+    ],
+    "engines": [
+      "pypsa"
+    ],
+    "provenance_class": "modeled"
+  },
+  "assumptions": [
+    "lines.x_ohm/r_ohm are the effective impedances PyPSA derives from the standard line type ('Al/St 240/40 2-bundle 220.0' / '4-bundle 380.0') x length / num_parallel; the source stores x = r = 0 with a line type.",
+    "lines.s_nom_mva follows from the standard type's thermal current x v_nom x num_parallel (PyPSA example preparation) and is an estimate, not an operator rating.",
+    "Transformers use uniform placeholder parameters from the PyPSA example preparation (s_nom 2000 MVA, x = 0.1 p.u.); treat as estimates.",
+    "Load (per PyPSA docs/examples/scigrid-lopf-then-pf.ipynb): ENTSO-E hourly German load scaled uniformly by 1.12, distributed to buses proportional to NUTS3 GDP and population (attached to the 220 kV substation in doubt) — modeled, not metered.",
+    "Conventional plant capacities/locations from the BNetzA power plant list; wind/solar capacities from EEG Stammdaten/EnergyMap (end-2014); wind/solar availability from REatlas (Andresen et al. 2015); plants attached to the nearest HV substation. Marginal costs are illustrative per-carrier values (upstream notebook: 'not accurate'). Biomass from EEG Stammdaten is not included.",
+    "carriers.co2_emissions_t_per_mwh is null: the source stores 0 for every carrier, which is a default, not an emission factor.",
+    "Line and transformer ids overlap (e.g. '2' is both a line and a transformer); ids are unique only per component list. line_outage events must set component.",
+    "4 loads have no p_set time series and keep the static p_set = 0 MW.",
+    "summary.capacity_by_carrier_mw sums p_nom of active generators and storage units by carrier; summary.peak_load_mw is the coincident peak of total load p_set."
+  ],
+  "field_provenance": {
+    "buses.carrier": "observed",
+    "buses.v_nom_kv": "observed",
+    "buses.x": "observed",
+    "buses.y": "observed",
+    "carriers.nice_name": "modeled",
+    "generators.carrier": "observed",
+    "generators.is_variable": "calculated",
+    "generators.marginal_cost_eur_per_mwh": "modeled",
+    "generators.p_nom_extendable": "modeled",
+    "generators.p_nom_mw": "observed",
+    "lines.length_km": "observed",
+    "lines.num_parallel": "observed",
+    "lines.r_ohm": "calculated",
+    "lines.s_nom_mva": "estimated",
+    "lines.v_nom_kv": "calculated",
+    "lines.x_ohm": "calculated",
+    "loads.energy_mwh": "modeled",
+    "loads.p_mean_mw": "modeled",
+    "loads.p_peak_mw": "modeled",
+    "storage_units.carrier": "observed",
+    "storage_units.efficiency_dispatch": "estimated",
+    "storage_units.efficiency_store": "estimated",
+    "storage_units.max_hours": "estimated",
+    "storage_units.p_nom_mw": "observed",
+    "transformers.r_pu": "estimated",
+    "transformers.s_nom_mva": "estimated",
+    "transformers.tap_ratio": "estimated",
+    "transformers.x_pu": "estimated"
+  }
+}

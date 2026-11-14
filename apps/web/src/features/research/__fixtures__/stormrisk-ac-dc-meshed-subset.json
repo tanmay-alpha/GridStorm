@@ -1,0 +1,228 @@
+{
+  "artifact": {
+    "schema_version": "gridstorm-artifact/1.0",
+    "artifact_id": "stormrisk-ac-dc-meshed-storm-stress",
+    "kind": "risk",
+    "engine": "stormrisk",
+    "engine_version": "0.1.0",
+    "network_id": "ac-dc-meshed",
+    "created_at": "2026-11-14T21:20:38+00:00",
+    "command": "uv run --project packages/stormrisk python packages/stormrisk/scripts/run_study.py packages/stormrisk/studies/ac-dc-meshed-storm-stress.json --workers 1 --networks-root \"data/networks\" --out-dir \"data/artifacts/stormrisk\"",
+    "inputs": [
+      {
+        "path": "packages/stormrisk/studies/ac-dc-meshed-storm-stress.json",
+        "sha256": "6c18da12ad2b41ab322a245fa9903565ebd4eaec120ad2bbe385ce06b9a6cdc8"
+      },
+      {
+        "path": "data/networks/ac-dc-meshed/network.nc",
+        "sha256": "62e4e53555e2219a2ae48b7f91e576e2ea383cadd2f61db9919f3592503c932f"
+      },
+      {
+        "path": "data/networks/ac-dc-meshed/canonical.json",
+        "sha256": "c974af9fe4ede05eb077e2e53ff5e8d01155840e0127126874ea4b90fee184e1"
+      }
+    ],
+    "platform": "Windows-10-10.0.26300-SP0",
+    "execution_mode": "precomputed",
+    "payload_sha256": "048bc178eb633eb3641d78e85f3cf57b254e99e02a4d2b49a62a42025c021fc7"
+  },
+  "payload": {
+    "schema_version": "stormrisk-study/1.0",
+    "network_id": "ac-dc-meshed",
+    "engine": {
+      "engine": {
+        "name": "pypsa",
+        "version": "1.4.0",
+        "formulation": "lopf"
+      },
+      "solver": {
+        "name": "highs",
+        "version": "1.16.0"
+      },
+      "package_versions": {
+        "pypsa": "1.4.0",
+        "linopy": "0.10.1",
+        "highspy": "1.16.0",
+        "gridstorm-pypsa": "0.1.0",
+        "stormspec": "1.0.0",
+        "numpy": "2.4.6"
+      }
+    },
+    "population": {
+      "n_assets_sampled": 17,
+      "expected_outages_per_sample": 0.64,
+      "classes": [
+        {
+          "name": "ac-lines-storm",
+          "component": "line",
+          "unavailability": 0.05,
+          "provenance": "modeled",
+          "source": "MODELLED author-selected whole-horizon stress probability, not observed or calibrated. Context only: IEEE RTS-96 Table 12 (Grigg et al., The IEEE Reliability Test System-1996, IEEE Trans. Power Syst. 14(3):1010-1020, 1999; https://labs.ece.uw.edu/pstca/rts/rts96/Table-12.txt) lists branch outage rates 0.24-0.54 /yr and typical durations 10-16 h (some 35 h), giving stationary unavailability of order 1e-4 to 1e-3 via lambda*r/8760. q=0.05 is deliberately larger, an illustrative assumption, not a weather multiplier inferred from RTS-96.",
+          "n_assets_matched": 4
+        },
+        {
+          "name": "dc-lines-storm",
+          "component": "line",
+          "unavailability": 0.05,
+          "provenance": "modeled",
+          "source": "MODELLED author-selected stress probability, not observed or calibrated: q=0.05, the same illustrative assumption as ac-lines-storm. IEEE RTS-96 Table 12 provides stationary branch-reliability context only, not DC-specific or weather-conditioned failure statistics.",
+          "n_assets_matched": 3
+        },
+        {
+          "name": "hvdc-links-converters",
+          "component": "link",
+          "unavailability": 0.02,
+          "provenance": "modeled",
+          "source": "MODELLED assumption, not observed data: illustrative forced unavailability for HVDC converters/links of order 1e-2 (same order as the smaller thermal-unit forced outage rates in IEEE RTS-96, Grigg et al. 1999, Table 6). No HVDC-specific statistics are used.",
+          "n_assets_matched": 4
+        },
+        {
+          "name": "gas-units",
+          "component": "generator",
+          "unavailability": 0.05,
+          "provenance": "modeled",
+          "source": "MODELLED assumption, not observed data: forced outage rate of a mid-size thermal unit from IEEE RTS-96 generator reliability data (Grigg et al. 1999, Table 6, https://labs.ece.uw.edu/pstca/rts/rts96/Table-06.txt: thermal-unit FOR 0.02-0.12; 197 MW oil/steam = 0.05). Each ac-dc-meshed gas generator is an aggregated plant, so a whole-plant FOR is a strong simplification.",
+          "n_assets_matched": 3
+        },
+        {
+          "name": "wind-farms",
+          "component": "generator",
+          "unavailability": 0.02,
+          "provenance": "modeled",
+          "source": "MODELLED assumption, not observed data: whole-farm unavailability (e.g. export cable/substation fault) set to 0.02, of the order of the smaller IEEE RTS-96 unit FORs (Grigg et al. 1999, Table 6). Weather-driven wind variability is already in the network's p_max_pu series.",
+          "n_assets_matched": 3
+        }
+      ],
+      "excluded_base_outaged": []
+    },
+    "sample_accounting": {
+      "n_samples": 1000,
+      "n_distinct_states": 165,
+      "n_feasible_samples": 1000,
+      "n_infeasible_samples": 0,
+      "n_error_samples": 0,
+      "n_invalid_samples": 0,
+      "n_distinct_states_by_outcome": {
+        "feasible": 165,
+        "infeasible": 0,
+        "error": 0,
+        "invalid": 0
+      }
+    },
+    "estimates": {
+      "metric": "EENS",
+      "estimator": "crude_monte_carlo_frequency_weighted",
+      "probability_model": {
+        "provenance": "modeled",
+        "description": "independent whole-horizon component unavailabilities (sampling_spec.outage_classes) and optional demand-multiplier distribution"
+      },
+      "basis": "all_samples",
+      "provenance": "modeled",
+      "n_samples": 1000,
+      "eens_mwh": 145.208,
+      "std_unserved_mwh": 1130.94,
+      "se_eens_mwh": 35.7634,
+      "ci95_low_mwh": 75.113,
+      "ci95_high_mwh": 215.303,
+      "cv_eens": 0.246291,
+      "lolp": 0.087,
+      "se_lolp": 0.00891241,
+      "n_loss_of_load_samples": 87,
+      "mean_unserved_given_shed_mwh": 1669.06,
+      "p95_unserved_mwh": 183.585,
+      "max_unserved_mwh": 19956.8,
+      "eens_lower_bound_all_samples_mwh": 145.208
+    },
+    "convergence": [
+      {
+        "n": 1,
+        "eens_mwh": 0.0,
+        "ci95_half_width_mwh": null
+      },
+      {
+        "n": 2,
+        "eens_mwh": 0.0,
+        "ci95_half_width_mwh": 0.0
+      },
+      {
+        "n": 3,
+        "eens_mwh": 0.0,
+        "ci95_half_width_mwh": 0.0
+      },
+      {
+        "n": 4,
+        "eens_mwh": 0.0,
+        "ci95_half_width_mwh": 0.0
+      },
+      {
+        "n": 5,
+        "eens_mwh": 0.0,
+        "ci95_half_width_mwh": 0.0
+      },
+      {
+        "n": 944,
+        "eens_mwh": 152.286,
+        "ci95_half_width_mwh": 74.171
+      },
+      {
+        "n": 1000,
+        "eens_mwh": 145.208,
+        "ci95_half_width_mwh": 70.0949
+      }
+    ],
+    "importance": [
+      {
+        "component": "generator",
+        "asset_id": "Manchester Gas",
+        "n_samples_out": 37,
+        "n_samples_out_with_shed": 37,
+        "conditional_mean_unserved_if_out_mwh": 2679.01,
+        "conditional_mean_unserved_if_in_service_mwh": 47.8551,
+        "share_of_sampled_unserved_energy": 0.682631
+      },
+      {
+        "component": "generator",
+        "asset_id": "Frankfurt Gas",
+        "n_samples_out": 46,
+        "n_samples_out_with_shed": 37,
+        "conditional_mean_unserved_if_out_mwh": 1522.34,
+        "conditional_mean_unserved_if_in_service_mwh": 78.8052,
+        "share_of_sampled_unserved_energy": 0.482258
+      },
+      {
+        "component": "link",
+        "asset_id": "DC link",
+        "n_samples_out": 17,
+        "n_samples_out_with_shed": 4,
+        "conditional_mean_unserved_if_out_mwh": 2426.55,
+        "conditional_mean_unserved_if_in_service_mwh": 105.754,
+        "share_of_sampled_unserved_energy": 0.284085
+      }
+    ],
+    "assumptions": [
+      "Component unavailabilities are MODELLED inputs (see sampling_spec.outage_classes[].source); they are not observed failure statistics of the studied network.",
+      "Components fail independently of each other and of demand; class probabilities do not represent common-mode or weather-correlated failures.",
+      "Every sampled outage lasts the whole study horizon (the PyPSA adapter supports topology changes for the whole horizon only); no repair or restoration within the horizon.",
+      "Each sampled state is solved as a DC linearised optimal power flow (PyPSA LOPF, HiGHS) with load shedding at VOLL; no AC feasibility, voltage, stability or protection behaviour.",
+      "Crude (unstratified) Monte Carlo; uncertainty is sampling error only (CLT normal approximation). Model/parameter uncertainty is not included in the confidence interval.",
+      "ac-dc-meshed is the PyPSA example network (synthetic, illustrative); it does not represent the real UK/German/Norwegian system."
+    ],
+    "limitations": [
+      "Not a reliability assessment of any real power system: the probabilities are generic modelled values and the network models are research/example datasets.",
+      "EENS here is the expected unserved energy over the study horizon conditional on the base scenario (e.g. its snapshots and demand), not an annual adequacy index.",
+      "Importance ranking is descriptive co-occurrence, not causal attribution."
+    ],
+    "warnings": [],
+    "runtime": {
+      "wall_time_s": 385.856,
+      "solves": 165,
+      "workers": 1,
+      "solve_wall_time_s_sum": 385.811,
+      "peak_rss_mb_main_process": 302.41,
+      "peak_rss_mb_max_worker": null,
+      "python": "3.11.15",
+      "platform": "win32"
+    },
+    "study_title": "ac-dc-meshed: Monte Carlo storm-stress EENS (modelled outage probabilities, 10 h)"
+  }
+}

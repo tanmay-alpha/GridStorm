@@ -212,12 +212,13 @@ export interface NetworkSummary {
   engines: string[]
   network_sha256: string | null
   has_network_file: boolean
+  /** False when this deployment refuses live solves for the network (precomputed results only). */
+  live_execution?: boolean
   source: DatasetManifest['source'] | null
 }
 
 /** GET /api/v1/networks/{id}: summary + manifest + assumptions. */
 export interface NetworkDetail extends NetworkSummary {
-  live_execution?: boolean
   manifest?: DatasetManifest | null
   assumptions?: string[]
   field_provenance?: Record<string, Provenance>
@@ -249,6 +250,9 @@ export interface ValidationReport {
   valid: boolean
   errors: ValidationIssue[]
   warnings: ValidationIssue[]
+  /** Canonical StormSpec hash computed by the backend (present when the spec parsed). */
+  scenario_hash?: string | null
+  network_id?: string | null
 }
 
 export interface ScenarioRecord {

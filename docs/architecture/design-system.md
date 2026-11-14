@@ -16,4 +16,13 @@ ECharts displays real result series. Missing data is an em dash or an explicit e
 
 ## Verification
 
-Vitest covers API error mapping, formatting, scales, legends and validation. Playwright uses the real local backend through the Vite preview proxy, performs canvas clicks, edits and validates scenarios, runs simulations and exports reports. Real screenshots are written to `docs/audit/screenshots/`. Run `npm run build`, `npm run lint`, `npm run typecheck`, `npm test`, then `npm run e2e` with the local API available at port 8010 (or `GRIDSTORM_API_PROXY` overridden).
+Vitest covers API error mapping, formatting, scales, legends, validation messages, research artifact parsers (fixtures copied from `data/artifacts`) and the Crisis Studio `live_execution` policy (fixtures captured from the local API, including the real HTTP 422 `live_execution_unavailable` body). Playwright runs against the real local backend through the Vite preview proxy:
+
+- `journey.spec.ts`: canvas click on a rendered bus, every route via the main navigation, scenario validation errors, save, two live IEEE-14 runs (keyboard Enter on Run), result download, comparison with map replay and Markdown export, mobile navigation, theme switch.
+- `research.spec.ts`: `/benchmarks`, `/contingency`, `/operations`, `/methods`; every expected number is read from the same `data/artifacts` files the API serves.
+- `studio-live-execution.spec.ts`: on `scigrid-de` (`live_execution: false`) an unchanged preset is served from its precomputed artifact; an edited scenario is refused with 422 `live_execution_unavailable` and the message is shown verbatim.
+- `screenshots.spec.ts`: every route at 1440×900 and 390×844 in light and dark themes, written to `docs/audit/screenshots/<route>-<desktop|mobile>-<light|dark>.png`.
+
+Single-run metrics say "Unserved energy"; "EENS" is used only for StormRisk's probability-weighted Monte Carlo estimate.
+
+Run `npm run build`, `npm run lint`, `npm run typecheck`, `npm test`, then `npm run e2e` with the local API on port 8130 (`cd services/api && uv run uvicorn gridstorm_api.main:app --port 8130`) or `GRIDSTORM_API_PROXY` overridden.

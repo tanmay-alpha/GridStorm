@@ -116,12 +116,20 @@ export function parseArtifact(x: unknown): ParsedArtifact {
 }
 
 /**
- * Provenance classes declared by the artifact (header first, then payload). Never inferred.
+ * Provenance classes declared by the artifact (header first, then payload, then the headline
+ * estimate of a StormRisk study, `payload.estimates.provenance`). Never inferred.
  * Supports a single class string or an object of named classes, e.g.
  * `{"inputs": "synthetic", "trace": "modeled", "kpis": "calculated"}`.
  */
 export function artifactProvenance(a: ParsedArtifact): { label: string | null; value: Provenance }[] {
-  for (const src of [a.headerRaw.provenance, a.headerRaw.provenance_class, a.payload.provenance, a.payload.provenance_class]) {
+  const sources = [
+    a.headerRaw.provenance,
+    a.headerRaw.provenance_class,
+    a.payload.provenance,
+    a.payload.provenance_class,
+    rec(a.payload.estimates)?.provenance,
+  ]
+  for (const src of sources) {
     const single = provenance(src)
     if (single) return [{ label: null, value: single }]
     const r = rec(src)

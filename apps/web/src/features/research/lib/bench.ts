@@ -1,10 +1,11 @@
-import { num, numRecord, rec, recArr, str, strArr, type Rec } from './parse'
+import { bool, num, numRecord, rec, recArr, str, strArr, type Rec } from './parse'
 
 /**
  * Parsers for benchmark-style artifacts:
  * - StormBench (`stormbench-result/1.0` per case, `stormbench-summary/1.0`), layout from its owner;
  * - cross-engine agreement checks (data/artifacts/cross-engine), layout from its owner;
- * - StormRisk Monte Carlo studies (packages/stormrisk/src/stormrisk/study.py `_assemble`).
+ * - StormRisk Monte Carlo studies (packages/stormrisk/src/stormrisk/study.py `_assemble`);
+ * - pandapower AC power-flow reference validation (workers/pandapower `ac-reference-validation`).
  */
 
 export interface ScreeningScore {
@@ -255,5 +256,63 @@ export function parseRisk(p: Rec): RiskStudy {
     assumptions: strArr(p.assumptions),
     limitations: strArr(p.limitations),
     warnings: strArr(p.warnings),
+  }
+}
+
+export interface AcReferenceRow {
+  group: string
+  case: string
+  reference: string | null
+  maxDvmPu: number | null
+  maxDvaDeg: number | null
+  maxDpBranchMw: number | null
+  lossesMw: number | null
+  referenceLossesMw: number | null
+  balanceResidualMw: number | null
+  pass: boolean | null
+}
+
+export interface AcReferenceValidation {
+  title: string | null
+  method: Record<string, string>
+  tolerances: Record<string, number>
+  summary: Record<string, number>
+  allPass: boolean | null
+  rows: AcReferenceRow[]
+}
+
+/** Comparison groups of workers/pandapower `ac-reference-validation` (pandapower vs MATPOWER/PYPOWER). */
+const AC_REFERENCE_GROUPS = [
+  ['matpower_cases', 'MATPOWER case vs PYPOWER'],
+  ['matpower_testsuite', 'MATPOWER test-suite solution'],
+  ['pandapower_builtin', 'pandapower built-in vs PYPOWER'],
+] as const
+
+export function parseAcReference(p: Rec): AcReferenceValidation {
+  const method = rec(p.method) ?? {}
+  const summary = rec(p.summary) ?? {}
+  const rows = AC_REFERENCE_GROUPS.flatMap(([key, group]) => {
+    // A group is either one comparison object or an array of them.
+    const single = rec(p[key])
+    return (single ? [single] : recArr(p[key])).map((r) => ({
+      group,
+      case: str(r.case) ?? '?',
+      reference: str(r.reference),
+      maxDvmPu: num(r.max_abs_dvm_pu),
+      maxDvaDeg: num(r.max_abs_dva_deg),
+      maxDpBranchMw: num(r.max_abs_dp_branch_mw),
+      lossesMw: num(r.losses_mw),
+      referenceLossesMw: num(r.reference_losses_mw),
+      balanceResidualMw: num(r.balance_residual_mw),
+      pass: bool(r.pass),
+    }))
+  })
+  return {
+    title: str(p.title),
+    method: flatScalars({ ...method, tolerances: undefined }),
+    tolerances: numRecord(method.tolerances),
+    summary: numRecord(summary),
+    allPass: bool(summary.all_pass),
+    rows,
   }
 }
