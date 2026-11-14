@@ -2,18 +2,65 @@
 
 Open-source power-grid resilience and crisis-simulation research platform.
 
-> Status: under active construction. See [`TODO.md`](TODO.md) for verified progress.
+- **Live app:** https://gridstorm.vercel.app
+- **Live API:** https://gridstorm-api.onrender.com ([OpenAPI docs](https://gridstorm-api.onrender.com/docs)). It runs on Render's free tier, so after idling it takes about 30 s to wake.
+- **Progress tracker with evidence:** [`TODO.md`](TODO.md)
 
-GridStorm lets researchers, students and educators select a documented electricity-network model,
-define a crisis scenario (transmission outages, demand surges, renewable shortfalls), run a real
-scientific simulation (PyPSA linear optimal power flow, pandapower AC power flow / N-1, Grid2Op
-sequential operation), and compare baseline, crisis and mitigation results with full provenance.
+> **GridStorm is a research and teaching tool.** It is not a live utility control system and not a
+> validated real-world blackout predictor. Every number shown is labelled
+> `observed | estimated | synthetic | modeled | calculated`.
 
-**GridStorm is not a live utility control system and not a validated real-world blackout predictor.**
+![Grid Explorer](docs/audit/screenshots/explorer-desktop-dark.png)
 
-- Architecture: [`docs/architecture/overview.md`](docs/architecture/overview.md)
-- Interface contracts: [`docs/architecture/contracts.md`](docs/architecture/contracts.md)
-- Decisions: [`docs/decisions/`](docs/decisions/)
+## What you can do
 
-License: MIT (see [`LICENSE`](LICENSE)); third-party components keep their own licenses
-([`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md), [`UPSTREAM_ATTRIBUTION.md`](UPSTREAM_ATTRIBUTION.md)).
+1. **Explore a documented network.** There are four datasets, each with a checksummed manifest and licence: PyPSA `ac-dc-meshed`, SciGRID Germany `scigrid-de`, and PGLib-OPF IEEE 14- and 118-bus. Explore them on a MapLibre map, or on a labelled schematic layout where the data has no coordinates.
+2. **Build a crisis in Crisis Studio.** Crisis events are line, transformer, link or generator outages, demand multipliers and renewable availability shortfalls. Mitigation options are storage dispatch, curtailment and priced load shedding. The scenario is written as a typed StormSpec scenario: JSON-Schema validated and hashed. Operations an engine cannot represent are rejected, never silently approximated.
+3. **Run a real solve.** PyPSA linear optimal power flow solves the scenario with HiGHS in a subprocess with a timeout and an RSS memory watchdog. The job shows its real stages, with no fake percentages. Networks too large for the free instance (`scigrid-de`, about 550 MiB peak) return clearly labelled precomputed results instead.
+4. **Inspect results.** The run dashboard shows unserved energy (Σ shed·Δt), cost, curtailment, CO₂, line loading on the map with a replay slider, storage, and solver termination.
+5. **Compare** baseline vs crisis vs mitigation and export a reproducible Markdown/JSON report. The report embeds the scenario hashes, dataset SHA-256 and engine/solver versions.
+6. **Research pages** show precomputed, reproducible studies, listed in the next table.
+
+## Scientific components (all results measured, see linked docs)
+
+| Component | What it does | Evidence |
+|---|---|---|
+| `packages/stormspec` | Typed crisis-scenario spec, hashing, engine capabilities, validation, manifests | [contracts](docs/architecture/contracts.md) |
+| `workers/pypsa` | StormSpec → PyPSA LOPF adapter, 11 solved presets | [scientific spec](docs/architecture/scientific-spec.md) |
+| `workers/pandapower` | AC power flow: 13 reference comparisons passed; N-1/N-2 with explicit outcome classes (secure, thermal overload, voltage violation, islanding, non-convergent, error) | [AC validation](docs/research/ac-validation.md) |
+| `workers/advisor` | Deterministic Crisis Response Advisor; candidates accepted only after AC re-solve | [advisor](docs/research/crisis-advisor.md) |
+| `packages/stormbench` | PTDF/LODF contingency screening vs exact DC/AC N-1 on 6 PGLib cases | [StormBench](docs/benchmarks/stormbench.md) |
+| `tests/cross_engine` | PyPSA vs pandapower DC flows agree to ≤ 2.6e-12 MW | [cross-engine](docs/benchmarks/cross-engine.md) |
+| `packages/stormrisk` | Monte Carlo outage sampling → EENS with 95 % CI, LOLP | [probabilistic stress](docs/research/probabilistic-stress.md) |
+| `workers/grid2op` | Sequential operation, 3 agents × 2 chronics, deterministic traces | [Grid2Op](docs/research/grid2op-integration.md) |
+| `workers/distribution` | SimBench LV AC time-series: PV over-voltage, curtailment, Q(U) | [SimBench](docs/research/simbench-distribution.md) |
+| `pipelines/observed` | OPSD-derived historical-analogue stress scenarios on SciGRID-DE | [observed analogues](docs/research/observed-analogue-scenarios.md) |
+| `pipelines/pypsa-eur` | Reproducible reduced PyPSA-Eur Belgium build (kept local pending licence decision) | [build report](docs/research/pypsa-eur-build.md) |
+| `services/analytics` | PyPSA-Explorer analytics port (MIT, attributed) | [baseline audit](docs/audit/pypsa-explorer-baseline.md) |
+
+## Architecture
+
+React + TypeScript + MapLibre + ECharts on Vercel → FastAPI on Render, which runs PyPSA/HiGHS jobs as
+subprocesses → Postgres (Supabase, with RLS) or a SQLite fallback. pandapower, Grid2Op, StormBench and
+other studies run in **separate locked environments**, because their released dependency sets conflict
+with PyPSA 1.4 (see [compatibility matrix](docs/research/compatibility-matrix.md)). They exchange
+results through versioned, checksummed artifacts.
+Details: [overview](docs/architecture/overview.md) · [decisions](docs/decisions/) ·
+[engineering story](docs/engineering-story.md) · [user guide](docs/user-guide.md).
+
+## Known limitations
+
+- The live API stores jobs in **SQLite on ephemeral disk** until Supabase is connected, so jobs are lost when Render restarts or redeploys.
+- LOPF is a DC linearisation: no reactive power, voltage magnitudes or losses. The AC studies are steady-state only: no protection, dynamics or transient stability.
+- Outage probabilities in StormRisk are modelled from IEEE RTS-96 ranges, not observed for these networks.
+
+## Development
+
+See [`docs/deployment/local-development.md`](docs/deployment/local-development.md). Each Python
+component has its own `uv` project (`uv sync && uv run pytest`). The web app: `cd apps/web && npm ci && npm run dev`.
+
+## License
+
+MIT (see [`LICENSE`](LICENSE)). Third-party code and data keep their own licences:
+[`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md), [`UPSTREAM_ATTRIBUTION.md`](UPSTREAM_ATTRIBUTION.md),
+[licence audit](docs/research/license-audit.md).
