@@ -250,8 +250,9 @@ def import_example(network_id: str, *, catalog: bool = True) -> None:
                 "step": "download",
                 "tool": "network_import.paths.fetch",
                 "version": "1.0.0",
-                "description": f"Downloaded {url} (the URL pypsa.examples uses for v{PYPSA_VERSION}); "
-                "sha256 pinned in source/retrieval.json. network.nc is byte-identical upstream.",
+                "description": f"Downloaded {url} (the URL pypsa.examples uses for "
+                f"v{PYPSA_VERSION}); sha256 pinned in source/retrieval.json. "
+                "network.nc is byte-identical upstream.",
             },
             {
                 "step": "canonicalize",

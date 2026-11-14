@@ -245,7 +245,9 @@ def import_pglib(network_id: str, *, catalog: bool = True) -> None:
                 "step": "canonicalize",
                 "tool": "network_import.canonical.from_pypsa",
                 "version": f"pypsa {pypsa.__version__}",
-                "description": "Converted to canonical-grid/1.0; unlimited ratings emitted as null.",
+                "description": (
+                    "Converted to canonical-grid/1.0; unlimited ratings emitted as null."
+                ),
             },
         ],
         engines=["pypsa", "pandapower"],
