@@ -1,0 +1,66 @@
+{
+ "schema_version": "gridstorm-analytics/1.0",
+ "kind": "summary",
+ "available": true,
+ "reason": null,
+ "provenance": "calculated",
+ "network_solved": false,
+ "filters": {
+  "carriers": null,
+  "countries": null
+ },
+ "units": {
+  "snapshot_hours_h": "h",
+  "objective_eur": "EUR"
+ },
+ "assumptions": [
+  "Counts are numbers of static component rows (inactive assets included).",
+  "Snapshots are labels, not timestamps (e.g. PyPSA's default single snapshot 'now'); snapshot_start and snapshot_end are null."
+ ],
+ "source": {
+  "upstream": "PyPSA-Explorer",
+  "url": "https://github.com/open-energy-transition/PyPSA-Explorer",
+  "sha": "c85252c98cab742b43245a18bcd310d095bab443",
+  "license": "MIT",
+  "derived_from": [
+   "src/pypsa_explorer/layouts/components.py:create_header",
+   "src/pypsa_explorer/utils/helpers.py:summarize_network",
+   "src/pypsa_explorer/utils/helpers.py:get_bus_carrier_options",
+   "src/pypsa_explorer/utils/helpers.py:get_country_options"
+  ],
+  "engine": {
+   "name": "pypsa",
+   "version": "1.4.0"
+  },
+  "pypsa_statistics": []
+ },
+ "counts": {
+  "buses": 14,
+  "generators": 5,
+  "loads": 11,
+  "lines": 17,
+  "transformers": 3,
+  "links": 0,
+  "storage_units": 0,
+  "stores": 0
+ },
+ "bus_carriers": [
+  "AC"
+ ],
+ "carriers": [
+  "AC",
+  "NG",
+  "SYNC"
+ ],
+ "carrier_names": {
+  "AC": "AC",
+  "NG": "Natural gas",
+  "SYNC": "Synchronous condenser"
+ },
+ "countries": [],
+ "snapshot_count": 1,
+ "snapshot_start": null,
+ "snapshot_end": null,
+ "snapshot_hours_h": 1.0,
+ "objective_eur": null
+}

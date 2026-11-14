@@ -44,6 +44,25 @@ export function useArtifacts(engine: string, artifactIds: string[]) {
   })
 }
 
+/**
+ * Header + summary of several `kind=simulation` artifacts (`?view=summary`): the full documents
+ * carry per-asset series (SciGRID-DE ~1.2 MB each) that summary rows never read. `payload` holds
+ * the summary — a verbatim subset of the payload fields; the header (provenance, payload sha256)
+ * is unchanged.
+ */
+export function useArtifactSummaries(engine: string, artifactIds: string[]) {
+  return useQueries({
+    queries: artifactIds.map((id) => ({
+      queryKey: ['research', 'artifact-summary', engine, id],
+      queryFn: async ({ signal }: { signal: AbortSignal }): Promise<ParsedArtifact> => {
+        const { artifact, summary } = await api.artifactSummary(engine, id, signal)
+        return parseArtifact({ artifact, payload: summary })
+      },
+      staleTime: Infinity,
+    })),
+  })
+}
+
 export function useNetworks() {
   return useQuery({
     queryKey: ['research', 'networks'],

@@ -86,7 +86,7 @@ Free services cannot attach a persistent disk or scale beyond one instance. The 
 
 Consequences:
 
-- Keep concurrency at one; the API, network cache and engine share the memory budget. A 400 MB
+- Keep concurrency at one; the API and the engine share the memory budget. A 400 MB
   subprocess limit does not reserve memory for the parent process or prevent platform OOM kills.
 - Small live jobs are possible but their completion is not guaranteed within free-tier limits.
 - `precomputed` is the low-compute demo mode. Unsupported scenario hashes return 409 rather than

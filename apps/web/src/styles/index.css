@@ -19,7 +19,8 @@
   --gs-line-strong: #aeb5c1;
   --gs-fg: #18202b;
   --gs-fg-muted: #4e5a6b;
-  --gs-fg-subtle: #6b7686;
+  /* ≥ 4.5:1 on canvas, surface, surface-2/3 and every *-soft tint (styles/contrast.test.ts). */
+  --gs-fg-subtle: #5d6775;
   --gs-accent: #1d5fb8;
   --gs-accent-fg: #ffffff;
   --gs-accent-soft: #e3edf9;
@@ -46,7 +47,7 @@
   --gs-line-strong: #46515f;
   --gs-fg: #e6e9ee;
   --gs-fg-muted: #a4adba;
-  --gs-fg-subtle: #8792a2;
+  --gs-fg-subtle: #8f9aaa;
   --gs-accent: #6ea8ef;
   --gs-accent-fg: #0b1220;
   --gs-accent-soft: #1b2b40;

@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router'
 import { Dialog } from 'radix-ui'
 import { Menu, Moon, Sun, X, Zap } from 'lucide-react'
 import { useHealth } from '../../api/hooks'
 import { useTheme } from '../../lib/theme'
+import { useDocumentTitle } from '../../lib/title'
 import { cn } from '../ui/cn'
 
 export const NAV = [
@@ -90,10 +91,9 @@ function NavItems({ onNavigate, vertical }: { onNavigate?: () => void; vertical?
 export function AppLayout() {
   const [menuOpen, setMenuOpen] = useState(false)
   const location = useLocation()
-  useEffect(() => {
-    const n = NAV.find((x) => (x.to === '/' ? location.pathname === '/' : location.pathname.startsWith(x.to)))
-    document.title = n ? `${n.label} · GridStorm` : 'GridStorm'
-  }, [location.pathname])
+  const nav = NAV.find((x) => (x.to === '/' ? location.pathname === '/' : location.pathname.startsWith(x.to)))
+  // Other routes (run pages, 404) set their own descriptive title.
+  useDocumentTitle(nav?.label ?? null)
 
   return (
     <div className="flex h-full flex-col">

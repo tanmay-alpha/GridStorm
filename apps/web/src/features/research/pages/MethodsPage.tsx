@@ -12,7 +12,7 @@ import { parseArtifact } from '../lib/parse'
 
 function Cite({ path }: { path: string }) {
   return (
-    <a href={docUrl(path)} target="_blank" rel="noreferrer" className="whitespace-nowrap text-2xs text-accent hover:underline">
+    <a href={docUrl(path)} target="_blank" rel="noreferrer" className="whitespace-nowrap text-2xs text-accent underline">
       [{path.split('/').pop()}]
     </a>
   )
@@ -256,7 +256,7 @@ export function MethodsPage() {
             {REFERENCES.map((r) => (
               <li key={r.url}>
                 {r.text}{' '}
-                <a href={r.url} target="_blank" rel="noreferrer" className="text-accent hover:underline">
+                <a href={r.url} target="_blank" rel="noreferrer" className="break-all text-accent underline">
                   {r.url}
                 </a>
               </li>

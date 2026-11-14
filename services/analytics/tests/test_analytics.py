@@ -325,3 +325,19 @@ def test_summary_counts(request: pytest.FixtureRequest, name: str) -> None:
         assert _close(r["objective_eur"], n.objective)
     else:
         assert r["objective_eur"] is None
+
+
+def test_summary_default_snapshot_is_not_a_timestamp() -> None:
+    n = pypsa.Network()  # PyPSA's default single snapshot is the label "now"
+    n.add("Bus", "b0")
+    first = ga.compute("summary", n)
+    assert first["snapshot_count"] == 1
+    assert first["snapshot_start"] is None and first["snapshot_end"] is None
+    assert any("not timestamps" in a for a in first["assumptions"])
+    assert ga.compute("summary", n) == first  # deterministic: no wall-clock time leaks in
+
+
+def test_summary_timestamped_snapshots(ac_dc: pypsa.Network) -> None:
+    r = ga.compute("summary", ac_dc)
+    assert r["snapshot_start"] == ac_dc.snapshots[0].isoformat()
+    assert r["snapshot_end"] == ac_dc.snapshots[-1].isoformat()

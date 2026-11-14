@@ -1,0 +1,50 @@
+{
+ "schema_version": "gridstorm-analytics-precomputed/1.0",
+ "network_id": "scigrid-de",
+ "network_sha256": "284850c8e922414f9da69ffda0623431148e0c28a3380ba370e4135ac5236500",
+ "execution_mode": "precomputed",
+ "provenance": "calculated",
+ "filters": {
+  "carriers": null,
+  "countries": null
+ },
+ "carrier_filter_exempt_components": [
+  "Carrier",
+  "GlobalConstraint",
+  "LineType",
+  "Shape",
+  "ShuntImpedance",
+  "Transformer",
+  "TransformerType"
+ ],
+ "generator": {
+  "command": "cd services/analytics && uv run python scripts/precompute_analytics.py",
+  "gridstorm_analytics": "0.1.0",
+  "pypsa": "1.4.0",
+  "pandas": "3.1.1",
+  "numpy": "2.4.6",
+  "python": "3.11.15"
+ },
+ "kinds": {
+  "capacity": {
+   "path": "capacity.json",
+   "sha256": "325dbf232a6a9f238e9222fff0fab324b0123073c03bd7167ca0ef6a85be966e",
+   "bytes": 7320
+  },
+  "energy_balance": {
+   "path": "energy_balance.json",
+   "sha256": "6036e90d5c9f5cf01ad15030ac747dd24a391a8093504906830f100ecd2c631d",
+   "bytes": 1850
+  },
+  "costs": {
+   "path": "costs.json",
+   "sha256": "3db0930aec20689ae10f605d60d7662f0a479f7668ad94977e35bb19f5dd28e4",
+   "bytes": 5860
+  },
+  "summary": {
+   "path": "summary.json",
+   "sha256": "9059073366a912c9b464654e560b7c08d369d4d9bce781ece25280697f82069b",
+   "bytes": 1983
+  }
+ }
+}

@@ -1,0 +1,76 @@
+{
+ "schema_version": "gridstorm-analytics/1.0",
+ "kind": "summary",
+ "available": true,
+ "reason": null,
+ "provenance": "calculated",
+ "network_solved": false,
+ "filters": {
+  "carriers": null,
+  "countries": null
+ },
+ "units": {
+  "snapshot_hours_h": "h",
+  "objective_eur": "EUR"
+ },
+ "assumptions": [
+  "Counts are numbers of static component rows (inactive assets included)."
+ ],
+ "source": {
+  "upstream": "PyPSA-Explorer",
+  "url": "https://github.com/open-energy-transition/PyPSA-Explorer",
+  "sha": "c85252c98cab742b43245a18bcd310d095bab443",
+  "license": "MIT",
+  "derived_from": [
+   "src/pypsa_explorer/layouts/components.py:create_header",
+   "src/pypsa_explorer/utils/helpers.py:summarize_network",
+   "src/pypsa_explorer/utils/helpers.py:get_bus_carrier_options",
+   "src/pypsa_explorer/utils/helpers.py:get_country_options"
+  ],
+  "engine": {
+   "name": "pypsa",
+   "version": "1.4.0"
+  },
+  "pypsa_statistics": []
+ },
+ "counts": {
+  "buses": 9,
+  "generators": 6,
+  "loads": 6,
+  "lines": 7,
+  "transformers": 0,
+  "links": 4,
+  "storage_units": 0,
+  "stores": 0
+ },
+ "bus_carriers": [
+  "AC",
+  "DC"
+ ],
+ "carriers": [
+  "AC",
+  "DC",
+  "battery",
+  "gas",
+  "load",
+  "wind"
+ ],
+ "carrier_names": {
+  "AC": "AC",
+  "DC": "DC",
+  "battery": "battery",
+  "gas": "gas",
+  "load": "load",
+  "wind": "wind"
+ },
+ "countries": [
+  "DE",
+  "NO",
+  "UK"
+ ],
+ "snapshot_count": 10,
+ "snapshot_start": "2015-01-01T00:00:00",
+ "snapshot_end": "2015-01-01T09:00:00",
+ "snapshot_hours_h": 10.0,
+ "objective_eur": null
+}

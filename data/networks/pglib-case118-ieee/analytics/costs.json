@@ -1,0 +1,124 @@
+{
+ "schema_version": "gridstorm-analytics/1.0",
+ "kind": "costs",
+ "available": true,
+ "reason": null,
+ "provenance": "calculated",
+ "network_solved": false,
+ "filters": {
+  "carriers": null,
+  "countries": null
+ },
+ "units": {
+  "rows[].capex_installed_eur": "EUR",
+  "rows[].capex_optimal_eur": "EUR",
+  "rows[].opex_eur": "EUR",
+  "by_carrier.*": "EUR",
+  "totals.*": "EUR",
+  "objective_weighted_hours_h": "h"
+ },
+ "assumptions": [
+  "Monetary values are in the cost currency of the network data; PyPSA stores no currency unit, GridStorm assumes EUR (example-network costs are illustrative, not market data).",
+  "capex_installed_eur = nominal capacity (p_nom/s_nom/e_nom) x capital_cost (PyPSA statistics.installed_capex); available without optimisation.",
+  "capex_optimal_eur = optimal capacity (*_opt) x capital_cost (PyPSA statistics.capex, the quantity PyPSA-Explorer plots); null when the network is not solved.",
+  "opex_eur = dispatch x marginal cost (plus storage/spill/unit-commitment cost terms when present) weighted by snapshot_weightings.objective (PyPSA statistics.opex); null when the network is not solved.",
+  "capital_cost is the model's per-period (typically annualised) cost per unit capacity and is charged once for the modelled horizon (1 h of objective-weighted snapshots); CAPEX and OPEX are only on the same time basis if that horizon is one year.",
+  "Branch components (Line, Transformer, Link) are attributed to the country of bus0."
+ ],
+ "source": {
+  "upstream": "PyPSA-Explorer",
+  "url": "https://github.com/open-energy-transition/PyPSA-Explorer",
+  "sha": "c85252c98cab742b43245a18bcd310d095bab443",
+  "license": "MIT",
+  "derived_from": [
+   "src/pypsa_explorer/callbacks/visualizations.py:update_capex_charts",
+   "src/pypsa_explorer/callbacks/visualizations.py:update_opex_charts"
+  ],
+  "engine": {
+   "name": "pypsa",
+   "version": "1.4.0"
+  },
+  "pypsa_statistics": [
+   "installed_capex",
+   "capex",
+   "opex"
+  ]
+ },
+ "carrier_names": {
+  "AC": "AC",
+  "COW": "Coal",
+  "NG": "Natural gas",
+  "PEL": "Petroleum (liquid)",
+  "SYNC": "Synchronous condenser"
+ },
+ "opex_available": false,
+ "opex_reason": "network is not solved: no dispatch results",
+ "objective_weighted_hours_h": 1.0,
+ "rows": [
+  {
+   "component": "Generator",
+   "carrier": "COW",
+   "country": null,
+   "capex_installed_eur": 0.0,
+   "capex_optimal_eur": null,
+   "opex_eur": null
+  },
+  {
+   "component": "Generator",
+   "carrier": "NG",
+   "country": null,
+   "capex_installed_eur": 0.0,
+   "capex_optimal_eur": null,
+   "opex_eur": null
+  },
+  {
+   "component": "Generator",
+   "carrier": "PEL",
+   "country": null,
+   "capex_installed_eur": 0.0,
+   "capex_optimal_eur": null,
+   "opex_eur": null
+  },
+  {
+   "component": "Generator",
+   "carrier": "SYNC",
+   "country": null,
+   "capex_installed_eur": 0.0,
+   "capex_optimal_eur": null,
+   "opex_eur": null
+  },
+  {
+   "component": "Line",
+   "carrier": "AC",
+   "country": null,
+   "capex_installed_eur": 0.0,
+   "capex_optimal_eur": null,
+   "opex_eur": null
+  },
+  {
+   "component": "Transformer",
+   "carrier": null,
+   "country": null,
+   "capex_installed_eur": 0.0,
+   "capex_optimal_eur": null,
+   "opex_eur": null
+  }
+ ],
+ "by_carrier": {
+  "capex_installed_eur": {
+   "": 0.0,
+   "AC": 0.0,
+   "COW": 0.0,
+   "NG": 0.0,
+   "PEL": 0.0,
+   "SYNC": 0.0
+  },
+  "capex_optimal_eur": null,
+  "opex_eur": null
+ },
+ "totals": {
+  "capex_installed_eur": 0.0,
+  "capex_optimal_eur": null,
+  "opex_eur": null
+ }
+}

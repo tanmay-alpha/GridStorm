@@ -62,6 +62,9 @@ function basemapStyle(kind: CoordinateKind, theme: 'light' | 'dark'): string | S
 
 const INTERACTIVE = ['gs-branches', 'gs-transformers', 'gs-links', 'gs-buses', 'gs-generators', 'gs-storage']
 
+/** Stable default: a fresh `{}` per render would re-run the styling effect on every render. */
+const NO_CARRIER_COLORS: Record<string, string> = {}
+
 function carrierMatch(colors: Record<string, string>, fallback: string): ExpressionSpecification {
   const entries = Object.entries(colors)
   if (!entries.length) return ['literal', fallback] as unknown as ExpressionSpecification
@@ -90,7 +93,7 @@ export function NetworkMap({
   features,
   layers = DEFAULT_LAYERS,
   colorMode = 'voltage',
-  carrierColors = {},
+  carrierColors = NO_CARRIER_COLORS,
   selected,
   onSelect,
   className,
@@ -108,7 +111,12 @@ export function NetworkMap({
 }) {
   const container = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MapLibreMap | null>(null)
-  const [ready, setReady] = useState(false)
+  // The map instance whose own `load` event has fired, i.e. whose style accepts layer calls.
+  // A boolean is not enough: when coordinate kind/theme change, the old map is replaced in the
+  // same commit as other effects run, and a stale `ready === true` let them call
+  // setLayoutProperty on the new, still-loading map ("Style is not done loading").
+  const [loadedMap, setLoadedMap] = useState<MapLibreMap | null>(null)
+  const ready = loadedMap !== null
   const { theme } = useTheme()
   const onSelectRef = useRef(onSelect)
   useEffect(() => {
@@ -122,7 +130,7 @@ export function NetworkMap({
   // (Re)create the map when coordinate kind or theme changes (basemap style differs).
   useEffect(() => {
     if (!container.current) return
-    setReady(false)
+    setLoadedMap(null)
     const geographic = coordinateKind === 'geographic'
     const map = new MapLibreMap({
       container: container.current,
@@ -219,7 +227,7 @@ export function NetworkMap({
         filter: ['==', ['get', 'key'], '__none__'],
         paint: { 'circle-radius': 10, 'circle-color': 'transparent', 'circle-stroke-color': highlight, 'circle-stroke-width': 2.5 },
       })
-      setReady(true)
+      setLoadedMap(map)
     })
 
     map.on('click', (e) => {
@@ -254,30 +262,34 @@ export function NetworkMap({
     }
   }, [coordinateKind, theme])
 
+  // Every style/source call below goes through `loadedMap === mapRef.current`: effects that run in
+  // the commit that replaced the map still see the previous instance in `loadedMap` and skip; they
+  // re-run with the current props once the new map's `load` handler stores it.
+
   // Data updates.
   useEffect(() => {
-    const map = mapRef.current
-    if (!map || !ready) return
+    const map = loadedMap
+    if (!map || map !== mapRef.current) return
     ;(map.getSource('gs-branches-src') as GeoJSONSource | undefined)?.setData(features.branches)
     ;(map.getSource('gs-buses-src') as GeoJSONSource | undefined)?.setData(features.buses)
     ;(map.getSource('gs-generators-src') as GeoJSONSource | undefined)?.setData(features.generators)
     ;(map.getSource('gs-storage-src') as GeoJSONSource | undefined)?.setData(features.storage)
-  }, [features, ready])
+  }, [features, loadedMap])
 
   // Fit to network when the bounds change (new network).
   const boundsKey = features.bounds?.join(',') ?? ''
   useEffect(() => {
-    const map = mapRef.current
-    if (!map || !ready || !boundsRef.current) return
+    const map = loadedMap
+    if (!map || map !== mapRef.current || !boundsRef.current) return
     const [a, b, c, d] = boundsRef.current
     if (a === c && b === d) map.jumpTo({ center: [a, b], zoom: 8 })
     else map.fitBounds([a, b, c, d], { padding: 40, animate: false })
-  }, [boundsKey, ready])
+  }, [boundsKey, loadedMap])
 
   // Styling / visibility.
   useEffect(() => {
-    const map = mapRef.current
-    if (!map || !ready) return
+    const map = loadedMap
+    if (!map || map !== mapRef.current) return
     const vis = (v: boolean) => (v ? 'visible' : 'none')
     map.setLayoutProperty('gs-branches', 'visibility', vis(layers.lines))
     map.setLayoutProperty('gs-transformers', 'visibility', vis(layers.lines))
@@ -291,17 +303,17 @@ export function NetworkMap({
     if (colorMode !== 'voltage') map.setPaintProperty('gs-links', 'line-color', bc)
     else map.setPaintProperty('gs-links', 'line-color', HVDC_COLOR)
     map.setPaintProperty('gs-generators', 'circle-color', carrierMatch(carrierColors, '#888888'))
-  }, [layers, colorMode, carrierColors, ready])
+  }, [layers, colorMode, carrierColors, loadedMap])
 
   // Selection highlight.
   useEffect(() => {
-    const map = mapRef.current
-    if (!map || !ready) return
+    const map = loadedMap
+    if (!map || map !== mapRef.current) return
     const key = selected ? assetKey(selected.kind, selected.id) : '__none__'
     const isBranch = selected && ['line', 'transformer', 'link'].includes(selected.kind)
     map.setFilter('gs-selected-branch', ['==', ['get', 'key'], isBranch ? key : '__none__'])
     map.setFilter('gs-selected-point', ['==', ['get', 'key'], selected?.kind === 'bus' ? key : '__none__'])
-  }, [selected, ready])
+  }, [selected, loadedMap])
 
   return (
     <div

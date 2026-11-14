@@ -123,3 +123,59 @@ true Render cold start was observed. Measure it after ≥ 15 min of zero traffic
    Cloudflare still reports `cf-cache-status: DYNAMIC`).
 5. Add `Timing-Allow-Origin: https://gridstorm.vercel.app` on the API so Resource Timing can attribute API bytes in
    future measurements.
+
+## Fixes applied (2026-11-15)
+
+The live numbers above were **not** re-measured after these changes. The "local" figures below come from
+the same workstation: HEAD `1247767` ("before") and the fixed build ("after"), both served by
+`vite preview` and proxying to one local API (`uv run uvicorn gridstorm_api.main:app --port 8130`).
+They used Playwright 1.65.1 with headless Chromium, 3 cold loads per cell, and CLS observed from
+`layout-shift` entries for 3 s after `networkidle`. The local API answers in milliseconds, so one variant
+holds every `/api/v1/**` request for 300 ms to approximate the live waterfall. They are not comparable
+with the live table.
+
+1. **`/benchmarks` CLS** (`features/research/pages/BenchmarksPage.tsx`):
+   - **Reserved height:** while a panel shows its loading skeleton (`aria-busy="true"`), its body
+     reserves one viewport height (`has-[[aria-busy=true]]:min-h-svh`). Loaded panels on this page are
+     650–9,100 px tall depending on width (measured locally at 360–1920 px), so the panels below start
+     off-screen. Their growth as artifacts arrive is therefore not a visible shift. The reservation drops
+     as soon as content renders.
+   - **Summary view:** the PyPSA preset table now requests
+     `GET /api/v1/artifacts/pypsa/{id}?view=summary`, which returns `{artifact, summary}`. The header is
+     unchanged, so provenance and the payload sha256 stay visible in the artifact metadata. The summary
+     holds only `schema_version, scenario_id, scenario_hash, network_id, provenance, engine, solver,
+     outcome, metrics, warnings`, with no `assets`, `series` or `snapshots`. It is only available for
+     `kind=simulation`; other kinds get 422 `summary_view_unsupported`.
+
+   | Local CLS (CWV window), 3 cold loads | before | after |
+   |---|---|---|
+   | desktop 1440×900, API +300 ms | 0.485, 0.467, 0.491 | 0.0002, 0.0002, 0.0002 |
+   | Pixel 7, API +300 ms | 0.414, 0.443, 0.443 | 0, 0, 0 |
+   | desktop 1440×900, no added delay | 0.302, 0.485, 0.485 | 0.0002, 0.0002, 0.0002 |
+
+   | Local bytes per `/benchmarks` load (decoded response bodies, 21 API requests) | before | after |
+   |---|---:|---:|
+   | 11 `pypsa/*` artifact responses | 7,537,819 B | 28,900 B |
+   | all API responses | 8,572,894 B | 1,063,975 B |
+
+   `scigrid-de-baseline`: the full document is 1,242,689 B and its summary view is 2,764 B.
+   Regression tests: `pages.test.tsx` "loads only the summary view of PyPSA simulations and keeps provenance
+   and sha visible" and "reserves a viewport height in every panel while it is loading (CLS)". On the API
+   side, `services/api/tests/test_http_caching.py` covers the summary view.
+2. **`/runs/<id>` map crash.** Fixed by tracking readiness per map instance; see `docs/audit/accessibility.md` →
+   *Fixes applied* (M1). With the networks list held until the first map has loaded
+   (`e2e/run-map.spec.ts`), the before build showed "Something went wrong / Style is not done loading." (1 run)
+   and the after build passed 4 of 4 runs.
+3. **API caching** (`services/api/src/gridstorm_api/caching.py`):
+   - `GET /api/v1/networks`, `/networks/{id}`, `/networks/{id}/assets`, `/networks/{id}/geojson`,
+     `/artifacts` and `/artifacts/{engine}/{id}` (both views) send `Cache-Control: public, max-age=3600`
+     and `ETag: "<sha256 of the response body>"`.
+   - A matching `If-None-Match` returns an empty 304. The comparison is weak, so a `W/` tag that a proxy
+     weakened after compression still matches. Error responses carry neither header.
+   - Artifact responses previously sent `max-age=300` and no `ETag`.
+   - Local check: the geojson, network detail, assets and artifact URLs each return `304` with 0 B for
+     `If-None-Match: W/<etag>`.
+
+   Whether Cloudflare in front of Render then caches these responses at the edge was not checked.
+
+Not addressed here: the entry-chunk size (recommendation 3) and `Timing-Allow-Origin` (recommendation 5).

@@ -125,3 +125,55 @@ job store, so earlier job ids (e.g. `d813df71-9211-4d0b-b80d-e7d38fc2a93a`) bega
 7. Enlarge layer-toggle checkboxes / their hit area to ≥ 24×24 px (clickable `<label>` padding).
 8. Use `h3` for the contingency sub-headings; set descriptive `document.title` for run and 404 pages;
    render an error state (with heading) when a job is not found instead of an endless skeleton.
+
+## Fixes applied (2026-11-15)
+
+The live deployment was **not** re-audited. "Local axe" below means axe-core 4.14.0, with the same rule tags and
+the same desktop/Pixel 7 profiles as above. It was injected into headless Chromium (Playwright 1.65.1) and run on
+11 routes: the 10 above plus `/runs/<unknown id>`. Two `vite preview` builds were served against one local API:
+"before" is HEAD `1247767`, "after" is the fixed build. Each fix also has a regression test, which fails on
+`1247767` and passes after the fix.
+
+| # | Finding | Change | Regression test |
+|---|---|---|---|
+| M1 | `/runs/<id>` crash `Style is not done loading` | **Root cause:** `RunPage` passes `coordinate_kind ?? 'schematic'`, so the map is first built schematic, which loads in ms from an inline style. It is then rebuilt as geographic once `GET /api/v1/networks` answers. In that same commit, the styling effect re-ran with the render's stale `ready === true` against the new, unloaded map. It re-ran on *every* render because the `carrierColors = {}` default was a new object each time. **Fix** (`components/map/NetworkMap.tsx`): readiness is the map *instance* whose own `load` fired (`loadedMap`). Every style/source effect requires `loadedMap === mapRef.current` and re-runs when the new instance loads. The default carrier colours are now a module constant. | `NetworkMap.test.tsx`: a fake MapLibre throws like `_checkLoaded`; before the fix it throws `Style is not done loading.`. `e2e/run-map.spec.ts` holds `GET /api/v1/networks` until the first map has loaded, which makes the live race deterministic. The before build lands on "Something went wrong / Style is not done loading."; the after build passed 4 of 4 runs. |
+| M2 | Run and 404 pages titled "GridStorm" | `lib/title.ts` `useDocumentTitle`. `AppLayout` titles only nav routes. The run page uses `Run <scenario> · GridStorm`, `Job not found · GridStorm` or `Loading run · GridStorm`; the 404 page uses `Page not found · GridStorm`; the route-error screen uses `Error · GridStorm`. The route-error screen also gained a `<main>` landmark (the `landmark-one-main` finding in 8). | `AppLayout.test.tsx`: 404 title. `RunPage.test.tsx`: job-not-found title. |
+| M3 / 8 | Endless skeleton for an unknown job id | **Root cause:** `useJob` polled every 1 s whenever no terminal job was loaded, including after a 404. TanStack Query resets a data-less query's error to `pending` on each refetch, so the page flipped back to the skeleton. HEAD made 4 GETs in 3.5 s in the test below. **Fix:** poll only while a non-terminal job is loaded (`api/hooks.ts`). `RunPage` renders an `h1` "Job not found" state on 404, with the API code and links to Studio/Library. | `RunPage.test.tsx` uses the app's real `createQueryClient()` (moved out of `main.tsx`): it checks the heading, that it is still shown after 1.5 s, and that exactly 1 fetch was made. |
+| 1 | `color-contrast` (`--gs-fg-subtle`) | Light `#6b7686` → `#5d6775`; dark `#8792a2` → `#8f9aaa`. The audit's suggested `#5f6977` computes to 4.49:1 on `surface-3` (`#e4e7ec`), so it was darkened one step further. Ratios are in the table below. | `styles/contrast.test.ts` parses both theme blocks of `index.css` and asserts ≥ 4.5:1 for `--gs-fg`, `--gs-fg-muted` and `--gs-fg-subtle` on all 9 backgrounds. Before: light 4.22 on canvas, dark 4.29 on surface-3. |
+| 2 | `aria-prohibited-attr` (equations) | `TeX.tsx`: the KaTeX output sits in `<div role="img" aria-label=…>` inside a separate, role-less `overflow-x-auto` scroller. | `pages.test.tsx` "/methods exposes each equation as a named image…" |
+| 3 | `link-in-text-block` | `/methods` reference links and inline `[source]` citations are always underlined (`underline`, not `hover:underline`). | same test (reference links carry `underline`) |
+| 4 | `label-content-name-mismatch` | The asset-search trigger drops `aria-label`, so its name is its visible text "Search assets… Ctrl K". The shortcut is exposed as `aria-keyshortcuts="Control+K Meta+K"`. | `controls.a11y.test.tsx`: accessible name === text content |
+| 5 | `target-size` (layer toggles) | `LayerControls` `Check`: the whole row is a `<label>` at least 24 px tall (`min-h-6`) wrapping the 14 px box. Clicking anywhere on the row toggles it, and neighbouring boxes are ≥ 24 px apart. | `controls.a11y.test.tsx`: each checkbox is wrapped by a `min-h-6` label row; a text click toggles it |
+| 6 | `scrollable-region-focusable` | The `DataTable` scroller is `role="region"`, `tabIndex={0}`, `aria-label="<caption> (table)"`. The "(table)" suffix keeps it distinct from a panel titled like the caption, which avoids `landmark-unique` (first seen locally on `/library` before the suffix). | `DataTable.test.tsx` |
+| 7 | `heading-order` on `/contingency` | "Overloaded branches" and "Voltage violations" are `h3`, under the panel's `h2`. | `pages.test.tsx` "/contingency detail sub-headings…" |
+
+`--gs-fg-subtle` contrast (WCAG 2.x formula, computed):
+
+| Background | Light before `#6b7686` | Light after `#5d6775` | Dark before `#8792a2` | Dark after `#8f9aaa` |
+|---|---:|---:|---:|---:|
+| canvas | 4.22 | 5.26 | 5.96 | 6.59 |
+| surface | 4.60 | 5.73 | 5.49 | 6.08 |
+| surface-2 | 4.11 | 5.11 | 5.02 | 5.55 |
+| surface-3 | 3.71 | 4.63 | 4.29 | 4.75 |
+| accent-soft | 3.89 | 4.85 | 4.54 | 5.03 |
+| ok-soft | 3.96 | 4.93 | 4.89 | 5.41 |
+| warn-soft | 4.04 | 5.03 | 4.77 | 5.28 |
+| danger-soft | 3.82 | 4.76 | 5.18 | 5.73 |
+| info-soft | 3.89 | 4.84 | 4.91 | 5.43 |
+
+Local axe, before (`1247767`, light theme) reproduced every violation in the live table:
+
+- `/`: label-content-name-mismatch(1), target-size(5)
+- `/contingency`: color-contrast(3), heading-order(1)
+- `/operations`: color-contrast(6)
+- `/benchmarks`: color-contrast(3)
+- `/methods`: aria-prohibited-attr(9), link-in-text-block(3)
+- mobile only: scrollable-region-focusable(1) on `/contingency` and on `/benchmarks`
+
+`/runs/<unknown id>` also failed page-has-heading-one(1). It was titled plain "GridStorm", as were the run and 404 pages.
+In the dark theme the before build had no color-contrast violations (desktop), but did have the same non-contrast violations as the light theme.
+
+Local axe, after (fixed build): **0 violations on all 11 routes** in each of three profiles: desktop light, Pixel 7 light and
+desktop dark. Every route has a descriptive title, e.g. `Run ac-dc-meshed-baseline · GridStorm`,
+`Job not found · GridStorm` and `Page not found · GridStorm`. The dark theme on mobile was not run, and nothing was re-checked
+against the live deployment.

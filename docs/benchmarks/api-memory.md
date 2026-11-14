@@ -149,3 +149,47 @@ The unprivileged UID 10001 can raise its own `oom_score_adj`; this was verified 
   less. Render's own metrics for 2026-11-14 21:54–21:56 UTC were not available to this probe.
 * The sampling interval is 0.25 s. The per-stage maxima are sample maxima; the overall solver peak
   is the exact `VmHWM`.
+
+## Fix applied
+
+Measured 2026-11-15 on a local Docker build of the working tree (on top of `5e043cd`), same host,
+same method and the same `sampler.py` / `drive.py` load as above.
+
+Changes:
+
+* **No `pypsa` in the API process.** `services/analytics/scripts/precompute_analytics.py` (run with
+  the `services/analytics` environment) computes every `gridstorm_analytics` kind (`capacity`,
+  `energy_balance`, `costs`, `summary`) for every catalog network. It writes
+  `data/networks/<id>/analytics/<kind>.json` and an `index.json` holding the `network.nc` sha256,
+  the sha256 of each file, the generator command, and the versions of `pypsa`, pandas, numpy and
+  Python. The output is deterministic: two runs produced byte-identical files. `AnalyticsService` only reads
+  these files. It verifies their sha256 (500 `analytics_integrity_error`) and returns 503 when they
+  are missing (`analytics_not_precomputed`) or were built from a different `network.nc`
+  (`analytics_stale`). Responses keep their shape and `provenance: "calculated"`, and gain
+  `execution_mode: "precomputed"` plus a `precomputed` block (file sha256, network sha256, generator
+  versions). Carrier and country filters on `capacity` and `costs` are derived from the unfiltered
+  rows. That is exact for unsolved networks. Any other filtered request returns 422
+  `analytics_filter_not_precomputed`. Tests compare every committed file, and the filter
+  combinations, against a live `gridstorm_analytics.compute`. Another test runs the app in a
+  subprocess and asserts that `pypsa` is not in `sys.modules` after it has served every kind.
+  `GRIDSTORM_ANALYTICS_TIMEOUT_S` and `GRIDSTORM_NETWORK_CACHE_SIZE` are removed. Precomputing also
+  exposed a non-deterministic `summary`: networks whose only snapshot is PyPSA's default `"now"`
+  label reported the wall-clock time as `snapshot_start`/`snapshot_end`. These fields are now null
+  for such networks.
+* **Solver child is the OOM victim.** On Linux the worker starts the engine with a `preexec_fn` that
+  writes `1000` to `/proc/self/oom_score_adj`. If the engine exits through SIGKILL (returncode −9)
+  and the watchdog, timeout or cancel did not send the signal, the job is classified as
+  `memory_limit` ("killed by SIGKILL … kernel OOM killer … (OOM)"), not as `engine_failed`.
+* `MPLCONFIGDIR=/tmp/matplotlib` in the runtime image, which stops the matplotlib `mkdir` warning.
+
+| Run | Settings | Load | cgroup peak (MB) | API RSS (MB) | Engine RSS max (MB) | Outcome |
+|---|---|---|---|---|---|---|
+| E (before) | 512 MB, cap 400 | stress ×2 | 512 | 409 | 347 | pass 2: **OOMKilled, API killed** |
+| **M (after)** | 512 MB, cap 400 | stress ×2 (4 jobs, 2 × 15 analytics calls, 2 × 54 artifact downloads) | **350.7** (`memory.peak`) | 91–107 (VmHWM 111) | 347 | **4/4 jobs completed**, analytics 24/24 200 (6 × 404 for `pypsa-eur-be`, which is not in the catalog), 108/108 artifacts 200, `OOMKilled=false`, `memory.events max 0 / oom_kill 0` |
+| **N (after)** | **300 MB** (forced OOM), cap 0 | 2 sequential jobs | 300 (limit) | — | — | job 1 completed. Job 2 **failed `memory_limit`** ("…kernel OOM killer…(OOM)"). dmesg: `Killed process (python) … oom_score_adj:1000`. **API survived**: `/health` 200, PID 1 `oom_score_adj` 0, restarts 0. Docker still sets `OOMKilled=true` because any OOM kill in the container sets it. |
+
+With the fix, the 512 MB container peaks at 351 MB under the suite-like load, which leaves 161 MB of
+headroom. This matches run J (355 MB). The API stays at 91–111 MB however many analytics calls it
+serves. The remaining peak is the solver child (VmHWM 347 MB). The 400 MB job cap now protects the
+container: 111 + 347 < 512. If the container still runs out of memory, the kernel kills the solver
+and the API keeps running. Render itself was not re-measured.

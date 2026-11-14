@@ -5,7 +5,7 @@ import { formatNumber, formatQuantity, labelFromFieldName, NO_VALUE } from '../.
 import { ArtifactSection } from '../components/ArtifactPanel'
 import { ArtifactMeta } from '../components/ArtifactMeta'
 import { Disclaimer } from '../components/Disclaimer'
-import { useArtifactIndex, useArtifacts } from '../hooks'
+import { useArtifactIndex, useArtifacts, useArtifactSummaries } from '../hooks'
 import {
   parseAcReference,
   parseCrossEngine,
@@ -334,7 +334,7 @@ function resourceFields(h: Record<string, unknown>, prefix = ''): [string, numbe
 }
 
 function PypsaSection({ items }: { items: ArtifactIndexItem[] }) {
-  const results = useArtifacts(
+  const results = useArtifactSummaries(
     'pypsa',
     items.map((i) => i.artifact_id),
   )
@@ -450,6 +450,14 @@ function IndexGate({ engine, kind, children }: { engine: string; kind?: string; 
   return <>{children(items)}</>
 }
 
+/**
+ * Layout-shift guard (CLS was 0.33–0.52 live): while a panel shows a loading skeleton
+ * (`aria-busy`), its body reserves one viewport height. Loaded panels here are 650–9,100 px tall
+ * depending on width, so the panels below start off-screen and their growth as artifacts arrive is
+ * not a visible shift; the reservation drops as soon as the panel's content is in.
+ */
+const RESERVE_WHILE_LOADING = 'has-[[aria-busy=true]]:min-h-svh'
+
 export function BenchmarksPage() {
   return (
     <div className="flex flex-col gap-4 p-4">
@@ -458,12 +466,17 @@ export function BenchmarksPage() {
         subtitle="Measured results from published artifacts: contingency screening accuracy and speed, probabilistic stress estimates, cross-engine agreement, AC power-flow reference validation and PyPSA preset runs."
       />
       <Disclaimer>Numbers are measurements on research test cases and the hardware listed with each artifact; they do not generalise beyond them.</Disclaimer>
-      <Panel title="StormBench — DC contingency screening vs exact N-1" id="stormbench">
+      <Panel title="StormBench — DC contingency screening vs exact N-1" id="stormbench" bodyClassName={RESERVE_WHILE_LOADING}>
         <IndexGate engine="stormbench" kind="benchmark">
           {(items) => <StormBenchSection items={items} />}
         </IndexGate>
       </Panel>
-      <Panel title="StormRisk — Monte Carlo expected energy not served" id="stormrisk" description="Outage probabilities are modelled assumptions, not observed failure rates.">
+      <Panel
+        title="StormRisk — Monte Carlo expected energy not served"
+        id="stormrisk"
+        description="Outage probabilities are modelled assumptions, not observed failure rates."
+        bodyClassName={RESERVE_WHILE_LOADING}
+      >
         <IndexGate engine="stormrisk">
           {(items) => (
             <ArtifactSection
@@ -477,13 +490,14 @@ export function BenchmarksPage() {
           )}
         </IndexGate>
       </Panel>
-      <Panel title="Cross-engine agreement" id="cross-engine">
+      <Panel title="Cross-engine agreement" id="cross-engine" bodyClassName={RESERVE_WHILE_LOADING}>
         <IndexGate engine="cross-engine">{(items) => <CrossEngineSection items={items} />}</IndexGate>
       </Panel>
       <Panel
         title="AC power-flow reference validation (pandapower)"
         id="ac-reference"
         description="pandapower Newton-Raphson against MATPOWER/PYPOWER reference solutions on the same cases."
+        bodyClassName={RESERVE_WHILE_LOADING}
       >
         <IndexGate engine="pandapower" kind="benchmark">
           {(items) => (
@@ -498,8 +512,10 @@ export function BenchmarksPage() {
           )}
         </IndexGate>
       </Panel>
-      <Panel title="PyPSA preset runs" id="pypsa">
-        <IndexGate engine="pypsa">{(items) => <PypsaSection items={items} />}</IndexGate>
+      <Panel title="PyPSA preset runs" id="pypsa" bodyClassName={RESERVE_WHILE_LOADING}>
+        <IndexGate engine="pypsa" kind="simulation">
+          {(items) => <PypsaSection items={items} />}
+        </IndexGate>
       </Panel>
     </div>
   )

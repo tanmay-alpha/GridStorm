@@ -2,8 +2,8 @@
 
 Startup (lifespan): build the application context, create/verify the schema, sync the network
 catalog and StormSpec presets into the database, then start the in-process worker pool
-(live mode only). Heavy scientific imports (pypsa, linopy, highspy) never happen at startup:
-analytics import them lazily and simulations run in engine subprocesses.
+(live mode only). Heavy scientific imports (pypsa, linopy, highspy) never happen in this process:
+analytics are served from precomputed JSON and simulations run in engine subprocesses.
 """
 
 from __future__ import annotations
@@ -41,11 +41,7 @@ EXPOSED_HEADERS = [
 def _startup(ctx: AppContext) -> None:
     s = ctx.settings
     ctx.solver_probe = SolverProbe(s.python_executable, s.solver_check_ttl_s)
-    ctx.analytics = AnalyticsService(
-        cache_size=s.network_cache_size,
-        timeout_s=s.analytics_timeout_s,
-        max_concurrency=s.analytics_max_concurrency,
-    )
+    ctx.analytics = AnalyticsService()
     try:
         ctx.db.init_schema(
             migrations_dir=s.migrations_dir,

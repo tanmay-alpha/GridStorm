@@ -2,9 +2,10 @@ from __future__ import annotations
 
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Request, Response
 
 from ..analytics import AnalyticsService
+from ..caching import cached_json
 from ..deps import Ctx, Paging
 from ..errors import ServiceUnavailable
 from ..geojson import build_geojson
@@ -16,13 +17,14 @@ _404 = {404: {"model": ErrorResponse}}
 
 
 @router.get("", response_model=Page[NetworkSummary], summary="List network datasets")
-def list_networks(ctx: Ctx, page: Paging) -> dict[str, Any]:
+def list_networks(request: Request, ctx: Ctx, page: Paging) -> Response:
     entries = [ctx.catalog.get(i) for i in ctx.catalog.ids()]
     items = [
         {**e.summary(), "live_execution": ctx.settings.live_execution(e.id)}
         for e in entries[page.offset : page.offset + page.limit]
     ]
-    return {"items": items, "total": len(entries), "limit": page.limit, "offset": page.offset}
+    content = {"items": items, "total": len(entries), "limit": page.limit, "offset": page.offset}
+    return cached_json(request, content, model=Page[NetworkSummary])
 
 
 @router.get(
@@ -31,9 +33,9 @@ def list_networks(ctx: Ctx, page: Paging) -> dict[str, Any]:
     responses=_404,
     summary="Network summary + dataset manifest + assumptions",
 )
-def get_network(ctx: Ctx, network_id: str) -> dict[str, Any]:
+def get_network(request: Request, ctx: Ctx, network_id: str) -> Response:
     entry = ctx.catalog.get(network_id)
-    return {
+    content = {
         **entry.summary(),
         "live_execution": ctx.settings.live_execution(entry.id),
         "manifest": entry.manifest,
@@ -41,6 +43,7 @@ def get_network(ctx: Ctx, network_id: str) -> dict[str, Any]:
         "field_provenance": entry.canonical.get("field_provenance") or {},
         "carriers": entry.canonical.get("carriers") or [],
     }
+    return cached_json(request, content, model=NetworkDetail)
 
 
 @router.get(
@@ -50,16 +53,17 @@ def get_network(ctx: Ctx, network_id: str) -> dict[str, Any]:
     summary="Canonical asset rows of one component type (paginated)",
 )
 def list_assets(
+    request: Request,
     ctx: Ctx,
     network_id: str,
     type: Annotated[AssetType, Query(description="Component type")],  # noqa: A002
     limit: Annotated[int, Query(ge=1, le=5000)] = 500,
     offset: Annotated[int, Query(ge=0)] = 0,
-) -> dict[str, Any]:
+) -> Response:
     entry = ctx.catalog.get(network_id)
     rows = entry.canonical.get(type) or []
     prefix = f"{type}."
-    return {
+    content = {
         "network_id": network_id,
         "type": type,
         "items": rows[offset : offset + limit],
@@ -72,25 +76,35 @@ def list_assets(
             if k.startswith(prefix)
         },
     }
+    return cached_json(request, content, model=AssetPage)
 
 
 @router.get(
     "/{network_id}/geojson",
+    response_model=dict[str, Any],
     responses=_404,
     summary="GeoJSON FeatureCollection (buses = Point; lines/transformers/links = LineString)",
     description="Top-level and per-feature `coordinate_kind`; `schematic` coordinates are layout "
     "coordinates, not lon/lat. Features are keyed by `properties.component` + `properties.id`.",
 )
-def network_geojson(ctx: Ctx, network_id: str) -> dict[str, Any]:
-    return build_geojson(ctx.catalog.get(network_id))
+def network_geojson(request: Request, ctx: Ctx, network_id: str) -> Response:
+    return cached_json(request, build_geojson(ctx.catalog.get(network_id)))
 
 
 @router.get(
     "/{network_id}/analytics/{kind}",
-    responses={**_404, 422: {"model": ErrorResponse}, 504: {"model": ErrorResponse}},
-    summary="PyPSA-Explorer-derived analytics (capacity, energy_balance, costs)",
-    description="Computed by `gridstorm_analytics.compute` on the unsolved input network. "
-    "Kinds that need a solved network return `available: false` with a reason.",
+    responses={
+        **_404,
+        422: {"model": ErrorResponse},
+        500: {"model": ErrorResponse},
+        503: {"model": ErrorResponse},
+    },
+    summary="PyPSA-Explorer-derived analytics (summary, capacity, energy_balance, costs)",
+    description="Precomputed by `gridstorm_analytics.compute` on the unsolved input network "
+    "(services/analytics/scripts/precompute_analytics.py) and served from "
+    "data/networks/<id>/analytics; carrier/country filters are derived exactly from the "
+    "unfiltered result or rejected with 422 `analytics_filter_not_precomputed`. Kinds that need "
+    "a solved network return `available: false`.",
 )
 async def network_analytics(
     ctx: Ctx,

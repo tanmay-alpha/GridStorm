@@ -1,14 +1,21 @@
 from __future__ import annotations
 
 import hashlib
+import json
+import subprocess
+import sys
 
 import pytest
 
 from conftest import NETWORK_ID
+from gridstorm_api.config import REPO_ROOT
 from gridstorm_api.storage import ArtifactIntegrityError, LocalArtifactStore, S3ArtifactStore
 
+PRECOMPUTE = REPO_ROOT / "services" / "analytics" / "scripts" / "precompute_analytics.py"
 
-def _write_real_network(path) -> None:
+
+def _precompute_real_network(network_dir) -> dict:
+    """Replace tiny-net's placeholder network.nc by a real one and precompute its analytics."""
     import pypsa
 
     n = pypsa.Network()
@@ -19,29 +26,83 @@ def _write_real_network(path) -> None:
     n.add("Generator", "g-gas", bus="b0", carrier="gas", p_nom=80.0, marginal_cost=50.0)
     n.add("Generator", "g-wind", bus="b1", carrier="wind", p_nom=60.0, p_max_pu=0.5)
     n.add("Load", "ld", bus="b1", p_set=90.0)
-    n.export_to_netcdf(str(path))
+    nc = network_dir / "network.nc"
+    n.export_to_netcdf(str(nc))
+    manifest_path = network_dir / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    for f in manifest["files"]:
+        if f["path"] == "network.nc":
+            f["sha256"] = hashlib.sha256(nc.read_bytes()).hexdigest()
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    subprocess.run(
+        [sys.executable, str(PRECOMPUTE), "--data-dir", str(network_dir.parent.parent)],
+        check=True,
+        capture_output=True,
+    )
+    return json.loads((network_dir / "analytics" / "index.json").read_text(encoding="utf-8"))
 
 
-def test_analytics_endpoint_runs_gridstorm_analytics(client, workspace):
-    _write_real_network(workspace / "data" / "networks" / NETWORK_ID / "network.nc")
-    r = client.get(f"/api/v1/networks/{NETWORK_ID}/analytics/capacity")
+def test_analytics_serves_precomputed_files(client_factory, workspace):
+    index = _precompute_real_network(workspace / "data" / "networks" / NETWORK_ID)
+    client = client_factory()
+    base = f"/api/v1/networks/{NETWORK_ID}/analytics"
+    r = client.get(f"{base}/capacity")
     assert r.status_code == 200, r.text
     body = r.json()
     assert body["network_id"] == NETWORK_ID and body["provenance"] == "calculated"
-    r = client.get(f"/api/v1/networks/{NETWORK_ID}/analytics/capacity?carriers=gas")
-    assert r.status_code == 200
-    r = client.get(f"/api/v1/networks/{NETWORK_ID}/analytics/capacity?carriers=unobtainium")
-    assert r.status_code == 422 and r.json()["error"]["code"] == "invalid_analytics_filter"
-    r = client.get(f"/api/v1/networks/{NETWORK_ID}/analytics/nonsense")
+    assert body["execution_mode"] == "precomputed"
+    assert body["precomputed"]["file_sha256"] == index["kinds"]["capacity"]["sha256"]
+    assert body["precomputed"]["network_sha256"] == index["network_sha256"]
+    assert body["precomputed"]["generator"]["pypsa"] == body["source"]["engine"]["version"]
+    assert body["precomputed"]["filters_derived_from_unfiltered"] is False
+
+    r = client.get(f"{base}/capacity?carriers=gas")
+    assert r.status_code == 200, r.text
+    gen = next(g for g in r.json()["groups"] if g["key"] == "generator_power")
+    assert [row["carrier"] for row in gen["rows"]] == ["gas"]
+    assert gen["total_installed_mw"] == 80.0 and r.json()["filters"]["carriers"] == ["gas"]
+    assert r.json()["generation_capacity_by_carrier_mw"] == {"gas": 80.0}
+    assert r.json()["precomputed"]["filters_derived_from_unfiltered"] is True
+    r = client.get(f"{base}/costs?carriers=wind&carriers=wind")
+    assert r.status_code == 200 and r.json()["filters"]["carriers"] == ["wind"]
+    r = client.get(f"{base}/energy_balance?carriers=gas")  # unsolved: unavailable, filters echoed
+    assert r.status_code == 200 and r.json()["available"] is False
+    assert r.json()["filters"] == {"carriers": ["gas"], "countries": None}
+
+    for query, code in (
+        ("capacity?carriers=unobtainium", "invalid_analytics_filter"),
+        ("capacity?countries=DE", "invalid_analytics_filter"),  # no bus country data
+        ("summary?carriers=gas", "invalid_analytics_filter"),
+    ):
+        r = client.get(f"{base}/{query}")
+        assert r.status_code == 422 and r.json()["error"]["code"] == code, (query, r.text)
+    r = client.get(f"{base}/nonsense")
     assert r.status_code == 404 and r.json()["error"]["code"] == "analytics_kind_not_found"
-    assert "capacity" in r.json()["error"]["details"]["available"]
+    assert set(r.json()["error"]["details"]["available"]) == set(index["kinds"])
     assert client.get("/api/v1/networks/nope/analytics/capacity").status_code == 404
 
 
-def test_analytics_without_network_file(client, workspace):
-    (workspace / "data" / "networks" / NETWORK_ID / "network.nc").unlink()
+def test_analytics_not_precomputed_stale_or_tampered(client_factory, workspace):
+    network_dir = workspace / "data" / "networks" / NETWORK_ID
+    client = client_factory()
     r = client.get(f"/api/v1/networks/{NETWORK_ID}/analytics/capacity")
-    assert r.status_code == 503 and r.json()["error"]["code"] == "network_file_missing"
+    assert r.status_code == 503 and r.json()["error"]["code"] == "analytics_not_precomputed"
+
+    _precompute_real_network(network_dir)
+    (network_dir / "analytics" / "costs.json").write_text("{}", encoding="utf-8")
+    client = client_factory()
+    r = client.get(f"/api/v1/networks/{NETWORK_ID}/analytics/costs")
+    assert r.status_code == 500 and r.json()["error"]["code"] == "analytics_integrity_error"
+
+    manifest_path = network_dir / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    for f in manifest["files"]:
+        if f["path"] == "network.nc":
+            f["sha256"] = "0" * 64
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    client = client_factory()
+    r = client.get(f"/api/v1/networks/{NETWORK_ID}/analytics/capacity")
+    assert r.status_code == 503 and r.json()["error"]["code"] == "analytics_stale"
 
 
 def test_local_store_is_content_addressed(tmp_path):

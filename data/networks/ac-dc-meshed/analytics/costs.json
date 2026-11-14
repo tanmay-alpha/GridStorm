@@ -1,0 +1,171 @@
+{
+ "schema_version": "gridstorm-analytics/1.0",
+ "kind": "costs",
+ "available": true,
+ "reason": null,
+ "provenance": "calculated",
+ "network_solved": false,
+ "filters": {
+  "carriers": null,
+  "countries": null
+ },
+ "units": {
+  "rows[].capex_installed_eur": "EUR",
+  "rows[].capex_optimal_eur": "EUR",
+  "rows[].opex_eur": "EUR",
+  "by_carrier.*": "EUR",
+  "totals.*": "EUR",
+  "objective_weighted_hours_h": "h"
+ },
+ "assumptions": [
+  "Monetary values are in the cost currency of the network data; PyPSA stores no currency unit, GridStorm assumes EUR (example-network costs are illustrative, not market data).",
+  "capex_installed_eur = nominal capacity (p_nom/s_nom/e_nom) x capital_cost (PyPSA statistics.installed_capex); available without optimisation.",
+  "capex_optimal_eur = optimal capacity (*_opt) x capital_cost (PyPSA statistics.capex, the quantity PyPSA-Explorer plots); null when the network is not solved.",
+  "opex_eur = dispatch x marginal cost (plus storage/spill/unit-commitment cost terms when present) weighted by snapshot_weightings.objective (PyPSA statistics.opex); null when the network is not solved.",
+  "capital_cost is the model's per-period (typically annualised) cost per unit capacity and is charged once for the modelled horizon (10 h of objective-weighted snapshots); CAPEX and OPEX are only on the same time basis if that horizon is one year.",
+  "Branch components (Line, Transformer, Link) are attributed to the country of bus0."
+ ],
+ "source": {
+  "upstream": "PyPSA-Explorer",
+  "url": "https://github.com/open-energy-transition/PyPSA-Explorer",
+  "sha": "c85252c98cab742b43245a18bcd310d095bab443",
+  "license": "MIT",
+  "derived_from": [
+   "src/pypsa_explorer/callbacks/visualizations.py:update_capex_charts",
+   "src/pypsa_explorer/callbacks/visualizations.py:update_opex_charts"
+  ],
+  "engine": {
+   "name": "pypsa",
+   "version": "1.4.0"
+  },
+  "pypsa_statistics": [
+   "installed_capex",
+   "capex",
+   "opex"
+  ]
+ },
+ "carrier_names": {
+  "AC": "AC",
+  "DC": "DC",
+  "battery": "battery",
+  "gas": "gas",
+  "load": "load",
+  "wind": "wind"
+ },
+ "opex_available": false,
+ "opex_reason": "network is not solved: no dispatch results",
+ "objective_weighted_hours_h": 10.0,
+ "rows": [
+  {
+   "component": "Generator",
+   "carrier": "gas",
+   "country": "DE",
+   "capex_installed_eur": 8214156.240608,
+   "capex_optimal_eur": null,
+   "opex_eur": null
+  },
+  {
+   "component": "Generator",
+   "carrier": "gas",
+   "country": "NO",
+   "capex_installed_eur": 3165024.994336,
+   "capex_optimal_eur": null,
+   "opex_eur": null
+  },
+  {
+   "component": "Generator",
+   "carrier": "gas",
+   "country": "UK",
+   "capex_installed_eur": 9830758.398455001,
+   "capex_optimal_eur": null,
+   "opex_eur": null
+  },
+  {
+   "component": "Generator",
+   "carrier": "wind",
+   "country": "DE",
+   "capex_installed_eur": 234240.173472393,
+   "capex_optimal_eur": null,
+   "opex_eur": null
+  },
+  {
+   "component": "Generator",
+   "carrier": "wind",
+   "country": "NO",
+   "capex_installed_eur": 218437.47960912,
+   "capex_optimal_eur": null,
+   "opex_eur": null
+  },
+  {
+   "component": "Generator",
+   "carrier": "wind",
+   "country": "UK",
+   "capex_installed_eur": 223492.128234624,
+   "capex_optimal_eur": null,
+   "opex_eur": null
+  },
+  {
+   "component": "Line",
+   "carrier": "AC",
+   "country": "DE",
+   "capex_installed_eur": 8346.936984,
+   "capex_optimal_eur": null,
+   "opex_eur": null
+  },
+  {
+   "component": "Line",
+   "carrier": "AC",
+   "country": "NO",
+   "capex_installed_eur": 2497.194916,
+   "capex_optimal_eur": null,
+   "opex_eur": null
+  },
+  {
+   "component": "Line",
+   "carrier": "AC",
+   "country": "UK",
+   "capex_installed_eur": 16847.437464,
+   "capex_optimal_eur": null,
+   "opex_eur": null
+  },
+  {
+   "component": "Link",
+   "carrier": "DC",
+   "country": "DE",
+   "capex_installed_eur": 190.0,
+   "capex_optimal_eur": null,
+   "opex_eur": null
+  },
+  {
+   "component": "Link",
+   "carrier": "DC",
+   "country": "NO",
+   "capex_installed_eur": 200.0,
+   "capex_optimal_eur": null,
+   "opex_eur": null
+  },
+  {
+   "component": "Link",
+   "carrier": "DC",
+   "country": "UK",
+   "capex_installed_eur": 1086.5342,
+   "capex_optimal_eur": null,
+   "opex_eur": null
+  }
+ ],
+ "by_carrier": {
+  "capex_installed_eur": {
+   "AC": 27691.569364,
+   "DC": 1476.5342,
+   "gas": 21209939.633399002,
+   "wind": 676169.7813161369
+  },
+  "capex_optimal_eur": null,
+  "opex_eur": null
+ },
+ "totals": {
+  "capex_installed_eur": 21915277.51827914,
+  "capex_optimal_eur": null,
+  "opex_eur": null
+ }
+}

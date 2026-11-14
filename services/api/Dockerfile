@@ -40,6 +40,7 @@ ARG GIT_SHA=""
 ENV PATH=/app/services/api/.venv/bin:$PATH \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
+    MPLCONFIGDIR=/tmp/matplotlib \
     OPENBLAS_NUM_THREADS=1 \
     OMP_NUM_THREADS=1 \
     MKL_NUM_THREADS=1 \

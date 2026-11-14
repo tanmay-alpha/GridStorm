@@ -11,6 +11,10 @@
   ``memory_limit``). RLIMIT_AS is deliberately NOT used: numpy/OpenBLAS/HiGHS reserve large
   virtual address ranges, so an address-space cap causes spurious MemoryErrors at import.
   BLAS/OpenMP thread pools are pinned to one thread in the child.
+* OOM victim: on Linux the child writes 1000 to ``/proc/self/oom_score_adj`` before ``exec``, so
+  when the container (cgroup) runs out of memory the kernel kills the engine, not uvicorn. An
+  engine killed by SIGKILL that neither the watchdog, the timeout nor a cancel sent is reported as
+  ``memory_limit`` (the kernel OOM killer is the only other SIGKILL source).
 * Cancellation kills the subprocess (process group on POSIX) within ~0.25 s when the job runs in
   this process, or at the next heartbeat (``GRIDSTORM_JOB_HEARTBEAT_S``) otherwise.
 * Recovery: a ``running`` job whose heartbeat is older than ``GRIDSTORM_JOB_STALE_AFTER_S`` (or any
@@ -29,6 +33,7 @@ import shutil
 import signal
 import socket
 import subprocess
+import sys
 import tempfile
 import threading
 import time
@@ -50,6 +55,8 @@ log = logging.getLogger("gridstorm_api.worker")
 
 LOG_LIMIT_BYTES = 256 * 1024
 _RUN_STAGES = frozenset(JOB_STAGES) - {"queued"}
+# POSIX returncode of a child killed by SIGKILL (signal.SIGKILL does not exist on Windows).
+_SIGKILL_RETURNCODE = -9
 
 
 def build_command(
@@ -68,6 +75,18 @@ def build_command(
             token = token.replace(k, v)
         argv.append(token)
     return argv
+
+
+def _prefer_engine_as_oom_victim() -> None:
+    """``preexec_fn`` (Linux): make the engine child the kernel OOM killer's first choice.
+
+    Raising one's own ``oom_score_adj`` needs no privileges; failures are ignored.
+    """
+    try:
+        with open("/proc/self/oom_score_adj", "w", encoding="ascii") as f:
+            f.write("1000")
+    except OSError:
+        pass
 
 
 def tree_rss_bytes(pid: int) -> int:
@@ -387,6 +406,8 @@ class WorkerPool:
             popen_kw: dict[str, Any] = {}
             if os.name == "posix":
                 popen_kw["start_new_session"] = True
+            if sys.platform.startswith("linux"):
+                popen_kw["preexec_fn"] = _prefer_engine_as_oom_victim
             proc = subprocess.Popen(
                 argv,
                 cwd=workdir,
@@ -525,6 +546,22 @@ class WorkerPool:
                     error={
                         "code": "timeout",
                         "message": f"engine exceeded the {settings.job_timeout_s:g} s limit",
+                    },
+                )
+                return
+            if proc.returncode == _SIGKILL_RETURNCODE:
+                self._finish(
+                    job_id,
+                    status="failed",
+                    history=history,
+                    log_blob=log_blob,
+                    error={
+                        "code": "memory_limit",
+                        "message": (
+                            "engine was killed by SIGKILL without a timeout or cancel: the "
+                            "kernel OOM killer stopped it because the container ran out of "
+                            "memory (OOM)"
+                        ),
                     },
                 )
                 return

@@ -144,8 +144,10 @@ export function useJob(id: string | undefined) {
     queryKey: qk.job(id ?? ''),
     queryFn: ({ signal }) => api.simulation(id!, signal),
     enabled: !!id,
-    // Poll real job status until it reaches a terminal state; no synthetic progress.
-    refetchInterval: (q) => (q.state.data && TERMINAL_STATUSES.includes(q.state.data.status) ? false : 1000),
+    // Poll real job status until it reaches a terminal state; no synthetic progress. No polling
+    // without a job: a refetch of a data-less query resets its error to `pending`, so polling a
+    // 404 (unknown/expired job id) flipped the page back to a skeleton every second.
+    refetchInterval: (q) => (q.state.data && !TERMINAL_STATUSES.includes(q.state.data.status) ? 1000 : false),
   })
 }
 

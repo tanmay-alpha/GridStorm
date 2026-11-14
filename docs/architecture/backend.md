@@ -17,10 +17,12 @@ StormSpec presets. A standalone catalog seed is in `database/seeds/seed_catalog.
 
 GeoJSON identifies assets with both `properties.component` and `properties.id`; a line and
 transformer may share an id. Schematic coordinates are labelled `coordinate_kind: schematic`
-and are not geographic longitude/latitude. Analytics delegates to `gridstorm_analytics.compute`
-with lazy PyPSA imports, an LRU network cache (default 2), a result cache, a threadpool and a
-request timeout (default 60 s). A timeout cannot kill an already-running Python thread.
-No PyPSA network is loaded into the API process at startup.
+and are not geographic longitude/latitude. Analytics are precomputed with `gridstorm_analytics.compute`
+by `services/analytics/scripts/precompute_analytics.py` into `data/networks/<id>/analytics/`
+(`<kind>.json` plus `index.json` with the `network.nc` sha256, per-file sha256 and source versions).
+The API serves those files and never imports PyPSA (it cost ~300 MB RSS, see
+`docs/benchmarks/api-memory.md`). Carrier/country filters are derived exactly from the unfiltered
+rows, otherwise 422 `analytics_filter_not_precomputed`; a missing or stale index is a 503.
 
 ## Persistence and ownership
 

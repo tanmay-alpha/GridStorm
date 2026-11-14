@@ -42,12 +42,13 @@ export function AssetSearch({
 
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
+      {/* Named by its visible text ("Search assets… Ctrl K", WCAG 2.5.3); shortcut exposed separately. */}
       <Dialog.Trigger asChild>
         <button
           type="button"
           disabled={disabled}
           className="gs-input flex w-full items-center gap-2 text-left text-sm text-fg-muted disabled:opacity-50"
-          aria-label="Search assets (Ctrl+K)"
+          aria-keyshortcuts="Control+K Meta+K"
         >
           <Search aria-hidden className="size-3.5" />
           <span className="flex-1">Search assets…</span>

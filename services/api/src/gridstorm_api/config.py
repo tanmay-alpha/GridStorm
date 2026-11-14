@@ -102,9 +102,6 @@ class Settings:
     supabase_jwt_secret: str | None = None
     supabase_jwt_audience: str = "authenticated"
 
-    analytics_timeout_s: float = 60.0
-    network_cache_size: int = 2
-    analytics_max_concurrency: int = 2
     solver_check_ttl_s: float = 600.0
 
     git_sha: str | None = None
@@ -194,7 +191,5 @@ class Settings:
             supabase_url=_env("SUPABASE_URL"),
             supabase_jwt_secret=_env("SUPABASE_JWT_SECRET"),
             supabase_jwt_audience=_env("SUPABASE_JWT_AUDIENCE", "authenticated") or "authenticated",
-            analytics_timeout_s=_env_float("GRIDSTORM_ANALYTICS_TIMEOUT_S", 60.0),
-            network_cache_size=max(1, _env_int("GRIDSTORM_NETWORK_CACHE_SIZE", 2)),
             git_sha=_env("GRIDSTORM_GIT_SHA") or _env("RENDER_GIT_COMMIT"),
         )

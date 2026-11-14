@@ -1,0 +1,44 @@
+{
+ "schema_version": "gridstorm-analytics/1.0",
+ "kind": "energy_balance",
+ "available": false,
+ "reason": "network is not solved: the energy balance needs dispatch results (p time series) from an optimisation or power flow run; none are present",
+ "provenance": "calculated",
+ "network_solved": false,
+ "filters": {
+  "carriers": null,
+  "countries": null
+ },
+ "units": {
+  "bus_carriers[].rows[].energy_mwh": "MWh",
+  "bus_carriers[].by_carrier_mwh": "MWh",
+  "bus_carriers[].supply_mwh": "MWh",
+  "bus_carriers[].withdrawal_mwh": "MWh",
+  "bus_carriers[].net_mwh": "MWh",
+  "bus_carriers[].balance_residual_max_mw": "MW",
+  "bus_carriers[].timeseries_mw.by_carrier": "MW"
+ },
+ "assumptions": [
+  "Sign convention (PyPSA statistics.energy_balance): positive = energy supplied to a bus, negative = energy withdrawn from a bus (loads, storage charging, branch withdrawal at a port). Every branch port is counted at its own bus, so with no carrier filter the sum over all rows of a bus carrier is the nodal balance and must be ~0 per snapshot.",
+  "Energy (MWh) = sum over snapshots of power (MW) x snapshot_weightings.generators (h).",
+  "Only bus carriers whose buses use unit 'MW' or an energy label 'MWh*' (PyPSA-Eur: MWh_el, MWh_LHV, MWh_th; flows in MW) are reported, each with its raw `unit`; other units (e.g. t_co2) and mixed-unit carriers are listed in excluded_bus_carriers."
+ ],
+ "source": {
+  "upstream": "PyPSA-Explorer",
+  "url": "https://github.com/open-energy-transition/PyPSA-Explorer",
+  "sha": "c85252c98cab742b43245a18bcd310d095bab443",
+  "license": "MIT",
+  "derived_from": [
+   "src/pypsa_explorer/callbacks/visualizations.py:create_energy_balance_callback"
+  ],
+  "engine": {
+   "name": "pypsa",
+   "version": "1.4.0"
+  },
+  "pypsa_statistics": [
+   "energy_balance"
+  ]
+ },
+ "bus_carriers": [],
+ "excluded_bus_carriers": []
+}

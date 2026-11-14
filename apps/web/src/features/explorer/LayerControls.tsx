@@ -15,22 +15,20 @@ function Check({
   swatch?: string
   testId?: string
 }) {
-  const id = useId()
+  // The whole row is the label, at least 24 px tall: the hit area meets WCAG 2.5.8 (target size)
+  // around the compact 14 px box, and neighbouring checkboxes are ≥ 24 px apart.
   return (
-    <div className="flex items-center gap-2 text-xs">
+    <label className="-mx-1 flex min-h-6 cursor-pointer items-center gap-2 rounded px-1 text-xs text-fg hover:bg-surface-2">
       <input
-        id={id}
         type="checkbox"
-        className="size-3.5 accent-[var(--gs-accent)]"
+        className="size-3.5 shrink-0 accent-[var(--gs-accent)]"
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
         data-testid={testId}
       />
-      {swatch && <span aria-hidden className="size-2.5 rounded-full" style={{ background: swatch }} />}
-      <label htmlFor={id} className="cursor-pointer text-fg">
-        {label}
-      </label>
-    </div>
+      {swatch && <span aria-hidden className="size-2.5 shrink-0 rounded-full" style={{ background: swatch }} />}
+      {label}
+    </label>
   )
 }
 

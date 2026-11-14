@@ -1,0 +1,155 @@
+{
+ "schema_version": "gridstorm-analytics/1.0",
+ "kind": "capacity",
+ "available": true,
+ "reason": null,
+ "provenance": "calculated",
+ "network_solved": false,
+ "filters": {
+  "carriers": null,
+  "countries": null
+ },
+ "units": {
+  "generator_power.installed_mw": "MW",
+  "generator_power.optimal_mw": "MW",
+  "line_rating.installed_mva": "MVA",
+  "line_rating.optimal_mva": "MVA",
+  "transformer_rating.installed_mva": "MVA",
+  "transformer_rating.optimal_mva": "MVA"
+ },
+ "assumptions": [
+  "Installed capacity = nominal attribute (p_nom, s_nom, e_nom; p_nom*max_hours for StorageUnit energy) as stored in the network input; valid without optimisation.",
+  "Optimal capacity = *_opt attribute written by the PyPSA optimisation; null when the network is not solved (PyPSA-Explorer plots optimal capacity only, which is 0 for unsolved networks).",
+  "Units differ per component group (MW, MVA, MWh) and are never summed across groups.",
+  "Branch components (Line, Transformer, Link) are attributed to the country of bus0.",
+  "Assets on buses without a country code have country = null."
+ ],
+ "source": {
+  "upstream": "PyPSA-Explorer",
+  "url": "https://github.com/open-energy-transition/PyPSA-Explorer",
+  "sha": "c85252c98cab742b43245a18bcd310d095bab443",
+  "license": "MIT",
+  "derived_from": [
+   "src/pypsa_explorer/callbacks/visualizations.py:update_capacity_charts"
+  ],
+  "engine": {
+   "name": "pypsa",
+   "version": "1.4.0"
+  },
+  "pypsa_statistics": [
+   "installed_capacity",
+   "optimal_capacity"
+  ]
+ },
+ "carrier_names": {
+  "AC": "AC",
+  "COW": "Coal",
+  "NG": "Natural gas",
+  "PEL": "Petroleum (liquid)",
+  "SYNC": "Synchronous condenser"
+ },
+ "generation_capacity_by_carrier_mw": {
+  "COW": 4267.0,
+  "NG": 2163.0,
+  "PEL": 85.0,
+  "SYNC": 0.0
+ },
+ "groups": [
+  {
+   "key": "generator_power",
+   "component": "Generator",
+   "nominal_attribute": "p_nom",
+   "unit": "MW",
+   "rows": [
+    {
+     "carrier": "COW",
+     "country": null,
+     "installed_mw": 4267.0,
+     "optimal_mw": null
+    },
+    {
+     "carrier": "NG",
+     "country": null,
+     "installed_mw": 2163.0,
+     "optimal_mw": null
+    },
+    {
+     "carrier": "PEL",
+     "country": null,
+     "installed_mw": 85.0,
+     "optimal_mw": null
+    },
+    {
+     "carrier": "SYNC",
+     "country": null,
+     "installed_mw": 0.0,
+     "optimal_mw": null
+    }
+   ],
+   "by_carrier": {
+    "COW": {
+     "installed_mw": 4267.0,
+     "optimal_mw": null
+    },
+    "NG": {
+     "installed_mw": 2163.0,
+     "optimal_mw": null
+    },
+    "PEL": {
+     "installed_mw": 85.0,
+     "optimal_mw": null
+    },
+    "SYNC": {
+     "installed_mw": 0.0,
+     "optimal_mw": null
+    }
+   },
+   "total_installed_mw": 6515.0,
+   "total_optimal_mw": null
+  },
+  {
+   "key": "line_rating",
+   "component": "Line",
+   "nominal_attribute": "s_nom",
+   "unit": "MVA",
+   "rows": [
+    {
+     "carrier": "AC",
+     "country": null,
+     "installed_mva": 31187.0,
+     "optimal_mva": null
+    }
+   ],
+   "by_carrier": {
+    "AC": {
+     "installed_mva": 31187.0,
+     "optimal_mva": null
+    }
+   },
+   "total_installed_mva": 31187.0,
+   "total_optimal_mva": null
+  },
+  {
+   "key": "transformer_rating",
+   "component": "Transformer",
+   "nominal_attribute": "s_nom",
+   "unit": "MVA",
+   "rows": [
+    {
+     "carrier": null,
+     "country": null,
+     "installed_mva": 14999.0,
+     "optimal_mva": null
+    }
+   ],
+   "by_carrier": {
+    "": {
+     "installed_mva": 14999.0,
+     "optimal_mva": null
+    }
+   },
+   "total_installed_mva": 14999.0,
+   "total_optimal_mva": null
+  }
+ ]
+}

@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Ban, Download, FileJson, FileText, GitCompare } from 'lucide-react'
-import { api } from '../../api/client'
+import { api, ApiError } from '../../api/client'
 import { qk, TERMINAL_STATUSES, useJob, useJobArtifacts, useNetwork, useNetworks, useResult } from '../../api/hooks'
 import type { GridstormResult, Job, JobStage } from '../../api/types'
 import { BranchValueMap } from '../../components/map/BranchValueMap'
@@ -30,6 +30,7 @@ import {
 import { NO_VALUE, formatDuration, formatQuantity, formatTimestamp, shortHash } from '../../lib/format'
 import { downloadJson, downloadText } from '../../lib/download'
 import { cssVar, useTheme } from '../../lib/theme'
+import { useDocumentTitle } from '../../lib/title'
 import {
   branchLoadingAt,
   branchRows,
@@ -368,7 +369,29 @@ export default function RunPage() {
     mutationFn: () => api.cancelSimulation(id!),
     onSuccess: (j) => queryClient.setQueryData(qk.job(j.id), j),
   })
+  const notFound = job.error instanceof ApiError && job.error.status === 404 ? job.error : null
+  const scenarioId = result.data?.scenario_id ?? job.data?.scenario_id
+  useDocumentTitle(notFound ? 'Job not found' : job.data ? `Run ${scenarioId ?? job.data.id}` : 'Loading run')
 
+  if (notFound)
+    return (
+      <div className="mx-auto max-w-xl p-6" data-testid="job-not-found">
+        <h1 className="text-lg font-semibold">Job not found</h1>
+        <p className="mt-1 text-sm text-fg-muted">
+          The API has no simulation job <code className="font-mono">{id}</code>. The id may be mistyped, or the job
+          store was reset (the hosted demo keeps jobs in ephemeral storage, so older run links expire).
+        </p>
+        <p className="mt-1 font-mono text-2xs text-fg-muted">HTTP 404 · {notFound.code}</p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Link to="/studio" className={buttonClass('primary', 'sm')}>
+            Run a scenario in Crisis Studio
+          </Link>
+          <Link to="/library" className={buttonClass('secondary', 'sm')}>
+            Browse the Library
+          </Link>
+        </div>
+      </div>
+    )
   if (job.error)
     return (
       <div className="p-4">

@@ -79,7 +79,7 @@ function ContingencyDetail({ row }: { row: ContingencyRow }) {
       />
       {row.overloads.length > 0 && (
         <div>
-          <h4 className="font-semibold">Overloaded branches</h4>
+          <h3 className="font-semibold">Overloaded branches</h3>
           <ul className="font-mono">
             {row.overloads.map((o) => (
               <li key={branchKey(o.component, o.id)}>
@@ -91,7 +91,7 @@ function ContingencyDetail({ row }: { row: ContingencyRow }) {
       )}
       {row.voltageViolations.length > 0 && (
         <div>
-          <h4 className="font-semibold">Voltage violations</h4>
+          <h3 className="font-semibold">Voltage violations</h3>
           <ul className="font-mono">
             {row.voltageViolations.map((v) => (
               <li key={v.busId}>

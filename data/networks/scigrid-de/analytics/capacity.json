@@ -1,0 +1,324 @@
+{
+ "schema_version": "gridstorm-analytics/1.0",
+ "kind": "capacity",
+ "available": true,
+ "reason": null,
+ "provenance": "calculated",
+ "network_solved": false,
+ "filters": {
+  "carriers": null,
+  "countries": null
+ },
+ "units": {
+  "generator_power.installed_mw": "MW",
+  "generator_power.optimal_mw": "MW",
+  "storage_unit_power.installed_mw": "MW",
+  "storage_unit_power.optimal_mw": "MW",
+  "storage_unit_energy.installed_mwh": "MWh",
+  "storage_unit_energy.optimal_mwh": "MWh",
+  "line_rating.installed_mva": "MVA",
+  "line_rating.optimal_mva": "MVA",
+  "transformer_rating.installed_mva": "MVA",
+  "transformer_rating.optimal_mva": "MVA"
+ },
+ "assumptions": [
+  "Installed capacity = nominal attribute (p_nom, s_nom, e_nom; p_nom*max_hours for StorageUnit energy) as stored in the network input; valid without optimisation.",
+  "Optimal capacity = *_opt attribute written by the PyPSA optimisation; null when the network is not solved (PyPSA-Explorer plots optimal capacity only, which is 0 for unsolved networks).",
+  "Units differ per component group (MW, MVA, MWh) and are never summed across groups.",
+  "Branch components (Line, Transformer, Link) are attributed to the country of bus0.",
+  "Assets on buses without a country code have country = null."
+ ],
+ "source": {
+  "upstream": "PyPSA-Explorer",
+  "url": "https://github.com/open-energy-transition/PyPSA-Explorer",
+  "sha": "c85252c98cab742b43245a18bcd310d095bab443",
+  "license": "MIT",
+  "derived_from": [
+   "src/pypsa_explorer/callbacks/visualizations.py:update_capacity_charts"
+  ],
+  "engine": {
+   "name": "pypsa",
+   "version": "1.4.0"
+  },
+  "pypsa_statistics": [
+   "installed_capacity",
+   "optimal_capacity"
+  ]
+ },
+ "carrier_names": {
+  "AC": "AC",
+  "Brown Coal": "Brown Coal",
+  "Gas": "Gas",
+  "Geothermal": "Geothermal",
+  "Hard Coal": "Hard Coal",
+  "Multiple": "Multiple",
+  "Nuclear": "Nuclear",
+  "Oil": "Oil",
+  "Other": "Other",
+  "Pumped Hydro": "Pumped Hydro",
+  "Run of River": "Run of River",
+  "Solar": "Solar",
+  "Storage Hydro": "Storage Hydro",
+  "Waste": "Waste",
+  "Wind Offshore": "Wind Offshore",
+  "Wind Onshore": "Wind Onshore"
+ },
+ "generation_capacity_by_carrier_mw": {
+  "Brown Coal": 20879.5,
+  "Gas": 23913.13,
+  "Geothermal": 31.7,
+  "Hard Coal": 25312.6,
+  "Multiple": 152.7,
+  "Nuclear": 12068.0,
+  "Oil": 2710.2,
+  "Other": 3027.8,
+  "Run of River": 3999.1,
+  "Solar": 37041.52477909075,
+  "Storage Hydro": 1445.0,
+  "Waste": 1645.9,
+  "Wind Offshore": 2973.5,
+  "Wind Onshore": 37339.89532919639
+ },
+ "groups": [
+  {
+   "key": "generator_power",
+   "component": "Generator",
+   "nominal_attribute": "p_nom",
+   "unit": "MW",
+   "rows": [
+    {
+     "carrier": "Brown Coal",
+     "country": null,
+     "installed_mw": 20879.5,
+     "optimal_mw": null
+    },
+    {
+     "carrier": "Gas",
+     "country": null,
+     "installed_mw": 23913.13,
+     "optimal_mw": null
+    },
+    {
+     "carrier": "Geothermal",
+     "country": null,
+     "installed_mw": 31.7,
+     "optimal_mw": null
+    },
+    {
+     "carrier": "Hard Coal",
+     "country": null,
+     "installed_mw": 25312.6,
+     "optimal_mw": null
+    },
+    {
+     "carrier": "Multiple",
+     "country": null,
+     "installed_mw": 152.7,
+     "optimal_mw": null
+    },
+    {
+     "carrier": "Nuclear",
+     "country": null,
+     "installed_mw": 12068.0,
+     "optimal_mw": null
+    },
+    {
+     "carrier": "Oil",
+     "country": null,
+     "installed_mw": 2710.2,
+     "optimal_mw": null
+    },
+    {
+     "carrier": "Other",
+     "country": null,
+     "installed_mw": 3027.8,
+     "optimal_mw": null
+    },
+    {
+     "carrier": "Run of River",
+     "country": null,
+     "installed_mw": 3999.1,
+     "optimal_mw": null
+    },
+    {
+     "carrier": "Solar",
+     "country": null,
+     "installed_mw": 37041.52477909075,
+     "optimal_mw": null
+    },
+    {
+     "carrier": "Storage Hydro",
+     "country": null,
+     "installed_mw": 1445.0,
+     "optimal_mw": null
+    },
+    {
+     "carrier": "Waste",
+     "country": null,
+     "installed_mw": 1645.9,
+     "optimal_mw": null
+    },
+    {
+     "carrier": "Wind Offshore",
+     "country": null,
+     "installed_mw": 2973.5,
+     "optimal_mw": null
+    },
+    {
+     "carrier": "Wind Onshore",
+     "country": null,
+     "installed_mw": 37339.89532919639,
+     "optimal_mw": null
+    }
+   ],
+   "by_carrier": {
+    "Brown Coal": {
+     "installed_mw": 20879.5,
+     "optimal_mw": null
+    },
+    "Gas": {
+     "installed_mw": 23913.13,
+     "optimal_mw": null
+    },
+    "Geothermal": {
+     "installed_mw": 31.7,
+     "optimal_mw": null
+    },
+    "Hard Coal": {
+     "installed_mw": 25312.6,
+     "optimal_mw": null
+    },
+    "Multiple": {
+     "installed_mw": 152.7,
+     "optimal_mw": null
+    },
+    "Nuclear": {
+     "installed_mw": 12068.0,
+     "optimal_mw": null
+    },
+    "Oil": {
+     "installed_mw": 2710.2,
+     "optimal_mw": null
+    },
+    "Other": {
+     "installed_mw": 3027.8,
+     "optimal_mw": null
+    },
+    "Run of River": {
+     "installed_mw": 3999.1,
+     "optimal_mw": null
+    },
+    "Solar": {
+     "installed_mw": 37041.52477909075,
+     "optimal_mw": null
+    },
+    "Storage Hydro": {
+     "installed_mw": 1445.0,
+     "optimal_mw": null
+    },
+    "Waste": {
+     "installed_mw": 1645.9,
+     "optimal_mw": null
+    },
+    "Wind Offshore": {
+     "installed_mw": 2973.5,
+     "optimal_mw": null
+    },
+    "Wind Onshore": {
+     "installed_mw": 37339.89532919639,
+     "optimal_mw": null
+    }
+   },
+   "total_installed_mw": 172540.55010828713,
+   "total_optimal_mw": null
+  },
+  {
+   "key": "storage_unit_power",
+   "component": "StorageUnit",
+   "nominal_attribute": "p_nom",
+   "unit": "MW",
+   "rows": [
+    {
+     "carrier": "Pumped Hydro",
+     "country": null,
+     "installed_mw": 9179.499999999998,
+     "optimal_mw": null
+    }
+   ],
+   "by_carrier": {
+    "Pumped Hydro": {
+     "installed_mw": 9179.499999999998,
+     "optimal_mw": null
+    }
+   },
+   "total_installed_mw": 9179.499999999998,
+   "total_optimal_mw": null
+  },
+  {
+   "key": "storage_unit_energy",
+   "component": "StorageUnit",
+   "nominal_attribute": "p_nom*max_hours",
+   "unit": "MWh",
+   "rows": [
+    {
+     "carrier": "Pumped Hydro",
+     "country": null,
+     "installed_mwh": 55077.00000000001,
+     "optimal_mwh": null
+    }
+   ],
+   "by_carrier": {
+    "Pumped Hydro": {
+     "installed_mwh": 55077.00000000001,
+     "optimal_mwh": null
+    }
+   },
+   "total_installed_mwh": 55077.00000000001,
+   "total_optimal_mwh": null
+  },
+  {
+   "key": "line_rating",
+   "component": "Line",
+   "nominal_attribute": "s_nom",
+   "unit": "MVA",
+   "rows": [
+    {
+     "carrier": null,
+     "country": null,
+     "installed_mva": 961101.1367142741,
+     "optimal_mva": null
+    }
+   ],
+   "by_carrier": {
+    "": {
+     "installed_mva": 961101.1367142741,
+     "optimal_mva": null
+    }
+   },
+   "total_installed_mva": 961101.1367142741,
+   "total_optimal_mva": null
+  },
+  {
+   "key": "transformer_rating",
+   "component": "Transformer",
+   "nominal_attribute": "s_nom",
+   "unit": "MVA",
+   "rows": [
+    {
+     "carrier": null,
+     "country": null,
+     "installed_mva": 192000.0,
+     "optimal_mva": null
+    }
+   ],
+   "by_carrier": {
+    "": {
+     "installed_mva": 192000.0,
+     "optimal_mva": null
+    }
+   },
+   "total_installed_mva": 192000.0,
+   "total_optimal_mva": null
+  }
+ ]
+}

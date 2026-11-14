@@ -53,6 +53,15 @@ def compute_summary(
     bus_carriers = sorted({str(c) for c in n.buses["carrier"].astype(str) if c and c != "none"})
     snaps = n.snapshots
     solved = is_solved(n)
+    # PyPSA's default single snapshot is the label "now", not a time: pd.Timestamp("now") would
+    # report the wall-clock time of the computation.
+    timestamped = isinstance(snaps, pd.DatetimeIndex) and len(snaps) > 0
+    assumptions = ["Counts are numbers of static component rows (inactive assets included)."]
+    if len(snaps) and not timestamped:
+        assumptions.append(
+            "Snapshots are labels, not timestamps (e.g. PyPSA's default single snapshot 'now'); "
+            "snapshot_start and snapshot_end are null."
+        )
     return envelope(
         "summary",
         n,
@@ -61,7 +70,7 @@ def compute_summary(
         available=True,
         reason=None,
         units={"snapshot_hours_h": "h", "objective_eur": "EUR"},
-        assumptions=["Counts are numbers of static component rows (inactive assets included)."],
+        assumptions=assumptions,
         derived_from=DERIVED_FROM,
         pypsa_statistics=[],
         data={
@@ -71,8 +80,8 @@ def compute_summary(
             "carrier_names": carrier_nice_names(n),
             "countries": bus_countries(n),
             "snapshot_count": int(len(snaps)),
-            "snapshot_start": pd.Timestamp(snaps[0]).isoformat() if len(snaps) else None,
-            "snapshot_end": pd.Timestamp(snaps[-1]).isoformat() if len(snaps) else None,
+            "snapshot_start": snaps[0].isoformat() if timestamped else None,
+            "snapshot_end": snaps[-1].isoformat() if timestamped else None,
             "snapshot_hours_h": to_float(n.snapshot_weightings.generators.sum()),
             "objective_eur": to_float(n.objective) if solved else None,
         },

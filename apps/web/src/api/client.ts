@@ -172,6 +172,12 @@ export const api = {
     request<Page<ArtifactIndexItem> | ArtifactIndexItem[]>(`${v1}/artifacts`, { query: q, signal: s }),
   artifact: <P = Record<string, unknown>>(engine: string, artifactId: string, s?: AbortSignal) =>
     request<Artifact<P>>(`${v1}/artifacts/${enc(engine)}/${enc(artifactId)}`, { signal: s }),
+  /** kind=simulation only: the header plus small payload fields (no assets/series), ~3 KB vs ~1.2 MB. */
+  artifactSummary: (engine: string, artifactId: string, s?: AbortSignal) =>
+    request<{ artifact: unknown; summary: unknown }>(`${v1}/artifacts/${enc(engine)}/${enc(artifactId)}`, {
+      query: { view: 'summary' },
+      signal: s,
+    }),
 
   simulationResultUrl: (id: string) => buildUrl(`${v1}/simulations/${enc(id)}/result`),
 }

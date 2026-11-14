@@ -6,8 +6,11 @@ import advisor from '../__fixtures__/advisor-case14.json'
 import crossEngine from '../__fixtures__/cross-engine-pglib-case14-ieee.json'
 import episodeDoc from '../__fixtures__/grid2op-episode-subset.json'
 import stormbench from '../__fixtures__/stormbench-case14-ieee.json'
+import n1Doc from '../__fixtures__/pandapower-n1-case14.json'
+import { parseN1 } from '../lib/n1'
+import { parseArtifact } from '../lib/parse'
 import { BenchmarksPage } from '../pages/BenchmarksPage'
-import { ContingencyPage } from '../pages/ContingencyPage'
+import { ContingencyPage, N1View } from '../pages/ContingencyPage'
 import { OperationsPage } from '../pages/OperationsPage'
 import { MethodsPage } from '../pages/MethodsPage'
 
@@ -28,8 +31,12 @@ function stubBackend(engines: Docs) {
       const m = url.pathname.match(/^\/api\/v1\/artifacts(?:\/([^/]+)\/([^/]+))?$/)
       if (!m) return json({ error: { code: 'not_found', message: `unexpected ${url.pathname}` } }, 404)
       if (m[1]) {
-        const doc = engines[decodeURIComponent(m[1])]?.docs[decodeURIComponent(m[2]!)]
-        return doc ? json(doc) : json({ error: { code: 'artifact_not_found', message: 'unknown artifact' } }, 404)
+        const doc = engines[decodeURIComponent(m[1])]?.docs[decodeURIComponent(m[2]!)] as { artifact: unknown; payload: Record<string, unknown> } | undefined
+        if (!doc) return json({ error: { code: 'artifact_not_found', message: 'unknown artifact' } }, 404)
+        if (url.searchParams.get('view') !== 'summary') return json(doc)
+        // Mirrors the API's summary view: header unchanged, bulky payload fields dropped.
+        const summary = Object.fromEntries(Object.entries(doc.payload).filter(([k]) => k !== 'assets' && k !== 'series'))
+        return json({ artifact: doc.artifact, summary })
       }
       const engine = url.searchParams.get('engine') ?? ''
       const items = engines[engine]?.index ?? []
@@ -84,6 +91,54 @@ describe('BenchmarksPage', () => {
 
     expect(await screen.findByText('No StormRisk studies published')).toBeInTheDocument()
     expect(await screen.findByText('No PyPSA preset artifacts published')).toBeInTheDocument()
+  })
+
+  it('loads only the summary view of PyPSA simulations and keeps provenance and sha visible', async () => {
+    const sim = {
+      artifact: {
+        schema_version: 'gridstorm-artifact/1.0',
+        artifact_id: 'scigrid-de-baseline',
+        kind: 'simulation',
+        engine: 'pypsa',
+        engine_version: '1.4.0',
+        network_id: 'scigrid-de',
+        created_at: '2026-11-14T20:56:30.086Z',
+        command: 'uv run python scripts/precompute_presets.py',
+        inputs: [],
+        platform: 'Windows-10-10.0.26300-SP0',
+        execution_mode: 'precomputed',
+        payload_sha256: '81419b60ceda85783b9ab47c5b82ecff629a2eecd6a976d0a494edb324105ecc',
+      },
+      payload: {
+        network_id: 'scigrid-de',
+        provenance: 'modeled',
+        outcome: 'feasible',
+        solver: { objective_eur: 128678.5, wall_time_s: 0.176 },
+        metrics: { unserved_energy_mwh: 0 },
+        assets: { lines: [{ id: 'L1' }] },
+        series: { load_mw: [1, 2] },
+      },
+    }
+    stubBackend({ pypsa: { index: [indexRow(sim)], docs: { [sim.artifact.artifact_id]: sim } } })
+    wrap(<BenchmarksPage />)
+
+    const table = await screen.findByRole('table', { name: 'Precomputed PyPSA preset runs' })
+    expect(within(table).getByText('feasible')).toBeInTheDocument()
+    const pypsaUrls = vi.mocked(fetch).mock.calls.map(([u]) => String(u)).filter((u) => u.includes('/artifacts/pypsa/'))
+    expect(pypsaUrls).toEqual(['/api/v1/artifacts/pypsa/scigrid-de-baseline?view=summary'])
+    const meta = within(screen.getByRole('region', { name: 'PyPSA preset runs' })).getByTestId('artifact-meta')
+    expect(meta).toHaveTextContent('sha256 81419b60ceda')
+    expect(meta).toHaveTextContent(/modeled/i)
+  })
+
+  it('reserves a viewport height in every panel while it is loading (CLS)', () => {
+    vi.stubGlobal('fetch', vi.fn(() => new Promise<Response>(() => {})))
+    wrap(<BenchmarksPage />)
+    for (const id of ['stormbench', 'stormrisk', 'cross-engine', 'ac-reference', 'pypsa']) {
+      const body = document.getElementById(id)!.lastElementChild!
+      expect(body).toHaveClass('has-[[aria-busy=true]]:min-h-svh')
+      expect(body.querySelector('[aria-busy="true"]')).not.toBeNull()
+    }
   })
 })
 
@@ -161,5 +216,26 @@ describe('MethodsPage', () => {
     expect(document.querySelectorAll('.katex').length).toBeGreaterThan(0)
     expect(await screen.findByText('No networks published')).toBeInTheDocument()
     expect(await screen.findByText('No published artifacts')).toBeInTheDocument()
+  })
+})
+
+describe('research page accessibility', () => {
+  it('/methods exposes each equation as a named image and underlines in-text links', () => {
+    wrap(<MethodsPage />)
+    // axe aria-prohibited-attr: aria-label sat on a role-less div.
+    for (const name of ['DC power flow', 'Unserved energy', 'Curtailment', 'Line loading']) {
+      expect(screen.getByRole('img', { name }).querySelector('.katex')).not.toBeNull()
+    }
+    expect(document.querySelectorAll('div[aria-label]:not([role]), span[aria-label]:not([role])')).toHaveLength(0)
+    // axe link-in-text-block: links inside prose need a non-colour cue.
+    const refs = within(screen.getByRole('region', { name: 'References' })).getAllByRole('link')
+    expect(refs.length).toBeGreaterThan(0)
+    for (const a of refs) expect(a).toHaveClass('underline')
+  })
+
+  it('/contingency detail sub-headings follow the panel h2 (no skipped level)', () => {
+    wrap(<N1View study={parseN1(parseArtifact(n1Doc).payload)} networkId="pglib-case14-ieee" />)
+    expect(screen.getByRole('heading', { level: 3, name: 'Overloaded branches' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { level: 4 })).not.toBeInTheDocument()
   })
 })
