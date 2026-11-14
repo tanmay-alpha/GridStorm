@@ -13,6 +13,7 @@ test('real API: explorer, validation, live simulations, comparison, replay and e
   await page.goto('/?network=pglib-case14-ieee')
   await expect(page.getByTestId('backend-status')).toHaveAttribute('data-state', 'up')
   await expect(page.getByTestId('network-select')).toHaveValue('pglib-case14-ieee')
+  await expect(page.getByTestId('try-sample-crisis')).toHaveAttribute('href', '/studio?preset=pglib-case14-ieee-gen-1-outage')
   await expect(page.locator('.maplibregl-canvas')).toBeVisible()
   await page.waitForFunction(() => window.__gridstormMap?.loaded())
   const point = await page.evaluate(() => {
