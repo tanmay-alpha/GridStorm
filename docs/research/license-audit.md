@@ -123,7 +123,7 @@ component venvs (`<component>/.venv/Lib/site-packages`). JavaScript: `license` f
 | matplotlib | 3.11.2 | core | PSF-style matplotlib licence |
 | pyarrow | 26.0.1 | core | Apache-2.0 (ships NOTICE.txt) |
 | polars | 2.1.0 | core | MIT |
-| pandapower | 3.5.6 | pandapower, advisor, grid2op, distribution, stormbench, stormml | BSD (classifier) |
+| pandapower | 3.5.6 (advisor, grid2op, distribution, stormbench) / 3.5.4 (pandapower, stormml; `scipy<1.14` pin) | pandapower-family, grid2op | BSD (classifier) |
 | pandera | 0.36.0 | pandapower-family | MIT |
 | numba | 0.68.1 | pandapower-family | BSD |
 | matpowercaseframes | 2.1.1 | pandapower | metadata says MIT; bundled `LICENSE.rst` is the BSD-style "MATPOWER Case Frames License" (PSST/AMES fork, Battelle) |

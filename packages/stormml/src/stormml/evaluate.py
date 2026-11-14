@@ -98,7 +98,10 @@ def make_models() -> list:
             "gboost",
             "HistGradientBoostingClassifier(max_iter=300, lr=0.05, max_leaf_nodes=31, seed 0)",
             lambda: HistGradientBoostingClassifier(
-                max_iter=300, learning_rate=0.05, max_leaf_nodes=31, early_stopping=False,
+                max_iter=300,
+                learning_rate=0.05,
+                max_leaf_nodes=31,
+                early_stopping=False,
                 random_state=0,
             ),
         ),
@@ -164,9 +167,12 @@ def evaluate_split(
     n_ops_te = np.unique(gte).size
     if np.unique(ytr).size != 2:
         return {
-            "split": split.name, "target": target, "status": "unavailable",
+            "split": split.name,
+            "target": target,
+            "status": "unavailable",
             "reason": "Training labels contain only one class; classifiers cannot be fitted.",
-            "train_rows": int(train.size), "test_rows": int(test.size),
+            "train_rows": int(train.size),
+            "test_rows": int(test.size),
         }
     boots = M.cluster_bootstrap_indices(gte, n_boot, boot_seed)
 
@@ -213,7 +219,8 @@ def evaluate_split(
             pm["calibration"] = {"brier": M.brier(yte, s), **M.calibration_bins(yte, s)}
         pm["threshold"] = float(model.threshold)
         pm["threshold_source"] = (
-            "fixed" if getattr(model, "fixed_threshold", None) is not None
+            "fixed"
+            if getattr(model, "fixed_threshold", None) is not None
             else ("train out-of-fold F1" if model.kind == "ml" else "train F1")
         )
         pm["fit_seconds"] = fit_s
@@ -238,7 +245,8 @@ def evaluate_split(
                 delta = boot_vals[ml][k] - boot_vals[base][k]
                 point = (
                     out_models[ml]["at_threshold"]["f1"] - out_models[base]["at_threshold"]["f1"]
-                    if k == "f1" else out_models[ml][k] - out_models[base][k]
+                    if k == "f1"
+                    else out_models[ml][k] - out_models[base][k]
                 )
                 lo, hi = M.percentile_ci(delta)
                 d[k] = {"diff": point, "ci95": [lo, hi]}
@@ -247,31 +255,47 @@ def evaluate_split(
     nets_te = sorted(set(ds.network[test].tolist()))
     test_networks = np.unique(ds.network[test])
     # Weight by test operating points, not by rows (networks have different branch counts).
-    op_counts = np.array([
-        np.unique(gte[ds.network[test] == n]).size for n in test_networks
-    ])
+    op_counts = np.array([np.unique(gte[ds.network[test] == n]).size for n in test_networks])
     ac = float(np.average([ac_seconds_per_op[n] for n in test_networks], weights=op_counts))
     feat = float(np.average([feature_seconds_per_op[n] for n in test_networks], weights=op_counts))
     return {
         "split": split.name,
         "target": target,
         "status": "ok",
-        "train": {"rows": int(train.size), "operating_points": int(np.unique(gtr).size),
-                  "positives": int(ytr.sum()), "networks": sorted(set(ds.network[train].tolist()))},
-        "test": {"rows": int(test.size), "operating_points": int(n_ops_te),
-                 "positives": int(yte.sum()), "networks": nets_te},
+        "train": {
+            "rows": int(train.size),
+            "operating_points": int(np.unique(gtr).size),
+            "positives": int(ytr.sum()),
+            "networks": sorted(set(ds.network[train].tolist())),
+        },
+        "test": {
+            "rows": int(test.size),
+            "operating_points": int(n_ops_te),
+            "positives": int(yte.sum()),
+            "prevalence": float(yte.mean()),
+            "networks": nets_te,
+            # Best achievable recall@k: ranking every positive first within its operating point.
+            "oracle_recall_at_k": {
+                k: float(yte[fl].sum() / yte.sum()) if yte.sum() else float("nan")
+                for k, fl in _topk_flags(yte.astype(float), gte).items()
+            },
+        },
         "excluded_nonconverged_rows": excluded,
-        "bootstrap": {"unit": "operating point", "n_boot": n_boot, "seed": boot_seed,
-                      "ci": "percentile 95 %"},
+        "bootstrap": {
+            "unit": "operating point",
+            "n_boot": n_boot,
+            "seed": boot_seed,
+            "ci": "percentile 95 %",
+        },
         "models": out_models,
         "paired_differences": diffs,
         "runtime": {
             "ac_n1_seconds_per_operating_point_mean": ac,
             "feature_seconds_per_operating_point_mean": feat,
             "note": "AC N-1 = sequential pandapower runpp per contingency (numba, 1 thread); "
-                    "screening = feature extraction from the solved base case + model scoring.",
+            "screening = feature extraction from the solved base case + model scoring.",
             "timing_scope": "Means over generation operating points (including train); model "
-                            "scoring averaged over 20 full test batches. Excludes solved base AC "
-                            "state, one-time PTDF/LODF/topology preprocessing, and model fitting.",
+            "scoring averaged over 20 full test batches. Excludes solved base AC "
+            "state, one-time PTDF/LODF/topology preprocessing, and model fitting.",
         },
     }

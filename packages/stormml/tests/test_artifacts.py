@@ -7,7 +7,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from stormml.datagen import LABEL_NAMES, Dataset
+from stormml.datagen import LABEL_NAMES, STATUS_OK, Dataset
 from stormml.splits import leave_network_out_split, operating_point_split
 
 ARTIFACTS = Path(__file__).resolve().parents[3] / "data" / "artifacts" / "stormml"
@@ -19,7 +19,9 @@ def test_real_run_artifacts_and_splits():
     index = json.loads((ARTIFACTS / "index.json").read_text())
     for entry in index["artifacts"]:
         doc = json.loads((ARTIFACTS / f"{entry['artifact_id']}.json").read_text())
-        canonical = json.dumps(doc["payload"], sort_keys=True, separators=(",", ":"), allow_nan=False)
+        canonical = json.dumps(
+            doc["payload"], sort_keys=True, separators=(",", ":"), allow_nan=False
+        )
         assert hashlib.sha256(canonical.encode()).hexdigest() == doc["artifact"]["payload_sha256"]
         assert doc["artifact"]["execution_mode"] == "precomputed"
         assert doc["payload"]["provenance"] == "modeled"
@@ -34,11 +36,23 @@ def test_real_run_artifacts_and_splits():
     for net in np.unique(ds.network):
         held = leave_network_out_split(ds.network, ds.op_id, net)
         assert len(held.train) and len(held.test)
-        count = metadata["networks"][net]["n_branch"]
-        for op in np.unique(ds.op_id[ds.network == net]):
-            np.testing.assert_array_equal(np.sort(ds.branch[ds.op_id == op]), np.arange(count))
+        meta = metadata["networks"][net]
+        accepted = {r["op_id"] for r in meta["records"] if r["status"] == STATUS_OK}
+        assert accepted == set(np.unique(ds.op_id[ds.network == net]).tolist())
+        for r in meta["records"]:
+            if r["status"] == STATUS_OK:
+                # Only N-0 secure bases are labelled.
+                assert r["base_thermal_violations"] == 0 and r["base_voltage_violations"] == 0
+        for op in accepted:
+            np.testing.assert_array_equal(
+                np.sort(ds.branch[ds.op_id == op]), np.arange(meta["n_branch"])
+            )
+    label = ds.y[:, LABEL_NAMES.index("label")]
     np.testing.assert_array_equal(
-        ds.y[:, LABEL_NAMES.index("label")],
-        ds.y[:, LABEL_NAMES.index("thermal")] | ds.y[:, LABEL_NAMES.index("voltage")]
+        label,
+        ds.y[:, LABEL_NAMES.index("thermal")]
+        | ds.y[:, LABEL_NAMES.index("voltage")]
         | ds.y[:, LABEL_NAMES.index("nonconv")],
     )
+    # On N-0 secure bases the secondary incremental label coincides with the absolute label.
+    np.testing.assert_array_equal(label, ds.y[:, LABEL_NAMES.index("aggravated")])

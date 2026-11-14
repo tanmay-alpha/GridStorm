@@ -1,0 +1,21 @@
+{
+  "schema_version": "gridstorm-artifact-index/1.0",
+  "engine": "stormml",
+  "artifacts": [
+    {
+      "artifact_id": "ml-screening-dataset",
+      "kind": "benchmark",
+      "network_id": "multi:pglib-case30/57/118/300-ieee",
+      "title": "ML contingency screening \u2014 simulator-labelled AC N-1 dataset",
+      "files": [
+        "dataset.npz"
+      ]
+    },
+    {
+      "artifact_id": "ml-screening-results",
+      "kind": "benchmark",
+      "network_id": "multi:pglib-case30/57/118/300-ieee",
+      "title": "ML contingency screening vs DC-LODF / pre-loading baselines"
+    }
+  ]
+}

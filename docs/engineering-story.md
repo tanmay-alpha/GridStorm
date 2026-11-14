@@ -39,7 +39,8 @@ The committed lockfiles show the split as resolved by uv:
 | Lockfile | pandas | Engine |
 |---|---|---|
 | `workers/pypsa/uv.lock`, `services/api/uv.lock`, `services/analytics/uv.lock`, `packages/stormrisk/uv.lock` | 3.1.1 | pypsa 1.4.0 |
-| `workers/pandapower/uv.lock`, `workers/advisor/uv.lock`, `workers/distribution/uv.lock`, `packages/stormbench/uv.lock`, `packages/stormml/uv.lock` | 2.3.3 | pandapower 3.5.6 |
+| `workers/advisor/uv.lock`, `workers/distribution/uv.lock`, `packages/stormbench/uv.lock` | 2.3.3 | pandapower 3.5.6 |
+| `workers/pandapower/uv.lock`, `packages/stormml/uv.lock` | 2.3.3 | pandapower 3.5.4 (pinned `scipy<1.14`: pandapower's OPF calls the sparse `.H` attribute removed in SciPy 1.14) |
 | `workers/grid2op/uv.lock` | 2.3.3 | grid2op 1.12.6 (+ pandapower 3.5.6) |
 
 The pins are declared in `workers/grid2op/pyproject.toml` (`pandas<3`) and

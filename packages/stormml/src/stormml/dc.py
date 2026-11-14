@@ -118,7 +118,9 @@ def topology(case: MatpowerCase) -> Topology:
 def dc_post_contingency_loading(
     p_from_mw: np.ndarray, rate_mva: np.ndarray, lodf: np.ndarray
 ) -> np.ndarray:
-    """``E[k, l]`` = estimated |post-outage-of-l flow on k| / rate_k · 100 (NaN if unrated/islanding).
+    """``E[k, l]`` = estimated |post-outage-of-l flow on k| / rate_k · 100.
+
+    NaN if branch ``k`` is unrated or outage ``l`` islands the network.
 
     The outaged branch itself (diagonal) is set to 0.
     """

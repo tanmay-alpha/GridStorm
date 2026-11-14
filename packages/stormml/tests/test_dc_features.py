@@ -23,7 +23,7 @@ def direct_dc(case, injections, removed=None):
 
 
 def test_lodf_matches_independent_outage_solutions(triangle):
-    injections = np.array([80., -50., -30.])
+    injections = np.array([80.0, -50.0, -30.0])
     sens = sensitivities(triangle)
     base = direct_dc(triangle, injections)
     np.testing.assert_allclose(base, [130 / 3, -20 / 3, -110 / 3])
@@ -39,17 +39,23 @@ def test_lodf_matches_independent_outage_solutions(triangle):
 
 
 def test_features_have_physical_values(triangle):
-    base = direct_dc(triangle, np.array([80., -50., -30.]))
+    base = direct_dc(triangle, np.array([80.0, -50.0, -30.0]))
     x = compute_features(
-        triangle, sensitivities(triangle), topology(triangle), p_from_mw=base,
-        q_from_mvar=np.zeros(3), s_max_mva=np.abs(base), vm_pu=np.ones(3), load_factor=1,
+        triangle,
+        sensitivities(triangle),
+        topology(triangle),
+        p_from_mw=base,
+        q_from_mvar=np.zeros(3),
+        s_max_mva=np.abs(base),
+        vm_pu=np.ones(3),
+        load_factor=1,
     )
     col = {name: x[:, i] for i, name in enumerate(FEATURE_NAMES)}
     np.testing.assert_allclose(col["dc_score"][0], 80)
     np.testing.assert_allclose(col["pre_load"], np.abs(base))
     assert col["nbr_load_mean"][0] == pytest.approx(65 / 3)
     np.testing.assert_allclose(col["deg_min"], 2)
-    np.testing.assert_allclose(col["vm_margin_end"], .2)
+    np.testing.assert_allclose(col["vm_margin_end"], 0.2)
     assert not col["is_bridge"].any()
     assert np.isfinite(x).all()
 

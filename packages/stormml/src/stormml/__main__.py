@@ -32,11 +32,6 @@ DATASET = ART_DIR / "dataset.npz"
 SCHEMA = "gridstorm-artifact/1.0"
 
 
-def _default_matpower_dir() -> Path | None:
-    p = REPO.parent / "upstream" / "matpower" / "data"
-    return p if p.is_dir() else None
-
-
 def _pglib_dirs(extra: list[str]) -> list[Path]:
     dirs = [Path(d) for d in extra]
     dirs += sorted((REPO / "data" / "networks").glob("*/source"))
@@ -92,13 +87,13 @@ def _write_artifact(artifact_id: str, network_id: str, command: str, inputs: lis
             "kind": "benchmark",
             "engine": "stormml",
             "engine_version": f"stormml 0.1.0; pandapower {v['pandapower']}; "
-                              f"scikit-learn {v['scikit-learn']}",
+            f"scikit-learn {v['scikit-learn']}",
             "network_id": network_id,
             "created_at": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
             "command": command,
             "inputs": inputs,
             "platform": f"{platform.system()} {platform.release()} {platform.machine()}; "
-                        f"python {v['python']}",
+            f"python {v['python']}",
             "execution_mode": "precomputed",
             "payload_sha256": _canonical_sha(payload),
         },
@@ -115,7 +110,11 @@ def _update_index(entry: dict) -> None:
     idx = (
         json.loads(path.read_text())
         if path.is_file()
-        else {"schema_version": "gridstorm-artifact-index/1.0", "engine": "stormml", "artifacts": []}
+        else {
+            "schema_version": "gridstorm-artifact-index/1.0",
+            "engine": "stormml",
+            "artifacts": [],
+        }
     )
     idx["artifacts"] = [a for a in idx["artifacts"] if a["artifact_id"] != entry["artifact_id"]]
     idx["artifacts"].append(entry)
@@ -131,8 +130,7 @@ def cmd_generate(a) -> None:
     from .datagen import generate_network, prepare_network
     from .splits import TEST_SEED_BASE, TRAIN_SEED_BASE
 
-    mp = Path(a.matpower_dir) if a.matpower_dir else _default_matpower_dir()
-    prep = prepare_network(a.network, _pglib_dirs(a.pglib_dir), mp)
+    prep = prepare_network(a.network, _pglib_dirs(a.pglib_dir))
     seeds = [TRAIN_SEED_BASE + i for i in range(a.n_train)] + [
         TEST_SEED_BASE + i for i in range(a.n_test)
     ]
@@ -143,7 +141,7 @@ def cmd_generate(a) -> None:
     meta = {
         "network": a.network,
         "network_id": prep.network_id,
-        "reference_source": prep.reference_source,
+        "dispatch": "pandapower AC OPF per operating point (see datagen module docstring)",
         "inputs": prep.inputs,
         "n_bus": int(prep.case.bus.shape[0]),
         "n_branch": int(prep.case.branch.shape[0]),
@@ -159,8 +157,20 @@ def cmd_generate(a) -> None:
 
 
 def cmd_assemble(a) -> None:
-    from .datagen import AGGRAVATION_PP, AGGRAVATION_PU, GEN_NOISE_SD, LABEL_NAMES, LOAD_NOISE_CLIP
-    from .datagen import LOAD_NOISE_SD, LOAD_RANGE, Dataset
+    from .datagen import (
+        AGGRAVATION_PP,
+        AGGRAVATION_PU,
+        COST_NOISE_SD,
+        LABEL_NAMES,
+        LOAD_NOISE_CLIP,
+        LOAD_NOISE_SD,
+        LOAD_RANGE,
+        Q_RELAX_MVAR,
+        STATUS_OK,
+        TOL_PCT,
+        TOL_PU,
+        Dataset,
+    )
 
     metas, parts = [], []
     for net in a.networks:
@@ -174,24 +184,46 @@ def cmd_assemble(a) -> None:
         net = meta["network"]
         sel = ds.network == net
         recs = meta["records"]
-        okr = [r for r in recs if r["base_converged"]]
+        okr = [r for r in recs if r["status"] == STATUS_OK]
+        statuses = sorted({r["status"] for r in recs})
         per_net[net] = {
             "network_id": meta["network_id"],
-            "reference_source": meta["reference_source"],
             "n_bus": meta["n_bus"],
             "n_branch": meta["n_branch"],
             "bridges": meta["bridges"],
             "operating_points_requested": len(recs),
-            "operating_points_rejected_base_nonconvergence": len(recs) - len(okr),
+            "operating_point_outcomes": {s: sum(r["status"] == s for r in recs) for s in statuses},
             "operating_points_accepted": len(okr),
+            "accepted_load_factor_range": [
+                min(r["load_factor"] for r in okr),
+                max(r["load_factor"] for r in okr),
+            ]
+            if okr
+            else None,
+            "accepted_with_gen_q_outside_pglib_limits": sum(
+                r["gen_q_outside_limits"] > 0 for r in okr
+            ),
+            "accepted_base_max_loading_pct_max": max(r["base_max_loading_pct"] for r in okr)
+            if okr
+            else None,
             "rows": int(sel.sum()),
-            "label_rates": {n: float(ds.y[sel, i].mean()) if sel.any() else None
-                            for i, n in enumerate(LABEL_NAMES)},
-            "ac_n1_seconds_per_operating_point_mean": float(np.mean([r["ac_n1_seconds"] for r in okr]))
-            if okr else None,
+            "label_rates": {
+                n: float(ds.y[sel, i].mean()) if sel.any() else None
+                for i, n in enumerate(LABEL_NAMES)
+            },
+            "ac_n1_seconds_per_operating_point_mean": float(
+                np.mean([r["ac_n1_seconds"] for r in okr])
+            )
+            if okr
+            else None,
+            "opf_seconds_per_operating_point_mean": float(
+                np.mean([r["opf_seconds"] for r in recs])
+            ),
             "feature_seconds_per_operating_point_mean": float(
                 np.mean([r["feature_seconds"] for r in okr])
-            ) if okr else None,
+            )
+            if okr
+            else None,
             "generation_wall_seconds": meta["wall_seconds"],
             "command": meta["command"],
             "records": recs,
@@ -204,8 +236,11 @@ def cmd_assemble(a) -> None:
         "(network, operating point, outaged branch). Labels come from pandapower AC N-1 power "
         "flows, NOT from historical outages.",
         "provenance": "modeled",
-        "dataset_file": {"path": "data/artifacts/stormml/dataset.npz", "sha256": _sha_file(DATASET),
-                         "bytes": DATASET.stat().st_size},
+        "dataset_file": {
+            "path": "data/artifacts/stormml/dataset.npz",
+            "sha256": _sha_file(DATASET),
+            "bytes": DATASET.stat().st_size,
+        },
         "rows": int(ds.X.shape[0]),
         "features": list(ds.feature_names),
         "labels": list(LABEL_NAMES),
@@ -213,31 +248,48 @@ def cmd_assemble(a) -> None:
             "load_factor_uniform": list(LOAD_RANGE),
             "per_bus_load_noise_sd": LOAD_NOISE_SD,
             "per_bus_load_noise_clip": list(LOAD_NOISE_CLIP),
-            "generator_lognormal_sd": GEN_NOISE_SD,
+            "generator_cost_lognormal_sd": COST_NOISE_SD,
             "rng": "numpy default_rng([seed, crc32(network)])",
+            "dispatch": "pandapower AC OPF (PIPS, flat start): PGLib costs x cost noise, "
+            "PMIN/PMAX, VMIN/VMAX, branch |S| <= RATE_A (OPF_FLOW_LIM=0); generator "
+            f"Q limits relaxed to +/-{Q_RELAX_MVAR:g} Mvar; ANGMIN/ANGMAX ignored.",
+            "acceptance": "AC OPF converged, base AC power flow converged and base N-0 secure "
+            "(no thermal or voltage violation); rejections counted per network.",
         },
         "label_definition": {
             "primary": "Absolute post-outage thermal >100 % OR energised-bus voltage outside "
-                       "case limits OR AC numerical non-convergence; tolerance 1e-6 in % and pu.",
+            "case limits OR AC numerical non-convergence; tolerances "
+            f"{TOL_PCT} percentage points and {TOL_PU} pu.",
             "secondary_aggravated": "Non-convergence OR new violation OR worsening of an existing "
-                                    "thermal violation by 5 percentage points or voltage excess "
-                                    "by 0.01 pu; this is NOT the primary absolute label.",
+            "thermal violation by 5 percentage points or voltage excess "
+            "by 0.01 pu; this is NOT the primary absolute label. On the "
+            "N-0 secure bases used here it coincides with the primary.",
             "aggravation_pp": AGGRAVATION_PP,
             "aggravation_pu": AGGRAVATION_PU,
             "islanding": "Separate diagnostic; converged islands with unsupplied load are not "
-                         "counted as numerical non-convergence. Disconnected MW retained per row.",
+            "counted as numerical non-convergence. Disconnected MW retained per row.",
             "power_flow": "NR max_iteration=30, numba=True, enforce_q_lims=False; warm-start from "
-                          "base AC then DC and flat retries. Only LoadflowNotConverged is caught.",
+            "base AC then DC and flat retries. Only LoadflowNotConverged is caught.",
         },
         "networks": per_net,
         "versions": _versions(),
     }
-    _write_artifact("ml-screening-dataset", "multi:pglib-case30/57/118/300-ieee",
-                    "uv run python -m stormml assemble", inputs, payload)
-    _update_index({"artifact_id": "ml-screening-dataset", "kind": "benchmark",
-                   "network_id": "multi:pglib-case30/57/118/300-ieee",
-                   "title": "ML contingency screening — simulator-labelled AC N-1 dataset",
-                   "files": ["dataset.npz"]})
+    _write_artifact(
+        "ml-screening-dataset",
+        "multi:pglib-case30/57/118/300-ieee",
+        "uv run python -m stormml assemble",
+        inputs,
+        payload,
+    )
+    _update_index(
+        {
+            "artifact_id": "ml-screening-dataset",
+            "kind": "benchmark",
+            "network_id": "multi:pglib-case30/57/118/300-ieee",
+            "title": "ML contingency screening — simulator-labelled AC N-1 dataset",
+            "files": ["dataset.npz"],
+        }
+    )
     print(f"assembled rows={ds.X.shape[0]} -> {DATASET}")
 
 
@@ -250,10 +302,12 @@ def cmd_evaluate(a) -> None:
     gen = json.loads((ART_DIR / "ml-screening-dataset.json").read_text())["payload"]
     ac = {n: v["ac_n1_seconds_per_operating_point_mean"] for n, v in gen["networks"].items()}
     ft = {n: v["feature_seconds_per_operating_point_mean"] for n, v in gen["networks"].items()}
-    jobs = [(operating_point_split(ds.seed, ds.op_id), t) for t in ("label", "thermal", "aggravated")]
+    # On N-0 secure bases the secondary incremental label equals the primary absolute label
+    # (asserted in tests/test_artifacts.py), so only the primary label and its thermal component
+    # are evaluated.
+    jobs = [(operating_point_split(ds.seed, ds.op_id), t) for t in ("label", "thermal")]
     for held in sorted(set(ds.network.tolist())):
-        jobs += [(leave_network_out_split(ds.network, ds.op_id, held), t)
-                 for t in ("label", "aggravated")]
+        jobs.append((leave_network_out_split(ds.network, ds.op_id, held), "label"))
     results = []
     for i, (split, target) in enumerate(jobs):
         t0 = time.perf_counter()
@@ -264,17 +318,25 @@ def cmd_evaluate(a) -> None:
             results.append(r)
             continue
         for name, m in r["models"].items():
-            print(f"  {name:14s} PR-AUC {m['pr_auc']:.3f} ROC {m['roc_auc']:.3f} "
-                  f"R@P.9 {m['recall_at_precision_0.9']:.3f} R@10 {m['recall_at_10']:.3f} "
-                  f"F1 {m['at_threshold']['f1']:.3f}", flush=True)
+            print(
+                f"  {name:14s} PR-AUC {m['pr_auc']:.3f} ROC {m['roc_auc']:.3f} "
+                f"R@P.9 {m['recall_at_precision_0.9']:.3f} R@10 {m['recall_at_10']:.3f} "
+                f"F1 {m['at_threshold']['f1']:.3f}",
+                flush=True,
+            )
         results.append(r)
     for net, meta in gen["networks"].items():
         if not meta["operating_points_accepted"]:
-            results.append({
-                "split": f"leave_network_out:{net}", "target": "label", "status": "unavailable",
-                "reason": "All requested base AC operating points failed; no valid N-1 test set.",
-                "attempted_operating_points": meta["operating_points_requested"],
-            })
+            results.append(
+                {
+                    "split": f"leave_network_out:{net}",
+                    "target": "label",
+                    "status": "unavailable",
+                    "reason": "No requested operating point was accepted (AC OPF / base AC power "
+                    "flow / N-0 security); no valid N-1 test set.",
+                    "attempted_operating_points": meta["operating_points_requested"],
+                }
+            )
     payload = {
         "provenance": "modeled",
         "question": "Does ML trained on simulator-generated AC N-1 labels beat transparent DC-LODF "
@@ -287,13 +349,21 @@ def cmd_evaluate(a) -> None:
         "versions": _versions(),
         "threads": {k: os.environ.get(k) for k in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS")},
     }
-    _write_artifact("ml-screening-results", "multi:pglib-case30/57/118/300-ieee",
-                    f"uv run python -m stormml evaluate --n-boot {a.n_boot} --boot-seed {a.boot_seed}",
-                    [{"path": "data/artifacts/stormml/dataset.npz", "sha256": _sha_file(DATASET)}],
-                    payload)
-    _update_index({"artifact_id": "ml-screening-results", "kind": "benchmark",
-                   "network_id": "multi:pglib-case30/57/118/300-ieee",
-                   "title": "ML contingency screening vs DC-LODF / pre-loading baselines"})
+    _write_artifact(
+        "ml-screening-results",
+        "multi:pglib-case30/57/118/300-ieee",
+        f"uv run python -m stormml evaluate --n-boot {a.n_boot} --boot-seed {a.boot_seed}",
+        [{"path": "data/artifacts/stormml/dataset.npz", "sha256": _sha_file(DATASET)}],
+        payload,
+    )
+    _update_index(
+        {
+            "artifact_id": "ml-screening-results",
+            "kind": "benchmark",
+            "network_id": "multi:pglib-case30/57/118/300-ieee",
+            "title": "ML contingency screening vs DC-LODF / pre-loading baselines",
+        }
+    )
 
 
 def main(argv=None) -> None:
@@ -304,7 +374,6 @@ def main(argv=None) -> None:
     g.add_argument("--n-train", type=int, required=True)
     g.add_argument("--n-test", type=int, required=True)
     g.add_argument("--pglib-dir", action="append", default=[])
-    g.add_argument("--matpower-dir")
     s = sub.add_parser("assemble")
     s.add_argument("--networks", nargs="+", default=["case30", "case57", "case118", "case300"])
     e = sub.add_parser("evaluate")

@@ -13,30 +13,30 @@ from stormml.splits import (
 
 def test_hand_computed_ranking_metrics():
     y = np.array([1, 0, 1, 0])
-    s = np.array([.9, .8, .7, .1])
+    s = np.array([0.9, 0.8, 0.7, 0.1])
     assert m.pr_auc(y, s) == pytest.approx(5 / 6)
-    assert m.roc_auc(y, s) == pytest.approx(.75)
-    assert m.recall_at_precision(y, s, .9) == pytest.approx(.5)
-    assert m.recall_at_precision(y, s, .6) == pytest.approx(1)
-    assert m.best_f1_threshold(y, s) == pytest.approx(.7)
+    assert m.roc_auc(y, s) == pytest.approx(0.75)
+    assert m.recall_at_precision(y, s, 0.9) == pytest.approx(0.5)
+    assert m.recall_at_precision(y, s, 0.6) == pytest.approx(1)
+    assert m.best_f1_threshold(y, s) == pytest.approx(0.7)
     assert m.recall_at_k(y, s, np.array(["a", "a", "b", "b"]), 1) == 1
-    stats = m.precision_recall_at(y, s >= .7)
+    stats = m.precision_recall_at(y, s >= 0.7)
     assert stats["precision"] == pytest.approx(2 / 3)
     assert stats["recall"] == 1
-    assert stats["f1"] == pytest.approx(.8)
+    assert stats["f1"] == pytest.approx(0.8)
     assert np.isnan(m.roc_auc(np.ones(4), s))
     assert np.isnan(m.pr_auc(np.zeros(4), s))
 
 
 def test_tie_order_and_calibration():
     np.testing.assert_array_equal(
-        m.ranks_within_groups(np.array([1., 1., 2., 2.]), np.array(["b", "b", "a", "a"])),
+        m.ranks_within_groups(np.array([1.0, 1.0, 2.0, 2.0]), np.array(["b", "b", "a", "a"])),
         [0, 1, 0, 1],
     )
-    y, p = np.array([0, 1]), np.array([.2, .8])
-    assert m.brier(y, p) == pytest.approx(.04)
+    y, p = np.array([0, 1]), np.array([0.2, 0.8])
+    assert m.brier(y, p) == pytest.approx(0.04)
     bins = m.calibration_bins(y, p, n_bins=2)
-    assert bins["ece"] == pytest.approx(.2)
+    assert bins["ece"] == pytest.approx(0.2)
     assert [b["n"] for b in bins["bins"]] == [1, 1]
     assert bins["bins"][0]["frac_pos"] == 0
     assert bins["bins"][1]["frac_pos"] == 1
@@ -52,7 +52,7 @@ def test_cluster_bootstrap_keeps_operating_points_together():
         for group in np.unique(groups):
             # Every row of a drawn operating point appears the same number of times.
             assert np.unique(counts[groups == group]).size == 1
-    assert m.percentile_ci([0, 1, 2, 3, 4], alpha=.5) == (1, 3)
+    assert m.percentile_ci([0, 1, 2, 3, 4], alpha=0.5) == (1, 3)
     assert all(np.isnan(v) for v in m.percentile_ci([np.nan]))
 
 

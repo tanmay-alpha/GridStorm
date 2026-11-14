@@ -78,7 +78,9 @@ the downgraded combos (pandas 3 + pandapower 3.1.2) are not the upstreams' teste
    download state, and the contract (§1) isolates engines; the pandapower-family envs
    (`workers/pandapower`, `workers/advisor`, `workers/distribution`, `packages/stormbench`,
    `packages/stormml`) are all mutually compatible (observed installs: pandapower 3.5.6, pandas 2.3.3,
-   numpy 2.4.6).
+   numpy 2.4.6). `workers/pandapower` and `packages/stormml` later pinned `scipy<1.14` (pandapower's
+   AC-OPF uses the sparse `.H` attribute removed in SciPy 1.14), which resolves to pandapower 3.5.4,
+   SciPy 1.13.1 and numpy 2.2.6 in those two envs.
 4. **PyPSA-Eur workflow ⟂ PyPSA 1.4** — its own spec caps `linopy<0.9`, which forces pypsa ≤ 1.2.x
    (resolver picks 1.2.4, same as upstream lock). It must run in its own pixi/conda env (GridStorm runs it
    in a container via `pipelines/pypsa-eur/build.sh`); its NetCDF output is consumed by the PyPSA 1.4
