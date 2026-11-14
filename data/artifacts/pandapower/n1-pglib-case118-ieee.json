@@ -1,0 +1,7203 @@
+{
+  "artifact": {
+    "schema_version": "gridstorm-artifact/1.0",
+    "artifact_id": "n1-pglib-case118-ieee",
+    "kind": "n_minus_1",
+    "engine": "pandapower",
+    "engine_version": "3.5.4",
+    "network_id": "pglib-case118-ieee",
+    "created_at": "2026-11-14T21:27:38Z",
+    "command": "cd workers/pandapower && uv run --locked python scripts/run_studies.py",
+    "inputs": [
+      {
+        "path": "data/networks/pglib-case118-ieee/source/pglib_opf_case118_ieee.m",
+        "sha256": "b1af0833849040c04babc3700631cff0d9afa66b79c5d3e13ae79bdf516cec78"
+      }
+    ],
+    "platform": "Windows-10-AMD64 Python 3.11.15",
+    "execution_mode": "precomputed",
+    "payload_sha256": "efe4c7446086019d57866a9934a5a7276e67376a113275df7d33ebc46b6c99be"
+  },
+  "payload": {
+    "network_id": "pglib-case118-ieee",
+    "title": "AC N-1 screening \u2014 pglib-case118-ieee",
+    "source": {
+      "case_file": "data/networks/pglib-case118-ieee/source/pglib_opf_case118_ieee.m",
+      "sha256": "b1af0833849040c04babc3700631cff0d9afa66b79c5d3e13ae79bdf516cec78",
+      "bus_count": 118,
+      "line_count": 175,
+      "transformer_count": 11,
+      "generator_count": 54,
+      "load_count": 99,
+      "conversion_notes": []
+    },
+    "method": {
+      "power_flow": "pandapower.runpp Newton-Raphson",
+      "algorithm": "nr",
+      "tolerance_mva": 1e-08,
+      "max_iteration": 30,
+      "enforce_q_lims": false,
+      "init": "results (base-case solution)",
+      "vm_limits_source": "case file VMIN/VMAX per bus",
+      "vm_tolerance_pu": 0.0001,
+      "rating": "RATE_A (MVA), loading = 100*max(|S_from|,|S_to|)/RATE_A",
+      "loading_tolerance_pct": 0.01,
+      "severity": "sum((L/100-1)^2 over overloads) + sum((dV/0.05)^2) + 100*(islanded_load + slack_excess)/total_load, slack_excess = sum(max(0, P_slack - Pmax_slack)); null for non_convergent/error (ranked first)",
+      "islanding": "buses energised in the base case without a path to a slack; if every slack is cut off from the island with the largest load, the largest-Pmax gen there becomes the slack (row.slack_reassignment) and the old slack island is de-energised",
+      "class_precedence": "error > non_convergent > islanding > thermal_overload > voltage_violation > secure"
+    },
+    "base_case": {
+      "operating_point": "acopf",
+      "acopf": {
+        "converged": true,
+        "objective_cost": 97213.61,
+        "pglib_baseline_ac_objective": 97214.0,
+        "opf_wall_time_s": 0.462,
+        "angle_difference_limits": "not modelled by pandapower OPF (ANGMIN/ANGMAX ignored)"
+      },
+      "converged": true,
+      "classes": [
+        "secure"
+      ],
+      "max_loading_pct": 100.0,
+      "max_loading_element": {
+        "id": "branch-106",
+        "component": "line"
+      },
+      "min_vm_pu": 0.9844,
+      "max_vm_pu": 1.06,
+      "overloads": [],
+      "voltage_violations": [],
+      "losses_mw": 138.685,
+      "load_mw": 4242.0,
+      "generation_mw": 4380.685,
+      "balance_residual_mw": 1.847e-12
+    },
+    "summary": {
+      "contingency_count": 186,
+      "class_counts": {
+        "secure": 56,
+        "thermal_overload": 119,
+        "voltage_violation": 2,
+        "islanding": 9,
+        "non_convergent": 0,
+        "error": 0
+      },
+      "runtime_s": 5.662,
+      "worst_severity": 14.688996
+    },
+    "contingencies": [
+      {
+        "rank": 1,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-104",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload",
+          "voltage_violation"
+        ],
+        "severity": 14.688996,
+        "max_loading_pct": 385.11,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 385.11
+          },
+          {
+            "id": "branch-105",
+            "component": "line",
+            "loading_pct": 336.27
+          },
+          {
+            "id": "branch-109",
+            "component": "line",
+            "loading_pct": 174.47
+          },
+          {
+            "id": "branch-65",
+            "component": "line",
+            "loading_pct": 138.73
+          },
+          {
+            "id": "branch-108",
+            "component": "line",
+            "loading_pct": 137.83
+          },
+          {
+            "id": "branch-30",
+            "component": "line",
+            "loading_pct": 134.4
+          },
+          {
+            "id": "branch-123",
+            "component": "line",
+            "loading_pct": 106.23
+          },
+          {
+            "id": "branch-41",
+            "component": "line",
+            "loading_pct": 105.79
+          },
+          {
+            "id": "branch-38",
+            "component": "line",
+            "loading_pct": 105.32
+          },
+          {
+            "id": "branch-116",
+            "component": "line",
+            "loading_pct": 103.39
+          }
+        ],
+        "min_vm_pu": 0.9386,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [
+          {
+            "bus_id": "bus-47",
+            "vm_pu": 0.9386,
+            "vm_min_pu": 0.94,
+            "vm_max_pu": 1.06
+          }
+        ],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 391.848,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 2,
+        "class": "islanding",
+        "outage": [
+          {
+            "id": "branch-9",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "islanding",
+          "thermal_overload",
+          "voltage_violation"
+        ],
+        "severity": 6.983054,
+        "max_loading_pct": 158.43,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 158.43
+          },
+          {
+            "id": "branch-96",
+            "component": "line",
+            "loading_pct": 153.98
+          },
+          {
+            "id": "branch-105",
+            "component": "line",
+            "loading_pct": 145.68
+          },
+          {
+            "id": "branch-109",
+            "component": "line",
+            "loading_pct": 130.73
+          },
+          {
+            "id": "branch-108",
+            "component": "line",
+            "loading_pct": 126.62
+          },
+          {
+            "id": "branch-104",
+            "component": "line",
+            "loading_pct": 114.71
+          },
+          {
+            "id": "branch-66",
+            "component": "line",
+            "loading_pct": 113.9
+          },
+          {
+            "id": "branch-67",
+            "component": "line",
+            "loading_pct": 113.9
+          },
+          {
+            "id": "branch-116",
+            "component": "line",
+            "loading_pct": 112.12
+          }
+        ],
+        "min_vm_pu": 0.9769,
+        "max_vm_pu": 1.0648,
+        "voltage_violations": [
+          {
+            "bus_id": "bus-9",
+            "vm_pu": 1.0648,
+            "vm_min_pu": 0.94,
+            "vm_max_pu": 1.06
+          }
+        ],
+        "islanded_buses": [
+          "bus-10"
+        ],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 505.0,
+        "slack_excess_mw": 249.937,
+        "losses_mw": 233.647,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 3,
+        "class": "islanding",
+        "outage": [
+          {
+            "id": "branch-7",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "islanding",
+          "thermal_overload"
+        ],
+        "severity": 6.969924,
+        "max_loading_pct": 158.42,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 158.42
+          },
+          {
+            "id": "branch-96",
+            "component": "line",
+            "loading_pct": 153.96
+          },
+          {
+            "id": "branch-105",
+            "component": "line",
+            "loading_pct": 145.67
+          },
+          {
+            "id": "branch-109",
+            "component": "line",
+            "loading_pct": 130.71
+          },
+          {
+            "id": "branch-108",
+            "component": "line",
+            "loading_pct": 126.61
+          },
+          {
+            "id": "branch-104",
+            "component": "line",
+            "loading_pct": 114.69
+          },
+          {
+            "id": "branch-66",
+            "component": "line",
+            "loading_pct": 113.89
+          },
+          {
+            "id": "branch-67",
+            "component": "line",
+            "loading_pct": 113.89
+          },
+          {
+            "id": "branch-116",
+            "component": "line",
+            "loading_pct": 112.11
+          }
+        ],
+        "min_vm_pu": 0.9769,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [
+          "bus-9",
+          "bus-10"
+        ],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 505.0,
+        "slack_excess_mw": 249.809,
+        "losses_mw": 233.519,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 4,
+        "class": "islanding",
+        "outage": [
+          {
+            "id": "branch-183",
+            "component": "transformer"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "islanding"
+        ],
+        "severity": 4.337577,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [
+          "bus-116"
+        ],
+        "islanded_load_mw": 184.0,
+        "islanded_generation_mw": -0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 136.177,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 5,
+        "class": "islanding",
+        "outage": [
+          {
+            "id": "branch-177",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "islanding",
+          "thermal_overload"
+        ],
+        "severity": 1.614666,
+        "max_loading_pct": 110.79,
+        "max_loading_element": {
+          "id": "branch-155",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-155",
+            "component": "line",
+            "loading_pct": 110.79
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [
+          "bus-112"
+        ],
+        "islanded_load_mw": 68.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.051,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 6,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-107",
+            "component": "transformer"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 1.348048,
+        "max_loading_pct": 185.2,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 185.2
+          },
+          {
+            "id": "branch-105",
+            "component": "line",
+            "loading_pct": 166.21
+          },
+          {
+            "id": "branch-119",
+            "component": "line",
+            "loading_pct": 136.97
+          },
+          {
+            "id": "branch-116",
+            "component": "line",
+            "loading_pct": 120.15
+          },
+          {
+            "id": "branch-108",
+            "component": "line",
+            "loading_pct": 108.04
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 195.923,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 7,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-8",
+            "component": "transformer"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.73691,
+        "max_loading_pct": 178.11,
+        "max_loading_element": {
+          "id": "branch-21",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-21",
+            "component": "line",
+            "loading_pct": 178.11
+          },
+          {
+            "id": "branch-22",
+            "component": "line",
+            "loading_pct": 128.83
+          },
+          {
+            "id": "branch-18",
+            "component": "line",
+            "loading_pct": 115.74
+          },
+          {
+            "id": "branch-20",
+            "component": "line",
+            "loading_pct": 109.04
+          },
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 108.55
+          },
+          {
+            "id": "branch-19",
+            "component": "line",
+            "loading_pct": 105.56
+          },
+          {
+            "id": "branch-105",
+            "component": "line",
+            "loading_pct": 101.87
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 224.048,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 8,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-38",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.657618,
+        "max_loading_pct": 169.42,
+        "max_loading_element": {
+          "id": "branch-31",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-31",
+            "component": "line",
+            "loading_pct": 169.42
+          },
+          {
+            "id": "branch-33",
+            "component": "line",
+            "loading_pct": 140.04
+          },
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 111.15
+          },
+          {
+            "id": "branch-105",
+            "component": "line",
+            "loading_pct": 104.04
+          },
+          {
+            "id": "branch-41",
+            "component": "line",
+            "loading_pct": 103.69
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 180.184,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 9,
+        "class": "islanding",
+        "outage": [
+          {
+            "id": "branch-133",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "islanding"
+        ],
+        "severity": 0.49505,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [
+          "bus-86",
+          "bus-87"
+        ],
+        "islanded_load_mw": 21.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 139.578,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 10,
+        "class": "islanding",
+        "outage": [
+          {
+            "id": "branch-184",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "islanding"
+        ],
+        "severity": 0.471476,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [
+          "bus-117"
+        ],
+        "islanded_load_mw": 20.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 136.056,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 11,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-127",
+            "component": "transformer"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload",
+          "voltage_violation"
+        ],
+        "severity": 0.314891,
+        "max_loading_pct": 153.0,
+        "max_loading_element": {
+          "id": "branch-123",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-123",
+            "component": "line",
+            "loading_pct": 153.0
+          },
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 116.13
+          },
+          {
+            "id": "branch-105",
+            "component": "line",
+            "loading_pct": 107.8
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.0622,
+        "voltage_violations": [
+          {
+            "bus_id": "bus-81",
+            "vm_pu": 1.0622,
+            "vm_min_pu": 0.94,
+            "vm_max_pu": 1.06
+          }
+        ],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 160.639,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 12,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-126",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.313795,
+        "max_loading_pct": 153.0,
+        "max_loading_element": {
+          "id": "branch-123",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-123",
+            "component": "line",
+            "loading_pct": 153.0
+          },
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 116.31
+          },
+          {
+            "id": "branch-105",
+            "component": "line",
+            "loading_pct": 107.95
+          }
+        ],
+        "min_vm_pu": 0.9825,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 160.781,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 13,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-51",
+            "component": "transformer"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload",
+          "voltage_violation"
+        ],
+        "severity": 0.229586,
+        "max_loading_pct": 132.95,
+        "max_loading_element": {
+          "id": "branch-21",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-21",
+            "component": "line",
+            "loading_pct": 132.95
+          },
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 116.63
+          },
+          {
+            "id": "branch-66",
+            "component": "line",
+            "loading_pct": 110.31
+          },
+          {
+            "id": "branch-67",
+            "component": "line",
+            "loading_pct": 110.31
+          },
+          {
+            "id": "branch-105",
+            "component": "line",
+            "loading_pct": 110.17
+          }
+        ],
+        "min_vm_pu": 0.9789,
+        "max_vm_pu": 1.0718,
+        "voltage_violations": [
+          {
+            "bus_id": "bus-38",
+            "vm_pu": 1.0718,
+            "vm_min_pu": 0.94,
+            "vm_max_pu": 1.06
+          },
+          {
+            "bus_id": "bus-17",
+            "vm_pu": 1.064,
+            "vm_min_pu": 0.94,
+            "vm_max_pu": 1.06
+          }
+        ],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 176.154,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 14,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-32",
+            "component": "transformer"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.182872,
+        "max_loading_pct": 142.76,
+        "max_loading_element": {
+          "id": "branch-38",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-38",
+            "component": "line",
+            "loading_pct": 142.76
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 148.482,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 15,
+        "class": "islanding",
+        "outage": [
+          {
+            "id": "branch-113",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "islanding"
+        ],
+        "severity": 0.141443,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [
+          "bus-73"
+        ],
+        "islanded_load_mw": 6.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.228,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 16,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-164",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.115377,
+        "max_loading_pct": 133.97,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-163",
+            "component": "line",
+            "loading_pct": 133.97
+          },
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.14
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 142.593,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 17,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-167",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.104648,
+        "max_loading_pct": 132.35,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-163",
+            "component": "line",
+            "loading_pct": 132.35
+          },
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.15
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 142.857,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 18,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-102",
+            "component": "transformer"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.09439,
+        "max_loading_pct": 126.29,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 126.29
+          },
+          {
+            "id": "branch-105",
+            "component": "line",
+            "loading_pct": 115.91
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 148.868,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 19,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-33",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.075943,
+        "max_loading_pct": 124.18,
+        "max_loading_element": {
+          "id": "branch-31",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-31",
+            "component": "line",
+            "loading_pct": 124.18
+          },
+          {
+            "id": "branch-41",
+            "component": "line",
+            "loading_pct": 113.17
+          },
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 101.25
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.0601,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 149.252,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 20,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-105",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.046027,
+        "max_loading_pct": 121.45,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 121.45
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.131,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 21,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-159",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.042319,
+        "max_loading_pct": 120.57,
+        "max_loading_element": {
+          "id": "branch-155",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-155",
+            "component": "line",
+            "loading_pct": 120.57
+          },
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.49
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 146.069,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 22,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-96",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.038398,
+        "max_loading_pct": 111.11,
+        "max_loading_element": {
+          "id": "branch-66",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-66",
+            "component": "line",
+            "loading_pct": 111.11
+          },
+          {
+            "id": "branch-67",
+            "component": "line",
+            "loading_pct": 111.11
+          },
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 110.53
+          },
+          {
+            "id": "branch-105",
+            "component": "line",
+            "loading_pct": 105.13
+          }
+        ],
+        "min_vm_pu": 0.9782,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 169.564,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 23,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-31",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.035457,
+        "max_loading_pct": 118.33,
+        "max_loading_element": {
+          "id": "branch-33",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-33",
+            "component": "line",
+            "loading_pct": 118.33
+          },
+          {
+            "id": "branch-38",
+            "component": "line",
+            "loading_pct": 104.3
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 145.698,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 24,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-163",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.032183,
+        "max_loading_pct": 113.18,
+        "max_loading_element": {
+          "id": "branch-164",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-164",
+            "component": "line",
+            "loading_pct": 113.18
+          },
+          {
+            "id": "branch-167",
+            "component": "line",
+            "loading_pct": 112.16
+          },
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.47
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 151.432,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 25,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-23",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload",
+          "voltage_violation"
+        ],
+        "severity": 0.025907,
+        "max_loading_pct": 115.57,
+        "max_loading_element": {
+          "id": "branch-21",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-21",
+            "component": "line",
+            "loading_pct": 115.57
+          },
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.56
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.062,
+        "voltage_violations": [
+          {
+            "bus_id": "bus-17",
+            "vm_pu": 1.062,
+            "vm_min_pu": 0.94,
+            "vm_max_pu": 1.06
+          },
+          {
+            "bus_id": "bus-37",
+            "vm_pu": 1.0601,
+            "vm_min_pu": 0.94,
+            "vm_max_pu": 1.06
+          }
+        ],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 142.026,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 26,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-74",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload",
+          "voltage_violation"
+        ],
+        "severity": 0.025316,
+        "max_loading_pct": 100.53,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.53
+          }
+        ],
+        "min_vm_pu": 0.932,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [
+          {
+            "bus_id": "bus-53",
+            "vm_pu": 0.932,
+            "vm_min_pu": 0.94,
+            "vm_max_pu": 1.06
+          }
+        ],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 139.575,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 27,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-108",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload",
+          "voltage_violation"
+        ],
+        "severity": 0.022687,
+        "max_loading_pct": 113.94,
+        "max_loading_element": {
+          "id": "branch-116",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-116",
+            "component": "line",
+            "loading_pct": 113.94
+          },
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 105.7
+          }
+        ],
+        "min_vm_pu": 0.9841,
+        "max_vm_pu": 1.0602,
+        "voltage_violations": [
+          {
+            "bus_id": "bus-17",
+            "vm_pu": 1.0602,
+            "vm_min_pu": 0.94,
+            "vm_max_pu": 1.06
+          }
+        ],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 148.784,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 28,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-158",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.021164,
+        "max_loading_pct": 114.54,
+        "max_loading_element": {
+          "id": "branch-155",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-155",
+            "component": "line",
+            "loading_pct": 114.54
+          },
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.35
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 143.52,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 29,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-50",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload",
+          "voltage_violation"
+        ],
+        "severity": 0.019433,
+        "max_loading_pct": 100.6,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.6
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.067,
+        "voltage_violations": [
+          {
+            "bus_id": "bus-37",
+            "vm_pu": 1.067,
+            "vm_min_pu": 0.94,
+            "vm_max_pu": 1.06
+          },
+          {
+            "bus_id": "bus-17",
+            "vm_pu": 1.0603,
+            "vm_min_pu": 0.94,
+            "vm_max_pu": 1.06
+          }
+        ],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 141.27,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 30,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-97",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.01272,
+        "max_loading_pct": 110.83,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 110.83
+          },
+          {
+            "id": "branch-105",
+            "component": "line",
+            "loading_pct": 103.16
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 142.981,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 31,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-106",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.010978,
+        "max_loading_pct": 110.48,
+        "max_loading_element": {
+          "id": "branch-105",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-105",
+            "component": "line",
+            "loading_pct": 110.48
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 137.2,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 32,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-171",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.010524,
+        "max_loading_pct": 110.26,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-163",
+            "component": "line",
+            "loading_pct": 110.26
+          },
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.04
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 139.766,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 33,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-173",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.009436,
+        "max_loading_pct": 109.71,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-163",
+            "component": "line",
+            "loading_pct": 109.71
+          },
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.03
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 139.612,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 34,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-175",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.005759,
+        "max_loading_pct": 107.59,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-163",
+            "component": "line",
+            "loading_pct": 107.59
+          },
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.02
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 139.102,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 35,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-41",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload",
+          "voltage_violation"
+        ],
+        "severity": 0.004653,
+        "max_loading_pct": 106.37,
+        "max_loading_element": {
+          "id": "branch-33",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-33",
+            "component": "line",
+            "loading_pct": 106.37
+          },
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 102.35
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.0603,
+        "voltage_violations": [
+          {
+            "bus_id": "bus-17",
+            "vm_pu": 1.0603,
+            "vm_min_pu": 0.94,
+            "vm_max_pu": 1.06
+          }
+        ],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 140.762,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 36,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-153",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.00449,
+        "max_loading_pct": 106.7,
+        "max_loading_element": {
+          "id": "branch-155",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-155",
+            "component": "line",
+            "loading_pct": 106.7
+          },
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.19
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 140.985,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 37,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-168",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.003245,
+        "max_loading_pct": 105.7,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-163",
+            "component": "line",
+            "loading_pct": 105.7
+          },
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.08
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 140.804,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 38,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-98",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.002978,
+        "max_loading_pct": 105.46,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 105.46
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 139.863,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 39,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-99",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.002978,
+        "max_loading_pct": 105.46,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 105.46
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 139.863,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 40,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-60",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload",
+          "voltage_violation"
+        ],
+        "severity": 0.002353,
+        "max_loading_pct": 100.62,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.62
+          }
+        ],
+        "min_vm_pu": 0.9376,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [
+          {
+            "bus_id": "bus-43",
+            "vm_pu": 0.9376,
+            "vm_min_pu": 0.94,
+            "vm_max_pu": 1.06
+          }
+        ],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.954,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 41,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-52",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload",
+          "voltage_violation"
+        ],
+        "severity": 0.00229,
+        "max_loading_pct": 102.88,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 102.88
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.0619,
+        "voltage_violations": [
+          {
+            "bus_id": "bus-37",
+            "vm_pu": 1.0619,
+            "vm_min_pu": 0.94,
+            "vm_max_pu": 1.06
+          },
+          {
+            "bus_id": "bus-17",
+            "vm_pu": 1.0601,
+            "vm_min_pu": 0.94,
+            "vm_max_pu": 1.06
+          }
+        ],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 143.143,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 42,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-93",
+            "component": "transformer"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.001997,
+        "max_loading_pct": 104.47,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 104.47
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 141.999,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 43,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-94",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.001989,
+        "max_loading_pct": 104.46,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 104.46
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 141.994,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 44,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-21",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload",
+          "voltage_violation"
+        ],
+        "severity": 0.00181,
+        "max_loading_pct": 100.9,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.9
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.0621,
+        "voltage_violations": [
+          {
+            "bus_id": "bus-17",
+            "vm_pu": 1.0621,
+            "vm_min_pu": 0.94,
+            "vm_max_pu": 1.06
+          },
+          {
+            "bus_id": "bus-37",
+            "vm_pu": 1.0602,
+            "vm_min_pu": 0.94,
+            "vm_max_pu": 1.06
+          }
+        ],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 141.958,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 45,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-116",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.001281,
+        "max_loading_pct": 103.58,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 103.58
+          }
+        ],
+        "min_vm_pu": 0.9822,
+        "max_vm_pu": 1.0601,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 144.141,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 46,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-152",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.001115,
+        "max_loading_pct": 103.34,
+        "max_loading_element": {
+          "id": "branch-155",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-155",
+            "component": "line",
+            "loading_pct": 103.34
+          },
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.14
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 140.193,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 47,
+        "class": "voltage_violation",
+        "outage": [
+          {
+            "id": "branch-39",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "voltage_violation"
+        ],
+        "severity": 0.001081,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.0616,
+        "voltage_violations": [
+          {
+            "bus_id": "bus-17",
+            "vm_pu": 1.0616,
+            "vm_min_pu": 0.94,
+            "vm_max_pu": 1.06
+          }
+        ],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.81,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 48,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-66",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.001072,
+        "max_loading_pct": 103.27,
+        "max_loading_element": {
+          "id": "branch-67",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-67",
+            "component": "line",
+            "loading_pct": 103.27
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 142.379,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 49,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-67",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.001072,
+        "max_loading_pct": 103.27,
+        "max_loading_element": {
+          "id": "branch-66",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-66",
+            "component": "line",
+            "loading_pct": 103.27
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 142.379,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 50,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-53",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload",
+          "voltage_violation"
+        ],
+        "severity": 0.001003,
+        "max_loading_pct": 102.18,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 102.18
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.0611,
+        "voltage_violations": [
+          {
+            "bus_id": "bus-37",
+            "vm_pu": 1.0611,
+            "vm_min_pu": 0.94,
+            "vm_max_pu": 1.06
+          }
+        ],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 141.167,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 51,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-54",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload",
+          "voltage_violation"
+        ],
+        "severity": 0.000973,
+        "max_loading_pct": 102.72,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 102.72
+          },
+          {
+            "id": "branch-21",
+            "component": "line",
+            "loading_pct": 100.88
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.0606,
+        "voltage_violations": [
+          {
+            "bus_id": "bus-17",
+            "vm_pu": 1.0606,
+            "vm_min_pu": 0.94,
+            "vm_max_pu": 1.06
+          }
+        ],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 141.456,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 52,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-30",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload",
+          "voltage_violation"
+        ],
+        "severity": 0.000713,
+        "max_loading_pct": 102.65,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 102.65
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.0602,
+        "voltage_violations": [
+          {
+            "bus_id": "bus-17",
+            "vm_pu": 1.0602,
+            "vm_min_pu": 0.94,
+            "vm_max_pu": 1.06
+          }
+        ],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 137.488,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 53,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-178",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload",
+          "voltage_violation"
+        ],
+        "severity": 0.000655,
+        "max_loading_pct": 100.03,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.03
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.0613,
+        "voltage_violations": [
+          {
+            "bus_id": "bus-17",
+            "vm_pu": 1.0613,
+            "vm_min_pu": 0.94,
+            "vm_max_pu": 1.06
+          }
+        ],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.567,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 54,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-36",
+            "component": "transformer"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload",
+          "voltage_violation"
+        ],
+        "severity": 0.000563,
+        "max_loading_pct": 100.78,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.78
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.0611,
+        "voltage_violations": [
+          {
+            "bus_id": "bus-37",
+            "vm_pu": 1.0611,
+            "vm_min_pu": 0.94,
+            "vm_max_pu": 1.06
+          }
+        ],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 155.801,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 55,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-55",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload",
+          "voltage_violation"
+        ],
+        "severity": 0.000561,
+        "max_loading_pct": 101.47,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 101.47
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.0609,
+        "voltage_violations": [
+          {
+            "bus_id": "bus-37",
+            "vm_pu": 1.0609,
+            "vm_min_pu": 0.94,
+            "vm_max_pu": 1.06
+          }
+        ],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 140.214,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 56,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-87",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.0005,
+        "max_loading_pct": 102.24,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 102.24
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 141.163,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 57,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-84",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.000435,
+        "max_loading_pct": 102.09,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 102.09
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 140.747,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 58,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-65",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.000425,
+        "max_loading_pct": 102.06,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 102.06
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 137.996,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 59,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-110",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload",
+          "voltage_violation"
+        ],
+        "severity": 0.00041,
+        "max_loading_pct": 102.01,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 102.01
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.0601,
+        "voltage_violations": [
+          {
+            "bus_id": "bus-17",
+            "vm_pu": 1.0601,
+            "vm_min_pu": 0.94,
+            "vm_max_pu": 1.06
+          }
+        ],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 137.586,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 60,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-172",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.000402,
+        "max_loading_pct": 102.01,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-163",
+            "component": "line",
+            "loading_pct": 102.01
+          },
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.03
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 139.453,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 61,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-119",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.000377,
+        "max_loading_pct": 101.94,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 101.94
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 139.659,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 62,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-29",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.000361,
+        "max_loading_pct": 101.9,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 101.9
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 141.459,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 63,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-47",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload",
+          "voltage_violation"
+        ],
+        "severity": 0.000331,
+        "max_loading_pct": 100.06,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.06
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.0609,
+        "voltage_violations": [
+          {
+            "bus_id": "bus-37",
+            "vm_pu": 1.0609,
+            "vm_min_pu": 0.94,
+            "vm_max_pu": 1.06
+          }
+        ],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 139.12,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 64,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-86",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.00032,
+        "max_loading_pct": 101.79,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 101.79
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 139.958,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 65,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-85",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.000287,
+        "max_loading_pct": 101.69,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 101.69
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 139.927,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 66,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-22",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload",
+          "voltage_violation"
+        ],
+        "severity": 0.000259,
+        "max_loading_pct": 100.11,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.11
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.0608,
+        "voltage_violations": [
+          {
+            "bus_id": "bus-17",
+            "vm_pu": 1.0608,
+            "vm_min_pu": 0.94,
+            "vm_max_pu": 1.06
+          }
+        ],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 139.448,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 67,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-112",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.000254,
+        "max_loading_pct": 101.6,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 101.6
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.0601,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 137.599,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 68,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-109",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.000241,
+        "max_loading_pct": 101.55,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 101.55
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.0601,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.669,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 69,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-28",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.000228,
+        "max_loading_pct": 101.51,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 101.51
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 140.297,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 70,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-90",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.000132,
+        "max_loading_pct": 101.15,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 101.15
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 140.451,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 71,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-3",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.000121,
+        "max_loading_pct": 101.0,
+        "max_loading_element": {
+          "id": "branch-11",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-11",
+            "component": "line",
+            "loading_pct": 101.0
+          },
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.45
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 143.207,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 72,
+        "class": "voltage_violation",
+        "outage": [
+          {
+            "id": "branch-48",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "voltage_violation"
+        ],
+        "severity": 0.000114,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.0605,
+        "voltage_violations": [
+          {
+            "bus_id": "bus-37",
+            "vm_pu": 1.0605,
+            "vm_min_pu": 0.94,
+            "vm_max_pu": 1.06
+          },
+          {
+            "bus_id": "bus-17",
+            "vm_pu": 1.0601,
+            "vm_min_pu": 0.94,
+            "vm_max_pu": 1.06
+          }
+        ],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 139.112,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 73,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-63",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.000113,
+        "max_loading_pct": 101.06,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 101.06
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 139.43,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 74,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-56",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.000104,
+        "max_loading_pct": 101.02,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 101.02
+          }
+        ],
+        "min_vm_pu": 0.9728,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 139.315,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 75,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-27",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.000102,
+        "max_loading_pct": 101.01,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 101.01
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 139.193,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 76,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-111",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 6.2e-05,
+        "max_loading_pct": 100.79,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.79
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 137.927,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 77,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-160",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 4.3e-05,
+        "max_loading_pct": 100.65,
+        "max_loading_element": {
+          "id": "branch-155",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-155",
+            "component": "line",
+            "loading_pct": 100.65
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 139.209,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 78,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-92",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 3.5e-05,
+        "max_loading_pct": 100.59,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.59
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 139.296,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 79,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-95",
+            "component": "transformer"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 2.8e-05,
+        "max_loading_pct": 100.53,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.53
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.557,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 80,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-185",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 2.7e-05,
+        "max_loading_pct": 100.52,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.52
+          }
+        ],
+        "min_vm_pu": 0.9706,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 140.007,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 81,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-89",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 2.6e-05,
+        "max_loading_pct": 100.51,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.51
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.85,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 82,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-5",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 2.5e-05,
+        "max_loading_pct": 100.5,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.5
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 143.75,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 83,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-121",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 2.4e-05,
+        "max_loading_pct": 100.49,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.49
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 139.281,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 84,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-4",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 1.9e-05,
+        "max_loading_pct": 100.44,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.44
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 143.185,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 85,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-25",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 1.9e-05,
+        "max_loading_pct": 100.44,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.44
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.581,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 86,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-117",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 1.7e-05,
+        "max_loading_pct": 100.41,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.41
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.0601,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 140.59,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 87,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-174",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 1.5e-05,
+        "max_loading_pct": 100.39,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.39
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 149.401,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 88,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-88",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 1e-05,
+        "max_loading_pct": 100.32,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.32
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.749,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 89,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-11",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 5e-06,
+        "max_loading_pct": 100.22,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.22
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 140.826,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 90,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-37",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 5e-06,
+        "max_loading_pct": 100.23,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.23
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 140.773,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 91,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-42",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 5e-06,
+        "max_loading_pct": 100.22,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.22
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.646,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 92,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-34",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 4e-06,
+        "max_loading_pct": 100.2,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.2
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 139.331,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 93,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-44",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 4e-06,
+        "max_loading_pct": 100.19,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.19
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.594,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 94,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-139",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 4e-06,
+        "max_loading_pct": 100.2,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.2
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 144.029,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 95,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-141",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 4e-06,
+        "max_loading_pct": 100.2,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.2
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 142.155,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 96,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-2",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 3e-06,
+        "max_loading_pct": 100.18,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.18
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 140.482,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 97,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-10",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 3e-06,
+        "max_loading_pct": 100.18,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.18
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 140.424,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 98,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-101",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 3e-06,
+        "max_loading_pct": 100.17,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.17
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.704,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 99,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-6",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 2e-06,
+        "max_loading_pct": 100.14,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.14
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 140.12,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 100,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-16",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 2e-06,
+        "max_loading_pct": 100.15,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.15
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.0601,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 139.894,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 101,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-82",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 2e-06,
+        "max_loading_pct": 100.15,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.15
+          }
+        ],
+        "min_vm_pu": 0.9738,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.73,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 102,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-12",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 1e-06,
+        "max_loading_pct": 100.08,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.08
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 139.59,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 103,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-24",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 1e-06,
+        "max_loading_pct": 100.1,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.1
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 139.012,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 104,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-35",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 1e-06,
+        "max_loading_pct": 100.07,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.07
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.756,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 105,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-62",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 1e-06,
+        "max_loading_pct": 100.09,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.09
+          }
+        ],
+        "min_vm_pu": 0.9698,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 140.147,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 106,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-179",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 1e-06,
+        "max_loading_pct": 100.11,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.11
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.368,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 107,
+        "class": "islanding",
+        "outage": [
+          {
+            "id": "branch-134",
+            "component": "transformer"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "islanding"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [
+          "bus-87"
+        ],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.697,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 108,
+        "class": "islanding",
+        "outage": [
+          {
+            "id": "branch-176",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "islanding"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [
+          "bus-111"
+        ],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.682,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 109,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-13",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.05,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.05
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 139.212,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 110,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-15",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.07,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.07
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 139.356,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 111,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-17",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.02,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.02
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.777,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 112,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-91",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.06,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.06
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.738,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 113,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-115",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.07,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.07
+          }
+        ],
+        "min_vm_pu": 0.9842,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.49,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 114,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-131",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.01,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.01
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 140.718,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 115,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-136",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.03,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.03
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 141.851,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 116,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-137",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.04,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.04
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 142.823,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 117,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-138",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.05,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.05
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 140.073,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 118,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-142",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.02,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.02
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.999,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 119,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-143",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.01,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.01
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 139.186,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 120,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-144",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.04,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.04
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 139.523,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 121,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-145",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.03,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.03
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 139.278,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 122,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-146",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.02,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.02
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 139.036,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 123,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-147",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.06,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.06
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 141.607,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 124,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-148",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.03,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.03
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.771,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 125,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-150",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.03,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.03
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 140.341,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 126,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-155",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.02,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.02
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 144.708,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 127,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-157",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.06,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.06
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.815,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 128,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-165",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.02,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.02
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 139.096,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 129,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-166",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.03,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.03
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 139.369,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 130,
+        "class": "thermal_overload",
+        "outage": [
+          {
+            "id": "branch-170",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "thermal_overload"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.03,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [
+          {
+            "id": "branch-106",
+            "component": "line",
+            "loading_pct": 100.03
+          }
+        ],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 139.51,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 131,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-1",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.67,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 132,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-14",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.671,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 133,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-18",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.777,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 134,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-19",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.704,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 135,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-20",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.01,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.725,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 136,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-26",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.682,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 137,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-40",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.867,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 138,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-43",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.692,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 139,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-45",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.667,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 140,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-46",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.01,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.697,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 141,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-49",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.793,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 142,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-57",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.594,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 143,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-58",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.755,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 144,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-59",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9784,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 137.836,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 145,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-61",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9821,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.061,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 146,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-64",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.878,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 147,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-68",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9787,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 140.436,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 148,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-69",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 140.063,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 149,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-70",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 140.278,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 150,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-71",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.979,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 140.6,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 151,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-72",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9721,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 139.198,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 152,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-73",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9842,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.684,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 153,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-75",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 139.38,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 154,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-76",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 139.215,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 155,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-77",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.687,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 156,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-78",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.728,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 157,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-79",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.642,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 158,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-80",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.627,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 159,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-81",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 139.019,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 160,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-83",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9813,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.671,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 161,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-100",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.702,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 162,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-103",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.95,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 163,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-114",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.78,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 164,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-118",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9835,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 143.103,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 165,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-120",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9837,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 139.923,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 166,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-122",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 139.126,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 167,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-123",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 140.022,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 168,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-124",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 139.416,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 169,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-125",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 140.592,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 170,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-128",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 139.113,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 171,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-129",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 140.951,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 172,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-130",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 139.082,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 173,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-132",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 139.741,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 174,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-135",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 139.592,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 175,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-140",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.857,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 176,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-149",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 139.257,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 177,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-151",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.774,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 178,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-154",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.785,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 179,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-156",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.01,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 139.353,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 180,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-161",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.712,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 181,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-162",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.716,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 182,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-169",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.775,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 183,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-180",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.01,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.749,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 184,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-181",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.01,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.879,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 185,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-182",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-106",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.69,
+        "slack_reassignment": null
+      },
+      {
+        "rank": 186,
+        "class": "secure",
+        "outage": [
+          {
+            "id": "branch-186",
+            "component": "line"
+          }
+        ],
+        "converged": true,
+        "message": null,
+        "classes": [
+          "secure"
+        ],
+        "severity": 0.0,
+        "max_loading_pct": 100.0,
+        "max_loading_element": {
+          "id": "branch-163",
+          "component": "line"
+        },
+        "overloads": [],
+        "min_vm_pu": 0.9844,
+        "max_vm_pu": 1.06,
+        "voltage_violations": [],
+        "islanded_buses": [],
+        "islanded_load_mw": 0.0,
+        "islanded_generation_mw": 0.0,
+        "slack_excess_mw": 0.0,
+        "losses_mw": 138.645,
+        "slack_reassignment": null
+      }
+    ],
+    "n_minus_2": null,
+    "assumptions": [
+      "Steady-state balanced AC power flow (Newton-Raphson); no protection, dynamics or transient stability.",
+      "Base operating point: pandapower AC-OPF (PIPS) generator set points; contingencies are not re-dispatched (generators keep P and voltage set points, the single slack absorbs imbalance).",
+      "Generator reactive limits are not enforced in the post-contingency power flow.",
+      "Thermal limit: apparent power at either branch end vs MATPOWER RATE_A (MVA); RATE_A = 0 means unlimited."
+    ]
+  }
+}

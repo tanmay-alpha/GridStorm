@@ -25,9 +25,17 @@ def _ext_grids_to_slack_gens(net: pp.pandapowerNet) -> dict[int, int]:
     mapping: dict[int, int] = {}
     for i, eg in net.ext_grid.iterrows():
         g = pp.create_gen(
-            net, bus=eg.bus, p_mw=0.0, vm_pu=eg.vm_pu, slack=True, controllable=True,
-            max_p_mw=eg.max_p_mw, min_p_mw=eg.min_p_mw, max_q_mvar=eg.max_q_mvar,
-            min_q_mvar=eg.min_q_mvar, in_service=eg.in_service,
+            net,
+            bus=eg.bus,
+            p_mw=0.0,
+            vm_pu=eg.vm_pu,
+            slack=True,
+            controllable=True,
+            max_p_mw=eg.max_p_mw,
+            min_p_mw=eg.min_p_mw,
+            max_q_mvar=eg.max_q_mvar,
+            min_q_mvar=eg.min_q_mvar,
+            in_service=eg.in_service,
         )
         sel = (net.poly_cost.et == "ext_grid") & (net.poly_cost.element == i)
         net.poly_cost.loc[sel, "et"] = "gen"
@@ -49,15 +57,25 @@ def apply_acopf_dispatch(model: GridModel) -> dict:
     try:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            pp.runopp(net, calculate_voltage_angles=True, init="flat", numba=True,
-                      trafo_model="pi", OPF_FLOW_LIM=0)
+            pp.runopp(
+                net,
+                calculate_voltage_angles=True,
+                init="flat",
+                numba=True,
+                trafo_model="pi",
+                OPF_FLOW_LIM=0,
+            )
         converged, message = bool(net.OPF_converged), None
     except Exception as exc:  # noqa: BLE001 - reported, base falls back to case set points
         converged, message = False, f"{type(exc).__name__}: {exc}"
     wall = time.perf_counter() - t0
     if not converged:
-        return {"converged": False, "objective": None, "wall_time_s": wall,
-                "message": message or "OPF did not converge"}
+        return {
+            "converged": False,
+            "objective": None,
+            "wall_time_s": wall,
+            "message": message or "OPF did not converge",
+        }
 
     vm = net.res_bus.vm_pu
     base = model.net
@@ -72,5 +90,10 @@ def apply_acopf_dispatch(model: GridModel) -> dict:
             base.sgen.at[g.index, "p_mw"] = float(net.res_sgen.at[g.index, "p_mw"])
             base.sgen.at[g.index, "q_mvar"] = float(net.res_sgen.at[g.index, "q_mvar"])
     slack_p = {i: float(net.res_gen.at[g, "p_mw"]) for i, g in eg_map.items()}
-    return {"converged": True, "objective": float(net.res_cost), "wall_time_s": wall,
-            "message": None, "slack_p_mw": slack_p}
+    return {
+        "converged": True,
+        "objective": float(net.res_cost),
+        "wall_time_s": wall,
+        "message": None,
+        "slack_p_mw": slack_p,
+    }

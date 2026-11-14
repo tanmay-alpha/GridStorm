@@ -42,8 +42,14 @@ from .operating_point import apply_acopf_dispatch
 from .powerflow import PF_OPTIONS, bus_voltages, power_balance, run_pf
 
 ENGINE = "pandapower"
-STAGES = ("loading_network", "applying_scenario", "building_model", "solving",
-          "postprocessing", "done")
+STAGES = (
+    "loading_network",
+    "applying_scenario",
+    "building_model",
+    "solving",
+    "postprocessing",
+    "done",
+)
 
 ASSUMPTIONS = [
     "Steady-state balanced AC power flow (pandapower Newton-Raphson, single snapshot); no "
@@ -79,8 +85,10 @@ def _parse(scenario: Scenario | dict) -> Scenario:
         return Scenario.model_validate(scenario)
     except ValidationError as exc:
         raise ScenarioRejected(
-            [_issue("schema_error", ".".join(map(str, e["loc"])) or "$", e["msg"])
-             for e in exc.errors()]
+            [
+                _issue("schema_error", ".".join(map(str, e["loc"])) or "$", e["msg"])
+                for e in exc.errors()
+            ]
         ) from None
 
 
@@ -88,8 +96,13 @@ def check_scenario(scenario: Scenario) -> list[dict[str, str]]:
     """Engine-level checks that need no network."""
     issues = []
     if scenario.execution.engine != ENGINE:
-        issues.append(_issue("unsupported_operation", "execution.engine",
-                             f"pandapower adapter cannot run engine {scenario.execution.engine!r}"))
+        issues.append(
+            _issue(
+                "unsupported_operation",
+                "execution.engine",
+                f"pandapower adapter cannot run engine {scenario.execution.engine!r}",
+            )
+        )
     issues += [i.model_dump() for i in stormspec.check_capabilities(scenario)]
     return issues
 
@@ -99,23 +112,29 @@ def _load_network(scenario: Scenario, network_dir: Path) -> tuple[GridModel, Pat
     try:
         case_path = resolve_case_file(network_id, network_dir)
     except (FileNotFoundError, ValueError) as exc:
-        raise ScenarioRejected([_issue("unsupported_operation", "dataset.network_id", str(exc))]) \
-            from None
+        raise ScenarioRejected(
+            [_issue("unsupported_operation", "dataset.network_id", str(exc))]
+        ) from None
     canonical_path = network_dir / "canonical.json"
-    canonical = (json.loads(canonical_path.read_text(encoding="utf-8"))
-                 if canonical_path.is_file() else None)
+    canonical = (
+        json.loads(canonical_path.read_text(encoding="utf-8")) if canonical_path.is_file() else None
+    )
     return load_matpower(case_path, network_id), case_path, canonical
 
 
-def _validate_against_network(scenario: Scenario, model: GridModel, canonical: dict | None,
-                              network_dir: Path) -> list[dict[str, str]]:
+def _validate_against_network(
+    scenario: Scenario, model: GridModel, canonical: dict | None, network_dir: Path
+) -> list[dict[str, str]]:
     report = stormspec.validate(scenario, canonical or model.canonical_index())
     issues = [i.model_dump() for i in report.errors]
     pinned = scenario.dataset.sha256
     nc = network_dir / "network.nc"
     if pinned is not None and nc.is_file() and file_sha256(nc) != pinned:
-        issues.append(_issue("dataset_mismatch", "dataset.sha256",
-                             f"pinned sha256 {pinned} != {nc.name} sha256"))
+        issues.append(
+            _issue(
+                "dataset_mismatch", "dataset.sha256", f"pinned sha256 {pinned} != {nc.name} sha256"
+            )
+        )
     # the engine id map must resolve every referenced asset (canonical.json and case must agree)
     for i, ev in enumerate(scenario.events):
         try:
@@ -126,8 +145,13 @@ def _validate_against_network(scenario: Scenario, model: GridModel, canonical: d
             elif ev.type == "demand_multiplier" and ev.buses:
                 missing = [b for b in ev.buses if f"load-{b[4:]}" not in model.loads]
                 if missing:
-                    issues.append(_issue("no_loads", f"events[{i}].buses",
-                                         f"no load at {missing} in the MATPOWER case"))
+                    issues.append(
+                        _issue(
+                            "no_loads",
+                            f"events[{i}].buses",
+                            f"no load at {missing} in the MATPOWER case",
+                        )
+                    )
         except KeyError as exc:
             issues.append(_issue("unknown_asset", f"events[{i}].asset_id", str(exc.args[0])))
     return issues
@@ -154,12 +178,21 @@ def _apply_events(scenario: Scenario, model: GridModel) -> tuple[set[str], set[s
             g = model.gen(ev.asset_id)
             net[g.table].at[g.index, "in_service"] = False
             out_gens.add(g.id)
-    has_slack = bool(net.ext_grid.in_service.any()) or bool((net.gen.slack & net.gen.in_service).any())
+    has_slack = bool(net.ext_grid.in_service.any()) or bool(
+        (net.gen.slack & net.gen.in_service).any()
+    )
     if not has_slack:
         cand = net.gen[net.gen.in_service]
         if cand.empty:
-            raise ScenarioRejected([_issue("unsupported_operation", "events",
-                                           "no in-service synchronous generator left as slack")])
+            raise ScenarioRejected(
+                [
+                    _issue(
+                        "unsupported_operation",
+                        "events",
+                        "no in-service synchronous generator left as slack",
+                    )
+                ]
+            )
         new = int(cand.max_p_mw.idxmax())
         net.gen.at[new, "slack"] = True
         warnings.append(
@@ -174,14 +207,23 @@ def _r(x: float | None, nd: int = 4) -> float | None:
 
 
 def _package_versions() -> dict[str, str]:
-    return {"pandapower": pp.__version__, "numpy": np.__version__, "scipy": scipy.__version__,
-            "pandas": pd.__version__, "numba": numba.__version__,
-            "matpowercaseframes": getattr(matpowercaseframes, "__version__", "unknown"),
-            "stormspec": stormspec.__version__}
+    return {
+        "pandapower": pp.__version__,
+        "numpy": np.__version__,
+        "scipy": scipy.__version__,
+        "pandas": pd.__version__,
+        "numba": numba.__version__,
+        "matpowercaseframes": getattr(matpowercaseframes, "__version__", "unknown"),
+        "stormspec": stormspec.__version__,
+    }
 
 
-def run_scenario(scenario: Scenario | dict, network_dir: str | Path, *,
-                 progress: Callable[[str], None] | None = None) -> dict[str, Any]:
+def run_scenario(
+    scenario: Scenario | dict,
+    network_dir: str | Path,
+    *,
+    progress: Callable[[str], None] | None = None,
+) -> dict[str, Any]:
     """Run a StormSpec scenario with steady-state AC power flow (and optional N-1)."""
     started = utc_now_iso()
     emit = progress or (lambda _stage: None)
@@ -201,8 +243,10 @@ def run_scenario(scenario: Scenario | dict, network_dir: str | Path, *,
     opf = apply_acopf_dispatch(model)
     warnings: list[str] = list(model.notes)
     if not opf["converged"]:
-        warnings.append(f"AC-OPF base dispatch failed ({opf['message']}); case-file generator "
-                        "set points used as operating point")
+        warnings.append(
+            f"AC-OPF base dispatch failed ({opf['message']}); case-file generator "
+            "set points used as operating point"
+        )
     out_branches, out_gens, ev_warn = _apply_events(sc, model)
     warnings += ev_warn
 
@@ -215,25 +259,36 @@ def run_scenario(scenario: Scenario | dict, network_dir: str | Path, *,
     termination = "converged" if pf.converged else ("error" if pf.error else "not_converged")
     outcome = "feasible" if pf.converged else ("error" if pf.error else "infeasible")
     if not pf.converged and pf.error is None:
-        warnings.append("Newton-Raphson did not converge; this does not prove that no AC "
-                        "operating point exists (possible voltage collapse)")
+        warnings.append(
+            "Newton-Raphson did not converge; this does not prove that no AC "
+            "operating point exists (possible voltage collapse)"
+        )
     result: dict[str, Any] = {
         "schema_version": "gridstorm-result/1.0",
         "scenario_id": sc.id,
         "scenario_hash": scenario_hash(sc),
         "network_id": model.network_id,
-        "engine": {"name": ENGINE, "version": pp.__version__,
-                   "formulation": sc.execution.formulation},
-        "solver": {"name": "newton_raphson", "version": pp.__version__,
-                   "status": "ok" if pf.converged else ("error" if pf.error else "warning"),
-                   "termination_condition": termination, "objective_eur": None,
-                   "wall_time_s": round(pf.wall_time_s, 4)},
+        "engine": {
+            "name": ENGINE,
+            "version": pp.__version__,
+            "formulation": sc.execution.formulation,
+        },
+        "solver": {
+            "name": "newton_raphson",
+            "version": pp.__version__,
+            "status": "ok" if pf.converged else ("error" if pf.error else "warning"),
+            "termination_condition": termination,
+            "objective_eur": None,
+            "wall_time_s": round(pf.wall_time_s, 4),
+        },
         "outcome": outcome,
         "snapshots": ["now"],
         "snapshot_weightings_h": [1.0],
-        "operating_point": {"source": "acopf" if opf["converged"] else "case_file_setpoints",
-                            "acopf_converged": opf["converged"],
-                            "acopf_objective_cost": _r(opf["objective"], 2)},
+        "operating_point": {
+            "source": "acopf" if opf["converged"] else "case_file_setpoints",
+            "acopf_converged": opf["converged"],
+            "acopf_objective_cost": _r(opf["objective"], 2),
+        },
         "metrics": None,
         "ac": None,
         "series": {},
@@ -266,21 +321,28 @@ def run_scenario(scenario: Scenario | dict, network_dir: str | Path, *,
     return result
 
 
-def _fill_solution(result: dict, model: GridModel, canonical: dict | None,
-                   out_branches: set[str], out_gens: set[str]) -> None:
+def _fill_solution(
+    result: dict,
+    model: GridModel,
+    canonical: dict | None,
+    out_branches: set[str],
+    out_gens: set[str],
+) -> None:
     net = model.net
     # islanding after events: in-service buses without a path to a slack
     in_service_buses = {int(i) for i in net.bus.index[net.bus.in_service]}
-    st = evaluate_state(model, net, total_load_mw=total_load_mw(net),
-                        base_energised=in_service_buses)
+    st = evaluate_state(
+        model, net, total_load_mw=total_load_mw(net), base_energised=in_service_buses
+    )
     bal = power_balance(net)
     load_total = total_load_mw(net)
     unserved = st["islanded_load_mw"]
     flows = st["flows"]
     loadings = [f["loading_pct"] for f in flows if f["loading_pct"] is not None]
 
-    carrier_of = {g["id"]: g.get("carrier") or "unknown"
-                  for g in (canonical or {}).get("generators", [])}
+    carrier_of = {
+        g["id"]: g.get("carrier") or "unknown" for g in (canonical or {}).get("generators", [])
+    }
     gen_rows, by_carrier = [], {}
     for g in model.gens:
         p = float(net[f"res_{g.table}"].at[g.index, "p_mw"])
@@ -288,8 +350,16 @@ def _fill_solution(result: dict, model: GridModel, canonical: dict | None,
         p, q = (0.0 if not np.isfinite(p) else p), (0.0 if not np.isfinite(q) else q)
         carrier = carrier_of.get(g.id, "unknown")
         by_carrier[carrier] = by_carrier.get(carrier, 0.0) + p
-        gen_rows.append({"id": g.id, "carrier": carrier, "bus": g.bus, "p_mw": [_r(p, 3)],
-                         "q_mvar": [_r(q, 3)], "outaged": g.id in out_gens})
+        gen_rows.append(
+            {
+                "id": g.id,
+                "carrier": carrier,
+                "bus": g.bus,
+                "p_mw": [_r(p, 3)],
+                "q_mvar": [_r(q, 3)],
+                "outaged": g.id in out_gens,
+            }
+        )
 
     result["metrics"] = {
         "total_load_mwh": _r(load_total, 3),
@@ -305,7 +375,7 @@ def _fill_solution(result: dict, model: GridModel, canonical: dict | None,
         "curtailment_by_carrier_mwh": {},
         "max_line_loading_pct": _r(max(loadings), 2) if loadings else None,
         "mean_line_loading_pct": _r(float(np.mean(loadings)), 2) if loadings else None,
-        "congested_line_count": sum(lp >= 99.9 for lp in loadings),
+        "congested_line_count": int(sum(lp >= 99.9 for lp in loadings)),
         "storage_discharge_mwh": None,
         "storage_charge_mwh": None,
         "co2_emissions_t": None,
@@ -323,24 +393,39 @@ def _fill_solution(result: dict, model: GridModel, canonical: dict | None,
         "voltage_violations": st["voltage_violations"],
         "islanded_buses": st["islanded_buses"],
         "islanded_load_mw": _r(unserved, 3),
-        "slack_p_mw": _r(float(net.res_ext_grid.p_mw.sum())
-                         + float(net.res_gen.p_mw[net.gen.slack].sum()), 3),
+        "slack_p_mw": _r(
+            float(net.res_ext_grid.p_mw.sum()) + float(net.res_gen.p_mw[net.gen.slack].sum()), 3
+        ),
     }
     result["series"] = {"load_mw": [_r(bal["load_mw"], 3)], "load_shed_mw": [_r(unserved, 3)]}
     volts = bus_voltages(model, net)
     branch_rows = {"lines": [], "transformers": []}
     for f in flows:
         br = f["ref"]
-        branch_rows["lines" if br.component == "line" else "transformers"].append({
-            "id": br.id, "bus0": br.from_bus, "bus1": br.to_bus, "s_nom_mva": br.rate_a_mva,
-            "outaged": f"{br.component}:{br.id}" in out_branches,
-            "flow_mw": [_r(f["p_from_mw"], 3)], "flow_mvar": [_r(f["q_from_mvar"], 3)],
-            "flow_to_mw": [_r(f["p_to_mw"], 3)], "loading_pct": [_r(f["loading_pct"], 2)],
-        })
+        branch_rows["lines" if br.component == "line" else "transformers"].append(
+            {
+                "id": br.id,
+                "bus0": br.from_bus,
+                "bus1": br.to_bus,
+                "s_nom_mva": br.rate_a_mva,
+                "outaged": f"{br.component}:{br.id}" in out_branches,
+                "flow_mw": [_r(f["p_from_mw"], 3)],
+                "flow_mvar": [_r(f["q_from_mvar"], 3)],
+                "flow_to_mw": [_r(f["p_to_mw"], 3)],
+                "loading_pct": [_r(f["loading_pct"], 2)],
+            }
+        )
     result["assets"] = {
         **branch_rows,
-        "buses": [{"id": b, "vm_pu": [_r(volts[b][0])], "va_deg": [_r(volts[b][1])],
-                   "vm_min_pu": model.vm_limits[b][0], "vm_max_pu": model.vm_limits[b][1]}
-                  for b in model.buses],
+        "buses": [
+            {
+                "id": b,
+                "vm_pu": [_r(volts[b][0])],
+                "va_deg": [_r(volts[b][1])],
+                "vm_min_pu": model.vm_limits[b][0],
+                "vm_max_pu": model.vm_limits[b][1],
+            }
+            for b in model.buses
+        ],
         "generators": gen_rows,
     }

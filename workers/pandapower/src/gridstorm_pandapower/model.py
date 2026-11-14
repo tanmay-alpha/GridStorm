@@ -197,6 +197,11 @@ def model_from_ppc(ppc: dict, network_id: str, source_path: Path | None = None) 
     lookups = net._from_ppc_lookups
     # MATPOWER's tap is always at F_BUS. The 3.5 converter sorts HV/LV buses but defaults
     # every tap to HV, so reversed voltage levels otherwise change the branch admittance.
+    # A from-side tap tau is equivalent to a to-side tap 1/tau with series impedance z*tau^2
+    # and shunt b/tau^2. pandapower's internal tap sits at the HV bus with ratio
+    # 1/(1+delta) for an LV ratio tap (vn_lv *= 1+delta) and scales the LV-referred
+    # impedance by (1+delta)^2 and magnetising admittance by 1/(1+delta)^2, so
+    # delta = tau - 1 with unchanged vk/vkr/i0 reproduces MATPOWER's admittance exactly.
     for r, lookup in lookups["branch"].iterrows():
         if lookup.element_type != "trafo":
             continue
@@ -204,18 +209,17 @@ def model_from_ppc(ppc: dict, network_id: str, source_path: Path | None = None) 
         row = ppc["branch"][r]
         if int(net.trafo.at[index, "hv_bus"]) == int(row[F_BUS]):
             continue
-        ratio = float(row[TAP]) or 1.0
-        delta = 1.0 / ratio - 1.0
+        delta = (float(row[TAP]) or 1.0) - 1.0
         net.trafo.at[index, "tap_side"] = "lv"
         net.trafo.at[index, "tap_step_percent"] = abs(delta) * 100.0
         net.trafo.at[index, "tap_pos"] = float(np.sign(delta))
-        net.trafo.at[index, "vk_percent"] *= ratio**2
-        net.trafo.at[index, "vkr_percent"] *= ratio**2
         net.trafo.at[index, "shift_degree"] = -float(row[SHIFT])
 
     # Loads: replace converter loads + negative-Pd sgens by one load per contract load id.
     neg_sgen = net.sgen.index[: int((bus[:, PD] < 0).sum())]
-    gen_sgens = set(lookups["gen"].loc[lookups["gen"].element_type == "sgen", "element"].astype(int))
+    gen_sgens = set(
+        lookups["gen"].loc[lookups["gen"].element_type == "sgen", "element"].astype(int)
+    )
     assert not (set(neg_sgen) & gen_sgens), "negative-load sgens must precede generator sgens"
     net.sgen.drop(index=neg_sgen, inplace=True)
     net.load.drop(index=net.load.index, inplace=True)
@@ -290,7 +294,10 @@ def load_matpower(path: str | Path, network_id: str) -> GridModel:
 
 
 def resolve_case_file(network_id: str, network_dir: str | Path | None = None) -> Path:
-    """MATPOWER source for ``network_id``: ``<network_dir>/source/*.m``, else the vendored PGLib copy."""
+    """MATPOWER source for ``network_id``.
+
+    ``<network_dir>/source/*.m`` if present, else the vendored PGLib copy.
+    """
     if network_dir is not None:
         src = Path(network_dir) / "source"
         found = sorted(src.glob("*.m")) if src.is_dir() else []
@@ -305,5 +312,3 @@ def resolve_case_file(network_id: str, network_dir: str | Path | None = None) ->
             "supports MATPOWER cases"
         )
     return REFERENCE_DATA / "pglib" / name
-
-

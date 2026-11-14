@@ -1,0 +1,31 @@
+{
+  "schema_version": "gridstorm-artifact-index/1.0",
+  "engine": "pandapower",
+  "engine_version": "3.5.4",
+  "artifacts": [
+    {
+      "artifact_id": "ac-reference-validation",
+      "kind": "benchmark",
+      "network_id": null,
+      "title": "AC power flow reference validation (pandapower vs MATPOWER/PYPOWER)"
+    },
+    {
+      "artifact_id": "n1-pglib-case14-ieee",
+      "kind": "n_minus_1",
+      "network_id": "pglib-case14-ieee",
+      "title": "AC N-1 screening \u2014 pglib-case14-ieee"
+    },
+    {
+      "artifact_id": "n1-pglib-case118-ieee",
+      "kind": "n_minus_1",
+      "network_id": "pglib-case118-ieee",
+      "title": "AC N-1 screening \u2014 pglib-case118-ieee"
+    },
+    {
+      "artifact_id": "n1-pglib-case300-ieee",
+      "kind": "n_minus_1",
+      "network_id": "pglib-case300-ieee",
+      "title": "AC N-1 screening \u2014 pglib-case300-ieee"
+    }
+  ]
+}

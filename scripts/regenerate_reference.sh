@@ -22,7 +22,7 @@ mkdir -p "$OUT"
 # (generator args / compare args are word-split; keep them free of spaces inside values)
 ENGINES=(
   "pypsa|workers/pypsa|scripts/precompute_presets.py||data/artifacts/pypsa|1e-4|1e-3|--ignore payload_sha256 --ignore wall_time_s --ignore manifest --ignore measurements"
-  "pandapower|workers/pandapower|scripts/run_studies.py|--cases pglib-case14-ieee|data/artifacts/pandapower|1e-4|1e-4|--ignore-suffix _s --allow-missing --exclude index.json"
+  "pandapower|workers/pandapower|scripts/run_studies.py|--cases pglib-case14-ieee|data/artifacts/pandapower|1e-4|1e-4|--ignore-suffix _s --ignore payload_sha256 --ignore command --allow-missing --exclude index.json"
   "stormbench|packages/stormbench|scripts/generate_artifacts.py|--cases case14_ieee,case30_ieee|data/artifacts/stormbench|1e-4|1e-4|--ignore-suffix _s --ignore-suffix _bytes --ignore-suffix _mib --ignore payload_sha256 --ignore command --allow-missing --exclude index.json"
 )
 

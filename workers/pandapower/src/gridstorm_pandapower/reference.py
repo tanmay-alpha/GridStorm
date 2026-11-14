@@ -27,8 +27,8 @@ import numpy as np
 import pandapower as pp
 import pandapower.networks as pn
 import scipy.io
+from pandapower.converter.pypower.to_ppc import to_ppc
 from pypower import api as pypower_api
-from pandapower.converter import to_ppc
 from pypower.api import ppoption, runpf
 
 from .model import BUS_I, REFERENCE_DATA, VA, VM, model_from_ppc, read_mpc
@@ -51,9 +51,14 @@ def _pypower_runpf(ppc: dict) -> dict:
     # in place, so promote before solving rather than comparing a truncated reference.
     for key in ("bus", "gen", "branch"):
         ppc[key] = np.asarray(ppc[key], dtype=float)
-    opt = ppoption(VERBOSE=0, OUT_ALL=0, PF_ALG=1,
-                   PF_TOL=PF_OPTIONS["tolerance_mva"] / float(ppc["baseMVA"]),
-                   PF_MAX_IT=PF_OPTIONS["max_iteration"], ENFORCE_Q_LIMS=0)
+    opt = ppoption(
+        VERBOSE=0,
+        OUT_ALL=0,
+        PF_ALG=1,
+        PF_TOL=PF_OPTIONS["tolerance_mva"] / float(ppc["baseMVA"]),
+        PF_MAX_IT=PF_OPTIONS["max_iteration"],
+        ENFORCE_Q_LIMS=0,
+    )
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         res, ok = runpf(ppc, opt)
@@ -71,8 +76,9 @@ def _angle_diff(a, b) -> float:
     return float(np.max(np.abs(d)))
 
 
-def _compare_model(model, bus_ref: np.ndarray, branch_ref: np.ndarray | None,
-                   gen_ref: np.ndarray | None) -> dict:
+def _compare_model(
+    model, bus_ref: np.ndarray, branch_ref: np.ndarray | None, gen_ref: np.ndarray | None
+) -> dict:
     """Compare a solved ``model.net`` with MATPOWER-format result arrays (rows in case order)."""
     net = model.net
     ids = bus_ref[:, BUS_I].astype(int)
@@ -83,8 +89,14 @@ def _compare_model(model, bus_ref: np.ndarray, branch_ref: np.ndarray | None,
     if branch_ref is not None:
         flows = branch_flows(model)
         on = np.array([f["p_from_mw"] is not None for f in flows])
-        pp_pq = np.array([[f["p_from_mw"], f["q_from_mvar"], f["p_to_mw"], f["q_to_mvar"]]
-                          for f in flows if f["p_from_mw"] is not None], float)
+        pp_pq = np.array(
+            [
+                [f["p_from_mw"], f["q_from_mvar"], f["p_to_mw"], f["q_to_mvar"]]
+                for f in flows
+                if f["p_from_mw"] is not None
+            ],
+            float,
+        )
         ref = branch_ref[on][:, [PF_COL, QF_COL, PT_COL, QT_COL]]
         out["max_abs_dp_branch_mw"] = _max_abs(pp_pq[:, [0, 2]], ref[:, [0, 2]])
         out["max_abs_dq_branch_mvar"] = _max_abs(pp_pq[:, [1, 3]], ref[:, [1, 3]])
@@ -105,18 +117,25 @@ def _compare_model(model, bus_ref: np.ndarray, branch_ref: np.ndarray | None,
             b = int(gen_ref[k, 0])
             qbus_pp[b] = qbus_pp.get(b, 0.0) + qg[k]
             qbus_ref[b] = qbus_ref.get(b, 0.0) + gen_ref[k, QG_COL]
-        out["max_abs_dqg_bus_mvar"] = _max_abs(list(qbus_pp.values()),
-                                               [qbus_ref[b] for b in qbus_pp])
+        out["max_abs_dqg_bus_mvar"] = _max_abs(
+            list(qbus_pp.values()), [qbus_ref[b] for b in qbus_pp]
+        )
     bal = power_balance(net)
     out["balance_residual_mw"] = bal["residual_mw"]
     return out
 
 
 def _passes(row: dict) -> bool:
-    checks = [row["max_abs_dvm_pu"] <= TOLERANCES["vm_pu"],
-              row["max_abs_dva_deg"] <= TOLERANCES["va_deg"]]
-    for key, tol in (("max_abs_dp_branch_mw", "p_mw"), ("max_abs_dq_branch_mvar", "q_mvar"),
-                     ("max_abs_dpg_mw", "p_mw"), ("max_abs_dqg_bus_mvar", "q_mvar")):
+    checks = [
+        row["max_abs_dvm_pu"] <= TOLERANCES["vm_pu"],
+        row["max_abs_dva_deg"] <= TOLERANCES["va_deg"],
+    ]
+    for key, tol in (
+        ("max_abs_dp_branch_mw", "p_mw"),
+        ("max_abs_dq_branch_mvar", "q_mvar"),
+        ("max_abs_dpg_mw", "p_mw"),
+        ("max_abs_dqg_bus_mvar", "q_mvar"),
+    ):
         if key in row:
             checks.append(row[key] <= TOLERANCES[tol])
     checks.append(abs(row["balance_residual_mw"]) <= TOLERANCES["p_mw"])
@@ -152,9 +171,11 @@ def matpower_cases(cases: tuple[str, ...] = CASES) -> list[dict]:
         row["pass"] = _passes(row)
         ids = ppc["bus"][:, BUS_I].astype(int)
         row["file_state_max_abs_dvm_pu"] = _max_abs(
-            model.net.res_bus.vm_pu.loc[ids].values, ppc["bus"][:, VM])
+            model.net.res_bus.vm_pu.loc[ids].values, ppc["bus"][:, VM]
+        )
         row["file_state_max_abs_dva_deg"] = _angle_diff(
-            model.net.res_bus.va_degree.loc[ids].values, ppc["bus"][:, VA])
+            model.net.res_bus.va_degree.loc[ids].values, ppc["bus"][:, VA]
+        )
         row["conversion_notes"] = model.notes
         rows.append(row)
     return rows
@@ -170,26 +191,36 @@ def pandapower_builtin(cases: tuple[str, ...] = CASES) -> list[dict]:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             pp.runpp(net, init="flat", **{k: v for k, v in PF_OPTIONS.items()})
-        ids = exported["bus"][:, BUS_I].astype(int)
         pp_indices = net._pd2ppc_lookups["bus"][net.bus.index]
-        refmap = {int(b): (vm, va) for b, vm, va in zip(
-            ref["bus"][:, BUS_I], ref["bus"][:, VM], ref["bus"][:, VA], strict=True)}
+        refmap = {
+            int(b): (vm, va)
+            for b, vm, va in zip(
+                ref["bus"][:, BUS_I], ref["bus"][:, VM], ref["bus"][:, VA], strict=True
+            )
+        }
         rvm = np.array([refmap[b][0] for b in pp_indices])
         rva = np.array([refmap[b][1] for b in pp_indices])
         bundled_map = {int(b[BUS_I]): b for b in bundled_ref["bus"]}
         bundled_buses = np.array([bundled_map[int(b)] for b in net.bus.name])
         bal = power_balance(net)
         ref_losses = float(np.sum(ref["branch"][:, PF_COL] + ref["branch"][:, PT_COL]))
-        slack_ref = float(sum(ref["gen"][k, PG_COL] for k in range(ref["gen"].shape[0])
-                              if int(ref["gen"][k, 0]) in set(
-                                  ref["bus"][ref["bus"][:, 1] == 3, BUS_I].astype(int))))
+        slack_ref = float(
+            sum(
+                ref["gen"][k, PG_COL]
+                for k in range(ref["gen"].shape[0])
+                if int(ref["gen"][k, 0])
+                in set(ref["bus"][ref["bus"][:, 1] == 3, BUS_I].astype(int))
+            )
+        )
         row = {
             "case": name,
             "reference": "PYPOWER runpf on exact exported pandapower builtin model",
             "same_named_bundled_max_abs_dvm_pu": _max_abs(
-                net.res_bus.vm_pu.values, bundled_buses[:, VM]),
+                net.res_bus.vm_pu.values, bundled_buses[:, VM]
+            ),
             "same_named_bundled_max_abs_dva_deg": _angle_diff(
-                net.res_bus.va_degree.values, bundled_buses[:, VA]),
+                net.res_bus.va_degree.values, bundled_buses[:, VA]
+            ),
             "max_abs_dvm_pu": _max_abs(net.res_bus.vm_pu.values, rvm),
             "max_abs_dva_deg": _angle_diff(net.res_bus.va_degree.values, rva),
             "losses_mw": bal["losses_mw"],
@@ -199,8 +230,11 @@ def pandapower_builtin(cases: tuple[str, ...] = CASES) -> list[dict]:
             "reference_slack_p_mw": slack_ref,
             "balance_residual_mw": bal["residual_mw"],
         }
-        row["pass"] = (_passes(row) and row["abs_dlosses_mw"] <= TOLERANCES["p_mw"]
-                       and abs(row["slack_p_mw"] - slack_ref) <= TOLERANCES["p_mw"])
+        row["pass"] = (
+            _passes(row)
+            and row["abs_dlosses_mw"] <= TOLERANCES["p_mw"]
+            and abs(row["slack_p_mw"] - slack_ref) <= TOLERANCES["p_mw"]
+        )
         rows.append(row)
     return rows
 
@@ -219,27 +253,33 @@ def reference_payload(cases: tuple[str, ...] = CASES) -> dict:
     suite = matpower_testsuite()
     mp = matpower_cases(cases)
     builtin = pandapower_builtin(cases)
-    return _fmt({
-        "title": "AC power flow reference validation (pandapower vs MATPOWER/PYPOWER)",
-        "method": {
-            "power_flow": "pandapower.runpp Newton-Raphson, flat start",
-            "tolerance_mva": PF_OPTIONS["tolerance_mva"],
-            "max_iteration": PF_OPTIONS["max_iteration"],
-            "enforce_q_lims": PF_OPTIONS["enforce_q_lims"],
-            "reference_pypower": "pypower.runpf (PF_ALG=1 Newton, PF_TOL = tolerance_mva/baseMVA)",
-            "angles": "differences wrapped to [-180, 180) degrees",
-            "tolerances": TOLERANCES,
-        },
-        "matpower_testsuite": suite,
-        "matpower_cases": mp,
-        "pandapower_builtin": builtin,
-        "summary": {
-            "all_pass": bool(suite["pass"] and all(r["pass"] for r in mp)
-                             and all(r["pass"] for r in builtin)),
-            "max_abs_dvm_pu": max(r["max_abs_dvm_pu"] for r in [suite, *mp, *builtin]),
-            "max_abs_dva_deg": max(r["max_abs_dva_deg"] for r in [suite, *mp, *builtin]),
-            "max_abs_dp_branch_mw": max(r["max_abs_dp_branch_mw"] for r in [suite, *mp]),
-            "max_abs_balance_residual_mw": max(abs(r["balance_residual_mw"])
-                                               for r in [suite, *mp, *builtin]),
-        },
-    })
+    return _fmt(
+        {
+            "title": "AC power flow reference validation (pandapower vs MATPOWER/PYPOWER)",
+            "method": {
+                "power_flow": "pandapower.runpp Newton-Raphson, flat start",
+                "tolerance_mva": PF_OPTIONS["tolerance_mva"],
+                "max_iteration": PF_OPTIONS["max_iteration"],
+                "enforce_q_lims": PF_OPTIONS["enforce_q_lims"],
+                "reference_pypower": (
+                    "pypower.runpf (PF_ALG=1 Newton, PF_TOL = tolerance_mva/baseMVA)"
+                ),
+                "angles": "differences wrapped to [-180, 180) degrees",
+                "tolerances": TOLERANCES,
+            },
+            "matpower_testsuite": suite,
+            "matpower_cases": mp,
+            "pandapower_builtin": builtin,
+            "summary": {
+                "all_pass": bool(
+                    suite["pass"] and all(r["pass"] for r in mp) and all(r["pass"] for r in builtin)
+                ),
+                "max_abs_dvm_pu": max(r["max_abs_dvm_pu"] for r in [suite, *mp, *builtin]),
+                "max_abs_dva_deg": max(r["max_abs_dva_deg"] for r in [suite, *mp, *builtin]),
+                "max_abs_dp_branch_mw": max(r["max_abs_dp_branch_mw"] for r in [suite, *mp]),
+                "max_abs_balance_residual_mw": max(
+                    abs(r["balance_residual_mw"]) for r in [suite, *mp, *builtin]
+                ),
+            },
+        }
+    )

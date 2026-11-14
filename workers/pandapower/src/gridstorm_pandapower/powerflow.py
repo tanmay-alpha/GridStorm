@@ -82,8 +82,16 @@ def branch_flows(model: GridModel, net: pp.pandapowerNet | None = None) -> list[
         pf, qf, pt, qt = (float(res.at[br.index, c]) for c in _FLOW_COLUMNS[br.table])
         if not in_service or not np.all(np.isfinite([pf, qf, pt, qt])):
             rows.append(
-                {"ref": br, "in_service": in_service, "p_from_mw": None, "q_from_mvar": None,
-                 "p_to_mw": None, "q_to_mvar": None, "s_max_mva": None, "loading_pct": None}
+                {
+                    "ref": br,
+                    "in_service": in_service,
+                    "p_from_mw": None,
+                    "q_from_mvar": None,
+                    "p_to_mw": None,
+                    "q_to_mvar": None,
+                    "s_max_mva": None,
+                    "loading_pct": None,
+                }
             )
             continue
         if br.table == "trafo" and int(net.trafo.at[br.index, "hv_bus"]) != model.bus_index(
@@ -93,8 +101,16 @@ def branch_flows(model: GridModel, net: pp.pandapowerNet | None = None) -> list[
         s_max = max(np.hypot(pf, qf), np.hypot(pt, qt))
         loading = 100.0 * s_max / br.rate_a_mva if br.rate_a_mva else None
         rows.append(
-            {"ref": br, "in_service": True, "p_from_mw": pf, "q_from_mvar": qf, "p_to_mw": pt,
-             "q_to_mvar": qt, "s_max_mva": float(s_max), "loading_pct": loading}
+            {
+                "ref": br,
+                "in_service": True,
+                "p_from_mw": pf,
+                "q_from_mvar": qf,
+                "p_to_mw": pt,
+                "q_to_mvar": qt,
+                "s_max_mva": float(s_max),
+                "loading_pct": loading,
+            }
         )
     return rows
 

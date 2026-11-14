@@ -24,6 +24,13 @@ from .powerflow import PF_OPTIONS, power_balance, run_pf
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
 
+#: AC-OPF objective ($/h) from pglib-opf BASELINE.md at commit dc6be4b (2023-07-24).
+PGLIB_BASELINE_AC_OBJECTIVE = {
+    "pglib-case14-ieee": 2.1781e03,
+    "pglib-case118-ieee": 9.7214e04,
+    "pglib-case300-ieee": 5.6522e05,
+}
+
 N1_ASSUMPTIONS = [
     "Steady-state balanced AC power flow (Newton-Raphson); no protection, dynamics or transient "
     "stability.",
@@ -42,8 +49,15 @@ def rel(path: Path) -> str:
         return path.as_posix()
 
 
-def wrap_artifact(*, artifact_id: str, kind: str, network_id: str | None, command: str,
-                  inputs: list[Path], payload: dict) -> dict:
+def wrap_artifact(
+    *,
+    artifact_id: str,
+    kind: str,
+    network_id: str | None,
+    command: str,
+    inputs: list[Path],
+    payload: dict,
+) -> dict:
     return {
         "artifact": {
             "schema_version": "gridstorm-artifact/1.0",
@@ -56,7 +70,7 @@ def wrap_artifact(*, artifact_id: str, kind: str, network_id: str | None, comman
             "command": command,
             "inputs": [{"path": rel(p), "sha256": file_sha256(p)} for p in inputs],
             "platform": f"{platform.system()}-{platform.release()}-{platform.machine()} "
-                        f"Python {sys.version.split()[0]}",
+            f"Python {sys.version.split()[0]}",
             "execution_mode": "precomputed",
             "payload_sha256": payload_sha256(payload),
         },
@@ -67,19 +81,27 @@ def wrap_artifact(*, artifact_id: str, kind: str, network_id: str | None, comman
 def prepare_base(model: GridModel) -> dict:
     """AC-OPF dispatch + base AC power flow; returns the base-case summary block."""
     opf = apply_acopf_dispatch(model)
+    if not opf["converged"]:
+        # Never publish a study around the PGLib file set points (they overload the base case).
+        raise RuntimeError(f"AC-OPF failed for {model.network_id}: {opf['message']}")
     pf = run_pf(model.net, init="dc")
     if not pf.converged:
         raise RuntimeError(f"base-case power flow failed for {model.network_id}: {pf.error}")
-    st = evaluate_state(model, model.net, total_load_mw=total_load_mw(model.net),
-                        base_energised=energised_buses(model.net))
+    st = evaluate_state(
+        model,
+        model.net,
+        total_load_mw=total_load_mw(model.net),
+        base_energised=energised_buses(model.net),
+    )
     bal = power_balance(model.net)
     return {
-        "operating_point": "acopf" if opf["converged"] else "case_file_setpoints",
+        "operating_point": "acopf",
         "acopf": {
-            "converged": opf["converged"],
-            "objective_cost": round(opf["objective"], 2) if opf["objective"] is not None else None,
+            "converged": True,
+            "objective_cost": round(opf["objective"], 2),
+            "pglib_baseline_ac_objective": PGLIB_BASELINE_AC_OBJECTIVE.get(model.network_id),
             "opf_wall_time_s": round(opf["wall_time_s"], 3),
-            "message": opf["message"],
+            "angle_difference_limits": "not modelled by pandapower OPF (ANGMIN/ANGMAX ignored)",
         },
         "converged": True,
         "classes": st["flags"] or ["secure"],
@@ -125,10 +147,14 @@ def n1_payload(network_id: str, case_path: Path, *, title: str, n2_top_k: int) -
             "vm_tolerance_pu": VM_TOL_PU,
             "rating": "RATE_A (MVA), loading = 100*max(|S_from|,|S_to|)/RATE_A",
             "loading_tolerance_pct": LOADING_TOL_PCT,
-            "severity": "sum((L/100-1)^2 over overloads) + sum((dV/0.05)^2) + 100*islanded_load/"
-                        "total_load; null for non_convergent/error (ranked first)",
+            "severity": "sum((L/100-1)^2 over overloads) + sum((dV/0.05)^2) + 100*(islanded_load"
+            " + slack_excess)/total_load, slack_excess = sum(max(0, P_slack - Pmax_slack)); "
+            "null for non_convergent/error (ranked first)",
+            "islanding": "buses energised in the base case without a path to a slack; if every "
+            "slack is cut off from the island with the largest load, the largest-Pmax gen there "
+            "becomes the slack (row.slack_reassignment) and the old slack island is de-energised",
             "class_precedence": "error > non_convergent > islanding > thermal_overload > "
-                                "voltage_violation > secure",
+            "voltage_violation > secure",
         },
         "base_case": base,
         "summary": study["summary"],
