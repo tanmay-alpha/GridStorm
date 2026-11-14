@@ -9,11 +9,14 @@ Reproducible build of the reduced PyPSA-Eur electricity model of Belgium and its
 | `build.sh` | Runs the upstream Snakemake workflow in a Linux container (`ghcr.io/prefix-dev/pixi:0.81.0`), pinned to PyPSA-Eur `v2026.09.0` (`c8209014468d`), config `config/test/config.electricity.yaml` + `config.gridstorm.yaml`. State (clone, pixi env, package cache, downloaded data) lives in the Docker volume `gridstorm-pypsa-eur-work`, so reruns resume. |
 | `config.gridstorm.yaml` | GridStorm overlay — intentionally only restates `run.name`; the tutorial settings are used unchanged. |
 | `import_network.py` | Copies `composed_2050.nc` (unsolved) to `data/networks/pypsa-eur-be/network.nc`, loads it with PyPSA 1.4, writes `canonical.json` (via `network_import.canonical.from_pypsa`) and `manifest.json`. |
-| `solve_check.py` | One LOPF over the full horizon with HiGHS (threads=1) in the core env; prints objective, wall time, peak RSS. |
+| `solve_check.py` | One LOPF over the full horizon with HiGHS (threads=1) in the core env; prints objective, wall time, peak RSS, nodal-balance residual as JSON on stdout. |
+| `test_solve_check.py`, `test_dataset.py` | Checker regression (hand-computed two-bus objective) and dataset validation (manifest hashes, BE scope, physical load/profile ranges, optimal LOPF); `test_dataset.py` skips when the dataset is absent. |
 
 ## Reproduce
 
-Requires Docker and a bash (Git Bash/WSL on Windows), ~6 GB free disk for the volume.
+Requires Docker and a bash (Git Bash/WSL on Windows); the volume measured 6.0 GB after a full build.
+If a build is interrupted, delete any truncated file under `.snakemake/storage/cached-http/` in the
+volume and run `snakemake --unlock` before resuming (see the research note).
 
 ```bash
 # 1. upstream clone (read-only input to the container)

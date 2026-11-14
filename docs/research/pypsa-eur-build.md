@@ -1,0 +1,135 @@
+# PyPSA-Eur Belgium tutorial build
+
+## Scope and status
+
+**Status: built, imported, validated, and LOPF-solved (2026-11-14 UTC).** This is the actual upstream Belgium electricity tutorial, not a hand-constructed substitute. All gates passed: upstream composed network built (58/58 Snakemake jobs), loads under PyPSA 1.4.0, `network.nc` is 250,126 bytes (≤ 10 MB), `network_import.validate.validate_dataset` reports no errors, and a HiGHS LOPF terminates `optimal`. The dataset is **not** added to `data/networks/catalog.json` by this workstream: its redistribution status is `unknown` (see the end of this report), and listing it would publish it through the API and web app.
+
+## Pinned inputs and environment
+
+- Upstream release: `v2026.09.0`, commit `c8209014468dbb3bf43257f45d34abc6e3c8c898`.
+- Read-only upstream clone: `D:/New folder (4)/upstream/pypsa-eur`.
+- Build state: Docker volume `gridstorm-pypsa-eur-work`, working tree `/work/pypsa-eur`; never builds inside the GridStorm source tree.
+- Container: `ghcr.io/prefix-dev/pixi:0.81.0`, observed repository digest `sha256:788ae451641666e2d1f79d3dbe35392dfc7e9b394b16a3acb75c347f3badb2ab`.
+- Installed locked upstream environment, queried with `importlib.metadata.version`: Python 3.13.15 (workflow banner), PyPSA 1.2.4, linopy 0.8.0, highspy 1.13.1, Snakemake 9.27.0, HTTP storage plugin 0.3.1, cached-HTTP storage plugin 0.0.0.
+- Container platform reported by Snakemake: Linux / WSL2 x86-64, glibc 2.39. Host: Windows x64.
+- Core test environment observed in solver CLI output: Python 3.11.15, linopy 0.10.1, highspy 1.16.0. Upstream-build and GridStorm-core environments are intentionally separate.
+- `pixi install -e default --locked` completed successfully in the resumed attempt. After the successful build, `du -sh` inside the volume measured `.pixi` 3.3G, `data` 2.2G (downloaded archives plus extracted copies), `resources` 10.6M, `results` 408K, rattler cache 3.4G; the whole volume measured 6.0G (the cache and `.pixi` share hardlinks, so the parts do not add up). These are observed rounded disk sizes, not minimum requirements.
+
+## Configuration and modeling assumptions
+
+The only GridStorm overlay is `run.name: test-elec`, which repeats the upstream setting. Scientific configuration is unchanged from `config/test/config.electricity.yaml` at the pinned commit:
+
+- `tutorial: true`, Belgium only (`BE`), five spatial clusters.
+- Snapshot bounds `2013-03-01` through `2013-03-08`; temporal averaging `24h`. Bounds alone are not evidence of the final snapshot count or weights.
+- Reduced prebuilt weather cutout `be-03-2013-era5`; renewable availability/potentials are calculated by atlite from weather, land-cover/protected-area exclusions, and offshore shipping constraints, not fabricated constant capacity factors.
+- Electricity-only, no sector coupling; capacity expansion includes renewable/conventional generators, batteries, H2 stores/links, and transmission (`transmission_limit: vopt`). Existing renewable-capacity estimation uses `from_powerplantmatching: true`.
+- Dynamic line rating enabled, maximum multiplier 1.3; transmission losses zero; no conventional unit commitment.
+- HiGHS, upstream `highs-default` options with `threads: 1`; Snakemake `--cores 1`; `OMP_NUM_THREADS=1`, `OPENBLAS_NUM_THREADS=1`.
+- The desired import is `resources/test-elec/networks/composed_2050.nc` **before** `solve_network`, not the solved expansion result. A plain `n.optimize()` on that file is a capacity-expansion LOPF, not fixed-capacity dispatch. It does not automatically recreate PyPSA-Eur's extra constraints/callbacks. The optional comparison to the upstream solved objective is therefore descriptive, not an equivalence assertion.
+
+## Commands and interruption recovery
+
+From the GridStorm repository in a Bash-compatible shell:
+
+```bash
+bash pipelines/pypsa-eur/build.sh ../upstream/pypsa-eur ../build-pypsa-eur/out
+```
+
+The script verifies the pinned SHA, installs the locked pixi environment, and runs:
+
+```bash
+pixi run -e default snakemake --cores 1 \
+  results/test-elec/networks/solved_2050.nc \
+  --configfile config/test/config.electricity.yaml /cfg/config.gridstorm.yaml
+```
+
+`BUILD_TIMEOUT_S` defaults to 2400 seconds and bounds the entire container command, including installation; timeout sends TERM and then KILL after a 30-second grace period. Logs are streamed to the external output directory. Named-volume state survives container removal. A timeout/interruption can leave a stale Snakemake lock and partial remote downloads; resuming is **not** a guarantee that every cached file is intact.
+
+First inspect `docker ps -a` and the old container's logs. Only after establishing that no build container/process remains, remove the stale lock with:
+
+```bash
+MSYS_NO_PATHCONV=1 docker run --rm \
+  -v gridstorm-pypsa-eur-work:/work \
+  -v "$(pwd)/pipelines/pypsa-eur:/cfg:ro" \
+  ghcr.io/prefix-dev/pixi:0.81.0 bash -c '
+    cd /work/pypsa-eur
+    pixi run -e default snakemake --unlock \
+      --configfile config/test/config.electricity.yaml /cfg/config.gridstorm.yaml
+  '
+```
+
+Do not run `--unlock` against a live workflow. Do not change the read-only upstream clone to work around downloaded-data problems.
+
+After the upstream build, the remaining commands are:
+
+```bash
+uv run --project pipelines/network-import python pipelines/pypsa-eur/import_network.py \
+  --network ../build-pypsa-eur/out/composed_2050.nc
+uv run --project services/api python pipelines/pypsa-eur/solve_check.py \
+  --upstream-solved ../build-pypsa-eur/out/solved_2050.nc
+```
+
+The importer uses the existing `network_import.canonical.from_pypsa` converter without modifying it. The solve checker rejects nonoptimal termination, nonfinite objectives, and maximum nodal active-power balance residual above `1e-4 MW`; it reports actual objective, optimization wall time, process peak RSS in MiB, versions, and snapshot-weight sum. Its small two-bus regression is utility validation only, **not** evidence that the Belgium dataset was built or solved.
+
+## Observed attempts
+
+All timestamps below come from the command output / host clock (2026-11-14 UTC), not an assumed wall-clock date.
+
+1. Initial continuation inspection: `docker ps -a` listed only three unrelated exited containers; the previous build container `b6b57374081a` was absent (`No such container`). The prior `build2.log` ended at `retrieve_eu_nuts_2021`. Persistent workflow log `2026-11-14T161219.383511.snakemake.log` showed one of 59 steps completed, then retrieval of the NUTS archive. A filesystem search found no NetCDF outputs under `resources` or `results`.
+2. First bounded resume: locked pixi installation succeeded, but Snakemake failed with `LockException: Directory cannot be locked`, exit code 1; observed command wall time 69.18 s. After confirming no live build with `docker ps`, explicit `snakemake --unlock` returned `Unlocked working directory` (9.87 s).
+3. Unlocked resume: Snakemake ran `retrieve_eu_nuts_2021` and failed at `rules/retrieve.smk:329` with `ReadError: data/eu_nuts2021/archive/2021-01-01/ref-nuts-2021-01m.geojson.zip is not a zip file`. Exit code 1, workflow elapsed 18.232698 s, enclosing command wall time 66.20 s. The workflow removed the local storage copy on exit. This is an observed corrupt/incomplete local input, not proof that the upstream archive itself is invalid.
+4. Independent HTTP probe of `https://data.pypsa.org/workflows/eur/eu_nuts2021/2021-01-01/ref-nuts-2021-01m.geojson.zip`: HTTP 200, `Content-Length: 184483756`; first 65,536 bytes received in 1.97 s. A later ranged request returned HTTP 206, `Content-Range: bytes 0-127/184483756`, and ZIP magic `PK\x03\x04`. Neither probe validates the entire archive. The subsequent retry starts after Snakemake removed its failed cached copy.
+5. Interrupted resume: a later run, killed when its controlling session ended, left a stale lock and a truncated 210,345,984-byte cached `shipdensity_global.zip` (the archive is 534,907,254 bytes). After confirming `docker ps -a` showed no build container, the truncated cache file was deleted (`.snakemake/storage/cached-http/data.pypsa.orgworkflows/eur/ship_raster/v5/shipdensity_global.zip`) and `snakemake --unlock` returned `Unlocked working directory`. [INFERENCE] Deleting the partial file matters: the truncated cache file survived the interruption, and a truncated cached archive is the likely cause of the attempt-3 `not a zip file` error.
+6. **Successful run** (`build6.log`): `bash pipelines/pypsa-eur/build.sh ../upstream/pypsa-eur ../build-pypsa-eur/out` from 21:10:50 to 21:26:02 UTC, exit 0, 912.6 s command wall time including container setup and the `pixi install` check. Snakemake reported `58 of 58 steps (100%) done`, `Elapsed time: 0:14:33.222657`; the script recorded `snakemake_wall_s=876`. The log has 24 `Retrieving from storage:` lines (all `data.pypsa.org` except the synthetic demand file from `zenodo.org/records/10820928`); the largest is the 534,907,254-byte shipping raster. Outputs copied to `build-pypsa-eur/out/`: `base.nc`, `base_extended.nc`, `simplified.nc`, `clustered.nc`, `composed_2050.nc` (250,126 B), `solved_2050.nc` (371,763 B).
+
+External attempt logs: `D:/New folder (4)/build-pypsa-eur/build2.log` … `build6.log`; the latest workflow log is `build-pypsa-eur/out/snakemake.log`. They are external working files, not promised redistributable repository artifacts.
+
+## Upstream solve (inside the build)
+
+Upstream `solve_network` (PyPSA 1.2.4, linopy 0.8.0, HiGHS 1.13.1 IPM, `run_crossover: off`, `threads: 1`) built a 1201-row, 570-column LP, added the solar-potential extra constraint, and reported objective **50,009,017.34 EUR** (`5.0009017340e+07`). HiGHS's own final status was **`Unknown`, not `Optimal`**: after the interior-point solve it found 5 relative dual-residual errors up to 2.98e-07 (tolerance 1e-07) and a relative primal-dual objective error of 3e-05, and downgraded the status. linopy then logged `Solution status unknown. Trying to parse solution.` / `Solution parsed successfully.` and returned `Termination condition: unknown`. The upstream benchmark file recorded 4.89 s and max RSS 744.79 MB for the whole `solve_network` job. The upstream objective is therefore a near-optimal IPM point without crossover, not a certified optimum.
+
+## Imported dataset and GridStorm LOPF
+
+Import (pipelines env, PyPSA 1.4.0) logged `Importing network from PyPSA version v1.2.4 while current version is v1.4.0` as a warning and loaded without error. `data/networks/pypsa-eur-be/`:
+
+- `network.nc`: byte-identical copy of `composed_2050.nc`, 250,126 bytes, sha256 `0648933ae2cbffdbf61bcd80df999a7af6eedc84cc56b69d0e9acdb65c532b36`.
+- Contents, read back with PyPSA 1.4.0: 5 AC buses at 380 kV (all `country == BE`, x 4.27–5.61 °E, y 50.47–51.23 °N) plus 5 H2 buses; 6 lines (all `s_nom_extendable`); 33 generators; 5 battery storage units; 5 H2 stores; 5 electrolysis + 5 fuel-cell links; one `CO2Limit` global constraint (primary energy ≤ 1,917,808 t). 7 daily snapshots, 2013-03-01 to 2013-03-07, each with objective weight 24 h (168 h total).
+- Existing capacity by carrier (`canonical.json` summary, MW): CCGT 6634.2, nuclear 4096.0, offwind-ac 2752.2, onwind 1724.0, solar 937.6, waste 293.8, oil 130.2, biomass 113.0; offwind-dc / offwind-float / solar-hsat / battery 0 (extendable only). Peak snapshot load 11,111 MW; weighted load energy 1,743,999 MWh (mean 10.38 GW).
+- `validate_dataset`: `errors: []`; one warning, `6 sub-networks … bus counts [5, 1, 1, 1, 1, 1]`. Expected: the five H2 buses are connected only by links, which do not form passive-branch sub-networks.
+
+`uv run --project services/api python pipelines/pypsa-eur/solve_check.py --upstream-solved ../build-pypsa-eur/out/solved_2050.nc` (core env: Python 3.11.15, PyPSA 1.4.0, linopy 0.10.1, highspy 1.16.0, Windows 10.0.26300, `threads=1`; HiGHS default simplex with crossover):
+
+| Metric | Value |
+|---|---|
+| Status / termination | `ok` / `optimal` |
+| Objective | 49,987,630.77 EUR |
+| `n.optimize` wall time | 2.05 s (first run), 1.66 s (repeat) |
+| Process peak RSS (Windows `peak_wset`) | 300.0 MiB (first run), 298.0 MiB (repeat) |
+| Max nodal balance residual | 9.09e-13 MW |
+| Snapshots / weight sum | 7 / 168 h |
+| Relative difference to upstream objective | −4.28e-4 |
+
+The plain `n.optimize()` LP has 1203 constraint duals versus 1208 upstream; the 5 extra upstream rows coincide with the five clusters' solar-potential constraints. [INFERENCE] The GridStorm LP is thus a relaxation of the upstream problem, which is consistent with its objective being 0.043 % lower; the upstream IPM point's 3e-05 relative primal-dual gap accounts for only a small part of the difference. The two objectives are descriptive, not an equivalence assertion.
+
+Tests (`pipelines/pypsa-eur/`, run with the `services/api` venv): `test_solve_check.py` (two-bus weighted merit-order objective computed by hand; infeasible case rejected) and `test_dataset.py` (manifest sha256/bytes for every file, ≤ 10 MB, 5 BE AC buses inside Belgium's bounding box, 24 h weights, positive loads with 5–16 GW system total, `0 ≤ p_max_pu ≤ 1`, canonical/NetCDF counts agree, and LOPF `optimal` with balance residual < 1e-4 MW): `7 passed`.
+
+## Input sizes and redistribution assessment
+
+The tutorial still has substantial shared data dependencies; a reduced weather cutout is not a complete prebuilt model. HEAD probes observed the following individual archive sizes (bytes): NUTS 184,483,756; CORINE 34,618,548; GDP 4,014,594; WorldPop 15,441,408; EEZ 26,358,854; Natura 2025-08-15 27,852,863; shipping raster 534,907,254; synthetic demand v2 464,620,414; ENTSO-E demand 28,816,465. These are preflight HTTP metadata, **not downloaded-volume or final-network measurements**. No multi-GB input archive was deliberately requested as a fallback.
+
+Licenses are not uniformly MIT. Sources below refer to the pinned upstream [license summary](https://github.com/PyPSA/pypsa-eur/blob/c8209014468dbb3bf43257f45d34abc6e3c8c898/doc/licenses.md), [data inventory](https://github.com/PyPSA/pypsa-eur/blob/c8209014468dbb3bf43257f45d34abc6e3c8c898/doc/data_inventory.csv), and [data-source/versioning documentation](https://github.com/PyPSA/pypsa-eur/blob/c8209014468dbb3bf43257f45d34abc6e3c8c898/doc/data_sources.md):
+
+| Input/category | Upstream license statement / caveat |
+|---|---|
+| Original code / docs / most config | MIT / CC-BY-4.0 / CC0-1.0 respectively; not a license for all downloaded inputs |
+| OSM electricity topology / OSM boundaries | ODbL-1.0 / ODbL; attribution and database obligations must be assessed for derived clustered data |
+| powerplantmatching / technology-data | CC-BY-4.0 |
+| WorldPop / gridded GDP / EEZ / shipping density / synthetic demand / Natura 2000 | CC-BY-4.0 according to the input inventory |
+| CORINE | `Custom similar to CC-BY`; must retain the actual Copernicus terms, not relabel as plain CC-BY |
+| NUTS 2021 | Reuse policy following 2011/833/EU |
+| JRC ARDECO | `similar to CC-BY` |
+| OPSD / ENTSO-E electricity demand | `unknown` in the inventory; the tutorial does retrieve both demand datasets |
+| NESO / DESNZ / ONS dependencies | NESO Open Data License v1.0 / Open Government Licence v3.0 / Open Government Licence v.3.0; retrieval by a general rule does not imply UK records survive in the Belgium output |
+| ERA5-derived cutout | Weather-derived modeled profiles; specific cutout/ERA5 redistribution terms require checking before public redistribution |
+
+**Redistribution decision:** no blanket permission is established for a derived network. The importer conservatively records `license.redistribution: unknown` and a composite expression including custom/unknown license references. Restricted inputs elsewhere in the upstream inventory include LAU (non-commercial download only) and aquifer data (no redistribution), but they were not listed in the observed electricity tutorial DAG; do not claim that those restrictions automatically apply to this output. Do not publish raw downloaded inputs. Before listing `pypsa-eur-be` in the catalog / public deployment, resolve the actual contributing-input terms (in particular OPSD/ENTSO-E load data marked `unknown` and the CORINE custom terms), retain required attribution, and record a redistribution decision.

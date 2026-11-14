@@ -30,6 +30,7 @@ from canonical_grid import (
     dump_json,
 )
 from network_import.canonical import from_pypsa
+from network_import.manifest import file_entries
 from network_import.paths import networks_dir, sha256_file, write_text
 
 NETWORK_ID = "pypsa-eur-be"
@@ -155,7 +156,7 @@ def main() -> None:
             upstream_commit=PYPSA_EUR_SHA,
         ),
         retrieved_at=built_at.isoformat(),
-        files=[FileEntry(path="network.nc", sha256=sha256_file(nc), bytes=nc.stat().st_size)],
+        files=[FileEntry(**entry) for entry in file_entries(out)],
         license=LICENSE,
         coverage=Coverage(
             geographic="Belgium (BE), 5 clustered transmission buses",
@@ -202,7 +203,7 @@ def main() -> None:
         provenance_class="modeled",
     )
     write_text(out / "manifest.json", dump_json(manifest))
-    print(f"wrote {out} ({size} bytes network.nc, sha256 {manifest.files[0].sha256})")
+    print(f"wrote {out} ({size} bytes network.nc, sha256 {sha256_file(nc)})")
 
 
 if __name__ == "__main__":

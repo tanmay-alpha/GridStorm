@@ -16,6 +16,7 @@ import json
 import math
 import os
 import platform
+import sys
 import time
 from importlib.metadata import version
 from pathlib import Path
@@ -48,12 +49,22 @@ def main() -> None:
     args = ap.parse_args()
 
     n = pypsa.Network(args.network)
-    t0 = time.perf_counter()
-    status, condition = n.optimize(
-        solver_name="highs",
-        solver_options={"threads": 1, "random_seed": 0, "log_to_console": False},
-    )
-    wall = time.perf_counter() - t0
+    # HiGHS (C++) and linopy print banners/summaries to stdout; route fd 1 to stderr while
+    # solving so stdout carries only the JSON report.
+    sys.stdout.flush()
+    saved_stdout = os.dup(1)
+    os.dup2(2, 1)
+    try:
+        t0 = time.perf_counter()
+        status, condition = n.optimize(
+            solver_name="highs",
+            solver_options={"threads": 1, "random_seed": 0, "log_to_console": False},
+        )
+        wall = time.perf_counter() - t0
+    finally:
+        sys.stdout.flush()
+        os.dup2(saved_stdout, 1)
+        os.close(saved_stdout)
     if (status, condition) != ("ok", "optimal"):
         raise RuntimeError(f"LOPF did not solve optimally: {status}/{condition}")
     if not math.isfinite(n.objective):
