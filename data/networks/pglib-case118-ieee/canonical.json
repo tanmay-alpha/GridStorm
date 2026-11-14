@@ -1,0 +1,4557 @@
+{
+  "schema_version": "canonical-grid/1.0",
+  "network_id": "pglib-case118-ieee",
+  "name": "IEEE 118-bus (PGLib-OPF v23.07)",
+  "coordinate_kind": "schematic",
+  "crs": null,
+  "snapshots": {
+    "count": 1,
+    "start": null,
+    "end": null,
+    "resolution_h": 1.0
+  },
+  "buses": [
+    {
+      "id": "bus-1",
+      "name": null,
+      "x": -0.5891,
+      "y": 0.8882,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-2",
+      "name": null,
+      "x": -0.6377,
+      "y": 0.7761,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-3",
+      "name": null,
+      "x": -0.4743,
+      "y": 0.7766,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-4",
+      "name": null,
+      "x": -0.3632,
+      "y": 0.806,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-5",
+      "name": null,
+      "x": -0.3232,
+      "y": 0.7038,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-6",
+      "name": null,
+      "x": -0.3241,
+      "y": 0.8635,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-7",
+      "name": null,
+      "x": -0.478,
+      "y": 0.8594,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-8",
+      "name": null,
+      "x": -0.2209,
+      "y": 0.5673,
+      "v_nom_kv": 345.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-9",
+      "name": null,
+      "x": -0.1278,
+      "y": 0.7141,
+      "v_nom_kv": 345.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-10",
+      "name": null,
+      "x": -0.0601,
+      "y": 0.8666,
+      "v_nom_kv": 345.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-11",
+      "name": null,
+      "x": -0.4475,
+      "y": 0.696,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-12",
+      "name": null,
+      "x": -0.5265,
+      "y": 0.6822,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-13",
+      "name": null,
+      "x": -0.4999,
+      "y": 0.5641,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-14",
+      "name": null,
+      "x": -0.5633,
+      "y": 0.5455,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-15",
+      "name": null,
+      "x": -0.4191,
+      "y": 0.4641,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-16",
+      "name": null,
+      "x": -0.3545,
+      "y": 0.6096,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-17",
+      "name": null,
+      "x": -0.2411,
+      "y": 0.4921,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-18",
+      "name": null,
+      "x": -0.3565,
+      "y": 0.4726,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-19",
+      "name": null,
+      "x": -0.4701,
+      "y": 0.3751,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-20",
+      "name": null,
+      "x": -0.3146,
+      "y": 0.4069,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-21",
+      "name": null,
+      "x": -0.1284,
+      "y": 0.4349,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-22",
+      "name": null,
+      "x": 0.0336,
+      "y": 0.3769,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-23",
+      "name": null,
+      "x": 0.1208,
+      "y": 0.3401,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-24",
+      "name": null,
+      "x": 0.1333,
+      "y": 0.1846,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-25",
+      "name": null,
+      "x": 0.1196,
+      "y": 0.452,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-26",
+      "name": null,
+      "x": -0.0537,
+      "y": 0.4189,
+      "v_nom_kv": 345.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-27",
+      "name": null,
+      "x": 0.1586,
+      "y": 0.6042,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-28",
+      "name": null,
+      "x": 0.139,
+      "y": 0.749,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-29",
+      "name": null,
+      "x": 0.0031,
+      "y": 0.7225,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-30",
+      "name": null,
+      "x": -0.1953,
+      "y": 0.3731,
+      "v_nom_kv": 345.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-31",
+      "name": null,
+      "x": -0.0747,
+      "y": 0.582,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-32",
+      "name": null,
+      "x": 0.0739,
+      "y": 0.5097,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-33",
+      "name": null,
+      "x": -0.42,
+      "y": 0.3143,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-34",
+      "name": null,
+      "x": -0.5126,
+      "y": 0.2308,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-35",
+      "name": null,
+      "x": -0.5736,
+      "y": 0.1733,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-36",
+      "name": null,
+      "x": -0.6793,
+      "y": 0.2269,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-37",
+      "name": null,
+      "x": -0.3806,
+      "y": 0.1914,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-38",
+      "name": null,
+      "x": -0.2197,
+      "y": 0.1981,
+      "v_nom_kv": 345.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-39",
+      "name": null,
+      "x": -0.4612,
+      "y": 0.1126,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-40",
+      "name": null,
+      "x": -0.3321,
+      "y": 0.0733,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-41",
+      "name": null,
+      "x": -0.3763,
+      "y": -0.0229,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-42",
+      "name": null,
+      "x": -0.2306,
+      "y": -0.0558,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-43",
+      "name": null,
+      "x": -0.553,
+      "y": 0.0661,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-44",
+      "name": null,
+      "x": -0.4535,
+      "y": -0.0729,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-45",
+      "name": null,
+      "x": -0.2752,
+      "y": -0.1768,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-46",
+      "name": null,
+      "x": -0.1763,
+      "y": -0.2591,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-47",
+      "name": null,
+      "x": -0.0639,
+      "y": -0.2042,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-48",
+      "name": null,
+      "x": -0.1106,
+      "y": -0.2998,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-49",
+      "name": null,
+      "x": -0.1636,
+      "y": -0.1952,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-50",
+      "name": null,
+      "x": -0.1918,
+      "y": -0.3182,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-51",
+      "name": null,
+      "x": -0.1978,
+      "y": -0.3677,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-52",
+      "name": null,
+      "x": -0.2321,
+      "y": -0.5185,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-53",
+      "name": null,
+      "x": -0.357,
+      "y": -0.4815,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-54",
+      "name": null,
+      "x": -0.3055,
+      "y": -0.3157,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-55",
+      "name": null,
+      "x": -0.4588,
+      "y": -0.4058,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-56",
+      "name": null,
+      "x": -0.3896,
+      "y": -0.4135,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-57",
+      "name": null,
+      "x": -0.2757,
+      "y": -0.4619,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-58",
+      "name": null,
+      "x": -0.3224,
+      "y": -0.4996,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-59",
+      "name": null,
+      "x": -0.4529,
+      "y": -0.312,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-60",
+      "name": null,
+      "x": -0.5681,
+      "y": -0.2843,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-61",
+      "name": null,
+      "x": -0.4962,
+      "y": -0.1965,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-62",
+      "name": null,
+      "x": -0.4052,
+      "y": -0.2015,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-63",
+      "name": null,
+      "x": -0.5006,
+      "y": -0.1561,
+      "v_nom_kv": 345.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-64",
+      "name": null,
+      "x": -0.3397,
+      "y": -0.0587,
+      "v_nom_kv": 345.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-65",
+      "name": null,
+      "x": -0.1686,
+      "y": 0.0289,
+      "v_nom_kv": 345.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-66",
+      "name": null,
+      "x": -0.2355,
+      "y": -0.1047,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-67",
+      "name": null,
+      "x": -0.3789,
+      "y": -0.1244,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-68",
+      "name": null,
+      "x": -0.0133,
+      "y": -0.0516,
+      "v_nom_kv": 345.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-69",
+      "name": null,
+      "x": 0.0085,
+      "y": -0.1445,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-70",
+      "name": null,
+      "x": 0.1029,
+      "y": 0.0177,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-71",
+      "name": null,
+      "x": 0.2559,
+      "y": 0.097,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-72",
+      "name": null,
+      "x": 0.2839,
+      "y": 0.235,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-73",
+      "name": null,
+      "x": 0.4124,
+      "y": 0.1525,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-74",
+      "name": null,
+      "x": 0.2128,
+      "y": -0.0034,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-75",
+      "name": null,
+      "x": 0.118,
+      "y": -0.1129,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-76",
+      "name": null,
+      "x": 0.2138,
+      "y": -0.2103,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-77",
+      "name": null,
+      "x": 0.1282,
+      "y": -0.2576,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-78",
+      "name": null,
+      "x": 0.0975,
+      "y": -0.3728,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-79",
+      "name": null,
+      "x": 0.2285,
+      "y": -0.3641,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-80",
+      "name": null,
+      "x": 0.2769,
+      "y": -0.2469,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-81",
+      "name": null,
+      "x": 0.1653,
+      "y": -0.1311,
+      "v_nom_kv": 345.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-82",
+      "name": null,
+      "x": 0.1871,
+      "y": -0.4197,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-83",
+      "name": null,
+      "x": 0.1876,
+      "y": -0.583,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-84",
+      "name": null,
+      "x": 0.1755,
+      "y": -0.7111,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-85",
+      "name": null,
+      "x": 0.2955,
+      "y": -0.701,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-86",
+      "name": null,
+      "x": 0.2514,
+      "y": -0.8571,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-87",
+      "name": null,
+      "x": 0.2402,
+      "y": -1.0,
+      "v_nom_kv": 161.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-88",
+      "name": null,
+      "x": 0.3864,
+      "y": -0.7866,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-89",
+      "name": null,
+      "x": 0.461,
+      "y": -0.698,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-90",
+      "name": null,
+      "x": 0.5576,
+      "y": -0.8198,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-91",
+      "name": null,
+      "x": 0.62,
+      "y": -0.6973,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-92",
+      "name": null,
+      "x": 0.5517,
+      "y": -0.5525,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-93",
+      "name": null,
+      "x": 0.4798,
+      "y": -0.5869,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-94",
+      "name": null,
+      "x": 0.4722,
+      "y": -0.4462,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-95",
+      "name": null,
+      "x": 0.3773,
+      "y": -0.4838,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-96",
+      "name": null,
+      "x": 0.332,
+      "y": -0.3803,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-97",
+      "name": null,
+      "x": 0.3546,
+      "y": -0.2531,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-98",
+      "name": null,
+      "x": 0.4363,
+      "y": -0.2818,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-99",
+      "name": null,
+      "x": 0.4526,
+      "y": -0.2399,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-100",
+      "name": null,
+      "x": 0.5609,
+      "y": -0.3684,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-101",
+      "name": null,
+      "x": 0.6358,
+      "y": -0.4736,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-102",
+      "name": null,
+      "x": 0.6759,
+      "y": -0.6135,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-103",
+      "name": null,
+      "x": 0.7136,
+      "y": -0.2727,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-104",
+      "name": null,
+      "x": 0.6772,
+      "y": -0.3275,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-105",
+      "name": null,
+      "x": 0.8216,
+      "y": -0.3661,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-106",
+      "name": null,
+      "x": 0.6942,
+      "y": -0.4022,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-107",
+      "name": null,
+      "x": 0.8166,
+      "y": -0.4807,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-108",
+      "name": null,
+      "x": 0.9677,
+      "y": -0.4148,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-109",
+      "name": null,
+      "x": 0.9969,
+      "y": -0.3039,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-110",
+      "name": null,
+      "x": 0.859,
+      "y": -0.2209,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-111",
+      "name": null,
+      "x": 0.9984,
+      "y": -0.189,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-112",
+      "name": null,
+      "x": 0.9491,
+      "y": -0.1052,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-113",
+      "name": null,
+      "x": -0.0912,
+      "y": 0.5305,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-114",
+      "name": null,
+      "x": 0.2317,
+      "y": 0.5779,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-115",
+      "name": null,
+      "x": 0.2904,
+      "y": 0.6868,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-116",
+      "name": null,
+      "x": 0.0414,
+      "y": 0.0415,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-117",
+      "name": null,
+      "x": -0.6828,
+      "y": 0.6906,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-118",
+      "name": null,
+      "x": 0.2536,
+      "y": -0.0833,
+      "v_nom_kv": 138.0,
+      "carrier": "AC",
+      "country": null
+    }
+  ],
+  "lines": [
+    {
+      "id": "branch-1",
+      "bus0": "bus-1",
+      "bus1": "bus-2",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 151.0,
+      "x_ohm": 19.024956,
+      "r_ohm": 5.770332,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-2",
+      "bus0": "bus-1",
+      "bus1": "bus-3",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 151.0,
+      "x_ohm": 8.074656,
+      "r_ohm": 2.456676,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-3",
+      "bus0": "bus-4",
+      "bus1": "bus-5",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 176.0,
+      "x_ohm": 1.5197112,
+      "r_ohm": 0.3351744,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-4",
+      "bus0": "bus-3",
+      "bus1": "bus-5",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 175.0,
+      "x_ohm": 20.56752,
+      "r_ohm": 4.589604,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-5",
+      "bus0": "bus-5",
+      "bus1": "bus-6",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 176.0,
+      "x_ohm": 10.28376,
+      "r_ohm": 2.266236,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-6",
+      "bus0": "bus-6",
+      "bus1": "bus-7",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 176.0,
+      "x_ohm": 3.961152,
+      "r_ohm": 0.8741196000000001,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-7",
+      "bus0": "bus-8",
+      "bus1": "bus-9",
+      "v_nom_kv": 345.0,
+      "s_nom_mva": 711.0,
+      "x_ohm": 36.302625,
+      "r_ohm": 2.90421,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-9",
+      "bus0": "bus-9",
+      "bus1": "bus-10",
+      "v_nom_kv": 345.0,
+      "s_nom_mva": 710.0,
+      "x_ohm": 38.32605,
+      "r_ohm": 3.070845,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-10",
+      "bus0": "bus-4",
+      "bus1": "bus-11",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 151.0,
+      "x_ohm": 13.102272000000001,
+      "r_ohm": 3.980196,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-11",
+      "bus0": "bus-5",
+      "bus1": "bus-11",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 152.0,
+      "x_ohm": 12.988008,
+      "r_ohm": 3.8659319999999995,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-12",
+      "bus0": "bus-11",
+      "bus1": "bus-12",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 151.0,
+      "x_ohm": 3.732624,
+      "r_ohm": 1.133118,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-13",
+      "bus0": "bus-2",
+      "bus1": "bus-12",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 151.0,
+      "x_ohm": 11.731104,
+      "r_ohm": 3.5612280000000003,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-14",
+      "bus0": "bus-3",
+      "bus1": "bus-12",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 151.0,
+      "x_ohm": 30.470399999999998,
+      "r_ohm": 9.217296,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-15",
+      "bus0": "bus-7",
+      "bus1": "bus-12",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 164.0,
+      "x_ohm": 6.474960000000001,
+      "r_ohm": 1.6415928,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-16",
+      "bus0": "bus-11",
+      "bus1": "bus-13",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 151.0,
+      "x_ohm": 13.921164,
+      "r_ohm": 4.23729,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-17",
+      "bus0": "bus-12",
+      "bus1": "bus-14",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 151.0,
+      "x_ohm": 13.464108,
+      "r_ohm": 4.09446,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-18",
+      "bus0": "bus-13",
+      "bus1": "bus-15",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 115.0,
+      "x_ohm": 46.543536,
+      "r_ohm": 14.168735999999999,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-19",
+      "bus0": "bus-14",
+      "bus1": "bus-15",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 144.0,
+      "x_ohm": 37.135799999999996,
+      "r_ohm": 11.33118,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-20",
+      "bus0": "bus-12",
+      "bus1": "bus-16",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 164.0,
+      "x_ohm": 15.882696000000001,
+      "r_ohm": 4.037328,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-21",
+      "bus0": "bus-15",
+      "bus1": "bus-17",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 151.0,
+      "x_ohm": 8.322228,
+      "r_ohm": 2.513808,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-22",
+      "bus0": "bus-16",
+      "bus1": "bus-17",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 158.0,
+      "x_ohm": 34.298244,
+      "r_ohm": 8.645976000000001,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-23",
+      "bus0": "bus-17",
+      "bus1": "bus-18",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 167.0,
+      "x_ohm": 9.617220000000001,
+      "r_ohm": 2.342412,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-24",
+      "bus0": "bus-18",
+      "bus1": "bus-19",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 173.0,
+      "x_ohm": 9.388691999999999,
+      "r_ohm": 2.1310236000000002,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-25",
+      "bus0": "bus-19",
+      "bus1": "bus-20",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 178.0,
+      "x_ohm": 22.281480000000002,
+      "r_ohm": 4.799088,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-26",
+      "bus0": "bus-15",
+      "bus1": "bus-19",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 151.0,
+      "x_ohm": 7.503335999999999,
+      "r_ohm": 2.2852799999999998,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-27",
+      "bus0": "bus-20",
+      "bus1": "bus-21",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 177.0,
+      "x_ohm": 16.168356000000003,
+      "r_ohm": 3.485052,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-28",
+      "bus0": "bus-21",
+      "bus1": "bus-22",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 178.0,
+      "x_ohm": 18.47268,
+      "r_ohm": 3.980196,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-29",
+      "bus0": "bus-22",
+      "bus1": "bus-23",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 178.0,
+      "x_ohm": 30.279960000000003,
+      "r_ohm": 6.513048,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-30",
+      "bus0": "bus-23",
+      "bus1": "bus-24",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 158.0,
+      "x_ohm": 9.369648,
+      "r_ohm": 2.57094,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-31",
+      "bus0": "bus-23",
+      "bus1": "bus-25",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 186.0,
+      "x_ohm": 15.235199999999999,
+      "r_ohm": 2.9708639999999997,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-33",
+      "bus0": "bus-25",
+      "bus1": "bus-27",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 177.0,
+      "x_ohm": 31.04172,
+      "r_ohm": 6.055992,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-34",
+      "bus0": "bus-27",
+      "bus1": "bus-28",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 174.0,
+      "x_ohm": 16.28262,
+      "r_ohm": 3.6431172000000003,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-35",
+      "bus0": "bus-28",
+      "bus1": "bus-29",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 165.0,
+      "x_ohm": 17.958492,
+      "r_ohm": 4.513427999999999,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-37",
+      "bus0": "bus-8",
+      "bus1": "bus-30",
+      "v_nom_kv": 345.0,
+      "s_nom_mva": 580.0,
+      "x_ohm": 59.9886,
+      "r_ohm": 5.1299775,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-38",
+      "bus0": "bus-26",
+      "bus1": "bus-30",
+      "v_nom_kv": 345.0,
+      "s_nom_mva": 340.0,
+      "x_ohm": 102.36149999999999,
+      "r_ohm": 9.5100975,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-39",
+      "bus0": "bus-17",
+      "bus1": "bus-31",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 151.0,
+      "x_ohm": 29.765772,
+      "r_ohm": 9.026855999999999,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-40",
+      "bus0": "bus-29",
+      "bus1": "bus-31",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 146.0,
+      "x_ohm": 6.303564,
+      "r_ohm": 2.0567520000000004,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-41",
+      "bus0": "bus-23",
+      "bus1": "bus-32",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 158.0,
+      "x_ohm": 21.957732,
+      "r_ohm": 6.036948,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-42",
+      "bus0": "bus-31",
+      "bus1": "bus-32",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 151.0,
+      "x_ohm": 18.75834,
+      "r_ohm": 5.675112,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-43",
+      "bus0": "bus-27",
+      "bus1": "bus-32",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 151.0,
+      "x_ohm": 14.378219999999999,
+      "r_ohm": 4.361076,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-44",
+      "bus0": "bus-15",
+      "bus1": "bus-33",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 150.0,
+      "x_ohm": 23.690735999999998,
+      "r_ohm": 7.23672,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-45",
+      "bus0": "bus-19",
+      "bus1": "bus-34",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 114.0,
+      "x_ohm": 47.03868000000001,
+      "r_ohm": 14.321088,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-46",
+      "bus0": "bus-35",
+      "bus1": "bus-36",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 176.0,
+      "x_ohm": 1.9424880000000002,
+      "r_ohm": 0.42658559999999995,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-47",
+      "bus0": "bus-35",
+      "bus1": "bus-37",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 175.0,
+      "x_ohm": 9.464868000000001,
+      "r_ohm": 2.0948399999999996,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-48",
+      "bus0": "bus-33",
+      "bus1": "bus-37",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 154.0,
+      "x_ohm": 27.042479999999998,
+      "r_ohm": 7.90326,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-49",
+      "bus0": "bus-34",
+      "bus1": "bus-36",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 146.0,
+      "x_ohm": 5.103792,
+      "r_ohm": 1.6587324,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-50",
+      "bus0": "bus-34",
+      "bus1": "bus-37",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 159.0,
+      "x_ohm": 1.790136,
+      "r_ohm": 0.4875264000000001,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-52",
+      "bus0": "bus-37",
+      "bus1": "bus-39",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 151.0,
+      "x_ohm": 20.18664,
+      "r_ohm": 6.113123999999999,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-53",
+      "bus0": "bus-37",
+      "bus1": "bus-40",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 140.0,
+      "x_ohm": 31.993920000000003,
+      "r_ohm": 11.293092,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-54",
+      "bus0": "bus-30",
+      "bus1": "bus-38",
+      "v_nom_kv": 345.0,
+      "s_nom_mva": 542.0,
+      "x_ohm": 64.2735,
+      "r_ohm": 5.52276,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-55",
+      "bus0": "bus-39",
+      "bus1": "bus-40",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 151.0,
+      "x_ohm": 11.52162,
+      "r_ohm": 3.504096,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-56",
+      "bus0": "bus-40",
+      "bus1": "bus-41",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 152.0,
+      "x_ohm": 9.274428,
+      "r_ohm": 2.7613800000000004,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-57",
+      "bus0": "bus-40",
+      "bus1": "bus-42",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 151.0,
+      "x_ohm": 34.85052,
+      "r_ohm": 10.569420000000001,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-58",
+      "bus0": "bus-41",
+      "bus1": "bus-42",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 151.0,
+      "x_ohm": 25.709400000000002,
+      "r_ohm": 7.808040000000001,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-59",
+      "bus0": "bus-43",
+      "bus1": "bus-44",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 117.0,
+      "x_ohm": 46.733976000000006,
+      "r_ohm": 11.578752,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-60",
+      "bus0": "bus-34",
+      "bus1": "bus-43",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 167.0,
+      "x_ohm": 32.012964000000004,
+      "r_ohm": 7.865172000000001,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-61",
+      "bus0": "bus-44",
+      "bus1": "bus-45",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 166.0,
+      "x_ohm": 17.158644,
+      "r_ohm": 4.265856,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-62",
+      "bus0": "bus-45",
+      "bus1": "bus-46",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 153.0,
+      "x_ohm": 25.823663999999997,
+      "r_ohm": 7.6175999999999995,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-63",
+      "bus0": "bus-46",
+      "bus1": "bus-47",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 152.0,
+      "x_ohm": 24.18588,
+      "r_ohm": 7.23672,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-64",
+      "bus0": "bus-46",
+      "bus1": "bus-48",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 148.0,
+      "x_ohm": 35.993159999999996,
+      "r_ohm": 11.445444,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-65",
+      "bus0": "bus-47",
+      "bus1": "bus-49",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 150.0,
+      "x_ohm": 11.9025,
+      "r_ohm": 3.6374039999999996,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-66",
+      "bus0": "bus-42",
+      "bus1": "bus-49",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 89.0,
+      "x_ohm": 61.51212,
+      "r_ohm": 13.61646,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-67",
+      "bus0": "bus-42",
+      "bus1": "bus-49",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 89.0,
+      "x_ohm": 61.51212,
+      "r_ohm": 13.61646,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-68",
+      "bus0": "bus-45",
+      "bus1": "bus-49",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 138.0,
+      "x_ohm": 35.42184,
+      "r_ohm": 13.026096,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-69",
+      "bus0": "bus-48",
+      "bus1": "bus-49",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 140.0,
+      "x_ohm": 9.617220000000001,
+      "r_ohm": 3.408876,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-70",
+      "bus0": "bus-49",
+      "bus1": "bus-50",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 140.0,
+      "x_ohm": 14.321088,
+      "r_ohm": 5.084748,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-71",
+      "bus0": "bus-49",
+      "bus1": "bus-51",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 140.0,
+      "x_ohm": 26.090280000000003,
+      "r_ohm": 9.255384,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-72",
+      "bus0": "bus-51",
+      "bus1": "bus-52",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 142.0,
+      "x_ohm": 11.197872,
+      "r_ohm": 3.8659319999999995,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-73",
+      "bus0": "bus-52",
+      "bus1": "bus-53",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 166.0,
+      "x_ohm": 31.13694,
+      "r_ohm": 7.712820000000001,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-74",
+      "bus0": "bus-53",
+      "bus1": "bus-54",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 177.0,
+      "x_ohm": 23.23368,
+      "r_ohm": 5.008572,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-75",
+      "bus0": "bus-49",
+      "bus1": "bus-54",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 99.0,
+      "x_ohm": 55.03715999999999,
+      "r_ohm": 13.90212,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-76",
+      "bus0": "bus-49",
+      "bus1": "bus-54",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 97.0,
+      "x_ohm": 55.41804,
+      "r_ohm": 16.549236,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-77",
+      "bus0": "bus-54",
+      "bus1": "bus-55",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 169.0,
+      "x_ohm": 13.464108,
+      "r_ohm": 3.2184359999999996,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-78",
+      "bus0": "bus-54",
+      "bus1": "bus-56",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 155.0,
+      "x_ohm": 1.8187019999999998,
+      "r_ohm": 0.5237099999999999,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-79",
+      "bus0": "bus-55",
+      "bus1": "bus-56",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 146.0,
+      "x_ohm": 2.8756440000000003,
+      "r_ohm": 0.9293472,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-80",
+      "bus0": "bus-56",
+      "bus1": "bus-57",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 140.0,
+      "x_ohm": 18.396504,
+      "r_ohm": 6.532091999999999,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-81",
+      "bus0": "bus-50",
+      "bus1": "bus-57",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 140.0,
+      "x_ohm": 25.518960000000003,
+      "r_ohm": 9.026855999999999,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-82",
+      "bus0": "bus-56",
+      "bus1": "bus-58",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 140.0,
+      "x_ohm": 18.396504,
+      "r_ohm": 6.532091999999999,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-83",
+      "bus0": "bus-51",
+      "bus1": "bus-58",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 140.0,
+      "x_ohm": 13.692636,
+      "r_ohm": 4.8562199999999995,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-84",
+      "bus0": "bus-54",
+      "bus1": "bus-59",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 125.0,
+      "x_ohm": 43.667892,
+      "r_ohm": 9.579132,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-85",
+      "bus0": "bus-56",
+      "bus1": "bus-59",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 112.0,
+      "x_ohm": 47.80044,
+      "r_ohm": 15.711300000000001,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-86",
+      "bus0": "bus-56",
+      "bus1": "bus-59",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 117.0,
+      "x_ohm": 45.515159999999995,
+      "r_ohm": 15.292331999999998,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-87",
+      "bus0": "bus-55",
+      "bus1": "bus-59",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 133.0,
+      "x_ohm": 41.096952,
+      "r_ohm": 9.024951600000001,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-88",
+      "bus0": "bus-59",
+      "bus1": "bus-60",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 176.0,
+      "x_ohm": 27.613799999999998,
+      "r_ohm": 6.036948,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-89",
+      "bus0": "bus-59",
+      "bus1": "bus-61",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 176.0,
+      "x_ohm": 28.566,
+      "r_ohm": 6.246432000000001,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-90",
+      "bus0": "bus-60",
+      "bus1": "bus-61",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 186.0,
+      "x_ohm": 2.57094,
+      "r_ohm": 0.5027615999999999,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-91",
+      "bus0": "bus-60",
+      "bus1": "bus-62",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 176.0,
+      "x_ohm": 10.683683999999998,
+      "r_ohm": 2.342412,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-92",
+      "bus0": "bus-61",
+      "bus1": "bus-62",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 176.0,
+      "x_ohm": 7.160544,
+      "r_ohm": 1.5692256,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-94",
+      "bus0": "bus-63",
+      "bus1": "bus-64",
+      "v_nom_kv": 345.0,
+      "s_nom_mva": 687.0,
+      "x_ohm": 23.805,
+      "r_ohm": 2.04723,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-96",
+      "bus0": "bus-38",
+      "bus1": "bus-65",
+      "v_nom_kv": 345.0,
+      "s_nom_mva": 297.0,
+      "x_ohm": 117.35865,
+      "r_ohm": 10.7241525,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-97",
+      "bus0": "bus-64",
+      "bus1": "bus-65",
+      "v_nom_kv": 345.0,
+      "s_nom_mva": 675.0,
+      "x_ohm": 35.945550000000004,
+      "r_ohm": 3.2017725,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-98",
+      "bus0": "bus-49",
+      "bus1": "bus-66",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 186.0,
+      "x_ohm": 17.501435999999998,
+      "r_ohm": 3.42792,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-99",
+      "bus0": "bus-49",
+      "bus1": "bus-66",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 186.0,
+      "x_ohm": 17.501435999999998,
+      "r_ohm": 3.42792,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-100",
+      "bus0": "bus-62",
+      "bus1": "bus-66",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 132.0,
+      "x_ohm": 41.515919999999994,
+      "r_ohm": 9.179208,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-101",
+      "bus0": "bus-62",
+      "bus1": "bus-67",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 176.0,
+      "x_ohm": 22.281480000000002,
+      "r_ohm": 4.913352,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-103",
+      "bus0": "bus-66",
+      "bus1": "bus-67",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 176.0,
+      "x_ohm": 19.32966,
+      "r_ohm": 4.265856,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-104",
+      "bus0": "bus-65",
+      "bus1": "bus-68",
+      "v_nom_kv": 345.0,
+      "s_nom_mva": 686.0,
+      "x_ohm": 19.044,
+      "r_ohm": 1.6425449999999997,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-105",
+      "bus0": "bus-47",
+      "bus1": "bus-69",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 102.0,
+      "x_ohm": 52.904232,
+      "r_ohm": 16.073135999999998,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-106",
+      "bus0": "bus-49",
+      "bus1": "bus-69",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 87.0,
+      "x_ohm": 61.702560000000005,
+      "r_ohm": 18.75834,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-108",
+      "bus0": "bus-69",
+      "bus1": "bus-70",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 170.0,
+      "x_ohm": 24.18588,
+      "r_ohm": 5.7132,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-109",
+      "bus0": "bus-24",
+      "bus1": "bus-70",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 72.0,
+      "x_ohm": 78.36606,
+      "r_ohm": 0.42087240000000004,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-110",
+      "bus0": "bus-70",
+      "bus1": "bus-71",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 166.0,
+      "x_ohm": 6.760619999999999,
+      "r_ohm": 1.6796807999999999,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-111",
+      "bus0": "bus-24",
+      "bus1": "bus-72",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 146.0,
+      "x_ohm": 37.326240000000006,
+      "r_ohm": 9.293472000000001,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-112",
+      "bus0": "bus-71",
+      "bus1": "bus-72",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 159.0,
+      "x_ohm": 34.2792,
+      "r_ohm": 8.493624,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-113",
+      "bus0": "bus-71",
+      "bus1": "bus-73",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 188.0,
+      "x_ohm": 8.645976000000001,
+      "r_ohm": 1.6492103999999999,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-114",
+      "bus0": "bus-70",
+      "bus1": "bus-74",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 151.0,
+      "x_ohm": 25.195212,
+      "r_ohm": 7.636643999999999,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-115",
+      "bus0": "bus-70",
+      "bus1": "bus-75",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 151.0,
+      "x_ohm": 26.85204,
+      "r_ohm": 8.150832,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-116",
+      "bus0": "bus-69",
+      "bus1": "bus-75",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 145.0,
+      "x_ohm": 23.23368,
+      "r_ohm": 7.712820000000001,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-117",
+      "bus0": "bus-74",
+      "bus1": "bus-75",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 151.0,
+      "x_ohm": 7.731863999999999,
+      "r_ohm": 2.342412,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-118",
+      "bus0": "bus-76",
+      "bus1": "bus-77",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 152.0,
+      "x_ohm": 28.185119999999998,
+      "r_ohm": 8.455536,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-119",
+      "bus0": "bus-69",
+      "bus1": "bus-77",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 150.0,
+      "x_ohm": 19.234440000000003,
+      "r_ohm": 5.884596,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-120",
+      "bus0": "bus-75",
+      "bus1": "bus-77",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 141.0,
+      "x_ohm": 38.068956,
+      "r_ohm": 11.445444,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-121",
+      "bus0": "bus-77",
+      "bus1": "bus-78",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 151.0,
+      "x_ohm": 2.361456,
+      "r_ohm": 0.7160544,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-122",
+      "bus0": "bus-78",
+      "bus1": "bus-79",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 174.0,
+      "x_ohm": 4.646736000000001,
+      "r_ohm": 1.0398024,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-123",
+      "bus0": "bus-77",
+      "bus1": "bus-80",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 141.0,
+      "x_ohm": 9.23634,
+      "r_ohm": 3.2374800000000006,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-124",
+      "bus0": "bus-77",
+      "bus1": "bus-80",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 157.0,
+      "x_ohm": 19.996199999999998,
+      "r_ohm": 5.598936,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-125",
+      "bus0": "bus-79",
+      "bus1": "bus-80",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 175.0,
+      "x_ohm": 13.406976000000002,
+      "r_ohm": 2.9708639999999997,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-126",
+      "bus0": "bus-68",
+      "bus1": "bus-81",
+      "v_nom_kv": 345.0,
+      "s_nom_mva": 684.0,
+      "x_ohm": 24.043049999999997,
+      "r_ohm": 2.0829375000000003,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-128",
+      "bus0": "bus-77",
+      "bus1": "bus-82",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 141.0,
+      "x_ohm": 16.244532,
+      "r_ohm": 5.675112,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-129",
+      "bus0": "bus-82",
+      "bus1": "bus-83",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 150.0,
+      "x_ohm": 6.9796260000000006,
+      "r_ohm": 2.132928,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-130",
+      "bus0": "bus-83",
+      "bus1": "bus-84",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 122.0,
+      "x_ohm": 25.13808,
+      "r_ohm": 11.9025,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-131",
+      "bus0": "bus-83",
+      "bus1": "bus-85",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 154.0,
+      "x_ohm": 28.185119999999998,
+      "r_ohm": 8.18892,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-132",
+      "bus0": "bus-84",
+      "bus1": "bus-85",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 122.0,
+      "x_ohm": 12.207204,
+      "r_ohm": 5.751288000000001,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-133",
+      "bus0": "bus-85",
+      "bus1": "bus-86",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 156.0,
+      "x_ohm": 23.42412,
+      "r_ohm": 6.665400000000001,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-135",
+      "bus0": "bus-85",
+      "bus1": "bus-88",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 186.0,
+      "x_ohm": 19.424879999999998,
+      "r_ohm": 3.8087999999999997,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-136",
+      "bus0": "bus-85",
+      "bus1": "bus-89",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 168.0,
+      "x_ohm": 32.94611999999999,
+      "r_ohm": 4.551516,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-137",
+      "bus0": "bus-88",
+      "bus1": "bus-89",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 186.0,
+      "x_ohm": 13.559328,
+      "r_ohm": 2.6471159999999996,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-138",
+      "bus0": "bus-89",
+      "bus1": "bus-90",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 151.0,
+      "x_ohm": 35.80272,
+      "r_ohm": 9.864792,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-139",
+      "bus0": "bus-89",
+      "bus1": "bus-90",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 169.0,
+      "x_ohm": 18.986868,
+      "r_ohm": 4.532472,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-140",
+      "bus0": "bus-90",
+      "bus1": "bus-91",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 151.0,
+      "x_ohm": 15.920784,
+      "r_ohm": 4.837176,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-141",
+      "bus0": "bus-89",
+      "bus1": "bus-92",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 186.0,
+      "x_ohm": 9.617220000000001,
+      "r_ohm": 1.8853560000000003,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-142",
+      "bus0": "bus-89",
+      "bus1": "bus-92",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 166.0,
+      "x_ohm": 30.108563999999998,
+      "r_ohm": 7.484292,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-143",
+      "bus0": "bus-91",
+      "bus1": "bus-92",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 151.0,
+      "x_ohm": 24.223968,
+      "r_ohm": 7.370028,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-144",
+      "bus0": "bus-92",
+      "bus1": "bus-93",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 151.0,
+      "x_ohm": 16.149312,
+      "r_ohm": 4.913352,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-145",
+      "bus0": "bus-92",
+      "bus1": "bus-94",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 151.0,
+      "x_ohm": 30.089520000000004,
+      "r_ohm": 9.160164,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-146",
+      "bus0": "bus-93",
+      "bus1": "bus-94",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 151.0,
+      "x_ohm": 13.940208,
+      "r_ohm": 4.246812,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-147",
+      "bus0": "bus-94",
+      "bus1": "bus-95",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 151.0,
+      "x_ohm": 8.265096,
+      "r_ohm": 2.513808,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-148",
+      "bus0": "bus-80",
+      "bus1": "bus-96",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 159.0,
+      "x_ohm": 34.66008,
+      "r_ohm": 6.779664,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-149",
+      "bus0": "bus-82",
+      "bus1": "bus-96",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 150.0,
+      "x_ohm": 10.09332,
+      "r_ohm": 3.0851279999999996,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-150",
+      "bus0": "bus-94",
+      "bus1": "bus-96",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 149.0,
+      "x_ohm": 16.549236,
+      "r_ohm": 5.1228359999999995,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-151",
+      "bus0": "bus-80",
+      "bus1": "bus-97",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 186.0,
+      "x_ohm": 17.787096,
+      "r_ohm": 3.485052,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-152",
+      "bus0": "bus-80",
+      "bus1": "bus-98",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 176.0,
+      "x_ohm": 20.56752,
+      "r_ohm": 4.532472,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-153",
+      "bus0": "bus-80",
+      "bus1": "bus-99",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 140.0,
+      "x_ohm": 39.23064,
+      "r_ohm": 8.645976000000001,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-154",
+      "bus0": "bus-92",
+      "bus1": "bus-100",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 98.0,
+      "x_ohm": 56.17979999999999,
+      "r_ohm": 12.340511999999999,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-155",
+      "bus0": "bus-94",
+      "bus1": "bus-100",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 150.0,
+      "x_ohm": 11.045520000000002,
+      "r_ohm": 3.389832,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-156",
+      "bus0": "bus-95",
+      "bus1": "bus-96",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 149.0,
+      "x_ohm": 10.417067999999999,
+      "r_ohm": 3.256524,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-157",
+      "bus0": "bus-96",
+      "bus1": "bus-97",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 186.0,
+      "x_ohm": 16.85394,
+      "r_ohm": 3.2946119999999994,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-158",
+      "bus0": "bus-98",
+      "bus1": "bus-100",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 160.0,
+      "x_ohm": 34.08876,
+      "r_ohm": 7.560467999999999,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-159",
+      "bus0": "bus-99",
+      "bus1": "bus-100",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 175.0,
+      "x_ohm": 15.482772,
+      "r_ohm": 3.42792,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-160",
+      "bus0": "bus-100",
+      "bus1": "bus-101",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 176.0,
+      "x_ohm": 24.033528,
+      "r_ohm": 5.275187999999999,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-161",
+      "bus0": "bus-92",
+      "bus1": "bus-102",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 176.0,
+      "x_ohm": 10.645596000000001,
+      "r_ohm": 2.342412,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-162",
+      "bus0": "bus-101",
+      "bus1": "bus-102",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 176.0,
+      "x_ohm": 21.329279999999997,
+      "r_ohm": 4.684824,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-163",
+      "bus0": "bus-100",
+      "bus1": "bus-103",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 151.0,
+      "x_ohm": 9.998099999999999,
+      "r_ohm": 3.04704,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-164",
+      "bus0": "bus-100",
+      "bus1": "bus-104",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 141.0,
+      "x_ohm": 38.849759999999996,
+      "r_ohm": 8.588844,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-165",
+      "bus0": "bus-103",
+      "bus1": "bus-104",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 153.0,
+      "x_ohm": 30.165696000000004,
+      "r_ohm": 8.874504,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-166",
+      "bus0": "bus-103",
+      "bus1": "bus-105",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 145.0,
+      "x_ohm": 30.9465,
+      "r_ohm": 10.18854,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-167",
+      "bus0": "bus-100",
+      "bus1": "bus-106",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 124.0,
+      "x_ohm": 43.61076,
+      "r_ohm": 11.52162,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-168",
+      "bus0": "bus-104",
+      "bus1": "bus-105",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 161.0,
+      "x_ohm": 7.198632,
+      "r_ohm": 1.8929736,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-169",
+      "bus0": "bus-105",
+      "bus1": "bus-106",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 164.0,
+      "x_ohm": 10.417067999999999,
+      "r_ohm": 2.6661599999999996,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-170",
+      "bus0": "bus-105",
+      "bus1": "bus-107",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 154.0,
+      "x_ohm": 34.85052,
+      "r_ohm": 10.09332,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-171",
+      "bus0": "bus-105",
+      "bus1": "bus-108",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 137.0,
+      "x_ohm": 13.387932000000001,
+      "r_ohm": 4.970484,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-172",
+      "bus0": "bus-106",
+      "bus1": "bus-107",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 154.0,
+      "x_ohm": 34.85052,
+      "r_ohm": 10.09332,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-173",
+      "bus0": "bus-108",
+      "bus1": "bus-109",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 138.0,
+      "x_ohm": 5.484672,
+      "r_ohm": 1.9996200000000002,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-174",
+      "bus0": "bus-103",
+      "bus1": "bus-110",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 159.0,
+      "x_ohm": 34.526771999999994,
+      "r_ohm": 7.438586399999999,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-175",
+      "bus0": "bus-109",
+      "bus1": "bus-110",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 138.0,
+      "x_ohm": 14.511528,
+      "r_ohm": 5.294231999999999,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-176",
+      "bus0": "bus-110",
+      "bus1": "bus-111",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 154.0,
+      "x_ohm": 14.378219999999999,
+      "r_ohm": 4.189679999999999,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-177",
+      "bus0": "bus-110",
+      "bus1": "bus-112",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 135.0,
+      "x_ohm": 12.18816,
+      "r_ohm": 4.703868,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-178",
+      "bus0": "bus-17",
+      "bus1": "bus-113",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 151.0,
+      "x_ohm": 5.732244,
+      "r_ohm": 1.7387171999999997,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-179",
+      "bus0": "bus-32",
+      "bus1": "bus-113",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 139.0,
+      "x_ohm": 38.65932,
+      "r_ohm": 11.71206,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-180",
+      "bus0": "bus-32",
+      "bus1": "bus-114",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 176.0,
+      "x_ohm": 11.654928,
+      "r_ohm": 2.57094,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-181",
+      "bus0": "bus-27",
+      "bus1": "bus-115",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 175.0,
+      "x_ohm": 14.111604,
+      "r_ohm": 3.1232160000000007,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-182",
+      "bus0": "bus-114",
+      "bus1": "bus-115",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 175.0,
+      "x_ohm": 1.980576,
+      "r_ohm": 0.438012,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-184",
+      "bus0": "bus-12",
+      "bus1": "bus-117",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 170.0,
+      "x_ohm": 26.661600000000004,
+      "r_ohm": 6.265476,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-185",
+      "bus0": "bus-75",
+      "bus1": "bus-118",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 151.0,
+      "x_ohm": 9.160164,
+      "r_ohm": 2.7613800000000004,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-186",
+      "bus0": "bus-76",
+      "bus1": "bus-118",
+      "v_nom_kv": 138.0,
+      "s_nom_mva": 151.0,
+      "x_ohm": 10.359936,
+      "r_ohm": 3.1232160000000007,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    }
+  ],
+  "transformers": [
+    {
+      "id": "branch-8",
+      "bus0": "bus-8",
+      "bus1": "bus-5",
+      "s_nom_mva": 1099.0,
+      "x_pu": 0.29343300000000005,
+      "r_pu": 0.0,
+      "tap_ratio": 0.985
+    },
+    {
+      "id": "branch-32",
+      "bus0": "bus-26",
+      "bus1": "bus-25",
+      "s_nom_mva": 768.0,
+      "x_pu": 0.29337599999999997,
+      "r_pu": 0.0,
+      "tap_ratio": 0.96
+    },
+    {
+      "id": "branch-36",
+      "bus0": "bus-30",
+      "bus1": "bus-17",
+      "s_nom_mva": 756.0,
+      "x_pu": 0.29332800000000003,
+      "r_pu": 0.0,
+      "tap_ratio": 0.96
+    },
+    {
+      "id": "branch-51",
+      "bus0": "bus-38",
+      "bus1": "bus-37",
+      "s_nom_mva": 783.0,
+      "x_pu": 0.29362499999999997,
+      "r_pu": 0.0,
+      "tap_ratio": 0.935
+    },
+    {
+      "id": "branch-93",
+      "bus0": "bus-63",
+      "bus1": "bus-59",
+      "s_nom_mva": 760.0,
+      "x_pu": 0.29336,
+      "r_pu": 0.0,
+      "tap_ratio": 0.96
+    },
+    {
+      "id": "branch-95",
+      "bus0": "bus-64",
+      "bus1": "bus-61",
+      "s_nom_mva": 1095.0,
+      "x_pu": 0.29346,
+      "r_pu": 0.0,
+      "tap_ratio": 0.985
+    },
+    {
+      "id": "branch-102",
+      "bus0": "bus-65",
+      "bus1": "bus-66",
+      "s_nom_mva": 793.0,
+      "x_pu": 0.29340999999999995,
+      "r_pu": 0.0,
+      "tap_ratio": 0.935
+    },
+    {
+      "id": "branch-107",
+      "bus0": "bus-68",
+      "bus1": "bus-69",
+      "s_nom_mva": 793.0,
+      "x_pu": 0.29340999999999995,
+      "r_pu": 0.0,
+      "tap_ratio": 0.935
+    },
+    {
+      "id": "branch-127",
+      "bus0": "bus-81",
+      "bus1": "bus-80",
+      "s_nom_mva": 793.0,
+      "x_pu": 0.29340999999999995,
+      "r_pu": 0.0,
+      "tap_ratio": 0.935
+    },
+    {
+      "id": "branch-134",
+      "bus0": "bus-86",
+      "bus1": "bus-87",
+      "s_nom_mva": 141.0,
+      "x_pu": 0.292434,
+      "r_pu": 0.0398748,
+      "tap_ratio": 1.0
+    },
+    {
+      "id": "branch-183",
+      "bus0": "bus-68",
+      "bus1": "bus-116",
+      "s_nom_mva": 7218.0,
+      "x_pu": 0.29232899999999995,
+      "r_pu": 0.0245412,
+      "tap_ratio": 1.0
+    }
+  ],
+  "links": [],
+  "generators": [
+    {
+      "id": "gen-1",
+      "bus": "bus-1",
+      "carrier": "SYNC",
+      "p_nom_mw": 0.0,
+      "marginal_cost_eur_per_mwh": 0.0,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-2",
+      "bus": "bus-4",
+      "carrier": "SYNC",
+      "p_nom_mw": 0.0,
+      "marginal_cost_eur_per_mwh": 0.0,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-3",
+      "bus": "bus-6",
+      "carrier": "SYNC",
+      "p_nom_mw": 0.0,
+      "marginal_cost_eur_per_mwh": 0.0,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-4",
+      "bus": "bus-8",
+      "carrier": "SYNC",
+      "p_nom_mw": 0.0,
+      "marginal_cost_eur_per_mwh": 0.0,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-5",
+      "bus": "bus-10",
+      "carrier": "NG",
+      "p_nom_mw": 505.0,
+      "marginal_cost_eur_per_mwh": 24.98342,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-6",
+      "bus": "bus-12",
+      "carrier": "PEL",
+      "p_nom_mw": 85.0,
+      "marginal_cost_eur_per_mwh": 124.581564,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-7",
+      "bus": "bus-15",
+      "carrier": "SYNC",
+      "p_nom_mw": 0.0,
+      "marginal_cost_eur_per_mwh": 0.0,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-8",
+      "bus": "bus-18",
+      "carrier": "SYNC",
+      "p_nom_mw": 0.0,
+      "marginal_cost_eur_per_mwh": 0.0,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-9",
+      "bus": "bus-19",
+      "carrier": "SYNC",
+      "p_nom_mw": 0.0,
+      "marginal_cost_eur_per_mwh": 0.0,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-10",
+      "bus": "bus-24",
+      "carrier": "SYNC",
+      "p_nom_mw": 0.0,
+      "marginal_cost_eur_per_mwh": 0.0,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-11",
+      "bus": "bus-25",
+      "carrier": "NG",
+      "p_nom_mw": 221.0,
+      "marginal_cost_eur_per_mwh": 28.948321,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-12",
+      "bus": "bus-26",
+      "carrier": "COW",
+      "p_nom_mw": 485.0,
+      "marginal_cost_eur_per_mwh": 22.22098,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-13",
+      "bus": "bus-27",
+      "carrier": "SYNC",
+      "p_nom_mw": 0.0,
+      "marginal_cost_eur_per_mwh": 0.0,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-14",
+      "bus": "bus-31",
+      "carrier": "COW",
+      "p_nom_mw": 17.0,
+      "marginal_cost_eur_per_mwh": 25.993982,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-15",
+      "bus": "bus-32",
+      "carrier": "SYNC",
+      "p_nom_mw": 0.0,
+      "marginal_cost_eur_per_mwh": 0.0,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-16",
+      "bus": "bus-34",
+      "carrier": "SYNC",
+      "p_nom_mw": 0.0,
+      "marginal_cost_eur_per_mwh": 0.0,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-17",
+      "bus": "bus-36",
+      "carrier": "SYNC",
+      "p_nom_mw": 0.0,
+      "marginal_cost_eur_per_mwh": 0.0,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-18",
+      "bus": "bus-40",
+      "carrier": "SYNC",
+      "p_nom_mw": 0.0,
+      "marginal_cost_eur_per_mwh": 0.0,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-19",
+      "bus": "bus-42",
+      "carrier": "SYNC",
+      "p_nom_mw": 0.0,
+      "marginal_cost_eur_per_mwh": 0.0,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-20",
+      "bus": "bus-46",
+      "carrier": "NG",
+      "p_nom_mw": 20.0,
+      "marginal_cost_eur_per_mwh": 24.202306,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-21",
+      "bus": "bus-49",
+      "carrier": "NG",
+      "p_nom_mw": 223.0,
+      "marginal_cost_eur_per_mwh": 16.673942,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-22",
+      "bus": "bus-54",
+      "carrier": "NG",
+      "p_nom_mw": 53.0,
+      "marginal_cost_eur_per_mwh": 27.277343,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-23",
+      "bus": "bus-55",
+      "carrier": "SYNC",
+      "p_nom_mw": 0.0,
+      "marginal_cost_eur_per_mwh": 0.0,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-24",
+      "bus": "bus-56",
+      "carrier": "SYNC",
+      "p_nom_mw": 0.0,
+      "marginal_cost_eur_per_mwh": 0.0,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-25",
+      "bus": "bus-59",
+      "carrier": "NG",
+      "p_nom_mw": 308.0,
+      "marginal_cost_eur_per_mwh": 24.861868,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-26",
+      "bus": "bus-61",
+      "carrier": "NG",
+      "p_nom_mw": 195.0,
+      "marginal_cost_eur_per_mwh": 16.056042,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-27",
+      "bus": "bus-62",
+      "carrier": "SYNC",
+      "p_nom_mw": 0.0,
+      "marginal_cost_eur_per_mwh": 0.0,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-28",
+      "bus": "bus-65",
+      "carrier": "NG",
+      "p_nom_mw": 441.0,
+      "marginal_cost_eur_per_mwh": 34.781778,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-29",
+      "bus": "bus-66",
+      "carrier": "COW",
+      "p_nom_mw": 784.0,
+      "marginal_cost_eur_per_mwh": 32.668781,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-30",
+      "bus": "bus-69",
+      "carrier": "COW",
+      "p_nom_mw": 1182.0,
+      "marginal_cost_eur_per_mwh": 25.758442,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-31",
+      "bus": "bus-70",
+      "carrier": "SYNC",
+      "p_nom_mw": 0.0,
+      "marginal_cost_eur_per_mwh": 0.0,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-32",
+      "bus": "bus-72",
+      "carrier": "SYNC",
+      "p_nom_mw": 0.0,
+      "marginal_cost_eur_per_mwh": 0.0,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-33",
+      "bus": "bus-73",
+      "carrier": "SYNC",
+      "p_nom_mw": 0.0,
+      "marginal_cost_eur_per_mwh": 0.0,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-34",
+      "bus": "bus-74",
+      "carrier": "SYNC",
+      "p_nom_mw": 0.0,
+      "marginal_cost_eur_per_mwh": 0.0,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-35",
+      "bus": "bus-76",
+      "carrier": "SYNC",
+      "p_nom_mw": 0.0,
+      "marginal_cost_eur_per_mwh": 0.0,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-36",
+      "bus": "bus-77",
+      "carrier": "SYNC",
+      "p_nom_mw": 0.0,
+      "marginal_cost_eur_per_mwh": 0.0,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-37",
+      "bus": "bus-80",
+      "carrier": "COW",
+      "p_nom_mw": 509.0,
+      "marginal_cost_eur_per_mwh": 24.600772,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-38",
+      "bus": "bus-85",
+      "carrier": "SYNC",
+      "p_nom_mw": 0.0,
+      "marginal_cost_eur_per_mwh": 0.0,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-39",
+      "bus": "bus-87",
+      "carrier": "NG",
+      "p_nom_mw": 10.0,
+      "marginal_cost_eur_per_mwh": 34.072633,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-40",
+      "bus": "bus-89",
+      "carrier": "COW",
+      "p_nom_mw": 637.0,
+      "marginal_cost_eur_per_mwh": 24.605102,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-41",
+      "bus": "bus-90",
+      "carrier": "SYNC",
+      "p_nom_mw": 0.0,
+      "marginal_cost_eur_per_mwh": 0.0,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-42",
+      "bus": "bus-91",
+      "carrier": "SYNC",
+      "p_nom_mw": 0.0,
+      "marginal_cost_eur_per_mwh": 0.0,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-43",
+      "bus": "bus-92",
+      "carrier": "SYNC",
+      "p_nom_mw": 0.0,
+      "marginal_cost_eur_per_mwh": 0.0,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-44",
+      "bus": "bus-99",
+      "carrier": "SYNC",
+      "p_nom_mw": 0.0,
+      "marginal_cost_eur_per_mwh": 0.0,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-45",
+      "bus": "bus-100",
+      "carrier": "COW",
+      "p_nom_mw": 653.0,
+      "marginal_cost_eur_per_mwh": 12.61217,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-46",
+      "bus": "bus-103",
+      "carrier": "NG",
+      "p_nom_mw": 108.0,
+      "marginal_cost_eur_per_mwh": 28.649471,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-47",
+      "bus": "bus-104",
+      "carrier": "SYNC",
+      "p_nom_mw": 0.0,
+      "marginal_cost_eur_per_mwh": 0.0,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-48",
+      "bus": "bus-105",
+      "carrier": "SYNC",
+      "p_nom_mw": 0.0,
+      "marginal_cost_eur_per_mwh": 0.0,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-49",
+      "bus": "bus-107",
+      "carrier": "SYNC",
+      "p_nom_mw": 0.0,
+      "marginal_cost_eur_per_mwh": 0.0,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-50",
+      "bus": "bus-110",
+      "carrier": "SYNC",
+      "p_nom_mw": 0.0,
+      "marginal_cost_eur_per_mwh": 0.0,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-51",
+      "bus": "bus-111",
+      "carrier": "NG",
+      "p_nom_mw": 79.0,
+      "marginal_cost_eur_per_mwh": 35.043401,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-52",
+      "bus": "bus-112",
+      "carrier": "SYNC",
+      "p_nom_mw": 0.0,
+      "marginal_cost_eur_per_mwh": 0.0,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-53",
+      "bus": "bus-113",
+      "carrier": "SYNC",
+      "p_nom_mw": 0.0,
+      "marginal_cost_eur_per_mwh": 0.0,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-54",
+      "bus": "bus-116",
+      "carrier": "SYNC",
+      "p_nom_mw": 0.0,
+      "marginal_cost_eur_per_mwh": 0.0,
+      "p_nom_extendable": null,
+      "is_variable": false
+    }
+  ],
+  "loads": [
+    {
+      "id": "load-1",
+      "bus": "bus-1",
+      "p_peak_mw": 51.0,
+      "p_mean_mw": 51.0,
+      "energy_mwh": 51.0
+    },
+    {
+      "id": "load-2",
+      "bus": "bus-2",
+      "p_peak_mw": 20.0,
+      "p_mean_mw": 20.0,
+      "energy_mwh": 20.0
+    },
+    {
+      "id": "load-3",
+      "bus": "bus-3",
+      "p_peak_mw": 39.0,
+      "p_mean_mw": 39.0,
+      "energy_mwh": 39.0
+    },
+    {
+      "id": "load-4",
+      "bus": "bus-4",
+      "p_peak_mw": 39.0,
+      "p_mean_mw": 39.0,
+      "energy_mwh": 39.0
+    },
+    {
+      "id": "load-6",
+      "bus": "bus-6",
+      "p_peak_mw": 52.0,
+      "p_mean_mw": 52.0,
+      "energy_mwh": 52.0
+    },
+    {
+      "id": "load-7",
+      "bus": "bus-7",
+      "p_peak_mw": 19.0,
+      "p_mean_mw": 19.0,
+      "energy_mwh": 19.0
+    },
+    {
+      "id": "load-8",
+      "bus": "bus-8",
+      "p_peak_mw": 28.0,
+      "p_mean_mw": 28.0,
+      "energy_mwh": 28.0
+    },
+    {
+      "id": "load-11",
+      "bus": "bus-11",
+      "p_peak_mw": 70.0,
+      "p_mean_mw": 70.0,
+      "energy_mwh": 70.0
+    },
+    {
+      "id": "load-12",
+      "bus": "bus-12",
+      "p_peak_mw": 47.0,
+      "p_mean_mw": 47.0,
+      "energy_mwh": 47.0
+    },
+    {
+      "id": "load-13",
+      "bus": "bus-13",
+      "p_peak_mw": 34.0,
+      "p_mean_mw": 34.0,
+      "energy_mwh": 34.0
+    },
+    {
+      "id": "load-14",
+      "bus": "bus-14",
+      "p_peak_mw": 14.0,
+      "p_mean_mw": 14.0,
+      "energy_mwh": 14.0
+    },
+    {
+      "id": "load-15",
+      "bus": "bus-15",
+      "p_peak_mw": 90.0,
+      "p_mean_mw": 90.0,
+      "energy_mwh": 90.0
+    },
+    {
+      "id": "load-16",
+      "bus": "bus-16",
+      "p_peak_mw": 25.0,
+      "p_mean_mw": 25.0,
+      "energy_mwh": 25.0
+    },
+    {
+      "id": "load-17",
+      "bus": "bus-17",
+      "p_peak_mw": 11.0,
+      "p_mean_mw": 11.0,
+      "energy_mwh": 11.0
+    },
+    {
+      "id": "load-18",
+      "bus": "bus-18",
+      "p_peak_mw": 60.0,
+      "p_mean_mw": 60.0,
+      "energy_mwh": 60.0
+    },
+    {
+      "id": "load-19",
+      "bus": "bus-19",
+      "p_peak_mw": 45.0,
+      "p_mean_mw": 45.0,
+      "energy_mwh": 45.0
+    },
+    {
+      "id": "load-20",
+      "bus": "bus-20",
+      "p_peak_mw": 18.0,
+      "p_mean_mw": 18.0,
+      "energy_mwh": 18.0
+    },
+    {
+      "id": "load-21",
+      "bus": "bus-21",
+      "p_peak_mw": 14.0,
+      "p_mean_mw": 14.0,
+      "energy_mwh": 14.0
+    },
+    {
+      "id": "load-22",
+      "bus": "bus-22",
+      "p_peak_mw": 10.0,
+      "p_mean_mw": 10.0,
+      "energy_mwh": 10.0
+    },
+    {
+      "id": "load-23",
+      "bus": "bus-23",
+      "p_peak_mw": 7.0,
+      "p_mean_mw": 7.0,
+      "energy_mwh": 7.0
+    },
+    {
+      "id": "load-24",
+      "bus": "bus-24",
+      "p_peak_mw": 13.0,
+      "p_mean_mw": 13.0,
+      "energy_mwh": 13.0
+    },
+    {
+      "id": "load-27",
+      "bus": "bus-27",
+      "p_peak_mw": 71.0,
+      "p_mean_mw": 71.0,
+      "energy_mwh": 71.0
+    },
+    {
+      "id": "load-28",
+      "bus": "bus-28",
+      "p_peak_mw": 17.0,
+      "p_mean_mw": 17.0,
+      "energy_mwh": 17.0
+    },
+    {
+      "id": "load-29",
+      "bus": "bus-29",
+      "p_peak_mw": 24.0,
+      "p_mean_mw": 24.0,
+      "energy_mwh": 24.0
+    },
+    {
+      "id": "load-31",
+      "bus": "bus-31",
+      "p_peak_mw": 43.0,
+      "p_mean_mw": 43.0,
+      "energy_mwh": 43.0
+    },
+    {
+      "id": "load-32",
+      "bus": "bus-32",
+      "p_peak_mw": 59.0,
+      "p_mean_mw": 59.0,
+      "energy_mwh": 59.0
+    },
+    {
+      "id": "load-33",
+      "bus": "bus-33",
+      "p_peak_mw": 23.0,
+      "p_mean_mw": 23.0,
+      "energy_mwh": 23.0
+    },
+    {
+      "id": "load-34",
+      "bus": "bus-34",
+      "p_peak_mw": 59.0,
+      "p_mean_mw": 59.0,
+      "energy_mwh": 59.0
+    },
+    {
+      "id": "load-35",
+      "bus": "bus-35",
+      "p_peak_mw": 33.0,
+      "p_mean_mw": 33.0,
+      "energy_mwh": 33.0
+    },
+    {
+      "id": "load-36",
+      "bus": "bus-36",
+      "p_peak_mw": 31.0,
+      "p_mean_mw": 31.0,
+      "energy_mwh": 31.0
+    },
+    {
+      "id": "load-39",
+      "bus": "bus-39",
+      "p_peak_mw": 27.0,
+      "p_mean_mw": 27.0,
+      "energy_mwh": 27.0
+    },
+    {
+      "id": "load-40",
+      "bus": "bus-40",
+      "p_peak_mw": 66.0,
+      "p_mean_mw": 66.0,
+      "energy_mwh": 66.0
+    },
+    {
+      "id": "load-41",
+      "bus": "bus-41",
+      "p_peak_mw": 37.0,
+      "p_mean_mw": 37.0,
+      "energy_mwh": 37.0
+    },
+    {
+      "id": "load-42",
+      "bus": "bus-42",
+      "p_peak_mw": 96.0,
+      "p_mean_mw": 96.0,
+      "energy_mwh": 96.0
+    },
+    {
+      "id": "load-43",
+      "bus": "bus-43",
+      "p_peak_mw": 18.0,
+      "p_mean_mw": 18.0,
+      "energy_mwh": 18.0
+    },
+    {
+      "id": "load-44",
+      "bus": "bus-44",
+      "p_peak_mw": 16.0,
+      "p_mean_mw": 16.0,
+      "energy_mwh": 16.0
+    },
+    {
+      "id": "load-45",
+      "bus": "bus-45",
+      "p_peak_mw": 53.0,
+      "p_mean_mw": 53.0,
+      "energy_mwh": 53.0
+    },
+    {
+      "id": "load-46",
+      "bus": "bus-46",
+      "p_peak_mw": 28.0,
+      "p_mean_mw": 28.0,
+      "energy_mwh": 28.0
+    },
+    {
+      "id": "load-47",
+      "bus": "bus-47",
+      "p_peak_mw": 34.0,
+      "p_mean_mw": 34.0,
+      "energy_mwh": 34.0
+    },
+    {
+      "id": "load-48",
+      "bus": "bus-48",
+      "p_peak_mw": 20.0,
+      "p_mean_mw": 20.0,
+      "energy_mwh": 20.0
+    },
+    {
+      "id": "load-49",
+      "bus": "bus-49",
+      "p_peak_mw": 87.0,
+      "p_mean_mw": 87.0,
+      "energy_mwh": 87.0
+    },
+    {
+      "id": "load-50",
+      "bus": "bus-50",
+      "p_peak_mw": 17.0,
+      "p_mean_mw": 17.0,
+      "energy_mwh": 17.0
+    },
+    {
+      "id": "load-51",
+      "bus": "bus-51",
+      "p_peak_mw": 17.0,
+      "p_mean_mw": 17.0,
+      "energy_mwh": 17.0
+    },
+    {
+      "id": "load-52",
+      "bus": "bus-52",
+      "p_peak_mw": 18.0,
+      "p_mean_mw": 18.0,
+      "energy_mwh": 18.0
+    },
+    {
+      "id": "load-53",
+      "bus": "bus-53",
+      "p_peak_mw": 23.0,
+      "p_mean_mw": 23.0,
+      "energy_mwh": 23.0
+    },
+    {
+      "id": "load-54",
+      "bus": "bus-54",
+      "p_peak_mw": 113.0,
+      "p_mean_mw": 113.0,
+      "energy_mwh": 113.0
+    },
+    {
+      "id": "load-55",
+      "bus": "bus-55",
+      "p_peak_mw": 63.0,
+      "p_mean_mw": 63.0,
+      "energy_mwh": 63.0
+    },
+    {
+      "id": "load-56",
+      "bus": "bus-56",
+      "p_peak_mw": 84.0,
+      "p_mean_mw": 84.0,
+      "energy_mwh": 84.0
+    },
+    {
+      "id": "load-57",
+      "bus": "bus-57",
+      "p_peak_mw": 12.0,
+      "p_mean_mw": 12.0,
+      "energy_mwh": 12.0
+    },
+    {
+      "id": "load-58",
+      "bus": "bus-58",
+      "p_peak_mw": 12.0,
+      "p_mean_mw": 12.0,
+      "energy_mwh": 12.0
+    },
+    {
+      "id": "load-59",
+      "bus": "bus-59",
+      "p_peak_mw": 277.0,
+      "p_mean_mw": 277.0,
+      "energy_mwh": 277.0
+    },
+    {
+      "id": "load-60",
+      "bus": "bus-60",
+      "p_peak_mw": 78.0,
+      "p_mean_mw": 78.0,
+      "energy_mwh": 78.0
+    },
+    {
+      "id": "load-62",
+      "bus": "bus-62",
+      "p_peak_mw": 77.0,
+      "p_mean_mw": 77.0,
+      "energy_mwh": 77.0
+    },
+    {
+      "id": "load-66",
+      "bus": "bus-66",
+      "p_peak_mw": 39.0,
+      "p_mean_mw": 39.0,
+      "energy_mwh": 39.0
+    },
+    {
+      "id": "load-67",
+      "bus": "bus-67",
+      "p_peak_mw": 28.0,
+      "p_mean_mw": 28.0,
+      "energy_mwh": 28.0
+    },
+    {
+      "id": "load-70",
+      "bus": "bus-70",
+      "p_peak_mw": 66.0,
+      "p_mean_mw": 66.0,
+      "energy_mwh": 66.0
+    },
+    {
+      "id": "load-72",
+      "bus": "bus-72",
+      "p_peak_mw": 12.0,
+      "p_mean_mw": 12.0,
+      "energy_mwh": 12.0
+    },
+    {
+      "id": "load-73",
+      "bus": "bus-73",
+      "p_peak_mw": 6.0,
+      "p_mean_mw": 6.0,
+      "energy_mwh": 6.0
+    },
+    {
+      "id": "load-74",
+      "bus": "bus-74",
+      "p_peak_mw": 68.0,
+      "p_mean_mw": 68.0,
+      "energy_mwh": 68.0
+    },
+    {
+      "id": "load-75",
+      "bus": "bus-75",
+      "p_peak_mw": 47.0,
+      "p_mean_mw": 47.0,
+      "energy_mwh": 47.0
+    },
+    {
+      "id": "load-76",
+      "bus": "bus-76",
+      "p_peak_mw": 68.0,
+      "p_mean_mw": 68.0,
+      "energy_mwh": 68.0
+    },
+    {
+      "id": "load-77",
+      "bus": "bus-77",
+      "p_peak_mw": 61.0,
+      "p_mean_mw": 61.0,
+      "energy_mwh": 61.0
+    },
+    {
+      "id": "load-78",
+      "bus": "bus-78",
+      "p_peak_mw": 71.0,
+      "p_mean_mw": 71.0,
+      "energy_mwh": 71.0
+    },
+    {
+      "id": "load-79",
+      "bus": "bus-79",
+      "p_peak_mw": 39.0,
+      "p_mean_mw": 39.0,
+      "energy_mwh": 39.0
+    },
+    {
+      "id": "load-80",
+      "bus": "bus-80",
+      "p_peak_mw": 130.0,
+      "p_mean_mw": 130.0,
+      "energy_mwh": 130.0
+    },
+    {
+      "id": "load-82",
+      "bus": "bus-82",
+      "p_peak_mw": 54.0,
+      "p_mean_mw": 54.0,
+      "energy_mwh": 54.0
+    },
+    {
+      "id": "load-83",
+      "bus": "bus-83",
+      "p_peak_mw": 20.0,
+      "p_mean_mw": 20.0,
+      "energy_mwh": 20.0
+    },
+    {
+      "id": "load-84",
+      "bus": "bus-84",
+      "p_peak_mw": 11.0,
+      "p_mean_mw": 11.0,
+      "energy_mwh": 11.0
+    },
+    {
+      "id": "load-85",
+      "bus": "bus-85",
+      "p_peak_mw": 24.0,
+      "p_mean_mw": 24.0,
+      "energy_mwh": 24.0
+    },
+    {
+      "id": "load-86",
+      "bus": "bus-86",
+      "p_peak_mw": 21.0,
+      "p_mean_mw": 21.0,
+      "energy_mwh": 21.0
+    },
+    {
+      "id": "load-88",
+      "bus": "bus-88",
+      "p_peak_mw": 48.0,
+      "p_mean_mw": 48.0,
+      "energy_mwh": 48.0
+    },
+    {
+      "id": "load-90",
+      "bus": "bus-90",
+      "p_peak_mw": 163.0,
+      "p_mean_mw": 163.0,
+      "energy_mwh": 163.0
+    },
+    {
+      "id": "load-91",
+      "bus": "bus-91",
+      "p_peak_mw": 10.0,
+      "p_mean_mw": 10.0,
+      "energy_mwh": 10.0
+    },
+    {
+      "id": "load-92",
+      "bus": "bus-92",
+      "p_peak_mw": 65.0,
+      "p_mean_mw": 65.0,
+      "energy_mwh": 65.0
+    },
+    {
+      "id": "load-93",
+      "bus": "bus-93",
+      "p_peak_mw": 12.0,
+      "p_mean_mw": 12.0,
+      "energy_mwh": 12.0
+    },
+    {
+      "id": "load-94",
+      "bus": "bus-94",
+      "p_peak_mw": 30.0,
+      "p_mean_mw": 30.0,
+      "energy_mwh": 30.0
+    },
+    {
+      "id": "load-95",
+      "bus": "bus-95",
+      "p_peak_mw": 42.0,
+      "p_mean_mw": 42.0,
+      "energy_mwh": 42.0
+    },
+    {
+      "id": "load-96",
+      "bus": "bus-96",
+      "p_peak_mw": 38.0,
+      "p_mean_mw": 38.0,
+      "energy_mwh": 38.0
+    },
+    {
+      "id": "load-97",
+      "bus": "bus-97",
+      "p_peak_mw": 15.0,
+      "p_mean_mw": 15.0,
+      "energy_mwh": 15.0
+    },
+    {
+      "id": "load-98",
+      "bus": "bus-98",
+      "p_peak_mw": 34.0,
+      "p_mean_mw": 34.0,
+      "energy_mwh": 34.0
+    },
+    {
+      "id": "load-99",
+      "bus": "bus-99",
+      "p_peak_mw": 42.0,
+      "p_mean_mw": 42.0,
+      "energy_mwh": 42.0
+    },
+    {
+      "id": "load-100",
+      "bus": "bus-100",
+      "p_peak_mw": 37.0,
+      "p_mean_mw": 37.0,
+      "energy_mwh": 37.0
+    },
+    {
+      "id": "load-101",
+      "bus": "bus-101",
+      "p_peak_mw": 22.0,
+      "p_mean_mw": 22.0,
+      "energy_mwh": 22.0
+    },
+    {
+      "id": "load-102",
+      "bus": "bus-102",
+      "p_peak_mw": 5.0,
+      "p_mean_mw": 5.0,
+      "energy_mwh": 5.0
+    },
+    {
+      "id": "load-103",
+      "bus": "bus-103",
+      "p_peak_mw": 23.0,
+      "p_mean_mw": 23.0,
+      "energy_mwh": 23.0
+    },
+    {
+      "id": "load-104",
+      "bus": "bus-104",
+      "p_peak_mw": 38.0,
+      "p_mean_mw": 38.0,
+      "energy_mwh": 38.0
+    },
+    {
+      "id": "load-105",
+      "bus": "bus-105",
+      "p_peak_mw": 31.0,
+      "p_mean_mw": 31.0,
+      "energy_mwh": 31.0
+    },
+    {
+      "id": "load-106",
+      "bus": "bus-106",
+      "p_peak_mw": 43.0,
+      "p_mean_mw": 43.0,
+      "energy_mwh": 43.0
+    },
+    {
+      "id": "load-107",
+      "bus": "bus-107",
+      "p_peak_mw": 50.0,
+      "p_mean_mw": 50.0,
+      "energy_mwh": 50.0
+    },
+    {
+      "id": "load-108",
+      "bus": "bus-108",
+      "p_peak_mw": 2.0,
+      "p_mean_mw": 2.0,
+      "energy_mwh": 2.0
+    },
+    {
+      "id": "load-109",
+      "bus": "bus-109",
+      "p_peak_mw": 8.0,
+      "p_mean_mw": 8.0,
+      "energy_mwh": 8.0
+    },
+    {
+      "id": "load-110",
+      "bus": "bus-110",
+      "p_peak_mw": 39.0,
+      "p_mean_mw": 39.0,
+      "energy_mwh": 39.0
+    },
+    {
+      "id": "load-112",
+      "bus": "bus-112",
+      "p_peak_mw": 68.0,
+      "p_mean_mw": 68.0,
+      "energy_mwh": 68.0
+    },
+    {
+      "id": "load-113",
+      "bus": "bus-113",
+      "p_peak_mw": 6.0,
+      "p_mean_mw": 6.0,
+      "energy_mwh": 6.0
+    },
+    {
+      "id": "load-114",
+      "bus": "bus-114",
+      "p_peak_mw": 8.0,
+      "p_mean_mw": 8.0,
+      "energy_mwh": 8.0
+    },
+    {
+      "id": "load-115",
+      "bus": "bus-115",
+      "p_peak_mw": 22.0,
+      "p_mean_mw": 22.0,
+      "energy_mwh": 22.0
+    },
+    {
+      "id": "load-116",
+      "bus": "bus-116",
+      "p_peak_mw": 184.0,
+      "p_mean_mw": 184.0,
+      "energy_mwh": 184.0
+    },
+    {
+      "id": "load-117",
+      "bus": "bus-117",
+      "p_peak_mw": 20.0,
+      "p_mean_mw": 20.0,
+      "energy_mwh": 20.0
+    },
+    {
+      "id": "load-118",
+      "bus": "bus-118",
+      "p_peak_mw": 33.0,
+      "p_mean_mw": 33.0,
+      "energy_mwh": 33.0
+    }
+  ],
+  "storage_units": [],
+  "stores": [],
+  "carriers": [
+    {
+      "id": "AC",
+      "color": null,
+      "co2_emissions_t_per_mwh": null,
+      "nice_name": "AC"
+    },
+    {
+      "id": "COW",
+      "color": null,
+      "co2_emissions_t_per_mwh": null,
+      "nice_name": "Coal"
+    },
+    {
+      "id": "NG",
+      "color": null,
+      "co2_emissions_t_per_mwh": null,
+      "nice_name": "Natural gas"
+    },
+    {
+      "id": "PEL",
+      "color": null,
+      "co2_emissions_t_per_mwh": null,
+      "nice_name": "Petroleum (liquid)"
+    },
+    {
+      "id": "SYNC",
+      "color": null,
+      "co2_emissions_t_per_mwh": null,
+      "nice_name": "Synchronous condenser"
+    }
+  ],
+  "summary": {
+    "counts": {
+      "buses": 118,
+      "lines": 175,
+      "transformers": 11,
+      "links": 0,
+      "generators": 54,
+      "loads": 99,
+      "storage_units": 0,
+      "stores": 0,
+      "carriers": 5
+    },
+    "capacity_by_carrier_mw": {
+      "COW": 4267.0,
+      "NG": 2163.0,
+      "PEL": 85.0,
+      "SYNC": 0.0
+    },
+    "peak_load_mw": 4242.0,
+    "total_load_mwh": 4242.0
+  },
+  "field_provenance": {
+    "buses.carrier": "synthetic",
+    "buses.v_nom_kv": "synthetic",
+    "buses.x": "calculated",
+    "buses.y": "calculated",
+    "carriers.nice_name": "synthetic",
+    "generators.carrier": "synthetic",
+    "generators.is_variable": "calculated",
+    "generators.marginal_cost_eur_per_mwh": "modeled",
+    "generators.p_nom_mw": "synthetic",
+    "lines.carrier": "synthetic",
+    "lines.num_parallel": "synthetic",
+    "lines.r_ohm": "calculated",
+    "lines.s_nom_mva": "synthetic",
+    "lines.v_nom_kv": "calculated",
+    "lines.x_ohm": "calculated",
+    "loads.energy_mwh": "calculated",
+    "loads.p_mean_mw": "synthetic",
+    "loads.p_peak_mw": "synthetic",
+    "transformers.r_pu": "calculated",
+    "transformers.s_nom_mva": "synthetic",
+    "transformers.tap_ratio": "synthetic",
+    "transformers.x_pu": "calculated"
+  },
+  "assumptions": [
+    "Imported from pglib_opf_case118_ieee.m (PGLib-OPF v23.07, commit dc6be4b); 118 buses, 186 branches (175 lines, 11 transformers), 54 generators.",
+    "Ids: bus-<BUS_I>, branch-<row of mpc.branch>, gen-<row of mpc.gen>, load-<BUS_I>. A branch is a transformer if TAP not in {0,1}, SHIFT != 0 or baseKV differs at its ends; it keeps the id branch-<row> in the transformers list.",
+    "Line impedances: x_ohm = x_pu * baseKV^2 / baseMVA (r likewise); line shunt b in S = b_pu * baseMVA / baseKV^2. Transformer x_pu/r_pu are re-based from baseMVA to s_nom: x_pu(s_nom) = x_pu(baseMVA) * s_nom / baseMVA; tap on bus0 (MATPOWER from-bus), phase_shift = SHIFT degrees, pi model.",
+    "RATE_A = 0 means unlimited in MATPOWER: canonical s_nom_mva = null; network.nc uses s_nom = 100000 MVA so PyPSA has a finite (non-binding) value. Affected: none.",
+    "Quadratic costs c2*P^2 + c1*P + c0 ($/h) are linearised to the secant slope over [0, Pmax]: marginal_cost = c1 + c2*Pmax (exact when c2 = 0; c0 dropped). Labelled modeled. Currency is MATPOWER's nominal $ and not converted to EUR.",
+    "Generators: p_nom = Pmax, p_min_pu = Pmin/Pmax, p_set = Pg, q_set = Qg; generator carrier = PGLib fuel comment (NG, COW, PEL, NUC, SYNC ...).",
+    "PGLib Pg values are an initial point, not a balanced dispatch: sum(Pg of in-service generators) = 3257.5 MW vs sum(Pd) = 4242 MW; in a power flow the Slack generator absorbs the difference (run an OPF for an economic dispatch).",
+    "Loads: p_set = Pd, q_set = Qd; only buses with non-zero Pd or Qd get a load. Bus shunts Gs/Bs become ShuntImpedance shunt-<BUS_I> in network.nc (not in canonical-grid/1.0).",
+    "Single operating point: one PyPSA snapshot 'now' with weighting 1 h, so loads.energy_mwh equals load MW x 1 h.",
+    "Bus x/y are a deterministic Kamada-Kawai layout of the branch graph (coordinate_kind schematic, crs null); they are NOT geographic.",
+    "Voltage limits Vmin/Vmax and setpoint Vm are stored as v_mag_pu_min/max/set in network.nc. RATE_B/RATE_C and branch angle limits are not represented.",
+    "summary.capacity_by_carrier_mw sums p_nom of active generators and storage units by carrier; summary.peak_load_mw is the coincident peak of total load p_set."
+  ]
+}

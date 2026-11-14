@@ -1,0 +1,69 @@
+{
+  "schema_version": "gridstorm-observed-derived/1.0",
+  "dataset_id": "opsd-de-observed-analogues",
+  "title": "Derived observed-analogue parameters from OPSD time series (Germany)",
+  "provenance": "derived",
+  "source": {
+    "name": "Open Power System Data - Time series",
+    "version": "2020-10-06",
+    "doi": "https://doi.org/10.25832/time_series/2020-10-06",
+    "url": "https://data.open-power-system-data.org/time_series/2020-10-06/time_series_60min_singleindex.csv",
+    "datapackage_url": "https://data.open-power-system-data.org/time_series/2020-10-06/datapackage.json",
+    "file": "time_series_60min_singleindex.csv",
+    "bytes": 130339665,
+    "sha256": "6a7f2bc571314cbf9c321cc03437691cd4be95c3a6f075e60ff99e8035c704c8",
+    "sha256_source": "published in datapackage.json resources[opsd_time_series_60min].hash and verified on the downloaded file",
+    "retrieved_at": "2026-11-14T15:56:46+00:00",
+    "columns_used": [
+      "DE_load_actual_entsoe_transparency",
+      "DE_solar_capacity",
+      "DE_solar_generation_actual",
+      "DE_wind_onshore_capacity",
+      "DE_wind_onshore_generation_actual",
+      "DE_wind_offshore_capacity",
+      "DE_wind_offshore_generation_actual"
+    ],
+    "coverage": {
+      "first_hour_utc": "2014-12-31T23:00:00+00:00",
+      "last_hour_utc": "2020-09-30T23:00:00+00:00",
+      "hours": 50401,
+      "missing_hours": {
+        "DE_load_actual_entsoe_transparency": 1,
+        "DE_solar_capacity": 6601,
+        "DE_solar_generation_actual": 104,
+        "DE_wind_offshore_capacity": 6601,
+        "DE_wind_offshore_generation_actual": 75,
+        "DE_wind_onshore_capacity": 6601,
+        "DE_wind_onshore_generation_actual": 73
+      }
+    },
+    "primary_source": "ENTSO-E Transparency Platform (via OPSD)"
+  },
+  "license": {
+    "opsd_package": "No data licence in datapackage.json (licenses: null); the OPSD page states 'Text is licensed under CC-BY license' (text only). OPSD notes primary data come from ENTSO-E Transparency.",
+    "entsoe_terms_url": "https://transparencyplatform.zendesk.com/hc/en-us/articles/40921911218961-Legal-Terms-and-Conditions",
+    "entsoe_reuse_list_url": "https://transparencyplatform.zendesk.com/hc/en-us/article_attachments/40921869379729",
+    "entsoe_reuse_list_sha256": "b21717e8a5a41b9b8544db730d11c2a717abc9b07f89704437a89332b708ff9a",
+    "entsoe_reuse_list_version": "2023-10-18",
+    "assessment": "Actual total load (Transparency Regulation Art. 6.1.a), actual generation per production type (16.1.b/c) and installed generation capacity (14.1.a) are not among the 35 items of ENTSO-E's list of data for free re-use under CC BY 4.0, so redistribution permission for these columns is not established.",
+    "redistribution": "restricted",
+    "committed_content": "derived hourly multipliers and summary statistics only; no observed hourly series"
+  },
+  "attribution": "Open Power System Data. 2020. Data Package Time series. Version 2020-10-06. https://doi.org/10.25832/time_series/2020-10-06. (Primary data from various sources, for a complete list see URL). Primary source of the DE columns used: ENTSO-E Transparency Platform.",
+  "units": {
+    "multipliers": "dimensionless",
+    "load": "MW",
+    "capacity_factor": "fraction of installed capacity",
+    "time": "UTC hour start"
+  },
+  "missing_value_policy": "No interpolation or filling. Hours absent from the source or empty are NaN; any UTC day/window with a NaN hour is excluded from detection; a mapped day must be complete.",
+  "derived_files": {
+    "derived-multipliers.json": "822867e9c0e459ca3e89543558136a2c7731baddd29bc137112cd7d7a8fde64b"
+  },
+  "scenario_files": {
+    "data/scenarios/observed/observed-peak-load-2017-12-13.yaml": "bfe3bc913cd7b2d87a845ab97290c89ba2c7c995dc5c18e0ea9bb7908a0952ff",
+    "data/scenarios/observed/observed-dunkelflaute-2015-01-20.yaml": "207897d45ae00c4e4f5454a117bc131b07b62acbfc4d134ce9390607818eb5d6",
+    "data/scenarios/observed/observed-high-load-low-res-2017-01-24.yaml": "59ee7b64d636445e39d74a476b9ab350d8c4ba440475f32df146f05a21206fc9"
+  },
+  "generator": "pipelines/observed: python -m gridstorm_observed.build"
+}

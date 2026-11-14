@@ -1,0 +1,582 @@
+{
+  "schema_version": "canonical-grid/1.0",
+  "network_id": "pglib-case14-ieee",
+  "name": "IEEE 14-bus (PGLib-OPF v23.07)",
+  "coordinate_kind": "schematic",
+  "crs": null,
+  "snapshots": {
+    "count": 1,
+    "start": null,
+    "end": null,
+    "resolution_h": 1.0
+  },
+  "buses": [
+    {
+      "id": "bus-1",
+      "name": null,
+      "x": -0.7969,
+      "y": 0.1136,
+      "v_nom_kv": 1.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-2",
+      "name": null,
+      "x": -0.5512,
+      "y": -0.2106,
+      "v_nom_kv": 1.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-3",
+      "name": null,
+      "x": -0.5124,
+      "y": -0.5977,
+      "v_nom_kv": 1.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-4",
+      "name": null,
+      "x": -0.157,
+      "y": -0.3215,
+      "v_nom_kv": 1.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-5",
+      "name": null,
+      "x": -0.3514,
+      "y": 0.1181,
+      "v_nom_kv": 1.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-6",
+      "name": null,
+      "x": -0.0589,
+      "y": 0.4818,
+      "v_nom_kv": 1.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-7",
+      "name": null,
+      "x": 0.169,
+      "y": -0.6021,
+      "v_nom_kv": 1.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-8",
+      "name": null,
+      "x": 0.3341,
+      "y": -1.0,
+      "v_nom_kv": 1.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-9",
+      "name": null,
+      "x": 0.2863,
+      "y": -0.2193,
+      "v_nom_kv": 1.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-10",
+      "name": null,
+      "x": 0.6855,
+      "y": -0.0267,
+      "v_nom_kv": 1.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-11",
+      "name": null,
+      "x": 0.5064,
+      "y": 0.4323,
+      "v_nom_kv": 1.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-12",
+      "name": null,
+      "x": -0.1174,
+      "y": 0.903,
+      "v_nom_kv": 1.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-13",
+      "name": null,
+      "x": 0.2117,
+      "y": 0.7038,
+      "v_nom_kv": 1.0,
+      "carrier": "AC",
+      "country": null
+    },
+    {
+      "id": "bus-14",
+      "name": null,
+      "x": 0.3522,
+      "y": 0.2253,
+      "v_nom_kv": 1.0,
+      "carrier": "AC",
+      "country": null
+    }
+  ],
+  "lines": [
+    {
+      "id": "branch-1",
+      "bus0": "bus-1",
+      "bus1": "bus-2",
+      "v_nom_kv": 1.0,
+      "s_nom_mva": 472.0,
+      "x_ohm": 0.0005917,
+      "r_ohm": 0.00019380000000000002,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-2",
+      "bus0": "bus-1",
+      "bus1": "bus-5",
+      "v_nom_kv": 1.0,
+      "s_nom_mva": 128.0,
+      "x_ohm": 0.0022304,
+      "r_ohm": 0.0005403000000000001,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-3",
+      "bus0": "bus-2",
+      "bus1": "bus-3",
+      "v_nom_kv": 1.0,
+      "s_nom_mva": 145.0,
+      "x_ohm": 0.0019797,
+      "r_ohm": 0.0004699,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-4",
+      "bus0": "bus-2",
+      "bus1": "bus-4",
+      "v_nom_kv": 1.0,
+      "s_nom_mva": 158.0,
+      "x_ohm": 0.0017632000000000001,
+      "r_ohm": 0.0005811,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-5",
+      "bus0": "bus-2",
+      "bus1": "bus-5",
+      "v_nom_kv": 1.0,
+      "s_nom_mva": 161.0,
+      "x_ohm": 0.0017388,
+      "r_ohm": 0.0005695,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-6",
+      "bus0": "bus-3",
+      "bus1": "bus-4",
+      "v_nom_kv": 1.0,
+      "s_nom_mva": 160.0,
+      "x_ohm": 0.0017102999999999999,
+      "r_ohm": 0.0006701,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-7",
+      "bus0": "bus-4",
+      "bus1": "bus-5",
+      "v_nom_kv": 1.0,
+      "s_nom_mva": 664.0,
+      "x_ohm": 0.0004211,
+      "r_ohm": 0.00013350000000000002,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-11",
+      "bus0": "bus-6",
+      "bus1": "bus-11",
+      "v_nom_kv": 1.0,
+      "s_nom_mva": 134.0,
+      "x_ohm": 0.001989,
+      "r_ohm": 0.0009498,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-12",
+      "bus0": "bus-6",
+      "bus1": "bus-12",
+      "v_nom_kv": 1.0,
+      "s_nom_mva": 104.0,
+      "x_ohm": 0.0025581,
+      "r_ohm": 0.0012291000000000001,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-13",
+      "bus0": "bus-6",
+      "bus1": "bus-13",
+      "v_nom_kv": 1.0,
+      "s_nom_mva": 201.0,
+      "x_ohm": 0.0013027,
+      "r_ohm": 0.0006615,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-14",
+      "bus0": "bus-7",
+      "bus1": "bus-8",
+      "v_nom_kv": 1.0,
+      "s_nom_mva": 167.0,
+      "x_ohm": 0.0017615,
+      "r_ohm": 0.0,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-15",
+      "bus0": "bus-7",
+      "bus1": "bus-9",
+      "v_nom_kv": 1.0,
+      "s_nom_mva": 267.0,
+      "x_ohm": 0.0011001,
+      "r_ohm": 0.0,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-16",
+      "bus0": "bus-9",
+      "bus1": "bus-10",
+      "v_nom_kv": 1.0,
+      "s_nom_mva": 325.0,
+      "x_ohm": 0.000845,
+      "r_ohm": 0.0003181,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-17",
+      "bus0": "bus-9",
+      "bus1": "bus-14",
+      "v_nom_kv": 1.0,
+      "s_nom_mva": 99.0,
+      "x_ohm": 0.0027038,
+      "r_ohm": 0.0012711,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-18",
+      "bus0": "bus-10",
+      "bus1": "bus-11",
+      "v_nom_kv": 1.0,
+      "s_nom_mva": 141.0,
+      "x_ohm": 0.0019207,
+      "r_ohm": 0.0008204999999999999,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-19",
+      "bus0": "bus-12",
+      "bus1": "bus-13",
+      "v_nom_kv": 1.0,
+      "s_nom_mva": 99.0,
+      "x_ohm": 0.0019988000000000002,
+      "r_ohm": 0.0022092,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "branch-20",
+      "bus0": "bus-13",
+      "bus1": "bus-14",
+      "v_nom_kv": 1.0,
+      "s_nom_mva": 76.0,
+      "x_ohm": 0.0034802,
+      "r_ohm": 0.0017093,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    }
+  ],
+  "transformers": [
+    {
+      "id": "branch-8",
+      "bus0": "bus-4",
+      "bus1": "bus-7",
+      "s_nom_mva": 141.0,
+      "x_pu": 0.2948592,
+      "r_pu": 0.0,
+      "tap_ratio": 0.978
+    },
+    {
+      "id": "branch-9",
+      "bus0": "bus-4",
+      "bus1": "bus-9",
+      "s_nom_mva": 53.0,
+      "x_pu": 0.2947754,
+      "r_pu": 0.0,
+      "tap_ratio": 0.969
+    },
+    {
+      "id": "branch-10",
+      "bus0": "bus-5",
+      "bus1": "bus-6",
+      "s_nom_mva": 117.0,
+      "x_pu": 0.2948634,
+      "r_pu": 0.0,
+      "tap_ratio": 0.932
+    }
+  ],
+  "links": [],
+  "generators": [
+    {
+      "id": "gen-1",
+      "bus": "bus-1",
+      "carrier": "NG",
+      "p_nom_mw": 340.0,
+      "marginal_cost_eur_per_mwh": 7.920951,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-2",
+      "bus": "bus-2",
+      "carrier": "NG",
+      "p_nom_mw": 59.0,
+      "marginal_cost_eur_per_mwh": 23.269494,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-3",
+      "bus": "bus-3",
+      "carrier": "SYNC",
+      "p_nom_mw": 0.0,
+      "marginal_cost_eur_per_mwh": 0.0,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-4",
+      "bus": "bus-6",
+      "carrier": "SYNC",
+      "p_nom_mw": 0.0,
+      "marginal_cost_eur_per_mwh": 0.0,
+      "p_nom_extendable": null,
+      "is_variable": false
+    },
+    {
+      "id": "gen-5",
+      "bus": "bus-8",
+      "carrier": "SYNC",
+      "p_nom_mw": 0.0,
+      "marginal_cost_eur_per_mwh": 0.0,
+      "p_nom_extendable": null,
+      "is_variable": false
+    }
+  ],
+  "loads": [
+    {
+      "id": "load-2",
+      "bus": "bus-2",
+      "p_peak_mw": 21.7,
+      "p_mean_mw": 21.7,
+      "energy_mwh": 21.7
+    },
+    {
+      "id": "load-3",
+      "bus": "bus-3",
+      "p_peak_mw": 94.2,
+      "p_mean_mw": 94.2,
+      "energy_mwh": 94.2
+    },
+    {
+      "id": "load-4",
+      "bus": "bus-4",
+      "p_peak_mw": 47.8,
+      "p_mean_mw": 47.8,
+      "energy_mwh": 47.8
+    },
+    {
+      "id": "load-5",
+      "bus": "bus-5",
+      "p_peak_mw": 7.6,
+      "p_mean_mw": 7.6,
+      "energy_mwh": 7.6
+    },
+    {
+      "id": "load-6",
+      "bus": "bus-6",
+      "p_peak_mw": 11.2,
+      "p_mean_mw": 11.2,
+      "energy_mwh": 11.2
+    },
+    {
+      "id": "load-9",
+      "bus": "bus-9",
+      "p_peak_mw": 29.5,
+      "p_mean_mw": 29.5,
+      "energy_mwh": 29.5
+    },
+    {
+      "id": "load-10",
+      "bus": "bus-10",
+      "p_peak_mw": 9.0,
+      "p_mean_mw": 9.0,
+      "energy_mwh": 9.0
+    },
+    {
+      "id": "load-11",
+      "bus": "bus-11",
+      "p_peak_mw": 3.5,
+      "p_mean_mw": 3.5,
+      "energy_mwh": 3.5
+    },
+    {
+      "id": "load-12",
+      "bus": "bus-12",
+      "p_peak_mw": 6.1,
+      "p_mean_mw": 6.1,
+      "energy_mwh": 6.1
+    },
+    {
+      "id": "load-13",
+      "bus": "bus-13",
+      "p_peak_mw": 13.5,
+      "p_mean_mw": 13.5,
+      "energy_mwh": 13.5
+    },
+    {
+      "id": "load-14",
+      "bus": "bus-14",
+      "p_peak_mw": 14.9,
+      "p_mean_mw": 14.9,
+      "energy_mwh": 14.9
+    }
+  ],
+  "storage_units": [],
+  "stores": [],
+  "carriers": [
+    {
+      "id": "AC",
+      "color": null,
+      "co2_emissions_t_per_mwh": null,
+      "nice_name": "AC"
+    },
+    {
+      "id": "NG",
+      "color": null,
+      "co2_emissions_t_per_mwh": null,
+      "nice_name": "Natural gas"
+    },
+    {
+      "id": "SYNC",
+      "color": null,
+      "co2_emissions_t_per_mwh": null,
+      "nice_name": "Synchronous condenser"
+    }
+  ],
+  "summary": {
+    "counts": {
+      "buses": 14,
+      "lines": 17,
+      "transformers": 3,
+      "links": 0,
+      "generators": 5,
+      "loads": 11,
+      "storage_units": 0,
+      "stores": 0,
+      "carriers": 3
+    },
+    "capacity_by_carrier_mw": {
+      "NG": 399.0,
+      "SYNC": 0.0
+    },
+    "peak_load_mw": 259.0,
+    "total_load_mwh": 259.0
+  },
+  "field_provenance": {
+    "buses.carrier": "synthetic",
+    "buses.v_nom_kv": "synthetic",
+    "buses.x": "calculated",
+    "buses.y": "calculated",
+    "carriers.nice_name": "synthetic",
+    "generators.carrier": "synthetic",
+    "generators.is_variable": "calculated",
+    "generators.marginal_cost_eur_per_mwh": "modeled",
+    "generators.p_nom_mw": "synthetic",
+    "lines.carrier": "synthetic",
+    "lines.num_parallel": "synthetic",
+    "lines.r_ohm": "calculated",
+    "lines.s_nom_mva": "synthetic",
+    "lines.v_nom_kv": "calculated",
+    "lines.x_ohm": "calculated",
+    "loads.energy_mwh": "calculated",
+    "loads.p_mean_mw": "synthetic",
+    "loads.p_peak_mw": "synthetic",
+    "transformers.r_pu": "calculated",
+    "transformers.s_nom_mva": "synthetic",
+    "transformers.tap_ratio": "synthetic",
+    "transformers.x_pu": "calculated"
+  },
+  "assumptions": [
+    "Imported from pglib_opf_case14_ieee.m (PGLib-OPF v23.07, commit dc6be4b); 14 buses, 20 branches (17 lines, 3 transformers), 5 generators.",
+    "Ids: bus-<BUS_I>, branch-<row of mpc.branch>, gen-<row of mpc.gen>, load-<BUS_I>. A branch is a transformer if TAP not in {0,1}, SHIFT != 0 or baseKV differs at its ends; it keeps the id branch-<row> in the transformers list.",
+    "Line impedances: x_ohm = x_pu * baseKV^2 / baseMVA (r likewise); line shunt b in S = b_pu * baseMVA / baseKV^2. Transformer x_pu/r_pu are re-based from baseMVA to s_nom: x_pu(s_nom) = x_pu(baseMVA) * s_nom / baseMVA; tap on bus0 (MATPOWER from-bus), phase_shift = SHIFT degrees, pi model.",
+    "RATE_A = 0 means unlimited in MATPOWER: canonical s_nom_mva = null; network.nc uses s_nom = 100000 MVA so PyPSA has a finite (non-binding) value. Affected: none.",
+    "Quadratic costs c2*P^2 + c1*P + c0 ($/h) are linearised to the secant slope over [0, Pmax]: marginal_cost = c1 + c2*Pmax (exact when c2 = 0; c0 dropped). Labelled modeled. Currency is MATPOWER's nominal $ and not converted to EUR.",
+    "Generators: p_nom = Pmax, p_min_pu = Pmin/Pmax, p_set = Pg, q_set = Qg; generator carrier = PGLib fuel comment (NG, COW, PEL, NUC, SYNC ...).",
+    "PGLib Pg values are an initial point, not a balanced dispatch: sum(Pg of in-service generators) = 199.5 MW vs sum(Pd) = 259 MW; in a power flow the Slack generator absorbs the difference (run an OPF for an economic dispatch).",
+    "Loads: p_set = Pd, q_set = Qd; only buses with non-zero Pd or Qd get a load. Bus shunts Gs/Bs become ShuntImpedance shunt-<BUS_I> in network.nc (not in canonical-grid/1.0).",
+    "Single operating point: one PyPSA snapshot 'now' with weighting 1 h, so loads.energy_mwh equals load MW x 1 h.",
+    "Bus x/y are a deterministic Kamada-Kawai layout of the branch graph (coordinate_kind schematic, crs null); they are NOT geographic.",
+    "Voltage limits Vmin/Vmax and setpoint Vm are stored as v_mag_pu_min/max/set in network.nc. RATE_B/RATE_C and branch angle limits are not represented.",
+    "summary.capacity_by_carrier_mw sums p_nom of active generators and storage units by carrier; summary.peak_load_mw is the coincident peak of total load p_set."
+  ]
+}

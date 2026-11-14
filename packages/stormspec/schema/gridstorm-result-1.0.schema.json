@@ -1,0 +1,204 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:gridstorm:schema:gridstorm-result:1.0",
+  "title": "gridstorm-result/1.0",
+  "description": "Simulation result per docs/architecture/contracts.md section 4. Feasible results carry metrics/series/assets; infeasible and error results carry null in their place (never fabricated numbers).",
+  "type": "object",
+  "required": [
+    "schema_version", "scenario_id", "scenario_hash", "network_id", "engine", "solver", "outcome",
+    "snapshots", "snapshot_weightings_h", "metrics", "series", "assets", "assumptions", "warnings",
+    "manifest"
+  ],
+  "properties": {
+    "schema_version": {"const": "gridstorm-result/1.0"},
+    "scenario_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]{2,63}$"},
+    "scenario_hash": {"$ref": "#/$defs/sha256"},
+    "network_id": {"type": "string", "minLength": 1},
+    "provenance": {"enum": ["observed", "estimated", "synthetic", "modeled", "calculated"]},
+    "engine": {
+      "type": "object",
+      "required": ["name", "version", "formulation"],
+      "properties": {
+        "name": {"enum": ["pypsa", "pandapower", "grid2op"]},
+        "version": {"type": "string"},
+        "formulation": {"enum": ["lopf", "ac_pf", "n_minus_1", "sequential"]}
+      }
+    },
+    "solver": {
+      "type": "object",
+      "required": ["name", "version", "status", "termination_condition", "objective_eur", "wall_time_s"],
+      "properties": {
+        "name": {"type": "string"},
+        "version": {"type": ["string", "null"]},
+        "status": {"enum": ["ok", "warning", "error"]},
+        "termination_condition": {"type": "string"},
+        "objective_eur": {"type": ["number", "null"]},
+        "wall_time_s": {"type": "number", "minimum": 0}
+      }
+    },
+    "outcome": {"enum": ["feasible", "infeasible", "error"]},
+    "snapshots": {"type": "array", "items": {"type": "string"}},
+    "snapshot_weightings_h": {"type": "array", "items": {"type": "number", "exclusiveMinimum": 0}},
+    "metrics": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/metrics"}]},
+    "series": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/series"}]},
+    "assets": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/assets"}]},
+    "assumptions": {"type": "array", "items": {"type": "string"}},
+    "warnings": {"type": "array", "items": {"type": "string"}},
+    "manifest": {"$ref": "#/$defs/manifest"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"outcome": {"const": "feasible"}}},
+      "then": {
+        "properties": {
+          "metrics": {"$ref": "#/$defs/metrics"},
+          "series": {"$ref": "#/$defs/series"},
+          "assets": {"$ref": "#/$defs/assets"},
+          "solver": {"properties": {"objective_eur": {"type": "number"}}}
+        }
+      },
+      "else": {
+        "properties": {
+          "metrics": {"type": "null"},
+          "series": {"type": "null"},
+          "assets": {"type": "null"},
+          "solver": {"properties": {"objective_eur": {"type": "null"}}}
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "num": {"type": ["number", "null"]},
+    "numseries": {"type": "array", "items": {"type": ["number", "null"]}},
+    "bycarrier_mwh": {"type": "object", "additionalProperties": {"type": ["number", "null"]}},
+    "metrics": {
+      "type": "object",
+      "required": [
+        "total_load_mwh", "served_load_mwh", "unserved_energy_mwh", "peak_load_shed_mw",
+        "load_shed_hours", "total_system_cost_eur", "generation_cost_eur", "load_shedding_cost_eur",
+        "generation_by_carrier_mwh", "curtailment_mwh", "curtailment_by_carrier_mwh",
+        "max_line_loading_pct", "mean_line_loading_pct", "congested_line_count",
+        "storage_discharge_mwh", "storage_charge_mwh", "co2_emissions_t", "balance_residual_max_mw"
+      ],
+      "properties": {
+        "total_load_mwh": {"type": "number", "minimum": 0},
+        "served_load_mwh": {"type": "number"},
+        "unserved_energy_mwh": {"type": "number", "minimum": 0},
+        "peak_load_shed_mw": {"type": "number", "minimum": 0},
+        "load_shed_hours": {"type": "number", "minimum": 0},
+        "total_system_cost_eur": {"type": "number"},
+        "generation_cost_eur": {"type": "number"},
+        "load_shedding_cost_eur": {"type": "number", "minimum": 0},
+        "generation_by_carrier_mwh": {"$ref": "#/$defs/bycarrier_mwh"},
+        "curtailment_mwh": {"type": "number", "minimum": 0},
+        "curtailment_by_carrier_mwh": {"$ref": "#/$defs/bycarrier_mwh"},
+        "max_line_loading_pct": {"$ref": "#/$defs/num"},
+        "mean_line_loading_pct": {"$ref": "#/$defs/num"},
+        "congested_line_count": {"type": "integer", "minimum": 0},
+        "storage_discharge_mwh": {"type": "number", "minimum": 0},
+        "storage_charge_mwh": {"type": "number", "minimum": 0},
+        "co2_emissions_t": {"$ref": "#/$defs/num"},
+        "balance_residual_max_mw": {"type": "number", "minimum": 0}
+      }
+    },
+    "series": {
+      "type": "object",
+      "required": [
+        "load_mw", "load_shed_mw", "generation_by_carrier_mw", "storage_dispatch_mw",
+        "storage_soc_mwh", "curtailment_mw", "mean_marginal_price_eur_per_mwh"
+      ],
+      "properties": {
+        "load_mw": {"$ref": "#/$defs/numseries"},
+        "load_shed_mw": {"$ref": "#/$defs/numseries"},
+        "generation_by_carrier_mw": {"type": "object", "additionalProperties": {"$ref": "#/$defs/numseries"}},
+        "storage_dispatch_mw": {"$ref": "#/$defs/numseries"},
+        "storage_soc_mwh": {"$ref": "#/$defs/numseries"},
+        "curtailment_mw": {"$ref": "#/$defs/numseries"},
+        "mean_marginal_price_eur_per_mwh": {"$ref": "#/$defs/numseries"}
+      }
+    },
+    "branch": {
+      "type": "object",
+      "required": ["id", "s_nom_mva", "outaged", "flow_mw", "loading_pct"],
+      "properties": {
+        "id": {"type": "string"},
+        "s_nom_mva": {"$ref": "#/$defs/num"},
+        "outaged": {"type": "boolean"},
+        "flow_mw": {"$ref": "#/$defs/numseries"},
+        "loading_pct": {"$ref": "#/$defs/numseries"}
+      }
+    },
+    "assets": {
+      "type": "object",
+      "required": ["lines", "links", "buses", "generators", "storage_units"],
+      "properties": {
+        "lines": {"type": "array", "items": {"$ref": "#/$defs/branch"}},
+        "transformers": {"type": "array", "items": {"$ref": "#/$defs/branch"}},
+        "links": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "p_nom_mw", "outaged", "flow_mw"],
+            "properties": {
+              "id": {"type": "string"},
+              "p_nom_mw": {"$ref": "#/$defs/num"},
+              "outaged": {"type": "boolean"},
+              "flow_mw": {"$ref": "#/$defs/numseries"}
+            }
+          }
+        },
+        "buses": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "marginal_price_eur_per_mwh", "load_shed_mw"],
+            "properties": {
+              "id": {"type": "string"},
+              "marginal_price_eur_per_mwh": {"$ref": "#/$defs/numseries"},
+              "load_shed_mw": {"$ref": "#/$defs/numseries"}
+            }
+          }
+        },
+        "generators": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "carrier", "p_mw", "available_mw", "outaged"],
+            "properties": {
+              "id": {"type": "string"},
+              "carrier": {"type": "string"},
+              "p_mw": {"$ref": "#/$defs/numseries"},
+              "available_mw": {"$ref": "#/$defs/numseries"},
+              "outaged": {"type": "boolean"}
+            }
+          }
+        },
+        "storage_units": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "p_mw", "soc_mwh"],
+            "properties": {
+              "id": {"type": "string"},
+              "p_mw": {"$ref": "#/$defs/numseries"},
+              "soc_mwh": {"$ref": "#/$defs/numseries"}
+            }
+          }
+        }
+      }
+    },
+    "manifest": {
+      "type": "object",
+      "required": ["schema_version", "scenario_hash", "dataset_sha256", "engine_name", "engine_version",
+                   "solver_name", "solver_version", "solver_options", "started_at", "finished_at",
+                   "result_sha256"],
+      "properties": {
+        "schema_version": {"const": "execution-manifest/1.0"},
+        "scenario_hash": {"$ref": "#/$defs/sha256"},
+        "dataset_sha256": {"anyOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
+        "result_sha256": {"anyOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]}
+      }
+    }
+  }
+}

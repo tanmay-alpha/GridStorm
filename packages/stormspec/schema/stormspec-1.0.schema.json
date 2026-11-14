@@ -1,0 +1,538 @@
+{
+  "$defs": {
+    "Dataset": {
+      "additionalProperties": false,
+      "properties": {
+        "network_id": {
+          "description": "Network id in data/networks.",
+          "pattern": "^[a-z0-9][a-z0-9-]{2,63}$",
+          "title": "Network Id",
+          "type": "string"
+        },
+        "sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "sha256 of the network.nc the scenario was authored against; null = unpinned.",
+          "title": "Sha256"
+        }
+      },
+      "required": [
+        "network_id"
+      ],
+      "title": "Dataset",
+      "type": "object"
+    },
+    "DemandMultiplier": {
+      "additionalProperties": false,
+      "description": "Scale electrical demand (all loads, or loads at ``buses``) by ``value`` within ``window``.",
+      "properties": {
+        "buses": {
+          "anyOf": [
+            {
+              "items": {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Bus ids whose loads are scaled; null = all loads.",
+          "title": "Buses"
+        },
+        "type": {
+          "const": "demand_multiplier",
+          "default": "demand_multiplier",
+          "title": "Type",
+          "type": "string"
+        },
+        "value": {
+          "description": "Dimensionless demand multiplier.",
+          "exclusiveMinimum": 0.0,
+          "maximum": 5.0,
+          "title": "Value",
+          "type": "number"
+        },
+        "window": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Window"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "value"
+      ],
+      "title": "DemandMultiplier",
+      "type": "object"
+    },
+    "Execution": {
+      "additionalProperties": false,
+      "properties": {
+        "deterministic": {
+          "default": true,
+          "title": "Deterministic",
+          "type": "boolean"
+        },
+        "engine": {
+          "enum": [
+            "pypsa",
+            "pandapower",
+            "grid2op"
+          ],
+          "title": "Engine",
+          "type": "string"
+        },
+        "formulation": {
+          "enum": [
+            "lopf",
+            "ac_pf",
+            "n_minus_1",
+            "sequential"
+          ],
+          "title": "Formulation",
+          "type": "string"
+        },
+        "seed": {
+          "default": 0,
+          "maximum": 2147483647,
+          "minimum": 0,
+          "title": "Seed",
+          "type": "integer"
+        },
+        "solver": {
+          "anyOf": [
+            {
+              "maxLength": 50,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": "highs",
+          "title": "Solver"
+        },
+        "solver_options": {
+          "$ref": "#/$defs/SolverOptions"
+        }
+      },
+      "required": [
+        "engine",
+        "formulation"
+      ],
+      "title": "Execution",
+      "type": "object"
+    },
+    "GeneratorOutage": {
+      "additionalProperties": false,
+      "description": "Force a generator's available capacity to zero within ``window``.",
+      "properties": {
+        "asset_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Asset Id",
+          "type": "string"
+        },
+        "type": {
+          "const": "generator_outage",
+          "default": "generator_outage",
+          "title": "Type",
+          "type": "string"
+        },
+        "window": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Window"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "asset_id"
+      ],
+      "title": "GeneratorOutage",
+      "type": "object"
+    },
+    "Horizon": {
+      "additionalProperties": false,
+      "properties": {
+        "snapshots": {
+          "description": "Number of consecutive snapshots.",
+          "maximum": 8784,
+          "minimum": 1,
+          "title": "Snapshots",
+          "type": "integer"
+        },
+        "start": {
+          "default": 0,
+          "description": "First snapshot index (0-based).",
+          "minimum": 0,
+          "title": "Start",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "snapshots"
+      ],
+      "title": "Horizon",
+      "type": "object"
+    },
+    "LineOutage": {
+      "additionalProperties": false,
+      "description": "Take an AC line or a transformer out of service.\n\n``component`` selects which list ``asset_id`` is resolved in: some datasets (e.g. SciGRID)\nreuse the same name for a line and a transformer.",
+      "properties": {
+        "asset_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Asset Id",
+          "type": "string"
+        },
+        "component": {
+          "default": "line",
+          "description": "Component list in which asset_id is resolved.",
+          "enum": [
+            "line",
+            "transformer"
+          ],
+          "title": "Component",
+          "type": "string"
+        },
+        "type": {
+          "const": "line_outage",
+          "default": "line_outage",
+          "title": "Type",
+          "type": "string"
+        },
+        "window": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Window"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "null = whole horizon. Engines declare whether partial windows are supported."
+        }
+      },
+      "required": [
+        "asset_id"
+      ],
+      "title": "LineOutage",
+      "type": "object"
+    },
+    "LinkOutage": {
+      "additionalProperties": false,
+      "description": "Take a controllable link (e.g. HVDC) out of service.",
+      "properties": {
+        "asset_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Asset Id",
+          "type": "string"
+        },
+        "type": {
+          "const": "link_outage",
+          "default": "link_outage",
+          "title": "Type",
+          "type": "string"
+        },
+        "window": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Window"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "asset_id"
+      ],
+      "title": "LinkOutage",
+      "type": "object"
+    },
+    "LoadShedding": {
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "default": true,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "voll_eur_per_mwh": {
+          "default": 10000.0,
+          "description": "Value of lost load used as marginal cost of the load-shedding generators.",
+          "exclusiveMinimum": 0.0,
+          "maximum": 1000000.0,
+          "title": "Voll Eur Per Mwh",
+          "type": "number"
+        }
+      },
+      "title": "LoadShedding",
+      "type": "object"
+    },
+    "Mitigation": {
+      "additionalProperties": false,
+      "properties": {
+        "curtailment": {
+          "default": true,
+          "description": "false => variable renewables must produce all available power.",
+          "title": "Curtailment",
+          "type": "boolean"
+        },
+        "load_shedding": {
+          "$ref": "#/$defs/LoadShedding"
+        },
+        "storage_dispatch": {
+          "default": true,
+          "description": "false => storage units are held at zero dispatch.",
+          "title": "Storage Dispatch",
+          "type": "boolean"
+        }
+      },
+      "title": "Mitigation",
+      "type": "object"
+    },
+    "RenewableAvailabilityMultiplier": {
+      "additionalProperties": false,
+      "description": "Scale the per-unit availability of variable generators of ``carrier`` (e.g. wind).",
+      "properties": {
+        "carrier": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Carrier",
+          "type": "string"
+        },
+        "type": {
+          "const": "renewable_availability_multiplier",
+          "default": "renewable_availability_multiplier",
+          "title": "Type",
+          "type": "string"
+        },
+        "value": {
+          "description": "Multiplier on availability (p_max_pu); <=1 so availability stays within [0,1].",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Value",
+          "type": "number"
+        },
+        "window": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Window"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "carrier",
+        "value"
+      ],
+      "title": "RenewableAvailabilityMultiplier",
+      "type": "object"
+    },
+    "SolverOptions": {
+      "additionalProperties": false,
+      "properties": {
+        "threads": {
+          "default": 1,
+          "maximum": 64,
+          "minimum": 1,
+          "title": "Threads",
+          "type": "integer"
+        },
+        "time_limit_s": {
+          "default": 120.0,
+          "exclusiveMinimum": 0.0,
+          "maximum": 3600.0,
+          "title": "Time Limit S",
+          "type": "number"
+        }
+      },
+      "title": "SolverOptions",
+      "type": "object"
+    },
+    "StorageState": {
+      "additionalProperties": false,
+      "description": "Set the initial state of charge of a storage unit as a fraction of its energy capacity.",
+      "properties": {
+        "asset_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Asset Id",
+          "type": "string"
+        },
+        "initial_soc_fraction": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Initial Soc Fraction",
+          "type": "number"
+        },
+        "type": {
+          "const": "storage_state",
+          "default": "storage_state",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "asset_id",
+        "initial_soc_fraction"
+      ],
+      "title": "StorageState",
+      "type": "object"
+    },
+    "Window": {
+      "additionalProperties": false,
+      "description": "Half-open interval ``[start, end)`` of absolute network snapshot indices.",
+      "properties": {
+        "end": {
+          "description": "Snapshot index after the last affected one (exclusive).",
+          "exclusiveMinimum": 0,
+          "title": "End",
+          "type": "integer"
+        },
+        "start": {
+          "description": "First affected snapshot index (inclusive).",
+          "minimum": 0,
+          "title": "Start",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "start",
+        "end"
+      ],
+      "title": "Window",
+      "type": "object"
+    }
+  },
+  "$id": "urn:gridstorm:schema:stormspec:1.0",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "GridStorm crisis-scenario specification, version 1.0.",
+  "properties": {
+    "assumptions": {
+      "items": {
+        "maxLength": 1000,
+        "type": "string"
+      },
+      "maxItems": 100,
+      "title": "Assumptions",
+      "type": "array"
+    },
+    "dataset": {
+      "$ref": "#/$defs/Dataset"
+    },
+    "description": {
+      "default": "",
+      "maxLength": 4000,
+      "title": "Description",
+      "type": "string"
+    },
+    "events": {
+      "items": {
+        "discriminator": {
+          "mapping": {
+            "demand_multiplier": "#/$defs/DemandMultiplier",
+            "generator_outage": "#/$defs/GeneratorOutage",
+            "line_outage": "#/$defs/LineOutage",
+            "link_outage": "#/$defs/LinkOutage",
+            "renewable_availability_multiplier": "#/$defs/RenewableAvailabilityMultiplier",
+            "storage_state": "#/$defs/StorageState"
+          },
+          "propertyName": "type"
+        },
+        "oneOf": [
+          {
+            "$ref": "#/$defs/DemandMultiplier"
+          },
+          {
+            "$ref": "#/$defs/RenewableAvailabilityMultiplier"
+          },
+          {
+            "$ref": "#/$defs/LineOutage"
+          },
+          {
+            "$ref": "#/$defs/LinkOutage"
+          },
+          {
+            "$ref": "#/$defs/GeneratorOutage"
+          },
+          {
+            "$ref": "#/$defs/StorageState"
+          }
+        ]
+      },
+      "maxItems": 200,
+      "title": "Events",
+      "type": "array"
+    },
+    "execution": {
+      "$ref": "#/$defs/Execution"
+    },
+    "horizon": {
+      "$ref": "#/$defs/Horizon"
+    },
+    "id": {
+      "pattern": "^[a-z0-9][a-z0-9-]{2,63}$",
+      "title": "Id",
+      "type": "string"
+    },
+    "mitigation": {
+      "$ref": "#/$defs/Mitigation"
+    },
+    "name": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Name",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "stormspec/1.0",
+      "default": "stormspec/1.0",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "name",
+    "dataset",
+    "horizon",
+    "execution"
+  ],
+  "title": "StormSpec scenario",
+  "type": "object"
+}

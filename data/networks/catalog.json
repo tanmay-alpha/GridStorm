@@ -1,0 +1,21 @@
+{
+  "schema_version": "network-catalog/1.0",
+  "networks": [
+    {
+      "id": "ac-dc-meshed",
+      "path": "ac-dc-meshed"
+    },
+    {
+      "id": "pglib-case118-ieee",
+      "path": "pglib-case118-ieee"
+    },
+    {
+      "id": "pglib-case14-ieee",
+      "path": "pglib-case14-ieee"
+    },
+    {
+      "id": "scigrid-de",
+      "path": "scigrid-de"
+    }
+  ]
+}

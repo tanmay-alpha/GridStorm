@@ -1,0 +1,6 @@
+# GridStorm overlay applied after upstream config/test/config.electricity.yaml.
+# Intentionally a no-op restatement: GridStorm uses the upstream tutorial settings unchanged
+# (BE, 5 clusters, 2013-03-01..08, 24h temporal averaging, HiGHS) so results are comparable
+# to upstream CI. Any future deviation must be listed in docs/research/pypsa-eur-build.md.
+run:
+  name: test-elec

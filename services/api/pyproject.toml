@@ -1,0 +1,61 @@
+[project]
+name = "gridstorm-api"
+version = "0.1.0"
+description = "GridStorm HTTP API (FastAPI): network catalog, StormSpec scenarios, simulation jobs, comparisons, reports"
+license = "Apache-2.0"
+requires-python = ">=3.11,<3.12"
+dependencies = [
+    "fastapi>=0.115,<1",
+    "uvicorn[standard]>=0.30",
+    "pydantic>=2.7,<3",
+    "sqlalchemy>=2.0.30,<2.1",
+    "psycopg[binary]>=3.2,<4",
+    "pyjwt[crypto]>=2.9,<3",
+    "boto3>=1.34",
+    "pyyaml>=6",
+    "psutil>=5.9",
+    "stormspec[yaml]",
+    "canonical-grid",
+    "gridstorm-pypsa",
+    "gridstorm-analytics",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "httpx>=0.27",
+    "ruff>=0.6",
+]
+
+[tool.uv.sources]
+stormspec = { path = "../../packages/stormspec", editable = true }
+canonical-grid = { path = "../../packages/canonical-grid", editable = true }
+gridstorm-pypsa = { path = "../../workers/pypsa", editable = true }
+gridstorm-analytics = { path = "../analytics", editable = true }
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/gridstorm_api"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+markers = [
+    "docker: needs Docker to start a postgres:16 container (deselected in fast CI)",
+    "slow: runs the real gridstorm_pypsa engine end to end (deselected in fast CI)",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "S"]
+ignore = ["S101", "S603", "B008"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S", "B"]

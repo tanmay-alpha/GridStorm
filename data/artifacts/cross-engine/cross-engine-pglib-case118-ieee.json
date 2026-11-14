@@ -1,0 +1,502 @@
+{
+ "artifact": {
+  "schema_version": "gridstorm-artifact/1.0",
+  "artifact_id": "cross-engine-pglib-case118-ieee",
+  "kind": "benchmark",
+  "engine": "cross-engine",
+  "engine_version": "pandapower 3.5.6 | pypsa 1.4.0",
+  "network_id": "pglib-case118-ieee",
+  "created_at": "2026-11-14T16:15:32+00:00",
+  "command": "python tests/cross_engine/run_all.py",
+  "inputs": [
+   {
+    "path": "data/networks/pglib-case118-ieee/source/pglib_opf_case118_ieee.m",
+    "sha256": "b1af0833849040c04babc3700631cff0d9afa66b79c5d3e13ae79bdf516cec78"
+   },
+   {
+    "path": "data/networks/pglib-case118-ieee/network.nc",
+    "sha256": "f355e7888f8864231e3f113d339d08efd647ead9bcb9f2b77fc4e3171d2dcdad"
+   }
+  ],
+  "platform": "Windows-10-10.0.26300-SP0; python 3.11.15",
+  "execution_mode": "precomputed",
+  "payload_sha256": "2a02d016337dc5e1de18cafa4e3e40359075e3fe326adf6b9781c7e3be7f6c98"
+ },
+ "payload": {
+  "network_id": "pglib-case118-ieee",
+  "engines": [
+   {
+    "name": "pandapower",
+    "version": "3.5.6",
+    "role": "rundcpp / runpp / rundcopp on from_mpc conversion"
+   },
+   {
+    "name": "pypsa",
+    "version": "1.4.0",
+    "role": "lpf / optimize (HiGHS (highspy 1.16.0) via linopy 0.10.1) on committed network.nc"
+   },
+   {
+    "name": "matpower-formula-numpy",
+    "version": "numpy 2.4.6",
+    "role": "independent makeBdc/dcpf arbiter; DC OPF LP via scipy.optimize.linprog(highs)"
+   }
+  ],
+  "dispatch": {
+   "allocation": "PGLib PG + residual pro rata to headroom",
+   "max_utilisation_pmax": 0.651113,
+   "pglib_total_pg_mw": 3257.5,
+   "residual_allocated_mw": 984.5,
+   "slack_bus": "bus-69",
+   "slack_gen": "gen-30",
+   "slack_gen_p_mw": 769.615,
+   "slack_gen_pmax_mw": 1182.0,
+   "total_gs_mw": 0.0,
+   "total_load_mw": 4242.0
+  },
+  "case_features": {
+   "base_kv_values": [
+    138.0,
+    161.0,
+    345.0
+   ],
+   "gencost_has_quadratic_terms": false,
+   "gencost_max_order": 2,
+   "n_branch": 186,
+   "n_branch_out_of_service": 0,
+   "n_bus": 118,
+   "n_bus_bs_nonzero": 14,
+   "n_bus_gs_nonzero": 0,
+   "n_gen": 54,
+   "n_parallel_branch_pairs": 7,
+   "n_phase_shifters": 0,
+   "n_tap_ne_1": 9
+  },
+  "conversion": {
+   "pandapower": {
+    "ext_grid_bus": "bus-69",
+    "ext_grids": 1,
+    "gens": 53,
+    "impedances": 2,
+    "lines": 175,
+    "loader": "pandapower.converter.matpower.from_mpc steps (_m2ppc via matpowercaseframes, from_ppc)",
+    "loads": 99,
+    "sgens": 0,
+    "shunts": 14,
+    "trafos": 9
+   },
+   "pandapower_parser_crosscheck": {
+    "baseMVA_equal": true,
+    "branch_max_abs_diff": 0.0,
+    "bus_max_abs_diff": 0.0,
+    "gen_max_abs_diff": 0.0,
+    "gencost_max_abs_diff": 0.0
+   },
+   "pypsa": {
+    "buses": 118,
+    "generators": 54,
+    "lines": 175,
+    "links": 0,
+    "loads": 99,
+    "shunt_impedances": 14,
+    "storage_units": 0,
+    "stores": 0,
+    "transformers": 11
+   },
+   "pypsa_mapping_issues": []
+  },
+  "cost_model": {
+   "gencost_model": 2,
+   "n_generators": 54,
+   "n_quadratic_c2_nonzero": 0,
+   "sum_c0_per_h": 0.0,
+   "max_abs_diff_pypsa_marginal_cost_vs_c1_plus_c2_pmax": 0.0
+  },
+  "negative_controls": {
+   "taps_ignored_max_flow_change_mw": 4.9919,
+   "taps_ignored_max_angle_change_deg": 0.352622,
+   "x_plus_1pct_n_branches": 186,
+   "x_plus_1pct_n_detected_by_flow_tolerance": 177,
+   "x_plus_1pct_n_detected_by_flow_or_angle_tolerance": 186,
+   "x_plus_1pct_flow_invariant_branches": [
+    "branch-7",
+    "branch-9",
+    "branch-113",
+    "branch-133",
+    "branch-134",
+    "branch-176",
+    "branch-177",
+    "branch-183",
+    "branch-184"
+   ],
+   "x_plus_1pct_min_flow_change_mw_detected": 0.00110969,
+   "x_plus_1pct_median_flow_change_mw": 0.0921037,
+   "tolerance_flow_mw": 1e-06,
+   "tolerance_angle_deg": 1e-06
+  },
+  "checks": [
+   {
+    "check_id": "dcpf_pp_vs_pypsa",
+    "case": "pglib-case118-ieee",
+    "title": "DC power flow: pandapower vs pypsa",
+    "engines": [
+     "pandapower",
+     "pypsa"
+    ],
+    "quantity": "branch_flow_mw",
+    "n_compared": 186,
+    "metrics": {
+     "max_abs_diff_mw": 2.55795e-12,
+     "mean_abs_diff_mw": 2.69491e-13,
+     "p95_abs_diff_mw": 9.02389e-13,
+     "max_rel_diff": 5.27381e-13,
+     "rel_diff_floor_mw": 1.0,
+     "argmax": "branch-96",
+     "max_angle_diff_deg": 2.77112e-13,
+     "max_injection_diff_mw": 2.27374e-12
+    },
+    "tolerance": {
+     "metric": "max_abs_diff_mw",
+     "value": 1e-06,
+     "unit": "MW",
+     "also": {
+      "max_angle_diff_deg": 1e-06
+     }
+    },
+    "verdict": "AGREES",
+    "explanation": "All 186 branch flows, 118 bus angles and injections match to floating-point rounding.",
+    "worst_branches": [
+     {
+      "id": "branch-96",
+      "pandapower": -269.755,
+      "pypsa": -269.755,
+      "diff_mw": 2.55795e-12
+     },
+     {
+      "id": "branch-107",
+      "pandapower": -248.079,
+      "pypsa": -248.079,
+      "diff_mw": 1.76215e-12
+     },
+     {
+      "id": "branch-51",
+      "pandapower": 238.486,
+      "pypsa": 238.486,
+      "diff_mw": -1.7053e-12
+     },
+     {
+      "id": "branch-104",
+      "pandapower": -88.3652,
+      "pypsa": -88.3652,
+      "diff_mw": 1.67688e-12
+     },
+     {
+      "id": "branch-30",
+      "pandapower": -45.3536,
+      "pypsa": -45.3536,
+      "diff_mw": 1.37135e-12
+     }
+    ]
+   },
+   {
+    "check_id": "dcpf_pp_vs_reference",
+    "case": "pglib-case118-ieee",
+    "title": "DC power flow: pandapower vs matpower-formula-numpy",
+    "engines": [
+     "pandapower",
+     "matpower-formula-numpy"
+    ],
+    "quantity": "branch_flow_mw",
+    "n_compared": 186,
+    "metrics": {
+     "max_abs_diff_mw": 1.64846e-12,
+     "mean_abs_diff_mw": 2.13769e-13,
+     "p95_abs_diff_mw": 7.10543e-13,
+     "max_rel_diff": 3.70216e-13,
+     "rel_diff_floor_mw": 1.0,
+     "argmax": "branch-96",
+     "max_angle_diff_deg": 2.13163e-13,
+     "max_injection_diff_mw": 2.84217e-12
+    },
+    "tolerance": {
+     "metric": "max_abs_diff_mw",
+     "value": 1e-06,
+     "unit": "MW",
+     "also": {
+      "max_angle_diff_deg": 1e-06
+     }
+    },
+    "verdict": "AGREES",
+    "explanation": "All 186 branch flows, 118 bus angles and injections match to floating-point rounding.",
+    "worst_branches": [
+     {
+      "id": "branch-96",
+      "pandapower": -269.755,
+      "matpower-formula-numpy": -269.755,
+      "diff_mw": 1.64846e-12
+     },
+     {
+      "id": "branch-37",
+      "pandapower": -17.9851,
+      "matpower-formula-numpy": -17.9851,
+      "diff_mw": 1.33227e-12
+     },
+     {
+      "id": "branch-54",
+      "pandapower": -31.2697,
+      "matpower-formula-numpy": -31.2697,
+      "diff_mw": 1.02673e-12
+     },
+     {
+      "id": "branch-104",
+      "pandapower": -88.3652,
+      "matpower-formula-numpy": -88.3652,
+      "diff_mw": 9.80549e-13
+     },
+     {
+      "id": "branch-8",
+      "pandapower": 318.797,
+      "matpower-formula-numpy": 318.797,
+      "diff_mw": -9.09495e-13
+     }
+    ]
+   },
+   {
+    "check_id": "dcpf_pypsa_vs_reference",
+    "case": "pglib-case118-ieee",
+    "title": "DC power flow: pypsa vs matpower-formula-numpy",
+    "engines": [
+     "pypsa",
+     "matpower-formula-numpy"
+    ],
+    "quantity": "branch_flow_mw",
+    "n_compared": 186,
+    "metrics": {
+     "max_abs_diff_mw": 1.50635e-12,
+     "mean_abs_diff_mw": 1.79379e-13,
+     "p95_abs_diff_mw": 6.59028e-13,
+     "max_rel_diff": 5.27381e-13,
+     "rel_diff_floor_mw": 1.0,
+     "argmax": "branch-107",
+     "max_angle_diff_deg": 1.81188e-13,
+     "max_injection_diff_mw": 2.84217e-12
+    },
+    "tolerance": {
+     "metric": "max_abs_diff_mw",
+     "value": 1e-06,
+     "unit": "MW",
+     "also": {
+      "max_angle_diff_deg": 1e-06
+     }
+    },
+    "verdict": "AGREES",
+    "explanation": "All 186 branch flows, 118 bus angles and injections match to floating-point rounding.",
+    "worst_branches": [
+     {
+      "id": "branch-107",
+      "pypsa": -248.079,
+      "matpower-formula-numpy": -248.079,
+      "diff_mw": -1.50635e-12
+     },
+     {
+      "id": "branch-3",
+      "pypsa": -97.8248,
+      "matpower-formula-numpy": -97.8248,
+      "diff_mw": 1.0516e-12
+     },
+     {
+      "id": "branch-36",
+      "pypsa": 225.648,
+      "matpower-formula-numpy": 225.648,
+      "diff_mw": 9.37916e-13
+     },
+     {
+      "id": "branch-96",
+      "pypsa": -269.755,
+      "matpower-formula-numpy": -269.755,
+      "diff_mw": -9.09495e-13
+     },
+     {
+      "id": "branch-51",
+      "pypsa": 238.486,
+      "matpower-formula-numpy": 238.486,
+      "diff_mw": 7.95808e-13
+     }
+    ]
+   },
+   {
+    "check_id": "dc_reactance_pypsa_vs_matpower",
+    "case": "pglib-case118-ieee",
+    "title": "DC series reactance used by PyPSA vs MATPOWER makeBdc (x * tap)",
+    "engines": [
+     "pypsa",
+     "matpower-formula-numpy"
+    ],
+    "quantity": "x_eff_pu",
+    "n_compared": 186,
+    "metrics": {
+     "max_rel_diff_x_eff_vs_x_times_tap": 2.22045e-16,
+     "max_rel_diff_x_eff_vs_x_without_tap": 0.065,
+     "n_transformers_in_pypsa": 11,
+     "n_lines_in_pypsa": 175
+    },
+    "tolerance": {
+     "metric": "max_rel_diff_x_eff_vs_x_times_tap",
+     "value": 1e-09,
+     "unit": "1"
+    },
+    "verdict": "AGREES",
+    "explanation": "PyPSA's linear power flow scales transformer reactance by tap_ratio exactly like MATPOWER's makeBdc (b = 1 / (x * tap)); ignoring the tap would have changed reactances by up to 6.5 %."
+   },
+   {
+    "check_id": "ac_pp_vs_dc_pypsa",
+    "case": "pglib-case118-ieee",
+    "title": "AC (pandapower runpp) vs DC (PyPSA lpf): linearisation error",
+    "engines": [
+     "pandapower-ac",
+     "pypsa-dc"
+    ],
+    "quantity": "branch_flow_mw",
+    "n_compared": 186,
+    "metrics": {
+     "max_abs_diff_mw": 69.4121,
+     "mean_abs_diff_mw": 3.25694,
+     "p95_abs_diff_mw": 11.8193,
+     "max_rel_diff": 1.39834,
+     "rel_diff_floor_mw": 1.0,
+     "argmax": "branch-107",
+     "max_abs_diff_midpoint_mw": 69.4121,
+     "mean_abs_diff_midpoint_mw": 3.238,
+     "max_diff_pct_of_rate_a": 13.3853,
+     "ac_total_losses_mw": 147.327,
+     "ac_slack_p_mw": 917.162,
+     "dc_slack_p_mw": 769.615,
+     "ac_vm_pu_min": 0.962693,
+     "ac_vm_pu_max": 1.01383
+    },
+    "tolerance": null,
+    "verdict": "EXPECTED_DIFFERENCE",
+    "explanation": "Same P set points. The DC model is lossless, with flat |V| and no reactive power; in AC the slack generator at bus-69 additionally supplies the 147.3 MW of losses (AC slack 917.2 MW vs DC 769.6 MW). Largest difference 69.4 MW on branch-107 (bus-68-bus-69, incident to the slack bus); loss-neutral midpoint flow max 69.4 MW; mean 3.26 MW over 186 branches. This is the linearisation error of the DC approximation, not an engine disagreement.",
+    "worst_branches": [
+     {
+      "id": "branch-107",
+      "pandapower-ac": -317.491,
+      "pypsa-dc": -248.079,
+      "diff_mw": -69.4121
+     },
+     {
+      "id": "branch-104",
+      "pandapower-ac": -148.105,
+      "pypsa-dc": -88.3652,
+      "diff_mw": -59.7401
+     },
+     {
+      "id": "branch-108",
+      "pandapower-ac": 161.586,
+      "pypsa-dc": 139.76,
+      "diff_mw": 21.8258
+     },
+     {
+      "id": "branch-96",
+      "pandapower-ac": -290.754,
+      "pypsa-dc": -269.755,
+      "diff_mw": -20.9983
+     },
+     {
+      "id": "branch-119",
+      "pandapower-ac": 125.665,
+      "pypsa-dc": 105.588,
+      "diff_mw": 20.0779
+     }
+    ]
+   },
+   {
+    "check_id": "cost_model_pypsa_vs_pglib",
+    "case": "pglib-case118-ieee",
+    "title": "PyPSA marginal_cost vs PGLib gencost (c1 + c2*Pmax)",
+    "engines": [
+     "pypsa",
+     "pglib-gencost"
+    ],
+    "quantity": "marginal_cost",
+    "n_compared": 54,
+    "metrics": {
+     "n_generators": 54,
+     "n_quadratic_c2_nonzero": 0,
+     "sum_c0_per_h": 0.0,
+     "max_abs_diff_pypsa_marginal_cost_vs_c1_plus_c2_pmax": 0.0
+    },
+    "tolerance": {
+     "metric": "max_abs_diff_pypsa_marginal_cost_vs_c1_plus_c2_pmax",
+     "value": 1e-09,
+     "unit": "$/MWh"
+    },
+    "verdict": "AGREES",
+    "explanation": "The importer's documented linearisation (secant slope c1 + c2*Pmax, c0 dropped) is what network.nc carries. With c2 = 0 for every generator it equals the PGLib cost exactly (up to the dropped constant c0)."
+   },
+   {
+    "check_id": "dcopf_pp_vs_pypsa",
+    "case": "pglib-case118-ieee",
+    "title": "DC OPF: pandapower vs pypsa",
+    "engines": [
+     "pandapower",
+     "pypsa"
+    ],
+    "quantity": "objective_and_dispatch",
+    "n_compared": 54,
+    "metrics": {
+     "objective_a": 93132.7,
+     "objective_b": 93132.7,
+     "objective_rel_diff": 2.14171e-12,
+     "max_gen_abs_diff_mw": 3.771e-08,
+     "argmax_gen": "gen-22",
+     "max_branch_flow_abs_diff_mw": 1.76413e-08
+    },
+    "tolerance": {
+     "metric": "objective_rel_diff",
+     "value": 1e-06,
+     "unit": "1",
+     "also": {
+      "max_gen_abs_diff_mw": 0.01
+     }
+    },
+    "verdict": "AGREES",
+    "explanation": "Same optimum: objective and every generator set point match. PGLib gencost: 0 of 54 generators have a non-zero quadratic term and sum(c0) = 0 $/h, so the importer's linear marginal cost c1 + c2*Pmax is exact here. Angle-difference limits (PGLib +/-30 deg) are not modelled by any engine; the reference optimum's largest angle difference is 16.15 deg."
+   },
+   {
+    "check_id": "dcopf_pypsa_vs_reference",
+    "case": "pglib-case118-ieee",
+    "title": "DC OPF: pypsa vs scipy-highs-reference",
+    "engines": [
+     "pypsa",
+     "scipy-highs-reference"
+    ],
+    "quantity": "objective_and_dispatch",
+    "n_compared": 54,
+    "metrics": {
+     "objective_a": 93132.7,
+     "objective_b": 93132.7,
+     "objective_rel_diff": 6.24997e-16,
+     "max_gen_abs_diff_mw": 1.55609e-12,
+     "argmax_gen": "gen-22",
+     "max_branch_flow_abs_diff_mw": 1.94689e-12
+    },
+    "tolerance": {
+     "metric": "objective_rel_diff",
+     "value": 1e-06,
+     "unit": "1",
+     "also": {
+      "max_gen_abs_diff_mw": 0.01
+     }
+    },
+    "verdict": "AGREES",
+    "explanation": "Same optimum: objective and every generator set point match. PGLib gencost: 0 of 54 generators have a non-zero quadratic term and sum(c0) = 0 $/h, so the importer's linear marginal cost c1 + c2*Pmax is exact here. Angle-difference limits (PGLib +/-30 deg) are not modelled by any engine; the reference optimum's largest angle difference is 16.15 deg."
+   }
+  ],
+  "summary": {
+   "AGREES": 7,
+   "DISAGREES": 0,
+   "EXPECTED_DIFFERENCE": 1,
+   "NOT_RUN": 0
+  }
+ }
+}

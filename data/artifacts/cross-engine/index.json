@@ -1,0 +1,22 @@
+{
+ "schema_version": "gridstorm-artifact-index/1.0",
+ "engine": "cross-engine",
+ "artifacts": [
+  {
+   "artifact_id": "cross-engine-pglib-case118-ieee",
+   "kind": "benchmark",
+   "network_id": "pglib-case118-ieee",
+   "title": "Cross-engine agreement (pandapower vs PyPSA vs MATPOWER formulas) \u2014 pglib-case118-ieee",
+   "path": "cross-engine-pglib-case118-ieee.json",
+   "payload_sha256": "2a02d016337dc5e1de18cafa4e3e40359075e3fe326adf6b9781c7e3be7f6c98"
+  },
+  {
+   "artifact_id": "cross-engine-pglib-case14-ieee",
+   "kind": "benchmark",
+   "network_id": "pglib-case14-ieee",
+   "title": "Cross-engine agreement (pandapower vs PyPSA vs MATPOWER formulas) \u2014 pglib-case14-ieee",
+   "path": "cross-engine-pglib-case14-ieee.json",
+   "payload_sha256": "c05b6ba017d950df154eab9908b056c2424f51f75f81a273ecdede3ab04d0502"
+  }
+ ]
+}

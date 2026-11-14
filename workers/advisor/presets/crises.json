@@ -1,0 +1,41 @@
+{
+  "schema_version": "gridstorm-advisor-presets/1.0",
+  "notes": "Crisis cases for the precomputed advisor artifacts. Asset ids follow contracts.md for PGLib networks (branch-<row>, gen-<row>, bus-<BUS_I>, load-<BUS_I>). Every case starts from the AC-OPF operating point of the intact network (operating_point=opf) because PGLib case files store Pg values that are not a feasible dispatch. Cases were chosen from an AC N-1 / generator-outage screen of that operating point.",
+  "runs": [
+    {
+      "artifact_id": "pglib-case118-ieee-loss-branch-164",
+      "network_id": "pglib-case118-ieee",
+      "operating_point": "opf",
+      "title": "IEEE 118 (PGLib): loss of branch-164 overloads branch-163",
+      "crisis": {"id": "loss-branch-164", "title": "Loss of branch-164 (bus-100 - bus-104)", "line_outages": ["branch-164"]}
+    },
+    {
+      "artifact_id": "pglib-case118-ieee-loss-branch-38",
+      "network_id": "pglib-case118-ieee",
+      "operating_point": "opf",
+      "title": "IEEE 118 (PGLib): loss of branch-38, four branches overloaded (max 182 %)",
+      "crisis": {"id": "loss-branch-38", "title": "Loss of branch-38 (bus-26 - bus-30)", "line_outages": ["branch-38"]}
+    },
+    {
+      "artifact_id": "pglib-case118-ieee-loss-gen-21",
+      "network_id": "pglib-case118-ieee",
+      "operating_point": "opf",
+      "title": "IEEE 118 (PGLib): loss of generator gen-21, overloads and low voltage",
+      "crisis": {"id": "loss-gen-21", "title": "Forced outage of gen-21 (bus-49)", "generator_outages": ["gen-21"]}
+    },
+    {
+      "artifact_id": "pglib-case14-ieee-loss-gen-1",
+      "network_id": "pglib-case14-ieee",
+      "operating_point": "opf",
+      "title": "IEEE 14 (PGLib): loss of the slack generator gen-1, remaining capacity short",
+      "crisis": {"id": "loss-gen-1", "title": "Forced outage of gen-1 (slack, bus-1)", "generator_outages": ["gen-1"]}
+    },
+    {
+      "artifact_id": "pglib-case14-ieee-loss-branch-3",
+      "network_id": "pglib-case14-ieee",
+      "operating_point": "opf",
+      "title": "IEEE 14 (PGLib): loss of branch-3, deep under-voltage at bus-3",
+      "crisis": {"id": "loss-branch-3", "title": "Loss of branch-3 (bus-2 - bus-3)", "line_outages": ["branch-3"]}
+    }
+  ]
+}

@@ -1,0 +1,347 @@
+{
+  "schema_version": "gridstorm-observed-runs/1.0",
+  "provenance": "modeled",
+  "network_id": "scigrid-de",
+  "network_nc_sha256": "284850c8e922414f9da69ffda0623431148e0c28a3380ba370e4135ac5236500",
+  "canonical_json_present": true,
+  "runs": [
+    {
+      "scenario_id": "observed-baseline-network-day",
+      "role": "baseline",
+      "scenario_file": null,
+      "scenario_sha256": null,
+      "scenario_hash": "f7f36e23568d6e1a339fbe58d496cfac4b7f9e5d75ce9cabdd91ee55c9e534e4",
+      "events": 0,
+      "validation": {
+        "canonical_json": {
+          "valid": true,
+          "errors": [],
+          "warnings": [],
+          "warning_count": 0
+        },
+        "pypsa_network_index": {
+          "valid": true,
+          "errors": [],
+          "warnings": [],
+          "warning_count": 0
+        }
+      },
+      "outcome": "feasible",
+      "provenance": "modeled",
+      "solver": {
+        "name": "highs",
+        "version": "1.16.0",
+        "status": "ok",
+        "termination_condition": "optimal",
+        "objective_eur": 6684817.323607,
+        "wall_time_s": 5.671
+      },
+      "run_wall_time_s": 13.88,
+      "metrics": {
+        "total_load_mwh": 1209951.68,
+        "unserved_energy_mwh": 0.0,
+        "peak_load_shed_mw": 0.0,
+        "load_shed_hours": 0.0,
+        "total_system_cost_eur": 6684817.323607,
+        "generation_cost_eur": 6684817.323607,
+        "load_shedding_cost_eur": 0.0,
+        "curtailment_mwh": 69590.793346,
+        "curtailment_by_carrier_mwh": {
+          "Solar": 3487.339286,
+          "Wind Offshore": 19389.724355,
+          "Wind Onshore": 46713.729705
+        },
+        "max_line_loading_pct": 100.0,
+        "mean_line_loading_pct": 22.864579,
+        "congested_line_count": 42,
+        "storage_discharge_mwh": 32433.871732
+      },
+      "wind_solar_curtailment_mwh": 69590.793,
+      "generation_by_carrier_mwh": {
+        "Brown Coal": 286430.343009,
+        "Gas": 752.15533,
+        "Geothermal": 184.8,
+        "Hard Coal": 61017.962084,
+        "Multiple": 0.0,
+        "Nuclear": 199609.882582,
+        "Oil": 0.0,
+        "Other": 821.086372,
+        "Run of River": 86123.51039,
+        "Solar": 43903.703921,
+        "Storage Hydro": 25487.634663,
+        "Waste": 32893.9,
+        "Wind Offshore": 50083.924947,
+        "Wind Onshore": 426726.524964
+      },
+      "result_warnings": [
+        "Dataset carriers carry no CO2 intensities (all zero/missing): co2_emissions_t is null (data gap, not a zero-emission finding)"
+      ],
+      "dataset_sha256": "284850c8e922414f9da69ffda0623431148e0c28a3380ba370e4135ac5236500",
+      "result_sha256": "ef5891e62b9bad3c8fd2424d1826bfee99409c9bc4be05efd36a83e2d76da42e",
+      "package_versions": {
+        "pypsa": "1.4.0",
+        "linopy": "0.10.1",
+        "highspy": "1.16.0",
+        "numpy": "2.4.6",
+        "pandas": "3.1.1",
+        "xarray": "2026.9.0",
+        "stormspec": "1.0.0"
+      }
+    },
+    {
+      "scenario_id": "observed-dunkelflaute-2015-01-20",
+      "role": "observed_analogue",
+      "scenario_file": "data/scenarios/observed/observed-dunkelflaute-2015-01-20.yaml",
+      "scenario_sha256": "207897d45ae00c4e4f5454a117bc131b07b62acbfc4d134ce9390607818eb5d6",
+      "scenario_hash": "8ed1917b65eea1c2bc68d6b01358a235e6ae84e87e53e01bb33f7ec2f59955eb",
+      "events": 79,
+      "validation": {
+        "canonical_json": {
+          "valid": true,
+          "errors": [],
+          "warnings": [],
+          "warning_count": 0
+        },
+        "pypsa_network_index": {
+          "valid": true,
+          "errors": [],
+          "warnings": [],
+          "warning_count": 0
+        }
+      },
+      "outcome": "feasible",
+      "provenance": "modeled",
+      "solver": {
+        "name": "highs",
+        "version": "1.16.0",
+        "status": "ok",
+        "termination_condition": "optimal",
+        "objective_eur": 66230004.947724,
+        "wall_time_s": 6.186
+      },
+      "run_wall_time_s": 27.25,
+      "metrics": {
+        "total_load_mwh": 1655703.119504,
+        "unserved_energy_mwh": 3237.099224,
+        "peak_load_shed_mw": 260.880833,
+        "load_shed_hours": 17.0,
+        "total_system_cost_eur": 66230004.947724,
+        "generation_cost_eur": 33859012.710466,
+        "load_shedding_cost_eur": 32370992.237258,
+        "curtailment_mwh": 0.0,
+        "curtailment_by_carrier_mwh": {
+          "Solar": 0.0,
+          "Wind Offshore": 0.0,
+          "Wind Onshore": 0.0
+        },
+        "max_line_loading_pct": 100.0,
+        "mean_line_loading_pct": 22.176496,
+        "congested_line_count": 32,
+        "storage_discharge_mwh": 31980.204182
+      },
+      "wind_solar_curtailment_mwh": 0.0,
+      "generation_by_carrier_mwh": {
+        "Brown Coal": 344541.145438,
+        "Gas": 237262.505432,
+        "Geothermal": 760.8,
+        "Hard Coal": 558339.58463,
+        "Multiple": 3544.8,
+        "Nuclear": 257555.908167,
+        "Oil": 2926.0,
+        "Other": 43595.218059,
+        "Run of River": 95955.57099,
+        "Solar": 10458.380229,
+        "Storage Hydro": 34680.0,
+        "Waste": 39501.6,
+        "Wind Offshore": 5749.275642,
+        "Wind Onshore": 21050.1568
+      },
+      "result_warnings": [
+        "Dataset carriers carry no CO2 intensities (all zero/missing): co2_emissions_t is null (data gap, not a zero-emission finding)"
+      ],
+      "dataset_sha256": "284850c8e922414f9da69ffda0623431148e0c28a3380ba370e4135ac5236500",
+      "result_sha256": "5217c12ee8e76d8ac317f00c4f4f0747ed314059ba517ab33334818e35566d15",
+      "package_versions": {
+        "pypsa": "1.4.0",
+        "linopy": "0.10.1",
+        "highspy": "1.16.0",
+        "numpy": "2.4.6",
+        "pandas": "3.1.1",
+        "xarray": "2026.9.0",
+        "stormspec": "1.0.0"
+      }
+    },
+    {
+      "scenario_id": "observed-high-load-low-res-2017-01-24",
+      "role": "observed_analogue",
+      "scenario_file": "data/scenarios/observed/observed-high-load-low-res-2017-01-24.yaml",
+      "scenario_sha256": "59ee7b64d636445e39d74a476b9ab350d8c4ba440475f32df146f05a21206fc9",
+      "scenario_hash": "d172067743654d2cfa48fa6b450c1485bbaea75a5a75ef4de3788c14f6a90795",
+      "events": 79,
+      "validation": {
+        "canonical_json": {
+          "valid": true,
+          "errors": [],
+          "warnings": [
+            "large_multiplier"
+          ],
+          "warning_count": 2
+        },
+        "pypsa_network_index": {
+          "valid": true,
+          "errors": [],
+          "warnings": [
+            "large_multiplier"
+          ],
+          "warning_count": 2
+        }
+      },
+      "outcome": "feasible",
+      "provenance": "modeled",
+      "solver": {
+        "name": "highs",
+        "version": "1.16.0",
+        "status": "ok",
+        "termination_condition": "optimal",
+        "objective_eur": 253032522.79879,
+        "wall_time_s": 6.493
+      },
+      "run_wall_time_s": 23.72,
+      "metrics": {
+        "total_load_mwh": 1916278.434,
+        "unserved_energy_mwh": 20499.672527,
+        "peak_load_shed_mw": 1661.96852,
+        "load_shed_hours": 24.0,
+        "total_system_cost_eur": 253032522.79879,
+        "generation_cost_eur": 48035797.527951,
+        "load_shedding_cost_eur": 204996725.270839,
+        "curtailment_mwh": 458.035376,
+        "curtailment_by_carrier_mwh": {
+          "Solar": 116.540875,
+          "Wind Offshore": 0.0,
+          "Wind Onshore": 341.494501
+        },
+        "max_line_loading_pct": 100.0,
+        "mean_line_loading_pct": 24.798883,
+        "congested_line_count": 44,
+        "storage_discharge_mwh": 45185.699679
+      },
+      "wind_solar_curtailment_mwh": 458.035,
+      "generation_by_carrier_mwh": {
+        "Brown Coal": 330477.211383,
+        "Gas": 453748.131149,
+        "Geothermal": 760.8,
+        "Hard Coal": 555626.983903,
+        "Multiple": 3664.8,
+        "Nuclear": 258304.390671,
+        "Oil": 35419.613529,
+        "Other": 52081.374328,
+        "Run of River": 93778.167753,
+        "Solar": 9134.371253,
+        "Storage Hydro": 34657.632316,
+        "Waste": 39114.017176,
+        "Wind Offshore": 11663.133214,
+        "Wind Onshore": 22229.692381
+      },
+      "result_warnings": [
+        "large_multiplier: demand multiplier 2.0398 is far from 1; check plausibility",
+        "large_multiplier: demand multiplier 2.0729 is far from 1; check plausibility",
+        "Dataset carriers carry no CO2 intensities (all zero/missing): co2_emissions_t is null (data gap, not a zero-emission finding)"
+      ],
+      "dataset_sha256": "284850c8e922414f9da69ffda0623431148e0c28a3380ba370e4135ac5236500",
+      "result_sha256": "42669454c4050e571b523f23f3f1e1a85ec7824297be9716321f86d6cefe5d33",
+      "package_versions": {
+        "pypsa": "1.4.0",
+        "linopy": "0.10.1",
+        "highspy": "1.16.0",
+        "numpy": "2.4.6",
+        "pandas": "3.1.1",
+        "xarray": "2026.9.0",
+        "stormspec": "1.0.0"
+      }
+    },
+    {
+      "scenario_id": "observed-peak-load-2017-12-13",
+      "role": "observed_analogue",
+      "scenario_file": "data/scenarios/observed/observed-peak-load-2017-12-13.yaml",
+      "scenario_sha256": "bfe3bc913cd7b2d87a845ab97290c89ba2c7c995dc5c18e0ea9bb7908a0952ff",
+      "scenario_hash": "b8d2d812ac1209f96c0aba166c073019ee05251de714f79bc853b358603426c3",
+      "events": 56,
+      "validation": {
+        "canonical_json": {
+          "valid": true,
+          "errors": [],
+          "warnings": [],
+          "warning_count": 0
+        },
+        "pypsa_network_index": {
+          "valid": true,
+          "errors": [],
+          "warnings": [],
+          "warning_count": 0
+        }
+      },
+      "outcome": "feasible",
+      "provenance": "modeled",
+      "solver": {
+        "name": "highs",
+        "version": "1.16.0",
+        "status": "ok",
+        "termination_condition": "optimal",
+        "objective_eur": 82186647.607053,
+        "wall_time_s": 5.988
+      },
+      "run_wall_time_s": 24.9,
+      "metrics": {
+        "total_load_mwh": 1836261.003472,
+        "unserved_energy_mwh": 5647.725368,
+        "peak_load_shed_mw": 436.531875,
+        "load_shed_hours": 20.0,
+        "total_system_cost_eur": 82186647.607053,
+        "generation_cost_eur": 25709393.928581,
+        "load_shedding_cost_eur": 56477253.678472,
+        "curtailment_mwh": 19198.837581,
+        "curtailment_by_carrier_mwh": {
+          "Solar": 675.53168,
+          "Wind Offshore": 6672.031056,
+          "Wind Onshore": 11851.274845
+        },
+        "max_line_loading_pct": 100.0,
+        "mean_line_loading_pct": 26.145864,
+        "congested_line_count": 51,
+        "storage_discharge_mwh": 43780.505133
+      },
+      "wind_solar_curtailment_mwh": 19198.838,
+      "generation_by_carrier_mwh": {
+        "Brown Coal": 306758.780666,
+        "Gas": 153840.511046,
+        "Geothermal": 385.3,
+        "Hard Coal": 440751.294128,
+        "Multiple": 2519.7,
+        "Nuclear": 226921.941759,
+        "Oil": 3431.533,
+        "Other": 30024.947549,
+        "Run of River": 91657.727682,
+        "Solar": 31622.087658,
+        "Storage Hydro": 31657.520777,
+        "Waste": 38302.4,
+        "Wind Offshore": 52377.229366,
+        "Wind Onshore": 425092.054336
+      },
+      "result_warnings": [
+        "Dataset carriers carry no CO2 intensities (all zero/missing): co2_emissions_t is null (data gap, not a zero-emission finding)"
+      ],
+      "dataset_sha256": "284850c8e922414f9da69ffda0623431148e0c28a3380ba370e4135ac5236500",
+      "result_sha256": "dd59e40fa6bf831fc3a0bd4380caf8fc60dd878b9b2e7522ff462890502145b5",
+      "package_versions": {
+        "pypsa": "1.4.0",
+        "linopy": "0.10.1",
+        "highspy": "1.16.0",
+        "numpy": "2.4.6",
+        "pandas": "3.1.1",
+        "xarray": "2026.9.0",
+        "stormspec": "1.0.0"
+      }
+    }
+  ]
+}

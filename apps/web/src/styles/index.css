@@ -1,0 +1,183 @@
+@import 'tailwindcss';
+@import 'maplibre-gl/dist/maplibre-gl.css';
+
+/* Theme switching via <html data-theme="dark|light"> (see index.html bootstrap script). */
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+/*
+ * GridStorm design tokens. Semantic CSS variables are defined per theme and mapped into
+ * Tailwind utilities via @theme inline (bg-surface, text-fg-muted, border-line, ...).
+ * Documented in docs/architecture/design-system.md.
+ */
+:root {
+  color-scheme: light;
+  --gs-canvas: #f4f5f7;
+  --gs-surface: #ffffff;
+  --gs-surface-2: #f0f2f5;
+  --gs-surface-3: #e4e7ec;
+  --gs-line: #d5d9e0;
+  --gs-line-strong: #aeb5c1;
+  --gs-fg: #18202b;
+  --gs-fg-muted: #4e5a6b;
+  --gs-fg-subtle: #6b7686;
+  --gs-accent: #1d5fb8;
+  --gs-accent-fg: #ffffff;
+  --gs-accent-soft: #e3edf9;
+  --gs-focus: #1d5fb8;
+  --gs-ok: #1d7a46;
+  --gs-ok-soft: #e1f2e8;
+  --gs-warn: #8a5a00;
+  --gs-warn-soft: #fbefd5;
+  --gs-danger: #b42318;
+  --gs-danger-soft: #fbe5e3;
+  --gs-info: #2a5a8c;
+  --gs-info-soft: #e3edf7;
+  --gs-map-bg: #eef0f3;
+  --gs-map-grid: #dde1e7;
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+  --gs-canvas: #0e1218;
+  --gs-surface: #151b23;
+  --gs-surface-2: #1c232d;
+  --gs-surface-3: #262f3b;
+  --gs-line: #2c3542;
+  --gs-line-strong: #46515f;
+  --gs-fg: #e6e9ee;
+  --gs-fg-muted: #a4adba;
+  --gs-fg-subtle: #8792a2;
+  --gs-accent: #6ea8ef;
+  --gs-accent-fg: #0b1220;
+  --gs-accent-soft: #1b2b40;
+  --gs-focus: #8dbcf5;
+  --gs-ok: #5cc98a;
+  --gs-ok-soft: #13291d;
+  --gs-warn: #e8b44c;
+  --gs-warn-soft: #30250d;
+  --gs-danger: #f2877d;
+  --gs-danger-soft: #36161a;
+  --gs-info: #8bb8e8;
+  --gs-info-soft: #172537;
+  --gs-map-bg: #10151c;
+  --gs-map-grid: #1b222c;
+}
+
+@theme inline {
+  --color-canvas: var(--gs-canvas);
+  --color-surface: var(--gs-surface);
+  --color-surface-2: var(--gs-surface-2);
+  --color-surface-3: var(--gs-surface-3);
+  --color-line: var(--gs-line);
+  --color-line-strong: var(--gs-line-strong);
+  --color-fg: var(--gs-fg);
+  --color-fg-muted: var(--gs-fg-muted);
+  --color-fg-subtle: var(--gs-fg-subtle);
+  --color-accent: var(--gs-accent);
+  --color-accent-fg: var(--gs-accent-fg);
+  --color-accent-soft: var(--gs-accent-soft);
+  --color-focus: var(--gs-focus);
+  --color-ok: var(--gs-ok);
+  --color-ok-soft: var(--gs-ok-soft);
+  --color-warn: var(--gs-warn);
+  --color-warn-soft: var(--gs-warn-soft);
+  --color-danger: var(--gs-danger);
+  --color-danger-soft: var(--gs-danger-soft);
+  --color-info: var(--gs-info);
+  --color-info-soft: var(--gs-info-soft);
+}
+
+@theme {
+  --font-sans:
+    'Inter', 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono:
+    'JetBrains Mono', 'Cascadia Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1rem;
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    background: var(--gs-canvas);
+    color: var(--gs-fg);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+  }
+  :focus-visible {
+    outline: 2px solid var(--gs-focus);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer components {
+  .gs-panel {
+    background: var(--gs-surface);
+    border: 1px solid var(--gs-line);
+    border-radius: 6px;
+  }
+  .gs-label {
+    font-size: 0.6875rem;
+    line-height: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--gs-fg-subtle);
+    font-weight: 600;
+  }
+  .gs-input {
+    background: var(--gs-surface);
+    border: 1px solid var(--gs-line-strong);
+    border-radius: 4px;
+    padding: 0.3rem 0.5rem;
+    color: var(--gs-fg);
+    min-height: 2rem;
+  }
+  .gs-input:disabled {
+    opacity: 0.6;
+  }
+  .gs-skeleton {
+    background: linear-gradient(90deg, var(--gs-surface-2), var(--gs-surface-3), var(--gs-surface-2));
+    background-size: 200% 100%;
+    animation: gs-shimmer 1.4s ease-in-out infinite;
+    border-radius: 4px;
+  }
+}
+
+@keyframes gs-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gs-skeleton {
+    animation: none;
+  }
+}
+
+/* MapLibre controls follow the theme. */
+[data-theme='dark'] .maplibregl-ctrl-group {
+  background: var(--gs-surface-2);
+}
+[data-theme='dark'] .maplibregl-ctrl-group button .maplibregl-ctrl-icon {
+  filter: invert(1);
+}
+[data-theme='dark'] .maplibregl-ctrl-attrib {
+  background: rgb(21 27 35 / 0.85);
+  color: var(--gs-fg-muted);
+}
+[data-theme='dark'] .maplibregl-ctrl-attrib a {
+  color: var(--gs-fg-muted);
+}

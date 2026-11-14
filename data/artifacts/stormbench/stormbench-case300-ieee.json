@@ -1,0 +1,304 @@
+{
+ "artifact": {
+  "schema_version": "gridstorm-artifact/1.0",
+  "artifact_id": "stormbench-case300-ieee",
+  "kind": "benchmark",
+  "engine": "stormbench",
+  "engine_version": "stormbench 0.1.0 / pandapower 3.5.6",
+  "network_id": "pglib-case300-ieee",
+  "created_at": "2026-11-14T16:19:50Z",
+  "command": "uv run python run_benchmark.py --out-dir D:\\New folder (4)\\GridStorm\\data\\artifacts\\stormbench --results-dir D:\\New folder (4)\\GridStorm\\benchmarks\\stormbench\\results",
+  "inputs": [
+   {
+    "path": "benchmarks/stormbench/cases/pglib_opf_case300_ieee.m",
+    "sha256": "7ecf056d5942135765200ad7ae8791c28f0d35fb1dc888ba2c32dfc950f3c2f5"
+   }
+  ],
+  "platform": "Windows 10 AMD64, Python 3.11.15",
+  "execution_mode": "precomputed",
+  "payload_sha256": "18bfdc5313539fa44b301b2f8e9e8ff91f792a24b360297b9aa40895c8fc79ec"
+ },
+ "payload": {
+  "schema_version": "stormbench-result/1.0",
+  "case": "case300_ieee",
+  "source": {
+   "file": "benchmarks/stormbench/cases/pglib_opf_case300_ieee.m",
+   "sha256": "7ecf056d5942135765200ad7ae8791c28f0d35fb1dc888ba2c32dfc950f3c2f5",
+   "pglib_commit": "dc6be4b2f85ca0e776952ec22cbd4c22396ea5a3"
+  },
+  "operating_point": {
+   "method": "ieee_published_dispatch",
+   "note": "DC-OPF dispatch has no AC power-flow solution for this case; IEEE published dispatch and voltage set-points (pandapower.networks.case300) used instead. The DC base case then has pre-existing overloads, excluded from contingency flagging."
+  },
+  "counts": {
+   "buses": 300,
+   "branches": 411,
+   "monitored_branches": 411,
+   "rate_a_zero": 0,
+   "contingencies": 411,
+   "islanding": 89,
+   "screened": 322,
+   "dc_base_overloaded_branches": 4,
+   "ac_base_overloaded_branches": 4,
+   "ac_base_voltage_violations": 32
+  },
+  "islanding_outages": {
+   "branch_ids": [
+    "branch-1",
+    "branch-2",
+    "branch-3",
+    "branch-4",
+    "branch-5",
+    "branch-6",
+    "branch-7",
+    "branch-8",
+    "branch-9",
+    "branch-15",
+    "branch-16",
+    "branch-17",
+    "branch-18",
+    "branch-19",
+    "branch-20",
+    "branch-21",
+    "branch-22",
+    "branch-24",
+    "branch-25",
+    "branch-26",
+    "branch-27",
+    "branch-28",
+    "branch-29",
+    "branch-30",
+    "branch-31",
+    "branch-32",
+    "branch-33",
+    "branch-34",
+    "branch-35",
+    "branch-36",
+    "branch-37",
+    "branch-38",
+    "branch-67",
+    "branch-70",
+    "branch-88",
+    "branch-118",
+    "branch-121",
+    "branch-122",
+    "branch-126",
+    "branch-130",
+    "branch-134",
+    "branch-135",
+    "branch-137",
+    "branch-144",
+    "branch-165",
+    "branch-168",
+    "branch-208",
+    "branch-210",
+    "branch-242",
+    "branch-243",
+    "branch-245",
+    "branch-260",
+    "branch-267",
+    "branch-273",
+    "branch-293",
+    "branch-306",
+    "branch-307",
+    "branch-311",
+    "branch-316",
+    "branch-318",
+    "branch-322",
+    "branch-323",
+    "branch-333",
+    "branch-334",
+    "branch-342",
+    "branch-387",
+    "branch-388",
+    "branch-389",
+    "branch-391",
+    "branch-392",
+    "branch-393",
+    "branch-394",
+    "branch-395",
+    "branch-396",
+    "branch-397",
+    "branch-398",
+    "branch-399",
+    "branch-400",
+    "branch-401",
+    "branch-402",
+    "branch-403",
+    "branch-404",
+    "branch-405",
+    "branch-406",
+    "branch-407",
+    "branch-408",
+    "branch-409",
+    "branch-410",
+    "branch-411"
+   ],
+   "max_islanded_buses": 299,
+   "max_abs_islanded_injection_mw": 1292.0
+  },
+  "validation": {
+   "ptdf_max_abs_diff_vs_pandapower": 1.176e-13,
+   "lodf_max_abs_diff_vs_pandapower": 2.674e-14,
+   "lodf_vs_dc_resolve_max_abs_mw": 1.16e-11,
+   "islanding_structural_vs_numeric_mismatch": 0
+  },
+  "flow_error_mw": {
+   "max": 1.16e-11,
+   "mean": 1.341e-13
+  },
+  "overloading_contingencies": {
+   "screening": 39,
+   "dc_exact": 39,
+   "ac_exact": 35
+  },
+  "screening_vs_dc": {
+   "tp": 39,
+   "fp": 0,
+   "fn": 0,
+   "tn": 283,
+   "precision": 1.0,
+   "recall": 1.0,
+   "k": 39,
+   "recall_at_k": 1.0,
+   "recall_at_10": 1.0,
+   "kendall_tau": 0.9907,
+   "spearman": 0.9988,
+   "n": 322
+  },
+  "screening_vs_ac": {
+   "tp": 25,
+   "fp": 2,
+   "fn": 10,
+   "tn": 269,
+   "precision": 0.9259,
+   "recall": 0.7143,
+   "k": 35,
+   "recall_at_k": 0.9143,
+   "recall_at_10": 0.7,
+   "kendall_tau": 0.6962,
+   "spearman": 0.8062,
+   "n": 306
+  },
+  "ac": {
+   "base_converged": "converged",
+   "converged": 306,
+   "converged_retry": 0,
+   "not_converged": 16,
+   "not_converged_branch_ids": [
+    "branch-66",
+    "branch-114",
+    "branch-116",
+    "branch-177",
+    "branch-181",
+    "branch-182",
+    "branch-187",
+    "branch-268",
+    "branch-294",
+    "branch-309",
+    "branch-350",
+    "branch-364",
+    "branch-367",
+    "branch-369",
+    "branch-370",
+    "branch-381"
+   ],
+   "new_voltage_violation_contingencies": 116,
+   "new_voltage_violation_not_flagged_by_screening": 103
+  },
+  "runtime": {
+   "repeats": 3,
+   "screening_median_s": 0.0157,
+   "dc_exact_median_s": 0.4301,
+   "ac_exact_median_s": 16.22
+  },
+  "memory": {
+   "screening_peak_tracemalloc_mib": 6.597,
+   "dc_exact_peak_tracemalloc_mib": 4.322,
+   "ac_exact_peak_tracemalloc_mib": 4.114,
+   "process_rss_end_mib": 227.9
+  },
+  "top_contingencies": [
+   {
+    "branch_id": "branch-231",
+    "ac_severity_pct": 260.0,
+    "dc_exact_severity_pct": 258.3,
+    "screening_severity_pct": 258.3
+   },
+   {
+    "branch_id": "branch-176",
+    "ac_severity_pct": 215.9,
+    "dc_exact_severity_pct": 181.5,
+    "screening_severity_pct": 181.5
+   },
+   {
+    "branch_id": "branch-255",
+    "ac_severity_pct": 202.7,
+    "dc_exact_severity_pct": 200.6,
+    "screening_severity_pct": 200.6
+   },
+   {
+    "branch_id": "branch-371",
+    "ac_severity_pct": 192.9,
+    "dc_exact_severity_pct": 181.5,
+    "screening_severity_pct": 181.5
+   },
+   {
+    "branch_id": "branch-254",
+    "ac_severity_pct": 157.5,
+    "dc_exact_severity_pct": 156.7,
+    "screening_severity_pct": 156.7
+   },
+   {
+    "branch_id": "branch-205",
+    "ac_severity_pct": 146.5,
+    "dc_exact_severity_pct": 149.6,
+    "screening_severity_pct": 149.6
+   },
+   {
+    "branch_id": "branch-257",
+    "ac_severity_pct": 138.1,
+    "dc_exact_severity_pct": 107.0,
+    "screening_severity_pct": 107.0
+   },
+   {
+    "branch_id": "branch-224",
+    "ac_severity_pct": 128.9,
+    "dc_exact_severity_pct": 106.9,
+    "screening_severity_pct": 106.9
+   },
+   {
+    "branch_id": "branch-229",
+    "ac_severity_pct": 127.0,
+    "dc_exact_severity_pct": 125.6,
+    "screening_severity_pct": 125.6
+   },
+   {
+    "branch_id": "branch-83",
+    "ac_severity_pct": 124.9,
+    "dc_exact_severity_pct": 88.04,
+    "screening_severity_pct": 88.04
+   }
+  ],
+  "platform": {
+   "python": "3.11.15",
+   "packages": {
+    "numpy": "2.4.6",
+    "scipy": "1.17.1",
+    "pandapower": "3.5.6",
+    "numba": "0.68.1",
+    "psutil": "7.2.2"
+   },
+   "os": "Windows-10-10.0.26300-SP0",
+   "cpu": "Intel(R) Core(TM) i7-14650HX",
+   "logical_cpus": 24,
+   "ram_gib": 15.7,
+   "threads": {
+    "OMP_NUM_THREADS": "1",
+    "OPENBLAS_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1",
+    "NUMBA_NUM_THREADS": "1"
+   }
+  }
+ }
+}

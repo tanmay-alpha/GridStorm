@@ -1,0 +1,935 @@
+{
+  "$defs": {
+    "Bus": {
+      "additionalProperties": false,
+      "properties": {
+        "carrier": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Carrier"
+        },
+        "country": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Country"
+        },
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Name"
+        },
+        "v_nom_kv": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "V Nom Kv"
+        },
+        "x": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Longitude (geographic) or layout x (schematic).",
+          "title": "X"
+        },
+        "y": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Latitude (geographic) or layout y (schematic).",
+          "title": "Y"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "x",
+        "y",
+        "v_nom_kv",
+        "carrier",
+        "country"
+      ],
+      "title": "Bus",
+      "type": "object"
+    },
+    "Carrier": {
+      "additionalProperties": false,
+      "properties": {
+        "co2_emissions_t_per_mwh": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Co2 Emissions T Per Mwh"
+        },
+        "color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Color"
+        },
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "nice_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Nice Name"
+        }
+      },
+      "required": [
+        "id",
+        "color",
+        "co2_emissions_t_per_mwh",
+        "nice_name"
+      ],
+      "title": "Carrier",
+      "type": "object"
+    },
+    "Generator": {
+      "additionalProperties": false,
+      "properties": {
+        "bus": {
+          "minLength": 1,
+          "title": "Bus",
+          "type": "string"
+        },
+        "carrier": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Carrier"
+        },
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "is_variable": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "True if the generator has a time-varying availability profile (p_max_pu series).",
+          "title": "Is Variable"
+        },
+        "marginal_cost_eur_per_mwh": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Marginal Cost Eur Per Mwh"
+        },
+        "p_nom_extendable": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "P Nom Extendable"
+        },
+        "p_nom_mw": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "P Nom Mw"
+        }
+      },
+      "required": [
+        "id",
+        "bus",
+        "carrier",
+        "p_nom_mw",
+        "marginal_cost_eur_per_mwh",
+        "p_nom_extendable",
+        "is_variable"
+      ],
+      "title": "Generator",
+      "type": "object"
+    },
+    "Line": {
+      "additionalProperties": false,
+      "properties": {
+        "bus0": {
+          "minLength": 1,
+          "title": "Bus0",
+          "type": "string"
+        },
+        "bus1": {
+          "minLength": 1,
+          "title": "Bus1",
+          "type": "string"
+        },
+        "carrier": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Carrier"
+        },
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "length_km": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Length Km"
+        },
+        "num_parallel": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Num Parallel"
+        },
+        "r_ohm": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "R Ohm"
+        },
+        "s_nom_mva": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Thermal rating; null when the source declares no limit (e.g. MATPOWER RATE_A=0).",
+          "title": "S Nom Mva"
+        },
+        "v_nom_kv": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "V Nom Kv"
+        },
+        "x_ohm": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "X Ohm"
+        }
+      },
+      "required": [
+        "id",
+        "bus0",
+        "bus1",
+        "v_nom_kv",
+        "s_nom_mva",
+        "x_ohm",
+        "r_ohm",
+        "length_km",
+        "num_parallel",
+        "carrier"
+      ],
+      "title": "Line",
+      "type": "object"
+    },
+    "Link": {
+      "additionalProperties": false,
+      "properties": {
+        "bus0": {
+          "minLength": 1,
+          "title": "Bus0",
+          "type": "string"
+        },
+        "bus1": {
+          "minLength": 1,
+          "title": "Bus1",
+          "type": "string"
+        },
+        "carrier": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Carrier"
+        },
+        "efficiency": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "maximum": 1,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Efficiency"
+        },
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "p_nom_mw": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "P Nom Mw"
+        }
+      },
+      "required": [
+        "id",
+        "bus0",
+        "bus1",
+        "p_nom_mw",
+        "efficiency",
+        "carrier"
+      ],
+      "title": "Link",
+      "type": "object"
+    },
+    "Load": {
+      "additionalProperties": false,
+      "properties": {
+        "bus": {
+          "minLength": 1,
+          "title": "Bus",
+          "type": "string"
+        },
+        "energy_mwh": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Energy Mwh"
+        },
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "p_mean_mw": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "P Mean Mw"
+        },
+        "p_peak_mw": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "P Peak Mw"
+        }
+      },
+      "required": [
+        "id",
+        "bus",
+        "p_peak_mw",
+        "p_mean_mw",
+        "energy_mwh"
+      ],
+      "title": "Load",
+      "type": "object"
+    },
+    "Snapshots": {
+      "additionalProperties": false,
+      "properties": {
+        "count": {
+          "minimum": 1,
+          "title": "Count",
+          "type": "integer"
+        },
+        "end": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "End"
+        },
+        "resolution_h": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Snapshot weighting in hours (uniform); null if weightings are not uniform.",
+          "title": "Resolution H"
+        },
+        "start": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "ISO-8601 timestamp of the first snapshot; null if the snapshot index is not a datetime (e.g. PyPSA's default single snapshot 'now').",
+          "title": "Start"
+        }
+      },
+      "required": [
+        "count",
+        "start",
+        "end",
+        "resolution_h"
+      ],
+      "title": "Snapshots",
+      "type": "object"
+    },
+    "StorageUnit": {
+      "additionalProperties": false,
+      "properties": {
+        "bus": {
+          "minLength": 1,
+          "title": "Bus",
+          "type": "string"
+        },
+        "carrier": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Carrier"
+        },
+        "efficiency_dispatch": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "maximum": 1,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Efficiency Dispatch"
+        },
+        "efficiency_store": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "maximum": 1,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Efficiency Store"
+        },
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "max_hours": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Max Hours"
+        },
+        "p_nom_mw": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "P Nom Mw"
+        }
+      },
+      "required": [
+        "id",
+        "bus",
+        "carrier",
+        "p_nom_mw",
+        "max_hours",
+        "efficiency_store",
+        "efficiency_dispatch"
+      ],
+      "title": "StorageUnit",
+      "type": "object"
+    },
+    "Store": {
+      "additionalProperties": false,
+      "properties": {
+        "bus": {
+          "minLength": 1,
+          "title": "Bus",
+          "type": "string"
+        },
+        "carrier": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Carrier"
+        },
+        "e_nom_mwh": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "E Nom Mwh"
+        },
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "bus",
+        "carrier",
+        "e_nom_mwh"
+      ],
+      "title": "Store",
+      "type": "object"
+    },
+    "Summary": {
+      "additionalProperties": false,
+      "properties": {
+        "capacity_by_carrier_mw": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "title": "Capacity By Carrier Mw",
+          "type": "object"
+        },
+        "counts": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "title": "Counts",
+          "type": "object"
+        },
+        "peak_load_mw": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Coincident system peak load over snapshots.",
+          "title": "Peak Load Mw"
+        },
+        "total_load_mwh": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Sum over snapshots of load x weighting.",
+          "title": "Total Load Mwh"
+        }
+      },
+      "required": [
+        "counts",
+        "capacity_by_carrier_mw",
+        "peak_load_mw",
+        "total_load_mwh"
+      ],
+      "title": "Summary",
+      "type": "object"
+    },
+    "Transformer": {
+      "additionalProperties": false,
+      "properties": {
+        "bus0": {
+          "minLength": 1,
+          "title": "Bus0",
+          "type": "string"
+        },
+        "bus1": {
+          "minLength": 1,
+          "title": "Bus1",
+          "type": "string"
+        },
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "r_pu": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Series resistance in p.u. on s_nom_mva.",
+          "title": "R Pu"
+        },
+        "s_nom_mva": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "S Nom Mva"
+        },
+        "tap_ratio": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Tap Ratio"
+        },
+        "x_pu": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Series reactance in p.u. on s_nom_mva.",
+          "title": "X Pu"
+        }
+      },
+      "required": [
+        "id",
+        "bus0",
+        "bus1",
+        "s_nom_mva",
+        "x_pu",
+        "r_pu",
+        "tap_ratio"
+      ],
+      "title": "Transformer",
+      "type": "object"
+    }
+  },
+  "$id": "https://gridstorm.dev/schema/canonical-grid-1.0.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "assumptions": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Assumptions",
+      "type": "array"
+    },
+    "buses": {
+      "items": {
+        "$ref": "#/$defs/Bus"
+      },
+      "title": "Buses",
+      "type": "array"
+    },
+    "carriers": {
+      "items": {
+        "$ref": "#/$defs/Carrier"
+      },
+      "title": "Carriers",
+      "type": "array"
+    },
+    "coordinate_kind": {
+      "enum": [
+        "geographic",
+        "schematic"
+      ],
+      "title": "Coordinate Kind",
+      "type": "string"
+    },
+    "crs": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Crs"
+    },
+    "field_provenance": {
+      "additionalProperties": {
+        "enum": [
+          "observed",
+          "estimated",
+          "synthetic",
+          "modeled",
+          "calculated"
+        ],
+        "type": "string"
+      },
+      "title": "Field Provenance",
+      "type": "object"
+    },
+    "generators": {
+      "items": {
+        "$ref": "#/$defs/Generator"
+      },
+      "title": "Generators",
+      "type": "array"
+    },
+    "lines": {
+      "items": {
+        "$ref": "#/$defs/Line"
+      },
+      "title": "Lines",
+      "type": "array"
+    },
+    "links": {
+      "items": {
+        "$ref": "#/$defs/Link"
+      },
+      "title": "Links",
+      "type": "array"
+    },
+    "loads": {
+      "items": {
+        "$ref": "#/$defs/Load"
+      },
+      "title": "Loads",
+      "type": "array"
+    },
+    "name": {
+      "minLength": 1,
+      "title": "Name",
+      "type": "string"
+    },
+    "network_id": {
+      "pattern": "^[a-z0-9][a-z0-9-]{1,63}$",
+      "title": "Network Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "canonical-grid/1.0",
+      "default": "canonical-grid/1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "snapshots": {
+      "$ref": "#/$defs/Snapshots"
+    },
+    "storage_units": {
+      "items": {
+        "$ref": "#/$defs/StorageUnit"
+      },
+      "title": "Storage Units",
+      "type": "array"
+    },
+    "stores": {
+      "items": {
+        "$ref": "#/$defs/Store"
+      },
+      "title": "Stores",
+      "type": "array"
+    },
+    "summary": {
+      "$ref": "#/$defs/Summary"
+    },
+    "transformers": {
+      "items": {
+        "$ref": "#/$defs/Transformer"
+      },
+      "title": "Transformers",
+      "type": "array"
+    }
+  },
+  "required": [
+    "network_id",
+    "name",
+    "coordinate_kind",
+    "crs",
+    "snapshots",
+    "buses",
+    "lines",
+    "transformers",
+    "links",
+    "generators",
+    "loads",
+    "storage_units",
+    "stores",
+    "carriers",
+    "summary",
+    "field_provenance",
+    "assumptions"
+  ],
+  "title": "canonical-grid/1.0",
+  "type": "object"
+}

@@ -1,0 +1,36 @@
+[project]
+name = "gridstorm-analytics"
+version = "0.1.0"
+description = "GridStorm network analytics (capacity, energy balance, CAPEX/OPEX) ported from PyPSA-Explorer's analytical logic onto pypsa.Network.statistics. No UI."
+license = "MIT"
+requires-python = ">=3.11,<3.12"
+dependencies = [
+    "pypsa>=1.4,<1.5",
+    "pandas>=3,<4",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "ruff>=0.6",
+    "highspy>=1.7",
+]
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/gridstorm_analytics"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]

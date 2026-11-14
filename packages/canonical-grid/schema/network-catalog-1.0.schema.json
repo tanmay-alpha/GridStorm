@@ -1,0 +1,49 @@
+{
+  "$defs": {
+    "CatalogEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9][a-z0-9-]{1,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "path": {
+          "description": "Directory relative to data/networks/.",
+          "minLength": 1,
+          "title": "Path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "path"
+      ],
+      "title": "CatalogEntry",
+      "type": "object"
+    }
+  },
+  "$id": "https://gridstorm.dev/schema/network-catalog-1.0.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "networks": {
+      "items": {
+        "$ref": "#/$defs/CatalogEntry"
+      },
+      "title": "Networks",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "network-catalog/1.0",
+      "default": "network-catalog/1.0",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "networks"
+  ],
+  "title": "network-catalog/1.0",
+  "type": "object"
+}

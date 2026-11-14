@@ -1,0 +1,32 @@
+# Build context = repository root (services/api/Dockerfile). Allow-list: only what the API image
+# needs is sent to the Docker daemon.
+*
+
+!services/api/pyproject.toml
+!services/api/uv.lock
+!services/api/src/
+!services/analytics/pyproject.toml
+!services/analytics/src/
+!packages/stormspec/pyproject.toml
+!packages/stormspec/src/
+!packages/stormspec/presets/
+!packages/stormspec/schema/
+!packages/canonical-grid/pyproject.toml
+!packages/canonical-grid/src/
+!packages/canonical-grid/schema/
+!workers/pypsa/pyproject.toml
+!workers/pypsa/src/
+!database/migrations/
+!database/dev/
+!database/seeds/
+!data/networks/
+!data/artifacts/
+
+# never ship local environments, caches or secrets even inside allowed trees
+**/.venv
+**/__pycache__
+**/*.py[cod]
+**/.pytest_cache
+**/.ruff_cache
+**/.env
+**/.env.*

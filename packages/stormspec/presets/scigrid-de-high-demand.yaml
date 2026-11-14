@@ -1,0 +1,23 @@
+schema_version: stormspec/1.0
+id: scigrid-de-high-demand
+name: SciGRID Germany — high-demand event (+20 %)
+description: >-
+  All loads scaled by 1.2 for the whole day (e.g. a cold spell). Synthetic stress applied to the
+  dataset's load time series.
+dataset: {network_id: scigrid-de, sha256: 284850c8e922414f9da69ffda0623431148e0c28a3380ba370e4135ac5236500}
+horizon: {start: 0, snapshots: 24}
+events:
+  - {type: demand_multiplier, value: 1.2, buses: null, window: null}
+mitigation:
+  storage_dispatch: true
+  curtailment: true
+  load_shedding: {enabled: true, voll_eur_per_mwh: 10000}
+execution:
+  engine: pypsa
+  formulation: lopf
+  solver: highs
+  solver_options: {time_limit_s: 300, threads: 1}
+  deterministic: true
+  seed: 0
+assumptions:
+  - Demand increase applied uniformly to every load (no spatial differentiation)

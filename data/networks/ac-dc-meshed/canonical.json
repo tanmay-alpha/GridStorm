@@ -1,0 +1,412 @@
+{
+  "schema_version": "canonical-grid/1.0",
+  "network_id": "ac-dc-meshed",
+  "name": "AC-DC meshed (PyPSA example)",
+  "coordinate_kind": "geographic",
+  "crs": "EPSG:4326",
+  "snapshots": {
+    "count": 10,
+    "start": "2015-01-01T00:00:00",
+    "end": "2015-01-01T09:00:00",
+    "resolution_h": 1.0
+  },
+  "buses": [
+    {
+      "id": "London",
+      "name": null,
+      "x": -0.13,
+      "y": 51.5,
+      "v_nom_kv": 380.0,
+      "carrier": "AC",
+      "country": "UK"
+    },
+    {
+      "id": "Norwich",
+      "name": null,
+      "x": 1.3,
+      "y": 52.6,
+      "v_nom_kv": 380.0,
+      "carrier": "AC",
+      "country": "UK"
+    },
+    {
+      "id": "Norwich DC",
+      "name": null,
+      "x": 1.3,
+      "y": 52.5,
+      "v_nom_kv": 200.0,
+      "carrier": "DC",
+      "country": "UK"
+    },
+    {
+      "id": "Manchester",
+      "name": null,
+      "x": -2.2,
+      "y": 53.47,
+      "v_nom_kv": 380.0,
+      "carrier": "AC",
+      "country": "UK"
+    },
+    {
+      "id": "Bremen",
+      "name": null,
+      "x": 8.8,
+      "y": 53.08,
+      "v_nom_kv": 380.0,
+      "carrier": "AC",
+      "country": "DE"
+    },
+    {
+      "id": "Bremen DC",
+      "name": null,
+      "x": 8.8,
+      "y": 52.98,
+      "v_nom_kv": 200.0,
+      "carrier": "DC",
+      "country": "DE"
+    },
+    {
+      "id": "Frankfurt",
+      "name": null,
+      "x": 8.7,
+      "y": 50.12,
+      "v_nom_kv": 380.0,
+      "carrier": "AC",
+      "country": "DE"
+    },
+    {
+      "id": "Norway",
+      "name": null,
+      "x": 10.75,
+      "y": 60.0,
+      "v_nom_kv": 380.0,
+      "carrier": "AC",
+      "country": "NO"
+    },
+    {
+      "id": "Norway DC",
+      "name": null,
+      "x": 10.75,
+      "y": 60.0,
+      "v_nom_kv": 200.0,
+      "carrier": "DC",
+      "country": "NO"
+    }
+  ],
+  "lines": [
+    {
+      "id": "0",
+      "bus0": "London",
+      "bus1": "Manchester",
+      "v_nom_kv": 380.0,
+      "s_nom_mva": 40000.0,
+      "x_ohm": 0.7968782824,
+      "r_ohm": 0.0,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "1",
+      "bus0": "Manchester",
+      "bus1": "Norwich",
+      "v_nom_kv": 380.0,
+      "s_nom_mva": 40000.0,
+      "x_ohm": 0.3915599178,
+      "r_ohm": 0.0,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "2",
+      "bus0": "Bremen DC",
+      "bus1": "Norwich DC",
+      "v_nom_kv": 200.0,
+      "s_nom_mva": 40000.0,
+      "x_ohm": 0.0,
+      "r_ohm": 0.2126041927,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "3",
+      "bus0": "Norwich DC",
+      "bus1": "Norway DC",
+      "v_nom_kv": 200.0,
+      "s_nom_mva": 40000.0,
+      "x_ohm": 0.0,
+      "r_ohm": 0.4861637504,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "4",
+      "bus0": "Norway DC",
+      "bus1": "Bremen DC",
+      "v_nom_kv": 200.0,
+      "s_nom_mva": 40000.0,
+      "x_ohm": 0.0,
+      "r_ohm": 0.4287266497,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "5",
+      "bus0": "Norwich",
+      "bus1": "London",
+      "v_nom_kv": 380.0,
+      "s_nom_mva": 40000.0,
+      "x_ohm": 0.2388003463,
+      "r_ohm": 0.0,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    },
+    {
+      "id": "6",
+      "bus0": "Bremen",
+      "bus1": "Frankfurt",
+      "v_nom_kv": 380.0,
+      "s_nom_mva": 40000.0,
+      "x_ohm": 0.4,
+      "r_ohm": 0.0,
+      "length_km": null,
+      "num_parallel": 1.0,
+      "carrier": "AC"
+    }
+  ],
+  "transformers": [],
+  "links": [
+    {
+      "id": "Norwich Converter",
+      "bus0": "Norwich",
+      "bus1": "Norwich DC",
+      "p_nom_mw": 1000.0,
+      "efficiency": 1.0,
+      "carrier": "DC"
+    },
+    {
+      "id": "Norway Converter",
+      "bus0": "Norway",
+      "bus1": "Norway DC",
+      "p_nom_mw": 1000.0,
+      "efficiency": 1.0,
+      "carrier": "DC"
+    },
+    {
+      "id": "Bremen Converter",
+      "bus0": "Bremen",
+      "bus1": "Bremen DC",
+      "p_nom_mw": 1000.0,
+      "efficiency": 1.0,
+      "carrier": "DC"
+    },
+    {
+      "id": "DC link",
+      "bus0": "London",
+      "bus1": "Bremen",
+      "p_nom_mw": 1000.0,
+      "efficiency": 1.0,
+      "carrier": "DC"
+    }
+  ],
+  "generators": [
+    {
+      "id": "Manchester Wind",
+      "bus": "Manchester",
+      "carrier": "wind",
+      "p_nom_mw": 80.0,
+      "marginal_cost_eur_per_mwh": 0.11,
+      "p_nom_extendable": true,
+      "is_variable": true
+    },
+    {
+      "id": "Manchester Gas",
+      "bus": "Manchester",
+      "carrier": "gas",
+      "p_nom_mw": 50000.0,
+      "marginal_cost_eur_per_mwh": 4.5323676307,
+      "p_nom_extendable": true,
+      "is_variable": false
+    },
+    {
+      "id": "Norway Wind",
+      "bus": "Norway",
+      "carrier": "wind",
+      "p_nom_mw": 100.0,
+      "marginal_cost_eur_per_mwh": 0.09,
+      "p_nom_extendable": true,
+      "is_variable": true
+    },
+    {
+      "id": "Norway Gas",
+      "bus": "Norway",
+      "carrier": "gas",
+      "p_nom_mw": 20000.0,
+      "marginal_cost_eur_per_mwh": 5.8928445406,
+      "p_nom_extendable": true,
+      "is_variable": false
+    },
+    {
+      "id": "Frankfurt Wind",
+      "bus": "Frankfurt",
+      "carrier": "wind",
+      "p_nom_mw": 110.0,
+      "marginal_cost_eur_per_mwh": 0.1,
+      "p_nom_extendable": true,
+      "is_variable": true
+    },
+    {
+      "id": "Frankfurt Gas",
+      "bus": "Frankfurt",
+      "carrier": "gas",
+      "p_nom_mw": 80000.0,
+      "marginal_cost_eur_per_mwh": 4.0863219899,
+      "p_nom_extendable": true,
+      "is_variable": false
+    }
+  ],
+  "loads": [
+    {
+      "id": "London",
+      "bus": "London",
+      "p_peak_mw": 976.8245614698,
+      "p_mean_mw": 494.85663413167003,
+      "energy_mwh": 4948.5663413167
+    },
+    {
+      "id": "Frankfurt",
+      "bus": "Frankfurt",
+      "p_peak_mw": 915.8667802518,
+      "p_mean_mw": 593.52945879154,
+      "energy_mwh": 5935.2945879154
+    },
+    {
+      "id": "Norway",
+      "bus": "Norway",
+      "p_peak_mw": 884.0738733306,
+      "p_mean_mw": 540.82492653821,
+      "energy_mwh": 5408.2492653821
+    },
+    {
+      "id": "Norwich",
+      "bus": "Norwich",
+      "p_peak_mw": 970.0590684572,
+      "p_mean_mw": 418.60087765809004,
+      "energy_mwh": 4186.0087765809
+    },
+    {
+      "id": "Bremen",
+      "bus": "Bremen",
+      "p_peak_mw": 912.2477761646,
+      "p_mean_mw": 666.52906146296,
+      "energy_mwh": 6665.2906146296
+    },
+    {
+      "id": "Manchester",
+      "bus": "Manchester",
+      "p_peak_mw": 857.5514402011,
+      "p_mean_mw": 540.4218498279699,
+      "energy_mwh": 5404.2184982797
+    }
+  ],
+  "storage_units": [],
+  "stores": [],
+  "carriers": [
+    {
+      "id": "gas",
+      "color": "red",
+      "co2_emissions_t_per_mwh": 0.24,
+      "nice_name": null
+    },
+    {
+      "id": "wind",
+      "color": "blue",
+      "co2_emissions_t_per_mwh": 0.0,
+      "nice_name": null
+    },
+    {
+      "id": "battery",
+      "color": "green",
+      "co2_emissions_t_per_mwh": 0.0,
+      "nice_name": null
+    },
+    {
+      "id": "load",
+      "color": "black",
+      "co2_emissions_t_per_mwh": 0.0,
+      "nice_name": null
+    },
+    {
+      "id": "AC",
+      "color": "orange",
+      "co2_emissions_t_per_mwh": 0.0,
+      "nice_name": null
+    },
+    {
+      "id": "DC",
+      "color": "purple",
+      "co2_emissions_t_per_mwh": 0.0,
+      "nice_name": null
+    }
+  ],
+  "summary": {
+    "counts": {
+      "buses": 9,
+      "lines": 7,
+      "transformers": 0,
+      "links": 4,
+      "generators": 6,
+      "loads": 6,
+      "storage_units": 0,
+      "stores": 0,
+      "carriers": 6
+    },
+    "capacity_by_carrier_mw": {
+      "gas": 150000.0,
+      "wind": 290.0
+    },
+    "peak_load_mw": 4343.585015384,
+    "total_load_mwh": 32547.6280841044
+  },
+  "field_provenance": {
+    "buses.carrier": "synthetic",
+    "buses.country": "synthetic",
+    "buses.v_nom_kv": "synthetic",
+    "buses.x": "synthetic",
+    "buses.y": "synthetic",
+    "carriers.co2_emissions_t_per_mwh": "synthetic",
+    "carriers.color": "synthetic",
+    "carriers.nice_name": "synthetic",
+    "generators.carrier": "synthetic",
+    "generators.is_variable": "calculated",
+    "generators.marginal_cost_eur_per_mwh": "synthetic",
+    "generators.p_nom_extendable": "synthetic",
+    "generators.p_nom_mw": "synthetic",
+    "lines.carrier": "synthetic",
+    "lines.num_parallel": "synthetic",
+    "lines.r_ohm": "synthetic",
+    "lines.s_nom_mva": "synthetic",
+    "lines.v_nom_kv": "calculated",
+    "lines.x_ohm": "synthetic",
+    "links.carrier": "synthetic",
+    "links.efficiency": "synthetic",
+    "links.p_nom_mw": "synthetic",
+    "loads.energy_mwh": "calculated",
+    "loads.p_mean_mw": "calculated",
+    "loads.p_peak_mw": "calculated"
+  },
+  "assumptions": [
+    "Synthetic example network; all values are illustrative test data from PyPSA.",
+    "lines.length_km is null: the source stores PyPSA's default length 0 for every line.",
+    "AC lines '0', '1', '5', '6' have r_ohm = 0 (reactance only); lines '2', '3', '4' join the DC buses and have x_ohm = 0 (resistance only, as PyPSA's DC power flow uses r). All lines carry carrier 'AC' in the source; values are kept unchanged.",
+    "Generators are p_nom_extendable with large placeholder p_nom (e.g. 50000 MW gas) in the source; the network is meant for capacity-expansion demos.",
+    "The source also contains GlobalConstraint 'co2_limit' (not part of canonical-grid/1.0).",
+    "The AC/DC lines form 4 PyPSA sub-networks (bus counts 3, 3, 2, 1) that are coupled only through the 4 converter links; this is by design, not a data error.",
+    "summary.capacity_by_carrier_mw sums p_nom of active generators and storage units by carrier; summary.peak_load_mw is the coincident peak of total load p_set."
+  ]
+}

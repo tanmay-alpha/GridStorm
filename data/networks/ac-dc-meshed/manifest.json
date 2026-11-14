@@ -1,0 +1,90 @@
+{
+  "schema_version": "dataset-manifest/1.0",
+  "network_id": "ac-dc-meshed",
+  "name": "AC-DC meshed (PyPSA example)",
+  "description": "Small synthetic 9-bus meshed AC/DC test network (UK, Germany, Norway nodes) shipped with PyPSA: 7 AC lines, 4 DC links, 6 generators (gas/wind, extendable), 10 hourly snapshots starting 2015-01-01. Illustrative only; not a real grid.",
+  "source": {
+    "url": "https://data.pypsa.org/networks/examples/v1.4.0/ac_dc_meshed.nc",
+    "version": "PyPSA v1.4.0 example network (ac_dc_meshed)",
+    "publication_date": "Wed, 11 Nov 2026 16:06:54 GMT",
+    "upstream_commit": "6c45594596cbc5612511ee9202a9e269e5001d88"
+  },
+  "retrieved_at": "2026-11-14T16:08:10+00:00",
+  "files": [
+    {
+      "path": "canonical.json",
+      "sha256": "c974af9fe4ede05eb077e2e53ff5e8d01155840e0127126874ea4b90fee184e1",
+      "bytes": 9828
+    },
+    {
+      "path": "network.nc",
+      "sha256": "62e4e53555e2219a2ae48b7f91e576e2ea383cadd2f61db9919f3592503c932f",
+      "bytes": 111180
+    },
+    {
+      "path": "source/retrieval.json",
+      "sha256": "60debd6a67217ea96e20e309a14d0e65d2b534a7a4463ba85bb3564e67417893",
+      "bytes": 337
+    }
+  ],
+  "license": {
+    "spdx": "CC-BY-4.0",
+    "url": "https://github.com/PyPSA/PyPSA/blob/6c45594596cbc5612511ee9202a9e269e5001d88/REUSE.toml",
+    "attribution": "AC-DC meshed example network, (c) PyPSA Contributors, CC-BY-4.0, https://github.com/PyPSA/PyPSA (examples/networks/ac-dc-meshed).",
+    "redistribution": "permitted"
+  },
+  "coverage": {
+    "geographic": "Illustrative nodes placed at UK (London, Norwich, Manchester), Germany (Frankfurt, Bremen) and Norway; lon/lat EPSG:4326; synthetic topology.",
+    "temporal": "10 hourly snapshots 2015-01-01T00:00 to 2015-01-01T09:00 (synthetic)."
+  },
+  "units": {
+    "buses.v_nom_kv": "kV",
+    "lines.v_nom_kv": "kV",
+    "lines.s_nom_mva": "MVA",
+    "lines.x_ohm": "ohm",
+    "lines.r_ohm": "ohm",
+    "lines.length_km": "km",
+    "transformers.s_nom_mva": "MVA",
+    "transformers.x_pu": "p.u. on transformers.s_nom_mva",
+    "transformers.r_pu": "p.u. on transformers.s_nom_mva",
+    "transformers.tap_ratio": "p.u. (dimensionless)",
+    "links.p_nom_mw": "MW",
+    "links.efficiency": "dimensionless (0,1]",
+    "generators.p_nom_mw": "MW",
+    "generators.marginal_cost_eur_per_mwh": "EUR/MWh",
+    "loads.p_peak_mw": "MW",
+    "loads.p_mean_mw": "MW",
+    "loads.energy_mwh": "MWh",
+    "storage_units.p_nom_mw": "MW",
+    "storage_units.max_hours": "h",
+    "stores.e_nom_mwh": "MWh",
+    "carriers.co2_emissions_t_per_mwh": "t/MWh (thermal input)",
+    "snapshots.resolution_h": "h"
+  },
+  "missing_value_policy": "Values the source does not provide are null in canonical.json and are never invented. PyPSA component defaults that would masquerade as data (e.g. line length 0) are emitted as null and listed in canonical.json assumptions. NaN/inf never appear in JSON. network.nc keeps PyPSA defaults because PyPSA requires finite values; flagged substitutions are listed in quality_flags.",
+  "quality_flags": [
+    "synthetic_network",
+    "line_length_missing",
+    "zero_line_impedances_in_source",
+    "extendable_generators_with_placeholder_p_nom",
+    "multiple_sub_networks_coupled_by_links"
+  ],
+  "transformations": [
+    {
+      "step": "download",
+      "tool": "network_import.paths.fetch",
+      "version": "1.0.0",
+      "description": "Downloaded https://data.pypsa.org/networks/examples/v1.4.0/ac_dc_meshed.nc (the URL pypsa.examples uses for v1.4.0); sha256 pinned in source/retrieval.json. network.nc is byte-identical upstream."
+    },
+    {
+      "step": "canonicalize",
+      "tool": "network_import.canonical.from_pypsa",
+      "version": "pypsa 1.4.0",
+      "description": "Converted to canonical-grid/1.0; derived impedances via calculate_dependent_values; defaults masquerading as data emitted as null."
+    }
+  ],
+  "engines": [
+    "pypsa"
+  ],
+  "provenance_class": "synthetic"
+}

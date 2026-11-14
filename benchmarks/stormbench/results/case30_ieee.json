@@ -1,0 +1,182 @@
+{
+ "schema_version": "stormbench-result/1.0",
+ "case": "case30_ieee",
+ "source": {
+  "file": "benchmarks/stormbench/cases/pglib_opf_case30_ieee.m",
+  "sha256": "cae3290639d989731d32428aacf30c0b918bc91db73bc54791f3aa62d3f76c70",
+  "pglib_commit": "dc6be4b2f85ca0e776952ec22cbd4c22396ea5a3"
+ },
+ "operating_point": {
+  "method": "dc_opf_highs",
+  "note": "DC-OPF (B-theta, PGLib costs as 10-segment piecewise-linear, HiGHS); N-0 secure in DC only. Generator voltage set-points: PGLib VG.",
+  "objective": 7504.0,
+  "dc_max_base_loading_pct": 100.0
+ },
+ "counts": {
+  "buses": 30,
+  "branches": 41,
+  "monitored_branches": 41,
+  "rate_a_zero": 0,
+  "contingencies": 41,
+  "islanding": 3,
+  "screened": 38,
+  "dc_base_overloaded_branches": 0,
+  "ac_base_overloaded_branches": 1,
+  "ac_base_voltage_violations": 0
+ },
+ "islanding_outages": {
+  "branch_ids": [
+   "branch-13",
+   "branch-16",
+   "branch-34"
+  ],
+  "max_islanded_buses": 1,
+  "max_abs_islanded_injection_mw": 3.5
+ },
+ "validation": {
+  "ptdf_max_abs_diff_vs_pandapower": 1.776e-15,
+  "lodf_max_abs_diff_vs_pandapower": 1.998e-15,
+  "lodf_vs_dc_resolve_max_abs_mw": 7.39e-13,
+  "islanding_structural_vs_numeric_mismatch": 0
+ },
+ "flow_error_mw": {
+  "max": 7.39e-13,
+  "mean": 6.039e-14
+ },
+ "overloading_contingencies": {
+  "screening": 18,
+  "dc_exact": 18,
+  "ac_exact": 1
+ },
+ "screening_vs_dc": {
+  "tp": 18,
+  "fp": 0,
+  "fn": 0,
+  "tn": 20,
+  "precision": 1.0,
+  "recall": 1.0,
+  "k": 18,
+  "recall_at_k": 1.0,
+  "recall_at_10": 1.0,
+  "kendall_tau": 0.995,
+  "spearman": 0.9996,
+  "n": 38
+ },
+ "screening_vs_ac": {
+  "tp": 1,
+  "fp": 17,
+  "fn": 0,
+  "tn": 20,
+  "precision": 0.05556,
+  "recall": 1.0,
+  "k": 1,
+  "recall_at_k": 1.0,
+  "recall_at_10": 0.3,
+  "kendall_tau": -0.09123,
+  "spearman": -0.1319,
+  "n": 38
+ },
+ "ac": {
+  "base_converged": "converged",
+  "converged": 38,
+  "converged_retry": 0,
+  "not_converged": 0,
+  "not_converged_branch_ids": [],
+  "new_voltage_violation_contingencies": 9,
+  "new_voltage_violation_not_flagged_by_screening": 8
+ },
+ "runtime": {
+  "repeats": 3,
+  "screening_median_s": 0.002185,
+  "dc_exact_median_s": 0.0224,
+  "ac_exact_median_s": 1.308
+ },
+ "memory": {
+  "screening_peak_tracemalloc_mib": 0.109,
+  "dc_exact_peak_tracemalloc_mib": 0.09716,
+  "ac_exact_peak_tracemalloc_mib": 1.66,
+  "process_rss_end_mib": 250.7
+ },
+ "top_contingencies": [
+  {
+   "branch_id": "branch-1",
+   "ac_severity_pct": 188.7,
+   "dc_exact_severity_pct": 158.0,
+   "screening_severity_pct": 158.0
+  },
+  {
+   "branch_id": "branch-5",
+   "ac_severity_pct": 94.03,
+   "dc_exact_severity_pct": 87.41,
+   "screening_severity_pct": 87.41
+  },
+  {
+   "branch_id": "branch-36",
+   "ac_severity_pct": 92.91,
+   "dc_exact_severity_pct": 99.69,
+   "screening_severity_pct": 99.69
+  },
+  {
+   "branch_id": "branch-7",
+   "ac_severity_pct": 90.27,
+   "dc_exact_severity_pct": 114.9,
+   "screening_severity_pct": 114.9
+  },
+  {
+   "branch_id": "branch-9",
+   "ac_severity_pct": 87.26,
+   "dc_exact_severity_pct": 106.1,
+   "screening_severity_pct": 106.1
+  },
+  {
+   "branch_id": "branch-28",
+   "ac_severity_pct": 86.05,
+   "dc_exact_severity_pct": 100.0,
+   "screening_severity_pct": 100.0
+  },
+  {
+   "branch_id": "branch-17",
+   "ac_severity_pct": 85.73,
+   "dc_exact_severity_pct": 100.0,
+   "screening_severity_pct": 100.0
+  },
+  {
+   "branch_id": "branch-6",
+   "ac_severity_pct": 84.42,
+   "dc_exact_severity_pct": 87.11,
+   "screening_severity_pct": 87.11
+  },
+  {
+   "branch_id": "branch-25",
+   "ac_severity_pct": 84.1,
+   "dc_exact_severity_pct": 99.86,
+   "screening_severity_pct": 99.86
+  },
+  {
+   "branch_id": "branch-27",
+   "ac_severity_pct": 82.29,
+   "dc_exact_severity_pct": 99.99,
+   "screening_severity_pct": 99.99
+  }
+ ],
+ "platform": {
+  "python": "3.11.15",
+  "packages": {
+   "numpy": "2.4.6",
+   "scipy": "1.17.1",
+   "pandapower": "3.5.6",
+   "numba": "0.68.1",
+   "psutil": "7.2.2"
+  },
+  "os": "Windows-10-10.0.26300-SP0",
+  "cpu": "Intel(R) Core(TM) i7-14650HX",
+  "logical_cpus": 24,
+  "ram_gib": 15.7,
+  "threads": {
+   "OMP_NUM_THREADS": "1",
+   "OPENBLAS_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": "1",
+   "NUMBA_NUM_THREADS": "1"
+  }
+ }
+}

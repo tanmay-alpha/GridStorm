@@ -1,0 +1,49 @@
+{
+ "artifact_id": "stormrisk-ac-dc-meshed-storm-stress",
+ "title": "ac-dc-meshed: Monte Carlo storm-stress EENS (modelled outage probabilities, 10 h)",
+ "base_scenario": {
+  "schema_version": "stormspec/1.0",
+  "id": "ac-dc-meshed-mc-storm-stress",
+  "name": "ac-dc-meshed Monte Carlo storm-stress base (10 snapshots)",
+  "description": "Base scenario for a StormRisk Monte Carlo study: the full 10-hour ac-dc-meshed horizon with load shedding at VOLL. Outages and demand are sampled by StormRisk from the modelled distributions in 'sampling'.",
+  "dataset": {"network_id": "ac-dc-meshed", "sha256": null},
+  "horizon": {"start": 0, "snapshots": 10},
+  "events": [],
+  "mitigation": {"storage_dispatch": true, "curtailment": true,
+                 "load_shedding": {"enabled": true, "voll_eur_per_mwh": 10000.0}},
+  "execution": {"engine": "pypsa", "formulation": "lopf", "solver": "highs",
+                "solver_options": {"time_limit_s": 120.0, "threads": 1},
+                "deterministic": true, "seed": 0},
+  "assumptions": [
+   "ac-dc-meshed is the PyPSA example network (synthetic, illustrative); it does not represent the real UK/German/Norwegian system."
+  ]
+ },
+ "sampling": {
+  "schema_version": "stormrisk-sampling/1.0",
+  "n_samples": 1000,
+  "seed": 20261114,
+  "outage_classes": [
+   {"name": "ac-lines-storm", "component": "line", "unavailability": 0.05,
+    "carriers": null, "asset_ids": ["0", "1", "5", "6"], "provenance": "modeled",
+    "source": "MODELLED storm-stress assumption, not observed data. Normal-weather unavailability from IEEE RTS-96 branch data (Grigg et al., 'The IEEE Reliability Test System-1996', IEEE Trans. Power Syst. 14(3):1010-1020, 1999, Table 12: permanent outage rate 0.24-0.54 /yr, duration 10-16 h) is q = lambda*r/8760 ~ 3e-4 to 1e-3. Adverse-weather failure rates are commonly modelled as one to two orders of magnitude above normal-weather rates (two-state weather model, Billinton & Allan, 'Reliability Evaluation of Power Systems', 2nd ed., Plenum 1996, ch. 7); q = 0.05 over the storm horizon is an illustrative stress value within that envelope."},
+   {"name": "dc-lines-storm", "component": "line", "unavailability": 0.05,
+    "carriers": null, "asset_ids": ["2", "3", "4"], "provenance": "modeled",
+    "source": "MODELLED storm-stress assumption (same basis as ac-lines-storm: IEEE RTS-96 Table 12 normal-weather rates scaled by an adverse-weather factor per Billinton & Allan 1996). Not observed data."},
+   {"name": "hvdc-links-converters", "component": "link", "unavailability": 0.02,
+    "carriers": null, "asset_ids": null, "provenance": "modeled",
+    "source": "MODELLED assumption, not observed data: illustrative forced unavailability for HVDC converters/links of order 1e-2 (same order as the smaller thermal-unit forced outage rates in IEEE RTS-96, Grigg et al. 1999, Table 6). No HVDC-specific statistics are used."},
+   {"name": "gas-units", "component": "generator", "unavailability": 0.05,
+    "carriers": ["gas"], "asset_ids": null, "provenance": "modeled",
+    "source": "MODELLED assumption, not observed data: forced outage rate of a mid-size thermal unit from IEEE RTS-96 generator reliability data (Grigg et al. 1999, Table 6: FOR 0.02-0.12; 197 MW oil/steam = 0.05). Each ac-dc-meshed gas generator is an aggregated plant, so a whole-plant FOR is a strong simplification."},
+   {"name": "wind-farms", "component": "generator", "unavailability": 0.02,
+    "carriers": ["wind"], "asset_ids": null, "provenance": "modeled",
+    "source": "MODELLED assumption, not observed data: whole-farm unavailability (e.g. export cable/substation fault) set to 0.02, of the order of the smaller IEEE RTS-96 unit FORs (Grigg et al. 1999, Table 6). Weather-driven wind variability is already in the network's p_max_pu series."}
+  ],
+  "demand_multiplier": {
+   "kind": "discrete", "values": [0.9, 1.0, 1.1], "probabilities": [0.25, 0.5, 0.25],
+   "source": "MODELLED assumption, not observed data: +/-10 % demand uncertainty around the dataset's load series (illustrative three-point distribution)."
+  },
+  "shed_tolerance_mwh": 1e-3,
+  "max_outages_per_sample": 200
+ }
+}

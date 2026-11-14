@@ -1,0 +1,29 @@
+[project]
+name = "gridstorm-integration-tests"
+version = "0.1.0"
+description = "Black-box HTTP integration tests for the GridStorm API (contract §6). Target via GRIDSTORM_API_URL."
+requires-python = ">=3.11"
+dependencies = [
+    "pytest>=8",
+    "httpx>=0.27",
+    "pyjwt>=2.9,<3",
+    "pyyaml>=6",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["."]
+addopts = "-ra"
+markers = [
+    "live: submits real simulation jobs (minutes of solver time on the target server)",
+    "ratelimit: deliberately exhausts the POST rate limit of the target server",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]

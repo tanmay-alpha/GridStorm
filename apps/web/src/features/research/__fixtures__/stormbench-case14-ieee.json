@@ -1,0 +1,201 @@
+{
+ "artifact": {
+  "schema_version": "gridstorm-artifact/1.0",
+  "artifact_id": "stormbench-case14-ieee",
+  "kind": "benchmark",
+  "engine": "stormbench",
+  "engine_version": "stormbench 0.1.0 / pandapower 3.5.6",
+  "network_id": "pglib-case14-ieee",
+  "created_at": "2026-11-14T16:07:37Z",
+  "command": "uv run python generate_artifacts.py --out-dir D:/New folder (4)/scratch_stormbench/out --cases case14_ieee,case30_ieee",
+  "inputs": [
+   {
+    "path": "benchmarks/stormbench/cases/pglib_opf_case14_ieee.m",
+    "sha256": "bd5c568621de65e4b0922317010868bc7fa94173807faa10ea8fdbbe77c28106"
+   }
+  ],
+  "platform": "Windows 10 AMD64, Python 3.11.15",
+  "execution_mode": "precomputed",
+  "payload_sha256": "5a06ceade5a63c3e0f5f2cd3985d0924f7961de7c1177634e924c4fc620879ea"
+ },
+ "payload": {
+  "schema_version": "stormbench-result/1.0",
+  "case": "case14_ieee",
+  "source": {
+   "file": "benchmarks/stormbench/cases/pglib_opf_case14_ieee.m",
+   "sha256": "bd5c568621de65e4b0922317010868bc7fa94173807faa10ea8fdbbe77c28106",
+   "pglib_commit": "dc6be4b2f85ca0e776952ec22cbd4c22396ea5a3"
+  },
+  "operating_point": {
+   "method": "dc_opf_highs",
+   "note": "DC-OPF (B-theta, PGLib costs as 10-segment piecewise-linear, HiGHS); N-0 secure in DC only. Generator voltage set-points: PGLib VG.",
+   "objective": 2052.0,
+   "dc_max_base_loading_pct": 60.66
+  },
+  "counts": {
+   "buses": 14,
+   "branches": 20,
+   "monitored_branches": 20,
+   "rate_a_zero": 0,
+   "contingencies": 20,
+   "islanding": 1,
+   "screened": 19,
+   "dc_base_overloaded_branches": 0,
+   "ac_base_overloaded_branches": 0,
+   "ac_base_voltage_violations": 0
+  },
+  "islanding_outages": {
+   "branch_ids": [
+    "branch-14"
+   ],
+   "max_islanded_buses": 1,
+   "max_abs_islanded_injection_mw": 0.0
+  },
+  "validation": {
+   "ptdf_max_abs_diff_vs_pandapower": 3.331e-16,
+   "lodf_max_abs_diff_vs_pandapower": 1.887e-15,
+   "lodf_vs_dc_resolve_max_abs_mw": 6.253e-13,
+   "islanding_structural_vs_numeric_mismatch": 0
+  },
+  "flow_error_mw": {
+   "max": 6.253e-13,
+   "mean": 3.891e-14
+  },
+  "overloading_contingencies": {
+   "screening": 1,
+   "dc_exact": 1,
+   "ac_exact": 1
+  },
+  "screening_vs_dc": {
+   "tp": 1,
+   "fp": 0,
+   "fn": 0,
+   "tn": 18,
+   "precision": 1.0,
+   "recall": 1.0,
+   "k": 1,
+   "recall_at_k": 1.0,
+   "recall_at_10": 1.0,
+   "kendall_tau": 0.9883,
+   "spearman": 0.9982,
+   "n": 19
+  },
+  "screening_vs_ac": {
+   "tp": 1,
+   "fp": 0,
+   "fn": 0,
+   "tn": 18,
+   "precision": 1.0,
+   "recall": 1.0,
+   "k": 1,
+   "recall_at_k": 1.0,
+   "recall_at_10": 0.9,
+   "kendall_tau": 0.7895,
+   "spearman": 0.8789,
+   "n": 19
+  },
+  "ac": {
+   "base_converged": "converged",
+   "converged": 19,
+   "converged_retry": 0,
+   "not_converged": 0,
+   "not_converged_branch_ids": [],
+   "new_voltage_violation_contingencies": 3,
+   "new_voltage_violation_not_flagged_by_screening": 2
+  },
+  "runtime": {
+   "repeats": 3,
+   "screening_median_s": 0.002154,
+   "dc_exact_median_s": 0.01488,
+   "ac_exact_median_s": 1.153
+  },
+  "memory": {
+   "screening_peak_tracemalloc_mib": 0.0384,
+   "dc_exact_peak_tracemalloc_mib": 0.04567,
+   "ac_exact_peak_tracemalloc_mib": 1.466,
+   "process_rss_end_mib": 250.1
+  },
+  "top_contingencies": [
+   {
+    "branch_id": "branch-1",
+    "ac_severity_pct": 302.2,
+    "dc_exact_severity_pct": 202.3,
+    "screening_severity_pct": 202.3
+   },
+   {
+    "branch_id": "branch-3",
+    "ac_severity_pct": 80.7,
+    "dc_exact_severity_pct": 71.84,
+    "screening_severity_pct": 71.84
+   },
+   {
+    "branch_id": "branch-4",
+    "ac_severity_pct": 76.4,
+    "dc_exact_severity_pct": 71.91,
+    "screening_severity_pct": 71.91
+   },
+   {
+    "branch_id": "branch-5",
+    "ac_severity_pct": 75.35,
+    "dc_exact_severity_pct": 71.32,
+    "screening_severity_pct": 71.32
+   },
+   {
+    "branch_id": "branch-6",
+    "ac_severity_pct": 69.0,
+    "dc_exact_severity_pct": 64.97,
+    "screening_severity_pct": 64.97
+   },
+   {
+    "branch_id": "branch-15",
+    "ac_severity_pct": 65.08,
+    "dc_exact_severity_pct": 61.3,
+    "screening_severity_pct": 61.3
+   },
+   {
+    "branch_id": "branch-8",
+    "ac_severity_pct": 65.02,
+    "dc_exact_severity_pct": 61.3,
+    "screening_severity_pct": 61.3
+   },
+   {
+    "branch_id": "branch-17",
+    "ac_severity_pct": 64.75,
+    "dc_exact_severity_pct": 60.88,
+    "screening_severity_pct": 60.88
+   },
+   {
+    "branch_id": "branch-9",
+    "ac_severity_pct": 64.62,
+    "dc_exact_severity_pct": 60.93,
+    "screening_severity_pct": 60.93
+   },
+   {
+    "branch_id": "branch-16",
+    "ac_severity_pct": 64.54,
+    "dc_exact_severity_pct": 60.82,
+    "screening_severity_pct": 60.82
+   }
+  ],
+  "platform": {
+   "python": "3.11.15",
+   "packages": {
+    "numpy": "2.4.6",
+    "scipy": "1.17.1",
+    "pandapower": "3.5.6",
+    "numba": "0.68.1",
+    "psutil": "7.2.2"
+   },
+   "os": "Windows-10-10.0.26300-SP0",
+   "cpu": "Intel(R) Core(TM) i7-14650HX",
+   "logical_cpus": 24,
+   "ram_gib": 15.7,
+   "threads": {
+    "OMP_NUM_THREADS": "1",
+    "OPENBLAS_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1",
+    "NUMBA_NUM_THREADS": "1"
+   }
+  }
+ }
+}

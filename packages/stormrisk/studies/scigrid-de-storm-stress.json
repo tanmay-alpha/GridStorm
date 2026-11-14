@@ -1,0 +1,49 @@
+{
+ "artifact_id": "stormrisk-scigrid-de-storm-stress",
+ "title": "scigrid-de: Monte Carlo storm-stress EENS (modelled outage probabilities, reduced 4 h horizon)",
+ "base_scenario": {
+  "schema_version": "stormspec/1.0",
+  "id": "scigrid-de-mc-storm-stress",
+  "name": "scigrid-de Monte Carlo storm-stress base (snapshots 0-3)",
+  "description": "Base scenario for a StormRisk Monte Carlo study on the PyPSA SciGRID-DE example (reduced 4-snapshot horizon to keep runtime bounded). Load shedding at VOLL. Outages are sampled by StormRisk from the modelled distributions in 'sampling'.",
+  "dataset": {"network_id": "scigrid-de", "sha256": null},
+  "horizon": {"start": 0, "snapshots": 4},
+  "events": [],
+  "mitigation": {"storage_dispatch": true, "curtailment": true,
+                 "load_shedding": {"enabled": true, "voll_eur_per_mwh": 10000.0}},
+  "execution": {"engine": "pypsa", "formulation": "lopf", "solver": "highs",
+                "solver_options": {"time_limit_s": 300.0, "threads": 1},
+                "deterministic": true, "seed": 0},
+  "assumptions": [
+   "SciGRID-DE (PyPSA example, 2011 data) is a research model of the German transmission grid; results are not statements about the real German system."
+  ]
+ },
+ "sampling": {
+  "schema_version": "stormrisk-sampling/1.0",
+  "n_samples": 100,
+  "seed": 20261114,
+  "outage_classes": [
+   {"name": "lines-storm", "component": "line", "unavailability": 0.01,
+    "carriers": null, "asset_ids": null, "provenance": "modeled",
+    "source": "MODELLED storm-stress assumption, not observed data. IEEE RTS-96 branch data (Grigg et al., 'The IEEE Reliability Test System-1996', IEEE Trans. Power Syst. 14(3):1010-1020, 1999, Table 12: permanent outage rate 0.24-0.54 /yr, duration 10-16 h) gives normal-weather q = lambda*r/8760 ~ 3e-4 to 1e-3; adverse-weather rates are modelled as one to two orders of magnitude higher (two-state weather model, Billinton & Allan, 'Reliability Evaluation of Power Systems', 2nd ed., 1996, ch. 7). q = 0.01 is an illustrative value in that envelope."},
+   {"name": "transformers", "component": "transformer", "unavailability": 0.002,
+    "carriers": null, "asset_ids": null, "provenance": "modeled",
+    "source": "MODELLED assumption, not observed data: IEEE RTS-96 transformer branches (Grigg et al. 1999, Table 12: 0.02 outages/yr x 768 h) give q ~ 1.75e-3; rounded to 0.002 and not storm-scaled (substation equipment assumed less weather-exposed than overhead lines)."},
+   {"name": "nuclear", "component": "generator", "unavailability": 0.12,
+    "carriers": ["Nuclear"], "asset_ids": null, "provenance": "modeled",
+    "source": "MODELLED assumption: IEEE RTS-96 generator reliability data (Grigg et al. 1999, Table 6), 400 MW nuclear unit forced outage rate 0.12. Not German fleet statistics."},
+   {"name": "coal", "component": "generator", "unavailability": 0.08,
+    "carriers": ["Brown Coal", "Hard Coal"], "asset_ids": null, "provenance": "modeled",
+    "source": "MODELLED assumption: IEEE RTS-96 (Grigg et al. 1999, Table 6), 350 MW coal/steam unit forced outage rate 0.08. Not German fleet statistics."},
+   {"name": "gas", "component": "generator", "unavailability": 0.05,
+    "carriers": ["Gas"], "asset_ids": null, "provenance": "modeled",
+    "source": "MODELLED assumption: IEEE RTS-96 has no gas units; the 197 MW oil/steam forced outage rate 0.05 (Grigg et al. 1999, Table 6) is used as a proxy for mid-size thermal plant."},
+   {"name": "oil", "component": "generator", "unavailability": 0.10,
+    "carriers": ["Oil"], "asset_ids": null, "provenance": "modeled",
+    "source": "MODELLED assumption: IEEE RTS-96 (Grigg et al. 1999, Table 6), 20 MW oil combustion turbine forced outage rate 0.10."}
+  ],
+  "demand_multiplier": null,
+  "shed_tolerance_mwh": 1e-3,
+  "max_outages_per_sample": 200
+ }
+}

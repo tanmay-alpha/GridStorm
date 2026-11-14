@@ -1,0 +1,278 @@
+{
+  "$defs": {
+    "Coverage": {
+      "additionalProperties": false,
+      "properties": {
+        "geographic": {
+          "title": "Geographic",
+          "type": "string"
+        },
+        "temporal": {
+          "title": "Temporal",
+          "type": "string"
+        }
+      },
+      "required": [
+        "geographic",
+        "temporal"
+      ],
+      "title": "Coverage",
+      "type": "object"
+    },
+    "FileEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "bytes": {
+          "minimum": 0,
+          "title": "Bytes",
+          "type": "integer"
+        },
+        "path": {
+          "description": "POSIX path relative to the dataset directory.",
+          "minLength": 1,
+          "title": "Path",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "sha256",
+        "bytes"
+      ],
+      "title": "FileEntry",
+      "type": "object"
+    },
+    "License": {
+      "additionalProperties": false,
+      "properties": {
+        "attribution": {
+          "minLength": 1,
+          "title": "Attribution",
+          "type": "string"
+        },
+        "redistribution": {
+          "enum": [
+            "permitted",
+            "restricted",
+            "unknown"
+          ],
+          "title": "Redistribution",
+          "type": "string"
+        },
+        "spdx": {
+          "minLength": 1,
+          "title": "Spdx",
+          "type": "string"
+        },
+        "url": {
+          "minLength": 1,
+          "title": "Url",
+          "type": "string"
+        }
+      },
+      "required": [
+        "spdx",
+        "url",
+        "attribution",
+        "redistribution"
+      ],
+      "title": "License",
+      "type": "object"
+    },
+    "Source": {
+      "additionalProperties": false,
+      "properties": {
+        "publication_date": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Publication Date"
+        },
+        "upstream_commit": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Upstream Commit"
+        },
+        "url": {
+          "minLength": 1,
+          "title": "Url",
+          "type": "string"
+        },
+        "version": {
+          "minLength": 1,
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "url",
+        "version",
+        "publication_date",
+        "upstream_commit"
+      ],
+      "title": "Source",
+      "type": "object"
+    },
+    "Transformation": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "minLength": 1,
+          "title": "Description",
+          "type": "string"
+        },
+        "step": {
+          "minLength": 1,
+          "title": "Step",
+          "type": "string"
+        },
+        "tool": {
+          "minLength": 1,
+          "title": "Tool",
+          "type": "string"
+        },
+        "version": {
+          "minLength": 1,
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "step",
+        "tool",
+        "version",
+        "description"
+      ],
+      "title": "Transformation",
+      "type": "object"
+    }
+  },
+  "$id": "https://gridstorm.dev/schema/dataset-manifest-1.0.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "coverage": {
+      "$ref": "#/$defs/Coverage"
+    },
+    "description": {
+      "title": "Description",
+      "type": "string"
+    },
+    "engines": {
+      "items": {
+        "enum": [
+          "pypsa",
+          "pandapower",
+          "grid2op"
+        ],
+        "type": "string"
+      },
+      "title": "Engines",
+      "type": "array"
+    },
+    "files": {
+      "items": {
+        "$ref": "#/$defs/FileEntry"
+      },
+      "minItems": 1,
+      "title": "Files",
+      "type": "array"
+    },
+    "license": {
+      "$ref": "#/$defs/License"
+    },
+    "missing_value_policy": {
+      "minLength": 1,
+      "title": "Missing Value Policy",
+      "type": "string"
+    },
+    "name": {
+      "minLength": 1,
+      "title": "Name",
+      "type": "string"
+    },
+    "network_id": {
+      "pattern": "^[a-z0-9][a-z0-9-]{1,63}$",
+      "title": "Network Id",
+      "type": "string"
+    },
+    "provenance_class": {
+      "enum": [
+        "observed",
+        "estimated",
+        "synthetic",
+        "modeled"
+      ],
+      "title": "Provenance Class",
+      "type": "string"
+    },
+    "quality_flags": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Quality Flags",
+      "type": "array"
+    },
+    "retrieved_at": {
+      "title": "Retrieved At",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "dataset-manifest/1.0",
+      "default": "dataset-manifest/1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "source": {
+      "$ref": "#/$defs/Source"
+    },
+    "transformations": {
+      "items": {
+        "$ref": "#/$defs/Transformation"
+      },
+      "title": "Transformations",
+      "type": "array"
+    },
+    "units": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "Units",
+      "type": "object"
+    }
+  },
+  "required": [
+    "network_id",
+    "name",
+    "description",
+    "source",
+    "retrieved_at",
+    "files",
+    "license",
+    "coverage",
+    "units",
+    "missing_value_policy",
+    "quality_flags",
+    "transformations",
+    "engines",
+    "provenance_class"
+  ],
+  "title": "dataset-manifest/1.0",
+  "type": "object"
+}

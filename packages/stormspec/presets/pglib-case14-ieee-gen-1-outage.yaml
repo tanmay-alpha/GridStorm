@@ -1,0 +1,24 @@
+schema_version: stormspec/1.0
+id: pglib-case14-ieee-gen-1-outage
+name: PGLib IEEE 14-bus — loss of the main unit gen-1 (deliberate load shedding)
+description: >-
+  Generator gen-1 (bus-1, 340 MW, the cheapest and largest unit) is forced out. The remaining
+  dispatchable capacity (gen-2, 59 MW) cannot cover the 259 MW load, so the run deliberately
+  demonstrates load shedding at VOLL (expected unserved energy = 259 - 59 = 200 MWh).
+dataset: {network_id: pglib-case14-ieee, sha256: 52424e30e5375a7d8b57d66704b2c0b258c21cad65d47c223e02bad0cb056a42}
+horizon: {start: 0, snapshots: 1}
+events:
+  - {type: generator_outage, asset_id: gen-1, window: null}
+mitigation:
+  storage_dispatch: true
+  curtailment: true
+  load_shedding: {enabled: true, voll_eur_per_mwh: 10000}
+execution:
+  engine: pypsa
+  formulation: lopf
+  solver: highs
+  solver_options: {time_limit_s: 300, threads: 1}
+  deterministic: true
+  seed: 0
+assumptions:
+  - Synchronous condensers (carrier SYNC) have zero active-power capacity in the dataset

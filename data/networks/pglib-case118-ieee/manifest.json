@@ -1,0 +1,119 @@
+{
+  "schema_version": "dataset-manifest/1.0",
+  "network_id": "pglib-case118-ieee",
+  "name": "IEEE 118-bus (PGLib-OPF v23.07)",
+  "description": "IEEE 118-bus test case (AEP system, 1962) as curated in PGLib-OPF v23.07 'typical operations' benchmark: 118 buses, 186 branches, 54 generators, single operating point.",
+  "source": {
+    "url": "https://raw.githubusercontent.com/power-grid-lib/pglib-opf/dc6be4b2f85ca0e776952ec22cbd4c22396ea5a3/pglib_opf_case118_ieee.m",
+    "version": "PGLib-OPF v23.07",
+    "publication_date": "2023-07-23",
+    "upstream_commit": "dc6be4b2f85ca0e776952ec22cbd4c22396ea5a3"
+  },
+  "retrieved_at": "2026-11-14T16:09:32+00:00",
+  "files": [
+    {
+      "path": "canonical.json",
+      "sha256": "3405e13442558c913f6110314dc3606764ad14b685d99a6b0325541e1fef1e52",
+      "bytes": 97609
+    },
+    {
+      "path": "network.nc",
+      "sha256": "f355e7888f8864231e3f113d339d08efd647ead9bcb9f2b77fc4e3171d2dcdad",
+      "bytes": 171750
+    },
+    {
+      "path": "source/LICENSE-pglib-opf",
+      "sha256": "95b1cd9fee1676221d74f7c0cbba622d98ac098e9b317b3848113ef4356ab4fd",
+      "bytes": 1308
+    },
+    {
+      "path": "source/pglib_opf_case118_ieee.m",
+      "sha256": "b1af0833849040c04babc3700631cff0d9afa66b79c5d3e13ae79bdf516cec78",
+      "bytes": 80336
+    },
+    {
+      "path": "source/retrieval-LICENSE.json",
+      "sha256": "199a3cf96af9d7533cd29345423ffaf0ad0b63bf00d5bc04a6a9f37741cf68ff",
+      "bytes": 384
+    },
+    {
+      "path": "source/retrieval-pglib_opf_case118_ieee.m.json",
+      "sha256": "f8fb071a5b7c33d518377811656a6c3a0b8abfd508a4de524dba8d65bec8e2d2",
+      "bytes": 402
+    }
+  ],
+  "license": {
+    "spdx": "CC-BY-4.0",
+    "url": "https://github.com/power-grid-lib/pglib-opf/blob/dc6be4b2f85ca0e776952ec22cbd4c22396ea5a3/LICENSE",
+    "attribution": "PGLib-OPF v23.07 (c) IEEE PES Task Force on Benchmarks for Validation of Emerging Power System Algorithms, CC-BY-4.0, https://github.com/power-grid-lib/pglib-opf; IEEE 118-bus data (c) 1999 Richard D. Christie, University of Washington (CC-BY-4.0).",
+    "redistribution": "permitted"
+  },
+  "coverage": {
+    "geographic": "Synthetic/benchmark test system (historic AEP-derived IEEE case); no geography, schematic layout only.",
+    "temporal": "Single operating point (one snapshot), no date."
+  },
+  "units": {
+    "buses.v_nom_kv": "kV",
+    "lines.v_nom_kv": "kV",
+    "lines.s_nom_mva": "MVA",
+    "lines.x_ohm": "ohm",
+    "lines.r_ohm": "ohm",
+    "lines.length_km": "km",
+    "transformers.s_nom_mva": "MVA",
+    "transformers.x_pu": "p.u. on transformers.s_nom_mva",
+    "transformers.r_pu": "p.u. on transformers.s_nom_mva",
+    "transformers.tap_ratio": "p.u. (dimensionless)",
+    "links.p_nom_mw": "MW",
+    "links.efficiency": "dimensionless (0,1]",
+    "generators.p_nom_mw": "MW",
+    "generators.marginal_cost_eur_per_mwh": "currency units/MWh as in MATPOWER gencost ($/h polynomial; PGLib uses a nominal $); not converted to EUR",
+    "loads.p_peak_mw": "MW",
+    "loads.p_mean_mw": "MW",
+    "loads.energy_mwh": "MWh",
+    "storage_units.p_nom_mw": "MW",
+    "storage_units.max_hours": "h",
+    "stores.e_nom_mwh": "MWh",
+    "carriers.co2_emissions_t_per_mwh": "t/MWh (thermal input)",
+    "snapshots.resolution_h": "h",
+    "buses.x": "schematic layout units (dimensionless)",
+    "buses.y": "schematic layout units (dimensionless)"
+  },
+  "missing_value_policy": "Values the source does not provide are null in canonical.json and are never invented. PyPSA component defaults that would masquerade as data (e.g. line length 0) are emitted as null and listed in canonical.json assumptions. NaN/inf never appear in JSON. network.nc keeps PyPSA defaults because PyPSA requires finite values; flagged substitutions are listed in quality_flags.",
+  "quality_flags": [
+    "schematic_coordinates",
+    "single_snapshot",
+    "cost_currency_not_eur",
+    "marginal_cost_linearized_secant"
+  ],
+  "transformations": [
+    {
+      "step": "download",
+      "tool": "network_import.paths.fetch",
+      "version": "1.0.0",
+      "description": "Downloaded pglib_opf_case118_ieee.m and LICENSE from pglib-opf at commit dc6be4b2f85ca0e776952ec22cbd4c22396ea5a3 into source/ (sha256 pinned in source/retrieval-*.json)."
+    },
+    {
+      "step": "parse",
+      "tool": "network_import.matpower.parse_matpower",
+      "version": "1.0.0",
+      "description": "Strict MATPOWER v2 parser (bus, gen, branch, gencost, bus_name)."
+    },
+    {
+      "step": "build",
+      "tool": "network_import.pglib.build_network",
+      "version": "pypsa 1.4.0",
+      "description": "Per-unit -> PyPSA units, transformer detection, RATE_A=0 handling, secant cost linearisation, Kamada-Kawai schematic layout; exported network.nc."
+    },
+    {
+      "step": "canonicalize",
+      "tool": "network_import.canonical.from_pypsa",
+      "version": "pypsa 1.4.0",
+      "description": "Converted to canonical-grid/1.0; unlimited ratings emitted as null."
+    }
+  ],
+  "engines": [
+    "pypsa",
+    "pandapower"
+  ],
+  "provenance_class": "synthetic"
+}

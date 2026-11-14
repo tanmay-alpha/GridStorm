@@ -1,0 +1,1828 @@
+{
+ "artifact": {
+  "schema_version": "gridstorm-artifact/1.0",
+  "artifact_id": "stormbench-summary",
+  "kind": "benchmark",
+  "engine": "stormbench",
+  "engine_version": "stormbench 0.1.0 / pandapower 3.5.6",
+  "network_id": "multiple",
+  "created_at": "2026-11-14T16:19:50Z",
+  "command": "uv run python run_benchmark.py --out-dir D:\\New folder (4)\\GridStorm\\data\\artifacts\\stormbench --results-dir D:\\New folder (4)\\GridStorm\\benchmarks\\stormbench\\results",
+  "inputs": [
+   {
+    "path": "benchmarks/stormbench/cases/pglib_opf_case14_ieee.m",
+    "sha256": "bd5c568621de65e4b0922317010868bc7fa94173807faa10ea8fdbbe77c28106"
+   },
+   {
+    "path": "benchmarks/stormbench/cases/pglib_opf_case30_ieee.m",
+    "sha256": "cae3290639d989731d32428aacf30c0b918bc91db73bc54791f3aa62d3f76c70"
+   },
+   {
+    "path": "benchmarks/stormbench/cases/pglib_opf_case57_ieee.m",
+    "sha256": "aa3b48f7cbaade2afd69cb3790ef72be981db8494dcef9277bee460f754bdb22"
+   },
+   {
+    "path": "benchmarks/stormbench/cases/pglib_opf_case118_ieee.m",
+    "sha256": "b1af0833849040c04babc3700631cff0d9afa66b79c5d3e13ae79bdf516cec78"
+   },
+   {
+    "path": "benchmarks/stormbench/cases/pglib_opf_case300_ieee.m",
+    "sha256": "7ecf056d5942135765200ad7ae8791c28f0d35fb1dc888ba2c32dfc950f3c2f5"
+   },
+   {
+    "path": "benchmarks/stormbench/cases/pglib_opf_case1354_pegase.m",
+    "sha256": "cd6d27dff4a56684f1e4f82cfa346b36d84c4e90733228aa88331cd550e17652"
+   }
+  ],
+  "platform": "Windows 10 AMD64, Python 3.11.15",
+  "execution_mode": "precomputed",
+  "payload_sha256": "ca027d2b1f29d3594692a0cc0e6568763647b5e53808097dd169ad11087ac51e"
+ },
+ "payload": {
+  "schema_version": "stormbench-summary/1.0",
+  "threshold_pct": 100.0,
+  "cases": [
+   {
+    "schema_version": "stormbench-result/1.0",
+    "case": "case14_ieee",
+    "source": {
+     "file": "benchmarks/stormbench/cases/pglib_opf_case14_ieee.m",
+     "sha256": "bd5c568621de65e4b0922317010868bc7fa94173807faa10ea8fdbbe77c28106",
+     "pglib_commit": "dc6be4b2f85ca0e776952ec22cbd4c22396ea5a3"
+    },
+    "operating_point": {
+     "method": "dc_opf_highs",
+     "note": "DC-OPF (B-theta, PGLib costs as 10-segment piecewise-linear, HiGHS); N-0 secure in DC only. Generator voltage set-points: PGLib VG.",
+     "objective": 2052.0,
+     "dc_max_base_loading_pct": 60.66
+    },
+    "counts": {
+     "buses": 14,
+     "branches": 20,
+     "monitored_branches": 20,
+     "rate_a_zero": 0,
+     "contingencies": 20,
+     "islanding": 1,
+     "screened": 19,
+     "dc_base_overloaded_branches": 0,
+     "ac_base_overloaded_branches": 0,
+     "ac_base_voltage_violations": 0
+    },
+    "islanding_outages": {
+     "branch_ids": [
+      "branch-14"
+     ],
+     "max_islanded_buses": 1,
+     "max_abs_islanded_injection_mw": 0.0
+    },
+    "validation": {
+     "ptdf_max_abs_diff_vs_pandapower": 3.331e-16,
+     "lodf_max_abs_diff_vs_pandapower": 1.887e-15,
+     "lodf_vs_dc_resolve_max_abs_mw": 6.253e-13,
+     "islanding_structural_vs_numeric_mismatch": 0
+    },
+    "flow_error_mw": {
+     "max": 6.253e-13,
+     "mean": 3.891e-14
+    },
+    "overloading_contingencies": {
+     "screening": 1,
+     "dc_exact": 1,
+     "ac_exact": 1
+    },
+    "screening_vs_dc": {
+     "tp": 1,
+     "fp": 0,
+     "fn": 0,
+     "tn": 18,
+     "precision": 1.0,
+     "recall": 1.0,
+     "k": 1,
+     "recall_at_k": 1.0,
+     "recall_at_10": 1.0,
+     "kendall_tau": 0.9883,
+     "spearman": 0.9982,
+     "n": 19
+    },
+    "screening_vs_ac": {
+     "tp": 1,
+     "fp": 0,
+     "fn": 0,
+     "tn": 18,
+     "precision": 1.0,
+     "recall": 1.0,
+     "k": 1,
+     "recall_at_k": 1.0,
+     "recall_at_10": 0.9,
+     "kendall_tau": 0.7895,
+     "spearman": 0.8789,
+     "n": 19
+    },
+    "ac": {
+     "base_converged": "converged",
+     "converged": 19,
+     "converged_retry": 0,
+     "not_converged": 0,
+     "not_converged_branch_ids": [],
+     "new_voltage_violation_contingencies": 3,
+     "new_voltage_violation_not_flagged_by_screening": 2
+    },
+    "runtime": {
+     "repeats": 3,
+     "screening_median_s": 0.001558,
+     "dc_exact_median_s": 0.008955,
+     "ac_exact_median_s": 0.7393
+    },
+    "memory": {
+     "screening_peak_tracemalloc_mib": 0.03834,
+     "dc_exact_peak_tracemalloc_mib": 0.04557,
+     "ac_exact_peak_tracemalloc_mib": 1.466,
+     "process_rss_end_mib": 249.8
+    },
+    "top_contingencies": [
+     {
+      "branch_id": "branch-1",
+      "ac_severity_pct": 302.2,
+      "dc_exact_severity_pct": 202.3,
+      "screening_severity_pct": 202.3
+     },
+     {
+      "branch_id": "branch-3",
+      "ac_severity_pct": 80.7,
+      "dc_exact_severity_pct": 71.84,
+      "screening_severity_pct": 71.84
+     },
+     {
+      "branch_id": "branch-4",
+      "ac_severity_pct": 76.4,
+      "dc_exact_severity_pct": 71.91,
+      "screening_severity_pct": 71.91
+     },
+     {
+      "branch_id": "branch-5",
+      "ac_severity_pct": 75.35,
+      "dc_exact_severity_pct": 71.32,
+      "screening_severity_pct": 71.32
+     },
+     {
+      "branch_id": "branch-6",
+      "ac_severity_pct": 69.0,
+      "dc_exact_severity_pct": 64.97,
+      "screening_severity_pct": 64.97
+     },
+     {
+      "branch_id": "branch-15",
+      "ac_severity_pct": 65.08,
+      "dc_exact_severity_pct": 61.3,
+      "screening_severity_pct": 61.3
+     },
+     {
+      "branch_id": "branch-8",
+      "ac_severity_pct": 65.02,
+      "dc_exact_severity_pct": 61.3,
+      "screening_severity_pct": 61.3
+     },
+     {
+      "branch_id": "branch-17",
+      "ac_severity_pct": 64.75,
+      "dc_exact_severity_pct": 60.88,
+      "screening_severity_pct": 60.88
+     },
+     {
+      "branch_id": "branch-9",
+      "ac_severity_pct": 64.62,
+      "dc_exact_severity_pct": 60.93,
+      "screening_severity_pct": 60.93
+     },
+     {
+      "branch_id": "branch-16",
+      "ac_severity_pct": 64.54,
+      "dc_exact_severity_pct": 60.82,
+      "screening_severity_pct": 60.82
+     }
+    ],
+    "platform": {
+     "python": "3.11.15",
+     "packages": {
+      "numpy": "2.4.6",
+      "scipy": "1.17.1",
+      "pandapower": "3.5.6",
+      "numba": "0.68.1",
+      "psutil": "7.2.2"
+     },
+     "os": "Windows-10-10.0.26300-SP0",
+     "cpu": "Intel(R) Core(TM) i7-14650HX",
+     "logical_cpus": 24,
+     "ram_gib": 15.7,
+     "threads": {
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "NUMBA_NUM_THREADS": "1"
+     }
+    }
+   },
+   {
+    "schema_version": "stormbench-result/1.0",
+    "case": "case30_ieee",
+    "source": {
+     "file": "benchmarks/stormbench/cases/pglib_opf_case30_ieee.m",
+     "sha256": "cae3290639d989731d32428aacf30c0b918bc91db73bc54791f3aa62d3f76c70",
+     "pglib_commit": "dc6be4b2f85ca0e776952ec22cbd4c22396ea5a3"
+    },
+    "operating_point": {
+     "method": "dc_opf_highs",
+     "note": "DC-OPF (B-theta, PGLib costs as 10-segment piecewise-linear, HiGHS); N-0 secure in DC only. Generator voltage set-points: PGLib VG.",
+     "objective": 7504.0,
+     "dc_max_base_loading_pct": 100.0
+    },
+    "counts": {
+     "buses": 30,
+     "branches": 41,
+     "monitored_branches": 41,
+     "rate_a_zero": 0,
+     "contingencies": 41,
+     "islanding": 3,
+     "screened": 38,
+     "dc_base_overloaded_branches": 0,
+     "ac_base_overloaded_branches": 1,
+     "ac_base_voltage_violations": 0
+    },
+    "islanding_outages": {
+     "branch_ids": [
+      "branch-13",
+      "branch-16",
+      "branch-34"
+     ],
+     "max_islanded_buses": 1,
+     "max_abs_islanded_injection_mw": 3.5
+    },
+    "validation": {
+     "ptdf_max_abs_diff_vs_pandapower": 1.776e-15,
+     "lodf_max_abs_diff_vs_pandapower": 1.998e-15,
+     "lodf_vs_dc_resolve_max_abs_mw": 7.39e-13,
+     "islanding_structural_vs_numeric_mismatch": 0
+    },
+    "flow_error_mw": {
+     "max": 7.39e-13,
+     "mean": 6.039e-14
+    },
+    "overloading_contingencies": {
+     "screening": 18,
+     "dc_exact": 18,
+     "ac_exact": 1
+    },
+    "screening_vs_dc": {
+     "tp": 18,
+     "fp": 0,
+     "fn": 0,
+     "tn": 20,
+     "precision": 1.0,
+     "recall": 1.0,
+     "k": 18,
+     "recall_at_k": 1.0,
+     "recall_at_10": 1.0,
+     "kendall_tau": 0.995,
+     "spearman": 0.9996,
+     "n": 38
+    },
+    "screening_vs_ac": {
+     "tp": 1,
+     "fp": 17,
+     "fn": 0,
+     "tn": 20,
+     "precision": 0.05556,
+     "recall": 1.0,
+     "k": 1,
+     "recall_at_k": 1.0,
+     "recall_at_10": 0.3,
+     "kendall_tau": -0.09123,
+     "spearman": -0.1319,
+     "n": 38
+    },
+    "ac": {
+     "base_converged": "converged",
+     "converged": 38,
+     "converged_retry": 0,
+     "not_converged": 0,
+     "not_converged_branch_ids": [],
+     "new_voltage_violation_contingencies": 9,
+     "new_voltage_violation_not_flagged_by_screening": 8
+    },
+    "runtime": {
+     "repeats": 3,
+     "screening_median_s": 0.002185,
+     "dc_exact_median_s": 0.0224,
+     "ac_exact_median_s": 1.308
+    },
+    "memory": {
+     "screening_peak_tracemalloc_mib": 0.109,
+     "dc_exact_peak_tracemalloc_mib": 0.09716,
+     "ac_exact_peak_tracemalloc_mib": 1.66,
+     "process_rss_end_mib": 250.7
+    },
+    "top_contingencies": [
+     {
+      "branch_id": "branch-1",
+      "ac_severity_pct": 188.7,
+      "dc_exact_severity_pct": 158.0,
+      "screening_severity_pct": 158.0
+     },
+     {
+      "branch_id": "branch-5",
+      "ac_severity_pct": 94.03,
+      "dc_exact_severity_pct": 87.41,
+      "screening_severity_pct": 87.41
+     },
+     {
+      "branch_id": "branch-36",
+      "ac_severity_pct": 92.91,
+      "dc_exact_severity_pct": 99.69,
+      "screening_severity_pct": 99.69
+     },
+     {
+      "branch_id": "branch-7",
+      "ac_severity_pct": 90.27,
+      "dc_exact_severity_pct": 114.9,
+      "screening_severity_pct": 114.9
+     },
+     {
+      "branch_id": "branch-9",
+      "ac_severity_pct": 87.26,
+      "dc_exact_severity_pct": 106.1,
+      "screening_severity_pct": 106.1
+     },
+     {
+      "branch_id": "branch-28",
+      "ac_severity_pct": 86.05,
+      "dc_exact_severity_pct": 100.0,
+      "screening_severity_pct": 100.0
+     },
+     {
+      "branch_id": "branch-17",
+      "ac_severity_pct": 85.73,
+      "dc_exact_severity_pct": 100.0,
+      "screening_severity_pct": 100.0
+     },
+     {
+      "branch_id": "branch-6",
+      "ac_severity_pct": 84.42,
+      "dc_exact_severity_pct": 87.11,
+      "screening_severity_pct": 87.11
+     },
+     {
+      "branch_id": "branch-25",
+      "ac_severity_pct": 84.1,
+      "dc_exact_severity_pct": 99.86,
+      "screening_severity_pct": 99.86
+     },
+     {
+      "branch_id": "branch-27",
+      "ac_severity_pct": 82.29,
+      "dc_exact_severity_pct": 99.99,
+      "screening_severity_pct": 99.99
+     }
+    ],
+    "platform": {
+     "python": "3.11.15",
+     "packages": {
+      "numpy": "2.4.6",
+      "scipy": "1.17.1",
+      "pandapower": "3.5.6",
+      "numba": "0.68.1",
+      "psutil": "7.2.2"
+     },
+     "os": "Windows-10-10.0.26300-SP0",
+     "cpu": "Intel(R) Core(TM) i7-14650HX",
+     "logical_cpus": 24,
+     "ram_gib": 15.7,
+     "threads": {
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "NUMBA_NUM_THREADS": "1"
+     }
+    }
+   },
+   {
+    "schema_version": "stormbench-result/1.0",
+    "case": "case57_ieee",
+    "source": {
+     "file": "benchmarks/stormbench/cases/pglib_opf_case57_ieee.m",
+     "sha256": "aa3b48f7cbaade2afd69cb3790ef72be981db8494dcef9277bee460f754bdb22",
+     "pglib_commit": "dc6be4b2f85ca0e776952ec22cbd4c22396ea5a3"
+    },
+    "operating_point": {
+     "method": "dc_opf_highs",
+     "note": "DC-OPF (B-theta, PGLib costs as 10-segment piecewise-linear, HiGHS); N-0 secure in DC only. Generator voltage set-points: PGLib VG.",
+     "objective": 34770.0,
+     "dc_max_base_loading_pct": 93.81
+    },
+    "counts": {
+     "buses": 57,
+     "branches": 80,
+     "monitored_branches": 80,
+     "rate_a_zero": 0,
+     "contingencies": 80,
+     "islanding": 1,
+     "screened": 79,
+     "dc_base_overloaded_branches": 0,
+     "ac_base_overloaded_branches": 0,
+     "ac_base_voltage_violations": 3
+    },
+    "islanding_outages": {
+     "branch_ids": [
+      "branch-45"
+     ],
+     "max_islanded_buses": 1,
+     "max_abs_islanded_injection_mw": 3.8
+    },
+    "validation": {
+     "ptdf_max_abs_diff_vs_pandapower": 8.882e-16,
+     "lodf_max_abs_diff_vs_pandapower": 9.437e-15,
+     "lodf_vs_dc_resolve_max_abs_mw": 7.958e-13,
+     "islanding_structural_vs_numeric_mismatch": 0
+    },
+    "flow_error_mw": {
+     "max": 7.958e-13,
+     "mean": 3e-14
+    },
+    "overloading_contingencies": {
+     "screening": 12,
+     "dc_exact": 12,
+     "ac_exact": 15
+    },
+    "screening_vs_dc": {
+     "tp": 12,
+     "fp": 0,
+     "fn": 0,
+     "tn": 67,
+     "precision": 1.0,
+     "recall": 1.0,
+     "k": 12,
+     "recall_at_k": 1.0,
+     "recall_at_10": 1.0,
+     "kendall_tau": 0.9997,
+     "spearman": 1.0,
+     "n": 79
+    },
+    "screening_vs_ac": {
+     "tp": 12,
+     "fp": 0,
+     "fn": 3,
+     "tn": 63,
+     "precision": 1.0,
+     "recall": 0.8,
+     "k": 15,
+     "recall_at_k": 1.0,
+     "recall_at_10": 0.9,
+     "kendall_tau": 0.9162,
+     "spearman": 0.9803,
+     "n": 78
+    },
+    "ac": {
+     "base_converged": "converged",
+     "converged": 78,
+     "converged_retry": 0,
+     "not_converged": 1,
+     "not_converged_branch_ids": [
+      "branch-48"
+     ],
+     "new_voltage_violation_contingencies": 68,
+     "new_voltage_violation_not_flagged_by_screening": 57
+    },
+    "runtime": {
+     "repeats": 3,
+     "screening_median_s": 0.003066,
+     "dc_exact_median_s": 0.06353,
+     "ac_exact_median_s": 2.977
+    },
+    "memory": {
+     "screening_peak_tracemalloc_mib": 0.3704,
+     "dc_exact_peak_tracemalloc_mib": 0.2785,
+     "ac_exact_peak_tracemalloc_mib": 2.016,
+     "process_rss_end_mib": 252.9
+    },
+    "top_contingencies": [
+     {
+      "branch_id": "branch-8",
+      "ac_severity_pct": 220.0,
+      "dc_exact_severity_pct": 206.3,
+      "screening_severity_pct": 206.3
+     },
+     {
+      "branch_id": "branch-22",
+      "ac_severity_pct": 133.5,
+      "dc_exact_severity_pct": 135.9,
+      "screening_severity_pct": 135.9
+     },
+     {
+      "branch_id": "branch-25",
+      "ac_severity_pct": 131.2,
+      "dc_exact_severity_pct": 130.8,
+      "screening_severity_pct": 130.8
+     },
+     {
+      "branch_id": "branch-9",
+      "ac_severity_pct": 113.4,
+      "dc_exact_severity_pct": 112.7,
+      "screening_severity_pct": 112.7
+     },
+     {
+      "branch_id": "branch-41",
+      "ac_severity_pct": 107.8,
+      "dc_exact_severity_pct": 105.7,
+      "screening_severity_pct": 105.7
+     },
+     {
+      "branch_id": "branch-6",
+      "ac_severity_pct": 107.7,
+      "dc_exact_severity_pct": 110.4,
+      "screening_severity_pct": 110.4
+     },
+     {
+      "branch_id": "branch-3",
+      "ac_severity_pct": 107.6,
+      "dc_exact_severity_pct": 106.9,
+      "screening_severity_pct": 106.9
+     },
+     {
+      "branch_id": "branch-10",
+      "ac_severity_pct": 107.0,
+      "dc_exact_severity_pct": 108.2,
+      "screening_severity_pct": 108.2
+     },
+     {
+      "branch_id": "branch-12",
+      "ac_severity_pct": 104.8,
+      "dc_exact_severity_pct": 106.1,
+      "screening_severity_pct": 106.1
+     },
+     {
+      "branch_id": "branch-7",
+      "ac_severity_pct": 104.7,
+      "dc_exact_severity_pct": 102.9,
+      "screening_severity_pct": 102.9
+     }
+    ],
+    "platform": {
+     "python": "3.11.15",
+     "packages": {
+      "numpy": "2.4.6",
+      "scipy": "1.17.1",
+      "pandapower": "3.5.6",
+      "numba": "0.68.1",
+      "psutil": "7.2.2"
+     },
+     "os": "Windows-10-10.0.26300-SP0",
+     "cpu": "Intel(R) Core(TM) i7-14650HX",
+     "logical_cpus": 24,
+     "ram_gib": 15.7,
+     "threads": {
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "NUMBA_NUM_THREADS": "1"
+     }
+    }
+   },
+   {
+    "schema_version": "stormbench-result/1.0",
+    "case": "case118_ieee",
+    "source": {
+     "file": "benchmarks/stormbench/cases/pglib_opf_case118_ieee.m",
+     "sha256": "b1af0833849040c04babc3700631cff0d9afa66b79c5d3e13ae79bdf516cec78",
+     "pglib_commit": "dc6be4b2f85ca0e776952ec22cbd4c22396ea5a3"
+    },
+    "operating_point": {
+     "method": "dc_opf_highs",
+     "note": "DC-OPF (B-theta, PGLib costs as 10-segment piecewise-linear, HiGHS); N-0 secure in DC only. Generator voltage set-points: PGLib VG.",
+     "objective": 93130.0,
+     "dc_max_base_loading_pct": 100.0
+    },
+    "counts": {
+     "buses": 118,
+     "branches": 186,
+     "monitored_branches": 186,
+     "rate_a_zero": 0,
+     "contingencies": 186,
+     "islanding": 9,
+     "screened": 177,
+     "dc_base_overloaded_branches": 0,
+     "ac_base_overloaded_branches": 4,
+     "ac_base_voltage_violations": 0
+    },
+    "islanding_outages": {
+     "branch_ids": [
+      "branch-7",
+      "branch-9",
+      "branch-113",
+      "branch-133",
+      "branch-134",
+      "branch-176",
+      "branch-177",
+      "branch-183",
+      "branch-184"
+     ],
+     "max_islanded_buses": 2,
+     "max_abs_islanded_injection_mw": 505.0
+    },
+    "validation": {
+     "ptdf_max_abs_diff_vs_pandapower": 7.784e-15,
+     "lodf_max_abs_diff_vs_pandapower": 8.216e-15,
+     "lodf_vs_dc_resolve_max_abs_mw": 3.07e-12,
+     "islanding_structural_vs_numeric_mismatch": 0
+    },
+    "flow_error_mw": {
+     "max": 3.07e-12,
+     "mean": 9.173e-14
+    },
+    "overloading_contingencies": {
+     "screening": 123,
+     "dc_exact": 123,
+     "ac_exact": 28
+    },
+    "screening_vs_dc": {
+     "tp": 123,
+     "fp": 0,
+     "fn": 0,
+     "tn": 54,
+     "precision": 1.0,
+     "recall": 1.0,
+     "k": 123,
+     "recall_at_k": 1.0,
+     "recall_at_10": 1.0,
+     "kendall_tau": 0.9771,
+     "spearman": 0.9912,
+     "n": 177
+    },
+    "screening_vs_ac": {
+     "tp": 28,
+     "fp": 94,
+     "fn": 0,
+     "tn": 54,
+     "precision": 0.2295,
+     "recall": 1.0,
+     "k": 28,
+     "recall_at_k": 0.5714,
+     "recall_at_10": 0.7,
+     "kendall_tau": 0.2864,
+     "spearman": 0.3971,
+     "n": 176
+    },
+    "ac": {
+     "base_converged": "converged",
+     "converged": 176,
+     "converged_retry": 0,
+     "not_converged": 1,
+     "not_converged_branch_ids": [
+      "branch-104"
+     ],
+     "new_voltage_violation_contingencies": 7,
+     "new_voltage_violation_not_flagged_by_screening": 0
+    },
+    "runtime": {
+     "repeats": 3,
+     "screening_median_s": 0.004321,
+     "dc_exact_median_s": 0.1433,
+     "ac_exact_median_s": 6.575
+    },
+    "memory": {
+     "screening_peak_tracemalloc_mib": 1.602,
+     "dc_exact_peak_tracemalloc_mib": 1.178,
+     "ac_exact_peak_tracemalloc_mib": 2.767,
+     "process_rss_end_mib": 256.3
+    },
+    "top_contingencies": [
+     {
+      "branch_id": "branch-126",
+      "ac_severity_pct": 185.7,
+      "dc_exact_severity_pct": 193.6,
+      "screening_severity_pct": 193.6
+     },
+     {
+      "branch_id": "branch-127",
+      "ac_severity_pct": 185.7,
+      "dc_exact_severity_pct": 193.6,
+      "screening_severity_pct": 193.6
+     },
+     {
+      "branch_id": "branch-8",
+      "ac_severity_pct": 177.2,
+      "dc_exact_severity_pct": 161.8,
+      "screening_severity_pct": 161.8
+     },
+     {
+      "branch_id": "branch-32",
+      "ac_severity_pct": 143.5,
+      "dc_exact_severity_pct": 142.6,
+      "screening_severity_pct": 142.6
+     },
+     {
+      "branch_id": "branch-38",
+      "ac_severity_pct": 140.9,
+      "dc_exact_severity_pct": 145.2,
+      "screening_severity_pct": 145.2
+     },
+     {
+      "branch_id": "branch-96",
+      "ac_severity_pct": 129.2,
+      "dc_exact_severity_pct": 108.6,
+      "screening_severity_pct": 108.6
+     },
+     {
+      "branch_id": "branch-51",
+      "ac_severity_pct": 128.4,
+      "dc_exact_severity_pct": 121.5,
+      "screening_severity_pct": 121.5
+     },
+     {
+      "branch_id": "branch-107",
+      "ac_severity_pct": 120.4,
+      "dc_exact_severity_pct": 157.5,
+      "screening_severity_pct": 157.5
+     },
+     {
+      "branch_id": "branch-163",
+      "ac_severity_pct": 120.0,
+      "dc_exact_severity_pct": 106.2,
+      "screening_severity_pct": 106.2
+     },
+     {
+      "branch_id": "branch-159",
+      "ac_severity_pct": 118.5,
+      "dc_exact_severity_pct": 125.5,
+      "screening_severity_pct": 125.5
+     }
+    ],
+    "platform": {
+     "python": "3.11.15",
+     "packages": {
+      "numpy": "2.4.6",
+      "scipy": "1.17.1",
+      "pandapower": "3.5.6",
+      "numba": "0.68.1",
+      "psutil": "7.2.2"
+     },
+     "os": "Windows-10-10.0.26300-SP0",
+     "cpu": "Intel(R) Core(TM) i7-14650HX",
+     "logical_cpus": 24,
+     "ram_gib": 15.7,
+     "threads": {
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "NUMBA_NUM_THREADS": "1"
+     }
+    }
+   },
+   {
+    "schema_version": "stormbench-result/1.0",
+    "case": "case300_ieee",
+    "source": {
+     "file": "benchmarks/stormbench/cases/pglib_opf_case300_ieee.m",
+     "sha256": "7ecf056d5942135765200ad7ae8791c28f0d35fb1dc888ba2c32dfc950f3c2f5",
+     "pglib_commit": "dc6be4b2f85ca0e776952ec22cbd4c22396ea5a3"
+    },
+    "operating_point": {
+     "method": "ieee_published_dispatch",
+     "note": "DC-OPF dispatch has no AC power-flow solution for this case; IEEE published dispatch and voltage set-points (pandapower.networks.case300) used instead. The DC base case then has pre-existing overloads, excluded from contingency flagging."
+    },
+    "counts": {
+     "buses": 300,
+     "branches": 411,
+     "monitored_branches": 411,
+     "rate_a_zero": 0,
+     "contingencies": 411,
+     "islanding": 89,
+     "screened": 322,
+     "dc_base_overloaded_branches": 4,
+     "ac_base_overloaded_branches": 4,
+     "ac_base_voltage_violations": 32
+    },
+    "islanding_outages": {
+     "branch_ids": [
+      "branch-1",
+      "branch-2",
+      "branch-3",
+      "branch-4",
+      "branch-5",
+      "branch-6",
+      "branch-7",
+      "branch-8",
+      "branch-9",
+      "branch-15",
+      "branch-16",
+      "branch-17",
+      "branch-18",
+      "branch-19",
+      "branch-20",
+      "branch-21",
+      "branch-22",
+      "branch-24",
+      "branch-25",
+      "branch-26",
+      "branch-27",
+      "branch-28",
+      "branch-29",
+      "branch-30",
+      "branch-31",
+      "branch-32",
+      "branch-33",
+      "branch-34",
+      "branch-35",
+      "branch-36",
+      "branch-37",
+      "branch-38",
+      "branch-67",
+      "branch-70",
+      "branch-88",
+      "branch-118",
+      "branch-121",
+      "branch-122",
+      "branch-126",
+      "branch-130",
+      "branch-134",
+      "branch-135",
+      "branch-137",
+      "branch-144",
+      "branch-165",
+      "branch-168",
+      "branch-208",
+      "branch-210",
+      "branch-242",
+      "branch-243",
+      "branch-245",
+      "branch-260",
+      "branch-267",
+      "branch-273",
+      "branch-293",
+      "branch-306",
+      "branch-307",
+      "branch-311",
+      "branch-316",
+      "branch-318",
+      "branch-322",
+      "branch-323",
+      "branch-333",
+      "branch-334",
+      "branch-342",
+      "branch-387",
+      "branch-388",
+      "branch-389",
+      "branch-391",
+      "branch-392",
+      "branch-393",
+      "branch-394",
+      "branch-395",
+      "branch-396",
+      "branch-397",
+      "branch-398",
+      "branch-399",
+      "branch-400",
+      "branch-401",
+      "branch-402",
+      "branch-403",
+      "branch-404",
+      "branch-405",
+      "branch-406",
+      "branch-407",
+      "branch-408",
+      "branch-409",
+      "branch-410",
+      "branch-411"
+     ],
+     "max_islanded_buses": 299,
+     "max_abs_islanded_injection_mw": 1292.0
+    },
+    "validation": {
+     "ptdf_max_abs_diff_vs_pandapower": 1.176e-13,
+     "lodf_max_abs_diff_vs_pandapower": 2.674e-14,
+     "lodf_vs_dc_resolve_max_abs_mw": 1.16e-11,
+     "islanding_structural_vs_numeric_mismatch": 0
+    },
+    "flow_error_mw": {
+     "max": 1.16e-11,
+     "mean": 1.341e-13
+    },
+    "overloading_contingencies": {
+     "screening": 39,
+     "dc_exact": 39,
+     "ac_exact": 35
+    },
+    "screening_vs_dc": {
+     "tp": 39,
+     "fp": 0,
+     "fn": 0,
+     "tn": 283,
+     "precision": 1.0,
+     "recall": 1.0,
+     "k": 39,
+     "recall_at_k": 1.0,
+     "recall_at_10": 1.0,
+     "kendall_tau": 0.9907,
+     "spearman": 0.9988,
+     "n": 322
+    },
+    "screening_vs_ac": {
+     "tp": 25,
+     "fp": 2,
+     "fn": 10,
+     "tn": 269,
+     "precision": 0.9259,
+     "recall": 0.7143,
+     "k": 35,
+     "recall_at_k": 0.9143,
+     "recall_at_10": 0.7,
+     "kendall_tau": 0.6962,
+     "spearman": 0.8062,
+     "n": 306
+    },
+    "ac": {
+     "base_converged": "converged",
+     "converged": 306,
+     "converged_retry": 0,
+     "not_converged": 16,
+     "not_converged_branch_ids": [
+      "branch-66",
+      "branch-114",
+      "branch-116",
+      "branch-177",
+      "branch-181",
+      "branch-182",
+      "branch-187",
+      "branch-268",
+      "branch-294",
+      "branch-309",
+      "branch-350",
+      "branch-364",
+      "branch-367",
+      "branch-369",
+      "branch-370",
+      "branch-381"
+     ],
+     "new_voltage_violation_contingencies": 116,
+     "new_voltage_violation_not_flagged_by_screening": 103
+    },
+    "runtime": {
+     "repeats": 3,
+     "screening_median_s": 0.0157,
+     "dc_exact_median_s": 0.4301,
+     "ac_exact_median_s": 16.22
+    },
+    "memory": {
+     "screening_peak_tracemalloc_mib": 6.597,
+     "dc_exact_peak_tracemalloc_mib": 4.322,
+     "ac_exact_peak_tracemalloc_mib": 4.114,
+     "process_rss_end_mib": 227.9
+    },
+    "top_contingencies": [
+     {
+      "branch_id": "branch-231",
+      "ac_severity_pct": 260.0,
+      "dc_exact_severity_pct": 258.3,
+      "screening_severity_pct": 258.3
+     },
+     {
+      "branch_id": "branch-176",
+      "ac_severity_pct": 215.9,
+      "dc_exact_severity_pct": 181.5,
+      "screening_severity_pct": 181.5
+     },
+     {
+      "branch_id": "branch-255",
+      "ac_severity_pct": 202.7,
+      "dc_exact_severity_pct": 200.6,
+      "screening_severity_pct": 200.6
+     },
+     {
+      "branch_id": "branch-371",
+      "ac_severity_pct": 192.9,
+      "dc_exact_severity_pct": 181.5,
+      "screening_severity_pct": 181.5
+     },
+     {
+      "branch_id": "branch-254",
+      "ac_severity_pct": 157.5,
+      "dc_exact_severity_pct": 156.7,
+      "screening_severity_pct": 156.7
+     },
+     {
+      "branch_id": "branch-205",
+      "ac_severity_pct": 146.5,
+      "dc_exact_severity_pct": 149.6,
+      "screening_severity_pct": 149.6
+     },
+     {
+      "branch_id": "branch-257",
+      "ac_severity_pct": 138.1,
+      "dc_exact_severity_pct": 107.0,
+      "screening_severity_pct": 107.0
+     },
+     {
+      "branch_id": "branch-224",
+      "ac_severity_pct": 128.9,
+      "dc_exact_severity_pct": 106.9,
+      "screening_severity_pct": 106.9
+     },
+     {
+      "branch_id": "branch-229",
+      "ac_severity_pct": 127.0,
+      "dc_exact_severity_pct": 125.6,
+      "screening_severity_pct": 125.6
+     },
+     {
+      "branch_id": "branch-83",
+      "ac_severity_pct": 124.9,
+      "dc_exact_severity_pct": 88.04,
+      "screening_severity_pct": 88.04
+     }
+    ],
+    "platform": {
+     "python": "3.11.15",
+     "packages": {
+      "numpy": "2.4.6",
+      "scipy": "1.17.1",
+      "pandapower": "3.5.6",
+      "numba": "0.68.1",
+      "psutil": "7.2.2"
+     },
+     "os": "Windows-10-10.0.26300-SP0",
+     "cpu": "Intel(R) Core(TM) i7-14650HX",
+     "logical_cpus": 24,
+     "ram_gib": 15.7,
+     "threads": {
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "NUMBA_NUM_THREADS": "1"
+     }
+    }
+   },
+   {
+    "schema_version": "stormbench-result/1.0",
+    "case": "case1354_pegase",
+    "source": {
+     "file": "benchmarks/stormbench/cases/pglib_opf_case1354_pegase.m",
+     "sha256": "cd6d27dff4a56684f1e4f82cfa346b36d84c4e90733228aa88331cd550e17652",
+     "pglib_commit": "dc6be4b2f85ca0e776952ec22cbd4c22396ea5a3"
+    },
+    "operating_point": {
+     "method": "dc_opf_highs",
+     "note": "DC-OPF (B-theta, PGLib costs as 10-segment piecewise-linear, HiGHS); N-0 secure in DC only. Generator voltage set-points: PGLib VG.",
+     "objective": 1218000.0,
+     "dc_max_base_loading_pct": 100.0
+    },
+    "counts": {
+     "buses": 1354,
+     "branches": 1991,
+     "monitored_branches": 1991,
+     "rate_a_zero": 0,
+     "contingencies": 1991,
+     "islanding": 561,
+     "screened": 1430,
+     "dc_base_overloaded_branches": 0,
+     "ac_base_overloaded_branches": 12,
+     "ac_base_voltage_violations": 0
+    },
+    "islanding_outages": {
+     "branch_ids": [
+      "branch-1",
+      "branch-2",
+      "branch-3",
+      "branch-6",
+      "branch-7",
+      "branch-8",
+      "branch-9",
+      "branch-10",
+      "branch-11",
+      "branch-12",
+      "branch-13",
+      "branch-16",
+      "branch-24",
+      "branch-25",
+      "branch-27",
+      "branch-28",
+      "branch-31",
+      "branch-34",
+      "branch-35",
+      "branch-45",
+      "branch-56",
+      "branch-62",
+      "branch-63",
+      "branch-65",
+      "branch-69",
+      "branch-70",
+      "branch-73",
+      "branch-90",
+      "branch-91",
+      "branch-93",
+      "branch-94",
+      "branch-95",
+      "branch-96",
+      "branch-109",
+      "branch-112",
+      "branch-113",
+      "branch-114",
+      "branch-115",
+      "branch-116",
+      "branch-125",
+      "branch-128",
+      "branch-129",
+      "branch-134",
+      "branch-135",
+      "branch-136",
+      "branch-137",
+      "branch-138",
+      "branch-139",
+      "branch-147",
+      "branch-148",
+      "branch-156",
+      "branch-159",
+      "branch-160",
+      "branch-161",
+      "branch-169",
+      "branch-170",
+      "branch-173",
+      "branch-174",
+      "branch-181",
+      "branch-182",
+      "branch-189",
+      "branch-190",
+      "branch-193",
+      "branch-195",
+      "branch-197",
+      "branch-202",
+      "branch-203",
+      "branch-214",
+      "branch-217",
+      "branch-220",
+      "branch-221",
+      "branch-227",
+      "branch-228",
+      "branch-234",
+      "branch-235",
+      "branch-237",
+      "branch-239",
+      "branch-240",
+      "branch-241",
+      "branch-246",
+      "branch-254",
+      "branch-257",
+      "branch-259",
+      "branch-260",
+      "branch-261",
+      "branch-270",
+      "branch-276",
+      "branch-277",
+      "branch-278",
+      "branch-280",
+      "branch-290",
+      "branch-291",
+      "branch-292",
+      "branch-294",
+      "branch-295",
+      "branch-306",
+      "branch-308",
+      "branch-310",
+      "branch-311",
+      "branch-316",
+      "branch-317",
+      "branch-318",
+      "branch-326",
+      "branch-327",
+      "branch-328",
+      "branch-330",
+      "branch-331",
+      "branch-334",
+      "branch-349",
+      "branch-351",
+      "branch-353",
+      "branch-354",
+      "branch-357",
+      "branch-363",
+      "branch-365",
+      "branch-366",
+      "branch-367",
+      "branch-368",
+      "branch-369",
+      "branch-370",
+      "branch-371",
+      "branch-372",
+      "branch-373",
+      "branch-374",
+      "branch-378",
+      "branch-379",
+      "branch-380",
+      "branch-381",
+      "branch-382",
+      "branch-383",
+      "branch-384",
+      "branch-386",
+      "branch-391",
+      "branch-393",
+      "branch-403",
+      "branch-404",
+      "branch-405",
+      "branch-406",
+      "branch-410",
+      "branch-411",
+      "branch-412",
+      "branch-413",
+      "branch-422",
+      "branch-423",
+      "branch-424",
+      "branch-425",
+      "branch-426",
+      "branch-429",
+      "branch-430",
+      "branch-440",
+      "branch-441",
+      "branch-442",
+      "branch-448",
+      "branch-449",
+      "branch-450",
+      "branch-451",
+      "branch-452",
+      "branch-453",
+      "branch-454",
+      "branch-455",
+      "branch-456",
+      "branch-457",
+      "branch-466",
+      "branch-480",
+      "branch-516",
+      "branch-517",
+      "branch-518",
+      "branch-520",
+      "branch-529",
+      "branch-530",
+      "branch-531",
+      "branch-532",
+      "branch-537",
+      "branch-538",
+      "branch-550",
+      "branch-551",
+      "branch-552",
+      "branch-555",
+      "branch-556",
+      "branch-557",
+      "branch-570",
+      "branch-572",
+      "branch-573",
+      "branch-574",
+      "branch-581",
+      "branch-587",
+      "branch-588",
+      "branch-599",
+      "branch-600",
+      "branch-601",
+      "branch-602",
+      "branch-603",
+      "branch-606",
+      "branch-607",
+      "branch-608",
+      "branch-609",
+      "branch-612",
+      "branch-613",
+      "branch-616",
+      "branch-617",
+      "branch-618",
+      "branch-621",
+      "branch-624",
+      "branch-627",
+      "branch-628",
+      "branch-633",
+      "branch-634",
+      "branch-641",
+      "branch-642",
+      "branch-643",
+      "branch-644",
+      "branch-656",
+      "branch-658",
+      "branch-660",
+      "branch-662",
+      "branch-677",
+      "branch-678",
+      "branch-679",
+      "branch-687",
+      "branch-688",
+      "branch-689",
+      "branch-690",
+      "branch-691",
+      "branch-698",
+      "branch-707",
+      "branch-708",
+      "branch-710",
+      "branch-712",
+      "branch-715",
+      "branch-718",
+      "branch-729",
+      "branch-730",
+      "branch-731",
+      "branch-738",
+      "branch-743",
+      "branch-744",
+      "branch-747",
+      "branch-748",
+      "branch-749",
+      "branch-750",
+      "branch-762",
+      "branch-763",
+      "branch-766",
+      "branch-767",
+      "branch-772",
+      "branch-777",
+      "branch-778",
+      "branch-779",
+      "branch-780",
+      "branch-781",
+      "branch-782",
+      "branch-783",
+      "branch-794",
+      "branch-795",
+      "branch-796",
+      "branch-797",
+      "branch-802",
+      "branch-806",
+      "branch-807",
+      "branch-809",
+      "branch-810",
+      "branch-811",
+      "branch-812",
+      "branch-827",
+      "branch-828",
+      "branch-829",
+      "branch-835",
+      "branch-836",
+      "branch-841",
+      "branch-850",
+      "branch-852",
+      "branch-853",
+      "branch-882",
+      "branch-883",
+      "branch-886",
+      "branch-887",
+      "branch-892",
+      "branch-893",
+      "branch-906",
+      "branch-907",
+      "branch-918",
+      "branch-920",
+      "branch-921",
+      "branch-922",
+      "branch-923",
+      "branch-924",
+      "branch-925",
+      "branch-926",
+      "branch-927",
+      "branch-930",
+      "branch-934",
+      "branch-943",
+      "branch-944",
+      "branch-945",
+      "branch-946",
+      "branch-947",
+      "branch-959",
+      "branch-960",
+      "branch-961",
+      "branch-966",
+      "branch-967",
+      "branch-968",
+      "branch-974",
+      "branch-975",
+      "branch-977",
+      "branch-979",
+      "branch-980",
+      "branch-984",
+      "branch-985",
+      "branch-986",
+      "branch-987",
+      "branch-988",
+      "branch-991",
+      "branch-993",
+      "branch-994",
+      "branch-995",
+      "branch-998",
+      "branch-999",
+      "branch-1000",
+      "branch-1024",
+      "branch-1025",
+      "branch-1027",
+      "branch-1028",
+      "branch-1037",
+      "branch-1041",
+      "branch-1042",
+      "branch-1043",
+      "branch-1047",
+      "branch-1048",
+      "branch-1049",
+      "branch-1053",
+      "branch-1069",
+      "branch-1071",
+      "branch-1072",
+      "branch-1073",
+      "branch-1074",
+      "branch-1075",
+      "branch-1076",
+      "branch-1077",
+      "branch-1078",
+      "branch-1079",
+      "branch-1080",
+      "branch-1082",
+      "branch-1083",
+      "branch-1088",
+      "branch-1093",
+      "branch-1097",
+      "branch-1099",
+      "branch-1100",
+      "branch-1101",
+      "branch-1102",
+      "branch-1105",
+      "branch-1106",
+      "branch-1108",
+      "branch-1109",
+      "branch-1111",
+      "branch-1112",
+      "branch-1113",
+      "branch-1114",
+      "branch-1122",
+      "branch-1123",
+      "branch-1124",
+      "branch-1125",
+      "branch-1126",
+      "branch-1131",
+      "branch-1136",
+      "branch-1137",
+      "branch-1141",
+      "branch-1143",
+      "branch-1144",
+      "branch-1153",
+      "branch-1162",
+      "branch-1163",
+      "branch-1165",
+      "branch-1166",
+      "branch-1167",
+      "branch-1168",
+      "branch-1180",
+      "branch-1194",
+      "branch-1201",
+      "branch-1205",
+      "branch-1206",
+      "branch-1207",
+      "branch-1209",
+      "branch-1210",
+      "branch-1211",
+      "branch-1212",
+      "branch-1215",
+      "branch-1221",
+      "branch-1223",
+      "branch-1224",
+      "branch-1227",
+      "branch-1236",
+      "branch-1237",
+      "branch-1241",
+      "branch-1242",
+      "branch-1252",
+      "branch-1253",
+      "branch-1254",
+      "branch-1256",
+      "branch-1258",
+      "branch-1263",
+      "branch-1267",
+      "branch-1270",
+      "branch-1271",
+      "branch-1272",
+      "branch-1273",
+      "branch-1274",
+      "branch-1278",
+      "branch-1290",
+      "branch-1291",
+      "branch-1292",
+      "branch-1300",
+      "branch-1301",
+      "branch-1307",
+      "branch-1308",
+      "branch-1310",
+      "branch-1311",
+      "branch-1312",
+      "branch-1313",
+      "branch-1314",
+      "branch-1315",
+      "branch-1322",
+      "branch-1323",
+      "branch-1324",
+      "branch-1327",
+      "branch-1328",
+      "branch-1329",
+      "branch-1332",
+      "branch-1351",
+      "branch-1357",
+      "branch-1358",
+      "branch-1359",
+      "branch-1365",
+      "branch-1368",
+      "branch-1369",
+      "branch-1370",
+      "branch-1371",
+      "branch-1373",
+      "branch-1386",
+      "branch-1387",
+      "branch-1388",
+      "branch-1389",
+      "branch-1390",
+      "branch-1394",
+      "branch-1404",
+      "branch-1405",
+      "branch-1406",
+      "branch-1407",
+      "branch-1409",
+      "branch-1410",
+      "branch-1413",
+      "branch-1419",
+      "branch-1420",
+      "branch-1424",
+      "branch-1425",
+      "branch-1426",
+      "branch-1428",
+      "branch-1434",
+      "branch-1435",
+      "branch-1439",
+      "branch-1443",
+      "branch-1444",
+      "branch-1445",
+      "branch-1448",
+      "branch-1456",
+      "branch-1460",
+      "branch-1468",
+      "branch-1476",
+      "branch-1493",
+      "branch-1497",
+      "branch-1498",
+      "branch-1500",
+      "branch-1505",
+      "branch-1506",
+      "branch-1507",
+      "branch-1510",
+      "branch-1512",
+      "branch-1525",
+      "branch-1526",
+      "branch-1528",
+      "branch-1534",
+      "branch-1535",
+      "branch-1537",
+      "branch-1540",
+      "branch-1541",
+      "branch-1542",
+      "branch-1543",
+      "branch-1545",
+      "branch-1550",
+      "branch-1571",
+      "branch-1572",
+      "branch-1573",
+      "branch-1574",
+      "branch-1580",
+      "branch-1581",
+      "branch-1598",
+      "branch-1599",
+      "branch-1600",
+      "branch-1603",
+      "branch-1604",
+      "branch-1605",
+      "branch-1607",
+      "branch-1611",
+      "branch-1612",
+      "branch-1614",
+      "branch-1623",
+      "branch-1626",
+      "branch-1631",
+      "branch-1641",
+      "branch-1644",
+      "branch-1645",
+      "branch-1648",
+      "branch-1649",
+      "branch-1658",
+      "branch-1659",
+      "branch-1660",
+      "branch-1670",
+      "branch-1672",
+      "branch-1673",
+      "branch-1674",
+      "branch-1675",
+      "branch-1677",
+      "branch-1680",
+      "branch-1681",
+      "branch-1687",
+      "branch-1706",
+      "branch-1707",
+      "branch-1708",
+      "branch-1709",
+      "branch-1710",
+      "branch-1711",
+      "branch-1712",
+      "branch-1714",
+      "branch-1716",
+      "branch-1727",
+      "branch-1728",
+      "branch-1732",
+      "branch-1735",
+      "branch-1736",
+      "branch-1738",
+      "branch-1739",
+      "branch-1742",
+      "branch-1749",
+      "branch-1750",
+      "branch-1782",
+      "branch-1786",
+      "branch-1846",
+      "branch-1863",
+      "branch-1873",
+      "branch-1897",
+      "branch-1898",
+      "branch-1907",
+      "branch-1949",
+      "branch-1950",
+      "branch-1951",
+      "branch-1952",
+      "branch-1953",
+      "branch-1954",
+      "branch-1971",
+      "branch-1974"
+     ],
+     "max_islanded_buses": 10,
+     "max_abs_islanded_injection_mw": 2000.0
+    },
+    "validation": {
+     "ptdf_max_abs_diff_vs_pandapower": 8.616e-14,
+     "lodf_max_abs_diff_vs_pandapower": 1.19e-13,
+     "lodf_vs_dc_resolve_max_abs_mw": 2.274e-10,
+     "islanding_structural_vs_numeric_mismatch": 0
+    },
+    "flow_error_mw": {
+     "max": 2.274e-10,
+     "mean": 8.868e-13
+    },
+    "overloading_contingencies": {
+     "screening": 1157,
+     "dc_exact": 1157,
+     "ac_exact": 200
+    },
+    "screening_vs_dc": {
+     "tp": 1157,
+     "fp": 0,
+     "fn": 0,
+     "tn": 273,
+     "precision": 1.0,
+     "recall": 1.0,
+     "k": 1157,
+     "recall_at_k": 1.0,
+     "recall_at_10": 1.0,
+     "kendall_tau": 0.978,
+     "spearman": 0.995,
+     "n": 1430
+    },
+    "screening_vs_ac": {
+     "tp": 196,
+     "fp": 958,
+     "fn": 4,
+     "tn": 269,
+     "precision": 0.1698,
+     "recall": 0.98,
+     "k": 200,
+     "recall_at_k": 0.745,
+     "recall_at_10": 0.8,
+     "kendall_tau": 0.2247,
+     "spearman": 0.3097,
+     "n": 1427
+    },
+    "ac": {
+     "base_converged": "converged",
+     "converged": 1427,
+     "converged_retry": 0,
+     "not_converged": 3,
+     "not_converged_branch_ids": [
+      "branch-76",
+      "branch-1326",
+      "branch-1755"
+     ],
+     "new_voltage_violation_contingencies": 16,
+     "new_voltage_violation_not_flagged_by_screening": 1
+    },
+    "runtime": {
+     "repeats": 3,
+     "screening_median_s": 0.3718,
+     "dc_exact_median_s": 5.2,
+     "ac_exact_median_s": 93.46
+    },
+    "memory": {
+     "screening_peak_tracemalloc_mib": 141.0,
+     "dc_exact_peak_tracemalloc_mib": 89.77,
+     "ac_exact_peak_tracemalloc_mib": 7.965,
+     "process_rss_end_mib": 337.1
+    },
+    "top_contingencies": [
+     {
+      "branch_id": "branch-831",
+      "ac_severity_pct": 207.6,
+      "dc_exact_severity_pct": 221.8,
+      "screening_severity_pct": 221.8
+     },
+     {
+      "branch_id": "branch-208",
+      "ac_severity_pct": 188.0,
+      "dc_exact_severity_pct": 182.1,
+      "screening_severity_pct": 182.1
+     },
+     {
+      "branch_id": "branch-512",
+      "ac_severity_pct": 184.7,
+      "dc_exact_severity_pct": 185.4,
+      "screening_severity_pct": 185.4
+     },
+     {
+      "branch_id": "branch-274",
+      "ac_severity_pct": 179.6,
+      "dc_exact_severity_pct": 179.6,
+      "screening_severity_pct": 179.6
+     },
+     {
+      "branch_id": "branch-446",
+      "ac_severity_pct": 178.8,
+      "dc_exact_severity_pct": 167.5,
+      "screening_severity_pct": 167.5
+     },
+     {
+      "branch_id": "branch-341",
+      "ac_severity_pct": 172.6,
+      "dc_exact_severity_pct": 172.5,
+      "screening_severity_pct": 172.5
+     },
+     {
+      "branch_id": "branch-342",
+      "ac_severity_pct": 172.6,
+      "dc_exact_severity_pct": 172.5,
+      "screening_severity_pct": 172.5
+     },
+     {
+      "branch_id": "branch-206",
+      "ac_severity_pct": 167.6,
+      "dc_exact_severity_pct": 163.1,
+      "screening_severity_pct": 163.1
+     },
+     {
+      "branch_id": "branch-447",
+      "ac_severity_pct": 162.4,
+      "dc_exact_severity_pct": 152.1,
+      "screening_severity_pct": 152.1
+     },
+     {
+      "branch_id": "branch-108",
+      "ac_severity_pct": 161.8,
+      "dc_exact_severity_pct": 159.7,
+      "screening_severity_pct": 159.7
+     }
+    ],
+    "platform": {
+     "python": "3.11.15",
+     "packages": {
+      "numpy": "2.4.6",
+      "scipy": "1.17.1",
+      "pandapower": "3.5.6",
+      "numba": "0.68.1",
+      "psutil": "7.2.2"
+     },
+     "os": "Windows-10-10.0.26300-SP0",
+     "cpu": "Intel(R) Core(TM) i7-14650HX",
+     "logical_cpus": 24,
+     "ram_gib": 15.7,
+     "threads": {
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "NUMBA_NUM_THREADS": "1"
+     }
+    }
+   }
+  ],
+  "platform": {
+   "python": "3.11.15",
+   "packages": {
+    "numpy": "2.4.6",
+    "scipy": "1.17.1",
+    "pandapower": "3.5.6",
+    "numba": "0.68.1",
+    "psutil": "7.2.2"
+   },
+   "os": "Windows-10-10.0.26300-SP0",
+   "cpu": "Intel(R) Core(TM) i7-14650HX",
+   "logical_cpus": 24,
+   "ram_gib": 15.7,
+   "threads": {
+    "OMP_NUM_THREADS": "1",
+    "OPENBLAS_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1",
+    "NUMBA_NUM_THREADS": "1"
+   }
+  }
+ }
+}

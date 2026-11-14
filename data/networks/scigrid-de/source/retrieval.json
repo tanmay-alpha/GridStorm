@@ -1,0 +1,8 @@
+{
+  "url": "https://data.pypsa.org/networks/examples/v1.4.0/scigrid_de.nc",
+  "sha256": "284850c8e922414f9da69ffda0623431148e0c28a3380ba370e4135ac5236500",
+  "bytes": 1527668,
+  "retrieved_at": "2026-11-14T16:08:26+00:00",
+  "http_last_modified": "Wed, 11 Nov 2026 16:06:48 GMT",
+  "http_etag": "\"1d665a585906db78a0b5d39342d8f0d7\""
+}

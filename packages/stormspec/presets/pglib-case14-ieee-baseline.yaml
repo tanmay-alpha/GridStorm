@@ -1,0 +1,22 @@
+schema_version: stormspec/1.0
+id: pglib-case14-ieee-baseline
+name: PGLib IEEE 14-bus — baseline DC OPF
+description: >-
+  Single-snapshot DC optimal power flow of PGLib-OPF pglib_opf_case14_ieee (259 MW load, two
+  dispatchable units, three synchronous condensers). MATPOWER Pg set-points are released so the
+  dispatch is optimised.
+dataset: {network_id: pglib-case14-ieee, sha256: 52424e30e5375a7d8b57d66704b2c0b258c21cad65d47c223e02bad0cb056a42}
+horizon: {start: 0, snapshots: 1}
+events: []
+mitigation:
+  storage_dispatch: true
+  curtailment: true
+  load_shedding: {enabled: true, voll_eur_per_mwh: 10000}
+execution:
+  engine: pypsa
+  formulation: lopf
+  solver: highs
+  solver_options: {time_limit_s: 300, threads: 1}
+  deterministic: true
+  seed: 0
+assumptions: []

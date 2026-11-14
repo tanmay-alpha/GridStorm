@@ -1,0 +1,21 @@
+schema_version: stormspec/1.0
+id: ac-dc-meshed-baseline
+name: AC-DC meshed — baseline dispatch
+description: >-
+  Reference dispatch of the PyPSA ac-dc-meshed example (9 buses, 7 AC lines, 4 links, 10 hourly
+  snapshots) with no crisis events. Capacities are the dataset nominal values (expansion disabled).
+dataset: {network_id: ac-dc-meshed, sha256: 62e4e53555e2219a2ae48b7f91e576e2ea383cadd2f61db9919f3592503c932f}
+horizon: {start: 0, snapshots: 10}
+events: []
+mitigation:
+  storage_dispatch: true
+  curtailment: true
+  load_shedding: {enabled: true, voll_eur_per_mwh: 10000}
+execution:
+  engine: pypsa
+  formulation: lopf
+  solver: highs
+  solver_options: {time_limit_s: 300, threads: 1}
+  deterministic: true
+  seed: 0
+assumptions: []

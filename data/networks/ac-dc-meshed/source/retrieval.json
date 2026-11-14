@@ -1,0 +1,8 @@
+{
+  "url": "https://data.pypsa.org/networks/examples/v1.4.0/ac_dc_meshed.nc",
+  "sha256": "62e4e53555e2219a2ae48b7f91e576e2ea383cadd2f61db9919f3592503c932f",
+  "bytes": 111180,
+  "retrieved_at": "2026-11-14T16:08:10+00:00",
+  "http_last_modified": "Wed, 11 Nov 2026 16:06:54 GMT",
+  "http_etag": "\"eb6437ed45d26d41c659e7e9221cd066\""
+}

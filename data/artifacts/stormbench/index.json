@@ -1,0 +1,48 @@
+{
+ "schema_version": "gridstorm-artifact-index/1.0",
+ "engine": "stormbench",
+ "artifacts": [
+  {
+   "artifact_id": "stormbench-summary",
+   "kind": "benchmark",
+   "network_id": "multiple",
+   "title": "StormBench summary: DC PTDF/LODF screening vs exact DC/AC N-1"
+  },
+  {
+   "artifact_id": "stormbench-case14-ieee",
+   "kind": "benchmark",
+   "network_id": "pglib-case14-ieee",
+   "title": "StormBench DC screening vs exact N-1: case14_ieee"
+  },
+  {
+   "artifact_id": "stormbench-case30-ieee",
+   "kind": "benchmark",
+   "network_id": "pglib-case30-ieee",
+   "title": "StormBench DC screening vs exact N-1: case30_ieee"
+  },
+  {
+   "artifact_id": "stormbench-case57-ieee",
+   "kind": "benchmark",
+   "network_id": "pglib-case57-ieee",
+   "title": "StormBench DC screening vs exact N-1: case57_ieee"
+  },
+  {
+   "artifact_id": "stormbench-case118-ieee",
+   "kind": "benchmark",
+   "network_id": "pglib-case118-ieee",
+   "title": "StormBench DC screening vs exact N-1: case118_ieee"
+  },
+  {
+   "artifact_id": "stormbench-case300-ieee",
+   "kind": "benchmark",
+   "network_id": "pglib-case300-ieee",
+   "title": "StormBench DC screening vs exact N-1: case300_ieee"
+  },
+  {
+   "artifact_id": "stormbench-case1354-pegase",
+   "kind": "benchmark",
+   "network_id": "pglib-case1354-pegase",
+   "title": "StormBench DC screening vs exact N-1: case1354_pegase"
+  }
+ ]
+}

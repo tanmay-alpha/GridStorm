@@ -1,0 +1,28 @@
+schema_version: stormspec/1.0
+id: scigrid-de-dunkelflaute-storage-off
+name: SciGRID Germany — cold dark lull, storage held at zero
+description: >-
+  Mitigation pair (identical crisis, only storage_dispatch differs; compare with
+  scigrid-de-dunkelflaute-storage-on): demand x1.15, wind
+  availability x0.3 and solar availability x0.5 for the whole day. The 38 pumped-hydro storage
+  units start empty (dataset state_of_charge_initial = 0) and the dataset SOC is non-cyclic.
+dataset: {network_id: scigrid-de, sha256: 284850c8e922414f9da69ffda0623431148e0c28a3380ba370e4135ac5236500}
+horizon: {start: 0, snapshots: 24}
+events:
+  - {type: demand_multiplier, value: 1.15, buses: null, window: null}
+  - {type: renewable_availability_multiplier, carrier: Wind Onshore, value: 0.3, window: null}
+  - {type: renewable_availability_multiplier, carrier: Wind Offshore, value: 0.3, window: null}
+  - {type: renewable_availability_multiplier, carrier: Solar, value: 0.5, window: null}
+mitigation:
+  storage_dispatch: false
+  curtailment: true
+  load_shedding: {enabled: true, voll_eur_per_mwh: 10000}
+execution:
+  engine: pypsa
+  formulation: lopf
+  solver: highs
+  solver_options: {time_limit_s: 300, threads: 1}
+  deterministic: true
+  seed: 0
+assumptions:
+  - Synthetic compound stress (demand, wind and solar multipliers) — not an observed event

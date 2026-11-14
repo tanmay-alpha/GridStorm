@@ -1,0 +1,21 @@
+schema_version: stormspec/1.0
+id: pglib-case118-ieee-baseline
+name: PGLib IEEE 118-bus — baseline DC OPF
+description: >-
+  Single-snapshot DC optimal power flow of PGLib-OPF pglib_opf_case118_ieee. MATPOWER Pg
+  set-points are released so the dispatch is optimised.
+dataset: {network_id: pglib-case118-ieee, sha256: f355e7888f8864231e3f113d339d08efd647ead9bcb9f2b77fc4e3171d2dcdad}
+horizon: {start: 0, snapshots: 1}
+events: []
+mitigation:
+  storage_dispatch: true
+  curtailment: true
+  load_shedding: {enabled: true, voll_eur_per_mwh: 10000}
+execution:
+  engine: pypsa
+  formulation: lopf
+  solver: highs
+  solver_options: {time_limit_s: 300, threads: 1}
+  deterministic: true
+  seed: 0
+assumptions: []
