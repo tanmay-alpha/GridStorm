@@ -39,7 +39,14 @@ wheel/npm notices as well when redistributing those distributions.
   those inputs under the workflow's MIT code licence.
 * **Basemap**, fetched at runtime: OpenFreeMap · © OpenMapTiles · © OpenStreetMap contributors;
   https://openfreemap.org/, https://openmaptiles.org/, https://www.openstreetmap.org/copyright.
-* **Observed-event inputs**: OPSD time series and NASA POWER; source-specific citations/terms in
+* **Observed-event inputs** (`data/observed/`, repository only; excluded from the API Docker image by
+  `.dockerignore`): "The data was obtained from the National Aeronautics and Space Administration
+  (NASA) Langley Research Center (LaRC) Prediction of Worldwide Energy Resource (POWER) Project
+  funded through the NASA Earth Science/Applied Science Program. POWER Hourly API v2.10.4, accessed
+  2026-11-14." and "Open Power System Data. 2020. Data Package Time series. Version 2020-10-06.
+  https://doi.org/10.25832/time_series/2020-10-06." OPSD declares no data licence; redistribution
+  permission for its ENTSO-E-derived load/generation columns has not been established (see
+  `data/observed/opsd-de/manifest.json`). Source-specific terms:
   [docs/research/external-data-sources.md](docs/research/external-data-sources.md). No claim that
   those data are covered by the software licences below.
 * **MPL source availability**: Grid2Op 1.12.6 https://github.com/Grid2op/grid2op/tree/v1.12.6;

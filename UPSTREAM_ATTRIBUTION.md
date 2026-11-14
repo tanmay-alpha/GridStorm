@@ -8,8 +8,9 @@ including those **not** used): [`docs/research/license-audit.md`](docs/research/
 [`docs/research/upstream-manifest.json`](docs/research/upstream-manifest.json).
 
 "Reused files" lists every GridStorm file that copies or adapts upstream code or data, as verified on
-2026-11-14 by searching the repository for `Derived from` / `Adapted from` / `upstream repo:` headers,
-`UPSTREAM_LICENSE*` files, and by byte-comparing committed data files with the upstream clones.
+2026-11-15 by searching the repository for `Derived from` / `Adapted from` / `Imported from` /
+`upstream repo:` headers, `UPSTREAM_LICENSE*` / `LICENSE-*` files, data manifests carrying a `license`
+block, and by byte-comparing committed data files with the upstream clones.
 Integration owners append to these lists when they add derived files.
 
 ## Libraries and workflows used unmodified
@@ -50,6 +51,11 @@ Integration owners append to these lists when they add derived files.
   The SimBench database is made available under the Open Database License (ODbL-1.0); individual
   contents under the Database Contents License (DbCL-1.0). Any derived SimBench database published by
   GridStorm must credit SimBench and be offered under ODbL-1.0.
+
+#### Reused files (derived results; no SimBench grid file is committed)
+* `data/artifacts/distribution/*.json` (`index.json` + 9 scenario results): time-series power-flow
+  results computed on SimBench grids; each result embeds `source.license: "ODbL-1.0"`,
+  `source.contents_license: "DbCL-1.0"` and the SimBench attribution.
 
 ### PyPSA-Eur — MIT (code), CC-BY-4.0 / CC-BY-SA-4.0 / CC0-1.0 (docs, bundled data)
 * Repo: https://github.com/PyPSA/pypsa-eur — tag `v2026.09.0`, commit
@@ -97,6 +103,7 @@ Integration owners append to these lists when they add derived files.
 | GridStorm file | Upstream source |
 |---|---|
 | `apps/web/src/lib/scales.ts` (`VOLTAGE_SCALE`, header L4-10) | `web/src/style/style_oim_power.ts` |
+| `apps/web/src/lib/scales.test.ts` (asserts the adapted thresholds/colours, e.g. 110 kV `#B59F10`) | same |
 
 ## Data used
 
@@ -122,7 +129,9 @@ Integration owners append to these lists when they add derived files.
   `data/networks/pglib-case118-ieee/source/pglib_opf_case118_ieee.m`
 * `workers/pandapower/reference_data/pglib/pglib_opf_case{14,118,300}_ieee.m`
 * Derived: `data/networks/pglib-case{14,118}-ieee/{network.nc,canonical.json}` (manifest `license`
-  block records CC-BY-4.0 and the attribution).
+  block records CC-BY-4.0 and the attribution). Result artifacts computed on PGLib cases:
+  `data/artifacts/stormbench/*.json`,
+  `data/artifacts/{pypsa,advisor,cross-engine}/*pglib-case*.json`.
 
 ### PyPSA example networks (ac-dc-meshed, scigrid-de) — CC-BY-4.0
 * Source: `https://data.pypsa.org/networks/examples/v1.4.0/{ac_dc_meshed,scigrid_de}.nc`, PyPSA commit
@@ -135,6 +144,9 @@ Integration owners append to these lists when they add derived files.
 #### Reused files
 * `data/networks/ac-dc-meshed/{network.nc,canonical.json,manifest.json}`
 * `data/networks/scigrid-de/{network.nc,canonical.json,manifest.json}`
+* Derived results: `data/artifacts/pypsa/{ac-dc-meshed,scigrid-de}-*.json`,
+  `data/artifacts/stormrisk/stormrisk-ac-dc-meshed-storm-stress.json` (they reference the network id
+  whose manifest carries the CC-BY-4.0 / ODbL-1.0 attribution).
 
 ### MATPOWER test cases — case data (not BSD-covered)
 * Repo: https://github.com/MATPOWER/matpower (release 8.1; master `952ebcb1a274cfeae2cebda617b4041d941cbc9e`).
@@ -147,21 +159,31 @@ Integration owners append to these lists when they add derived files.
 * `workers/pandapower/reference_data/matpower/case{9,14,30,57,118,300}.m`, `t_case9_pf.m`,
   `soln9_pf.mat` (headers state "MATPOWER" and the UW PSTCA source; not byte-compared because the local
   MATPOWER clone is a partial checkout).
+* Derived: `data/artifacts/pandapower/ac-reference-validation.json` (its inputs list exactly these
+  eight files).
 
 ### Grid2Op dataset `l2rpn_case14_sandbox` — MPL-2.0
 * Indexed by https://github.com/Grid2op/grid2op-datasets (MPL-2.0); downloaded at run time, **not
   redistributed**. Only small derived episode traces are committed (`data/artifacts/grid2op/*.json`,
-  each carrying a `dataset.license` block; see `workers/grid2op/src/gridstorm_grid2op/env.py` L117-123).
+  each carrying a `dataset.license` block; see `workers/grid2op/src/gridstorm_grid2op/env.py` L116-123).
 
 ### Basemap — OpenFreeMap / OpenMapTiles / OpenStreetMap
 * The web map loads `https://tiles.openfreemap.org/styles/{positron,dark}` at run time
-  (`apps/web/src/components/map/NetworkMap.tsx` L33-40) and displays the attribution
-  "OpenFreeMap · © OpenMapTiles · © OpenStreetMap contributors". No tiles are redistributed.
+  (`apps/web/src/components/map/NetworkMap.tsx` L40-47) and displays the attribution
+  "OpenFreeMap · © OpenMapTiles · Data © OpenStreetMap contributors". No tiles are redistributed.
 
 ### Observed-event inputs
 * Open Power System Data time series and NASA POWER hourly data, fetched by `pipelines/observed`
-  (`pipelines/observed/src/gridstorm_observed/sources.py` L38-71, which carries the required citation
+  (`pipelines/observed/src/gridstorm_observed/sources.py` L35-71, which carries the required citation
   strings). Licences and citations: `docs/research/external-data-sources.md`.
+
+#### Reused files (each manifest carries `source`, `license` and `attribution` fields)
+* `data/observed/nasa-power-de/{t2m_ws10m_hourly.csv,manifest.json}` — NASA POWER Hourly API v2.10.4
+  values redistributed with the NASA LaRC POWER acknowledgement.
+* `data/observed/opsd-de/{derived-multipliers.json,manifest.json}` — multipliers derived from OPSD
+  Time series 2020-10-06; the manifest records that redistribution permission for the
+  ENTSO-E-derived load/generation columns has **not** been established.
+* `data/observed/analogue-results.json` — results computed from the two inputs above.
 
 ## Concepts only (no code or data copied)
 

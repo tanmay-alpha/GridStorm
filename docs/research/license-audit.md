@@ -166,11 +166,18 @@ LightSim2Grid bundles LGPL-2.1-or-later SuiteSparse components. See deployment s
 |---|---|---|---|
 | PyPSA example networks (ac-dc-meshed, scigrid-de) | CC-BY-4.0 (PyPSA `REUSE.toml` L21-29); scigrid-de OSM-derived | `data/networks/` via network-import | dataset manifest `license` block; UPSTREAM_ATTRIBUTION.md |
 | PGLib-OPF v23.07 cases | CC-BY-4.0 (per-file copyright holders) | network-import, stormbench, stormml | UPSTREAM_ATTRIBUTION.md |
+| MATPOWER IEEE case files (case9-case300) | MATPOWER `LICENSE`: case files "not covered by the BSD license"; IEEE cases from UW PSTCA | `workers/pandapower/reference_data/matpower/` (validation inputs only) | UPSTREAM_ATTRIBUTION.md |
 | PyPSA-Eur Belgium tutorial build | OSM grid ODbL-1.0 + CC-BY-4.0 inputs | `pipelines/pypsa-eur` | UPSTREAM_ATTRIBUTION.md |
-| SimBench | ODbL-1.0 / DbCL-1.0 | `workers/distribution` | UPSTREAM_ATTRIBUTION.md |
-| Grid2Op `l2rpn_case14_sandbox` | MPL-2.0 (grid2op-datasets repo), downloaded, not redistributed | `workers/grid2op/src/gridstorm_grid2op/env.py` L117-123 | artifact `dataset.license` |
-| OpenFreeMap tiles (OpenMapTiles schema, OSM data) | OSM ODbL-1.0; OpenMapTiles attribution | `apps/web/src/components/map/NetworkMap.tsx` L33-40 | map attribution control |
-| OPSD time series 2020-10-06 / NASA POWER | per `pipelines/observed/src/gridstorm_observed/sources.py` L38-71 | observed pipeline | owned by ObservedEvents — see `docs/research/external-data-sources.md` |
+| SimBench | ODbL-1.0 / DbCL-1.0 | `workers/distribution`; derived results `data/artifacts/distribution/*.json` embed `source.license` | UPSTREAM_ATTRIBUTION.md |
+| Grid2Op `l2rpn_case14_sandbox` | MPL-2.0 (grid2op-datasets repo), downloaded, not redistributed | `workers/grid2op/src/gridstorm_grid2op/env.py` L116-123 | artifact `dataset.license` |
+| OpenFreeMap tiles (OpenMapTiles schema, OSM data) | OSM ODbL-1.0; OpenMapTiles attribution | `apps/web/src/components/map/NetworkMap.tsx` L40-47 | map attribution control |
+| OPSD time series 2020-10-06 / NASA POWER Hourly API v2.10.4 | per `pipelines/observed/src/gridstorm_observed/sources.py` L35-71; OPSD datapackage declares no data licence and ENTSO-E-derived redistribution permission is **not established** (`data/observed/opsd-de/manifest.json`) | `data/observed/` | manifest `license`/`attribution` fields; `docs/research/external-data-sources.md` |
+
+`services/api/Dockerfile` L60 and L63 copy `database/` and `data/` into the Render image, but the
+root `.dockerignore` allow-list sends only `data/networks/` and `data/artifacts/` (plus
+`database/{migrations,dev,seeds}/`) to the build context. The image therefore redistributes the
+committed PGLib, PyPSA-example (incl. OSM-derived SciGRID), SimBench-derived and Grid2Op-derived
+files with their manifest/artifact licence blocks; `data/observed/` is **not** in the image.
 
 ## 5. Deployment scope and bundled native code (2026-11-15)
 
