@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
-import { SlidersHorizontal } from 'lucide-react'
+import { Link } from 'react-router'
+import { ArrowUpRight, SlidersHorizontal } from 'lucide-react'
 import { useNetwork, useNetworkAssets } from '../../api/hooks'
 import { buildFeatures, NO_FILTERS, type AssetRef, type FeatureFilters } from '../../components/map/features'
 import { BranchLegend } from '../../components/map/MapLegend'
@@ -97,6 +98,17 @@ export default function ExplorerPage() {
         </div>
         <div id="explorer-controls" className={cn('min-h-0 flex-col gap-4 overflow-y-auto p-3', panelOpen ? 'flex' : 'hidden md:flex')}>
           <NetworkSelect networks={sel.list} value={sel.id} onChange={selectNetwork} disabled={sel.networks.isPending} />
+          <Link
+            to="/studio?preset=pglib-case14-ieee-gen-1-outage"
+            className="group flex items-center justify-between gap-3 rounded-lg border border-accent/30 bg-accent-soft px-3 py-2.5 text-accent transition-colors hover:border-accent hover:bg-accent/10 focus-visible:outline-offset-2"
+            data-testid="try-sample-crisis"
+          >
+            <span className="flex min-w-0 flex-col gap-0.5">
+              <span className="text-xs font-semibold">Try a sample crisis</span>
+              <span className="text-2xs text-fg-muted">IEEE 14-bus · generator outage · reproducible demo</span>
+            </span>
+            <ArrowUpRight aria-hidden className="size-4 shrink-0 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+          </Link>
           {sel.unknownRequested && (
             <p role="alert" className="text-xs text-warn">
               Requested network not found; showing {sel.id}.
