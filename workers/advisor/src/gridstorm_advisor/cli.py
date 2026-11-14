@@ -65,7 +65,10 @@ def _git_head(path: Path) -> str | None:
     try:
         out = subprocess.run(
             ["git", "-C", str(path), "rev-parse", "HEAD"],
-            capture_output=True, text=True, timeout=10, check=True,
+            capture_output=True,
+            text=True,
+            timeout=10,
+            check=True,
         )
     except (OSError, subprocess.SubprocessError):
         return None
@@ -98,7 +101,9 @@ def load_network(
         inputs: list[dict] = []
     else:
         path = resolve_matpower(
-            network_id, networks_dir=networks_dir, matpower_file=matpower_file,
+            network_id,
+            networks_dir=networks_dir,
+            matpower_file=matpower_file,
             matpower_dir=matpower_dir,
         )
         adv = load_matpower(path, network_id)
@@ -120,21 +125,29 @@ def _crisis_from_file(path: Path) -> Crisis:
 def _network_args(p: argparse.ArgumentParser) -> None:
     p.add_argument("--networks-dir", type=Path, default=REPO_ROOT / "data" / "networks")
     p.add_argument("--matpower-file", type=Path, default=None)
-    p.add_argument("--matpower-dir", type=Path, default=None,
-                   help="directory with pglib_opf_*.m files (fallback when data/networks lacks "
-                        "the network)")
+    p.add_argument(
+        "--matpower-dir",
+        type=Path,
+        default=None,
+        help="directory with pglib_opf_*.m files (fallback when data/networks lacks the network)",
+    )
 
 
 def cmd_advise(args: argparse.Namespace) -> int:
     adv, inputs = load_network(
-        args.network_id, operating_point=args.operating_point, networks_dir=args.networks_dir,
-        matpower_file=args.matpower_file, matpower_dir=args.matpower_dir,
+        args.network_id,
+        operating_point=args.operating_point,
+        networks_dir=args.networks_dir,
+        matpower_file=args.matpower_file,
+        matpower_dir=args.matpower_dir,
     )
     crisis = _crisis_from_file(args.crisis)
     t0 = time.perf_counter()
     payload = advise(adv, crisis, AdvisorConfig(voll_eur_per_mwh=args.voll))
-    print(f"advisor finished in {time.perf_counter() - t0:.1f} s: {payload['outcome']}",
-          file=sys.stderr)
+    print(
+        f"advisor finished in {time.perf_counter() - t0:.1f} s: {payload['outcome']}",
+        file=sys.stderr,
+    )
     out = json.dumps(payload, indent=1, ensure_ascii=False, allow_nan=False)
     if args.out:
         args.out.write_text(out + "\n", encoding="utf-8", newline="\n")
@@ -154,7 +167,9 @@ def cmd_build(args: argparse.Namespace) -> int:
         key = (run["network_id"], run.get("operating_point", "case"))
         if key not in cache:
             cache[key] = load_network(
-                key[0], operating_point=key[1], networks_dir=args.networks_dir,
+                key[0],
+                operating_point=key[1],
+                networks_dir=args.networks_dir,
                 matpower_dir=args.matpower_dir,
             )
         adv, inputs = cache[key]
@@ -164,16 +179,26 @@ def cmd_build(args: argparse.Namespace) -> int:
         wall = time.perf_counter() - t0
         payload["title"] = run["title"]
         art = artifact.envelope(
-            run["artifact_id"], adv.network_id, payload, command=command,
-            inputs=inputs + [{"path": Path(os.path.relpath(args.presets.resolve(), REPO_ROOT))
-                              .as_posix(), "sha256": artifact.sha256_file(args.presets)}],
+            run["artifact_id"],
+            adv.network_id,
+            payload,
+            command=command,
+            inputs=inputs
+            + [
+                {
+                    "path": Path(os.path.relpath(args.presets.resolve(), REPO_ROOT)).as_posix(),
+                    "sha256": artifact.sha256_file(args.presets),
+                }
+            ],
         )
         art["artifact"]["wall_time_s"] = round(wall, 1)
         path = artifact.write_artifact(args.out_dir, art)
         counts = payload.get("counts", {})
-        print(f"{run['artifact_id']}: {payload['outcome']} "
-              f"(evaluated {counts.get('candidates_evaluated', 0)}, "
-              f"accepted {counts.get('accepted', 0)}) in {wall:.1f} s -> {path}")
+        print(
+            f"{run['artifact_id']}: {payload['outcome']} "
+            f"(evaluated {counts.get('candidates_evaluated', 0)}, "
+            f"accepted {counts.get('accepted', 0)}) in {wall:.1f} s -> {path}"
+        )
     artifact.write_index(args.out_dir)
     return 0
 
@@ -187,9 +212,13 @@ def main(argv: list[str] | None = None, *, build_command: str | None = None) -> 
 
     pa = sub.add_parser("advise", help="run the advisor for one crisis")
     pa.add_argument("--network-id", required=True)
-    pa.add_argument("--crisis", type=Path, required=True,
-                    help="crisis JSON ({id, line_outages, generator_outages, demand_multiplier}) "
-                         "or a stormspec/1.0 scenario JSON")
+    pa.add_argument(
+        "--crisis",
+        type=Path,
+        required=True,
+        help="crisis JSON ({id, line_outages, generator_outages, demand_multiplier}) "
+        "or a stormspec/1.0 scenario JSON",
+    )
     pa.add_argument("--operating-point", choices=("case", "opf"), default="case")
     pa.add_argument("--voll", type=float, default=10000.0)
     pa.add_argument("--out", type=Path, default=None)

@@ -1,0 +1,46 @@
+{
+  "schema_version": "gridstorm-artifact-index/1.0",
+  "engine": "advisor",
+  "artifacts": [
+    {
+      "artifact_id": "pglib-case118-ieee-loss-branch-164",
+      "kind": "advisor",
+      "network_id": "pglib-case118-ieee",
+      "title": "IEEE 118 (PGLib): loss of branch-164 overloads branch-163",
+      "outcome": "recommended",
+      "payload_sha256": "31ede68915de785919e6bd0736761e76a1f2a208d0ba95d0f533113c0a9ca832"
+    },
+    {
+      "artifact_id": "pglib-case118-ieee-loss-branch-38",
+      "kind": "advisor",
+      "network_id": "pglib-case118-ieee",
+      "title": "IEEE 118 (PGLib): loss of branch-38, four branches overloaded (max 182 %)",
+      "outcome": "no_accepted_candidate",
+      "payload_sha256": "b0920963a12b7e09ff0e1646d7643047ea2ef341d0db6e052a8ca10c5deac1d8"
+    },
+    {
+      "artifact_id": "pglib-case118-ieee-loss-gen-21",
+      "kind": "advisor",
+      "network_id": "pglib-case118-ieee",
+      "title": "IEEE 118 (PGLib): loss of generator gen-21, overloads and low voltage",
+      "outcome": "recommended",
+      "payload_sha256": "ca68b6ac66aa0c69cdaa38b59f46f868c040c61842a27b7e587582f9f64db8a7"
+    },
+    {
+      "artifact_id": "pglib-case14-ieee-loss-branch-3",
+      "kind": "advisor",
+      "network_id": "pglib-case14-ieee",
+      "title": "IEEE 14 (PGLib): loss of branch-3, deep under-voltage at bus-3",
+      "outcome": "recommended",
+      "payload_sha256": "322ddae3afbe9ea01b9fdb3584f0e601944dd3d50757dee9f84ed44e37e918a7"
+    },
+    {
+      "artifact_id": "pglib-case14-ieee-loss-gen-1",
+      "kind": "advisor",
+      "network_id": "pglib-case14-ieee",
+      "title": "IEEE 14 (PGLib): loss of the slack generator gen-1, remaining capacity short",
+      "outcome": "no_accepted_candidate",
+      "payload_sha256": "0f8c5449847d486657dcab0e7405a7aff5da74522ce3fc3c332479f894142595"
+    }
+  ]
+}

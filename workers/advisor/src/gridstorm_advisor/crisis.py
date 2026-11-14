@@ -24,6 +24,8 @@ class Crisis:
     generator_outages: list[str] = field(default_factory=list)
     demand_multiplier: float = 1.0
     demand_buses: list[str] | None = None  # None = every load
+    # Native crisis ids are branch ids; StormSpec additionally declares a component namespace.
+    outage_components: dict[str, str] = field(default_factory=dict)
 
     @classmethod
     def from_dict(cls, d: dict) -> Crisis:
@@ -34,6 +36,7 @@ class Crisis:
             generator_outages=list(d.get("generator_outages", [])),
             demand_multiplier=float(d.get("demand_multiplier", 1.0)),
             demand_buses=d.get("demand_buses"),
+            outage_components=dict(d.get("outage_components", {})),
         )
 
     @classmethod
@@ -45,9 +48,15 @@ class Crisis:
         for i, ev in enumerate(scenario.get("events", [])):
             kind = ev.get("type")
             if ev.get("window") not in (None, {}):
-                raise UnsupportedCrisis(f"events[{i}]: time windows are not supported by the advisor")
+                raise UnsupportedCrisis(
+                    f"events[{i}]: time windows are not supported by the advisor"
+                )
             if kind == "line_outage":
                 crisis.line_outages.append(ev["asset_id"])
+                component = ev.get("component", "line")
+                if component not in ("line", "transformer"):
+                    raise UnsupportedCrisis(f"events[{i}]: invalid outage component {component!r}")
+                crisis.outage_components[ev["asset_id"]] = component
             elif kind == "generator_outage":
                 crisis.generator_outages.append(ev["asset_id"])
             elif kind == "demand_multiplier":
@@ -68,6 +77,7 @@ class Crisis:
             "generator_outages": list(self.generator_outages),
             "demand_multiplier": self.demand_multiplier,
             "demand_buses": self.demand_buses,
+            "outage_components": dict(self.outage_components),
         }
 
 
@@ -77,6 +87,12 @@ def validate(adv: AdvisorNetwork, crisis: Crisis) -> None:
     unknown += [b for b in (crisis.demand_buses or []) if b not in adv.buses]
     if unknown:
         raise ValueError(f"unknown asset ids in crisis {crisis.crisis_id!r}: {unknown}")
+    for bid, component in crisis.outage_components.items():
+        ref = adv.branches[bid]
+        # Equal-voltage MATPOWER transformers may be converted to pandapower impedances.
+        actual = "transformer" if ref.table in ("trafo", "impedance") else "line"
+        if component != actual:
+            raise ValueError(f"asset {bid!r} is a {actual}, not a {component}")
     if not 0.0 < crisis.demand_multiplier <= 3.0:
         raise ValueError("demand_multiplier must be in (0, 3]")
 

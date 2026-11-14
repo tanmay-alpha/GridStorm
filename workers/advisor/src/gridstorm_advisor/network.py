@@ -147,7 +147,9 @@ def load_matpower(path: str | Path, network_id: str) -> AdvisorNetwork:
             n = int(gc[row, _NCOST])
             model = int(gc[row, _MODEL])
             width = n if model == 2 else 2 * n
-            costs[f"gen-{row + 1}"] = CostCurve(model, tuple(float(v) for v in gc[row, 4:4 + width]))
+            costs[f"gen-{row + 1}"] = CostCurve(
+                model, tuple(float(v) for v in gc[row, 4 : 4 + width])
+            )
 
     return AdvisorNetwork(
         network_id=network_id,
@@ -161,7 +163,7 @@ def load_matpower(path: str | Path, network_id: str) -> AdvisorNetwork:
         loading_basis="apparent_power_vs_rate_a",
         source_files=[{"path": path.name, "sha256": _sha256(path)}],
         assumptions=[
-            "Network converted from the MATPOWER case with pandapower.converter.from_ppc (f_hz=60).",
+            "Network converted from MATPOWER with pandapower.converter.from_ppc (f_hz=60).",
             "Generator active-power setpoints are the Pg values stored in the case file "
             "(an operating point, not an optimised dispatch).",
             "Branch loading = max(|S_from|, |S_to|) / rateA (MVA), MATPOWER convention; "
@@ -176,7 +178,8 @@ def find_matpower_source(network_dir: str | Path) -> Path:
     files = sorted(Path(network_dir, "source").glob("*.m"))
     if len(files) != 1:
         raise FileNotFoundError(
-            f"expected exactly one MATPOWER file in {Path(network_dir, 'source')}, found {len(files)}"
+            f"expected exactly one MATPOWER file in {Path(network_dir, 'source')}, "
+            f"found {len(files)}"
         )
     return files[0]
 
@@ -219,7 +222,7 @@ def set_opf_operating_point(adv: AdvisorNetwork) -> dict:
     info = {
         "method": "pandapower.runopp (PIPS interior point, AC-OPF, pre-crisis case)",
         "branch_limit": "max_loading_percent = 100 / max(VMAX of terminal buses) so that "
-                        "|S| <= rateA (pandapower limits current)",
+        "|S| <= rateA (pandapower limits current)",
         "objective_eur_per_h": round(float(work.res_cost), 2),
         "pandapower_version": pp.__version__,
     }
@@ -263,7 +266,11 @@ def from_pandapower(
                             float(row["cp0_eur"]),
                         ),
                     )
-    basis = "apparent_power_vs_rate_a" if branch_rating_mva is not None else "pandapower_loading_percent"
+    basis = (
+        "apparent_power_vs_rate_a"
+        if branch_rating_mva is not None
+        else "pandapower_loading_percent"
+    )
     return AdvisorNetwork(
         network_id=network_id,
         net=net,

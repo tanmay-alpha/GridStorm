@@ -37,13 +37,29 @@ def _three_bus():
         pp.create_bus(net, vn_kv=110.0, min_vm_pu=0.9, max_vm_pu=1.1, name=f"b{i}", index=i)
     for i, (f, t) in enumerate([(0, 2), (0, 1), (1, 2)]):
         pp.create_line_from_parameters(
-            net, f, t, length_km=10.0, r_ohm_per_km=0.06, x_ohm_per_km=0.4,
-            c_nf_per_km=10.0, max_i_ka=1.5, index=i,
+            net,
+            f,
+            t,
+            length_km=10.0,
+            r_ohm_per_km=0.06,
+            x_ohm_per_km=0.4,
+            c_nf_per_km=10.0,
+            max_i_ka=1.5,
+            index=i,
         )
-    pp.create_ext_grid(net, 0, vm_pu=1.0, min_p_mw=-500.0, max_p_mw=500.0,
-                       min_q_mvar=-300.0, max_q_mvar=300.0)
-    pp.create_gen(net, 1, p_mw=20.0, vm_pu=1.0, min_p_mw=0.0, max_p_mw=100.0,
-                  min_q_mvar=-100.0, max_q_mvar=100.0)
+    pp.create_ext_grid(
+        net, 0, vm_pu=1.0, min_p_mw=-500.0, max_p_mw=500.0, min_q_mvar=-300.0, max_q_mvar=300.0
+    )
+    pp.create_gen(
+        net,
+        1,
+        p_mw=20.0,
+        vm_pu=1.0,
+        min_p_mw=0.0,
+        max_p_mw=100.0,
+        min_q_mvar=-100.0,
+        max_q_mvar=100.0,
+    )
     pp.create_load(net, 2, p_mw=150.0, q_mvar=30.0)
     pp.create_poly_cost(net, 0, "ext_grid", cp1_eur_per_mw=20.0)
     pp.create_poly_cost(net, 0, "gen", cp1_eur_per_mw=40.0)
@@ -91,7 +107,7 @@ def test_base_case_is_secure_and_crisis_overloads_line_0(adv):
     assert crisis["converged"]
     assert [(v["kind"], v["asset_id"]) for v in crisis["violations"]] == [("thermal", "line-0")]
     assert 105.0 < crisis["branch_loading_pct"]["line-0"] < 115.0
-    assert not adv.net.line.at[1, "in_service"] is False  # input network never mutated
+    assert adv.net.line.at[1, "in_service"] is not False  # input network never mutated
     assert bool(adv.net.line.at[1, "in_service"])
 
 
@@ -142,8 +158,7 @@ def test_advisor_recommends_minimal_redispatch(adv, payload):
 
 
 def test_no_islanding_switching_candidates(payload):
-    assert not any(a["type"] == "open_branch"
-                   for c in payload["candidates"] for a in c["actions"])
+    assert not any(a["type"] == "open_branch" for c in payload["candidates"] for a in c["actions"])
 
 
 def test_every_candidate_has_explanation_and_consistent_status(payload):
@@ -184,8 +199,55 @@ def test_unknown_assets_and_unsupported_events_are_rejected(adv):
     with pytest.raises(ValueError, match="unknown asset ids"):
         apply_crisis(adv, Crisis("x", line_outages=["line-99"]))
     with pytest.raises(UnsupportedCrisis):
-        Crisis.from_stormspec({"id": "s", "events": [
-            {"type": "line_outage", "asset_id": "line-1", "window": {"start": 0, "end": 2}}]})
+        Crisis.from_stormspec(
+            {
+                "id": "s",
+                "events": [
+                    {"type": "line_outage", "asset_id": "line-1", "window": {"start": 0, "end": 2}}
+                ],
+            }
+        )
     with pytest.raises(UnsupportedCrisis):
-        Crisis.from_stormspec({"id": "s", "events": [
-            {"type": "renewable_availability_multiplier", "carrier": "wind", "value": 0.5}]})
+        Crisis.from_stormspec(
+            {
+                "id": "s",
+                "events": [
+                    {"type": "renewable_availability_multiplier", "carrier": "wind", "value": 0.5}
+                ],
+            }
+        )
+
+
+def test_sensitivity_failure_is_explicit(adv, monkeypatch):
+    from gridstorm_advisor import sensitivity
+
+    monkeypatch.setattr(sensitivity, "compute", lambda *_: None)
+    result = advise(adv, CRISIS)
+    assert result["outcome"] == "no_accepted_candidate"
+    assert result["candidate_generation"]["status"] == "unavailable"
+    assert "not establish" in result["candidate_generation"]["warnings"][0]
+    assert result["baselines"]["proportional_load_shed"]["after"]["converged"]
+
+
+def test_stormspec_outage_component_defaults_to_line_and_is_checked(adv):
+    event = {"type": "line_outage", "asset_id": "line-1"}
+    crisis = Crisis.from_stormspec({"id": "typed", "events": [event]})
+    assert crisis.outage_components == {"line-1": "line"}
+    assert not apply_crisis(adv, crisis)[0].line.at[1, "in_service"]
+    wrong = Crisis.from_stormspec(
+        {
+            "id": "wrong",
+            "events": [{**event, "component": "transformer"}],
+        }
+    )
+    with pytest.raises(ValueError, match="is a line, not a transformer"):
+        apply_crisis(adv, wrong)
+    assert Crisis.from_dict(crisis.to_dict()) == crisis
+
+
+def test_islanded_load_is_an_explicit_violation(adv):
+    net = adv.copy_net()
+    net.line.loc[[0, 2], "in_service"] = False
+    state = evaluate_state(adv, net)
+    assert state["islanded_load_mw"] > 0
+    assert any(v["kind"] == "islanded_load" for v in state["violations"])

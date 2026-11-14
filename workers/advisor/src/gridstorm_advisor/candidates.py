@@ -100,7 +100,9 @@ def find_targets(adv, net, state: dict, sens: DCSensitivity) -> Targets:
     )
 
 
-def _relief(sens: DCSensitivity, tg: Targets, bus_up: str, bus_down: str | None) -> dict[str, float]:
+def _relief(
+    sens: DCSensitivity, tg: Targets, bus_up: str, bus_down: str | None
+) -> dict[str, float]:
     """MW of flow reduction on each thermal target per MW injected at bus_up, withdrawn at
     bus_down (None = slack)."""
     out = {}
@@ -142,11 +144,17 @@ def _gen_table(adv: AdvisorNetwork, net, state: dict, sens: DCSensitivity) -> li
         if p is None or math.isnan(pmax) or math.isnan(pmin):
             continue
         cost = adv.gen_cost.get(gid)
-        rows.append({
-            "id": gid, "bus": bus, "slack": slack, "p": p,
-            "up": max(0.0, pmax - p), "down": max(0.0, p - pmin),
-            "mc": cost.marginal(p) if cost else 0.0,
-        })
+        rows.append(
+            {
+                "id": gid,
+                "bus": bus,
+                "slack": slack,
+                "p": p,
+                "up": max(0.0, pmax - p),
+                "down": max(0.0, p - pmin),
+                "mc": cost.marginal(p) if cost else 0.0,
+            }
+        )
     return rows
 
 
@@ -182,16 +190,34 @@ def redispatch_drafts(adv, net, state, sens, tg: Targets, limits: Limits) -> lis
         amount = min(cap, needed * 1.05)
         delta = sens.bus_col(up["bus"]) - sens.bus_col(down["bus"])
         est, est_id = _dc_max_loading(adv, net, sens, delta * amount)
-        drafts.append(Draft(
-            actions=[{"type": "redispatch", "gen_up": up["id"], "gen_down": down["id"],
-                      "delta_mw": cap}],
-            origin="redispatch",
-            dc_estimate={"needed_mw": round(needed, 3), "cap_mw": round(cap, 3),
-                         "relieves_all_overloads_dc": covers_all,
-                         "est_max_loading_pct": round(est, 3), "est_max_branch_id": est_id},
-            rank_key=(0 if covers_all else 1, 0 if needed <= cap else 1, round(est, 6),
-                      round((up["mc"] - down["mc"]) * min(cap, needed), 6), up["id"], down["id"]),
-        ))
+        drafts.append(
+            Draft(
+                actions=[
+                    {
+                        "type": "redispatch",
+                        "gen_up": up["id"],
+                        "gen_down": down["id"],
+                        "delta_mw": cap,
+                    }
+                ],
+                origin="redispatch",
+                dc_estimate={
+                    "needed_mw": round(needed, 3),
+                    "cap_mw": round(cap, 3),
+                    "relieves_all_overloads_dc": covers_all,
+                    "est_max_loading_pct": round(est, 3),
+                    "est_max_branch_id": est_id,
+                },
+                rank_key=(
+                    0 if covers_all else 1,
+                    0 if needed <= cap else 1,
+                    round(est, 6),
+                    round((up["mc"] - down["mc"]) * min(cap, needed), 6),
+                    up["id"],
+                    down["id"],
+                ),
+            )
+        )
     drafts.sort(key=lambda d: d.rank_key)
     return drafts[: limits.max_redispatch]
 
@@ -226,13 +252,19 @@ def shed_drafts(adv, net, state, sens, tg: Targets, limits: Limits) -> list[Draf
         if sig in seen or not entries:
             return
         seen.add(sig)
-        drafts.append(Draft(
-            actions=[{"type": "load_shed",
-                      "loads": [{"load_id": lid, "shed_mw": p} for lid, p in sorted(entries)]}],
-            origin="load_shed",
-            dc_estimate={"selection": origin_note},
-            rank_key=key,
-        ))
+        drafts.append(
+            Draft(
+                actions=[
+                    {
+                        "type": "load_shed",
+                        "loads": [{"load_id": lid, "shed_mw": p} for lid, p in sorted(entries)],
+                    }
+                ],
+                origin="load_shed",
+                dc_estimate={"selection": origin_note},
+                rank_key=key,
+            )
+        )
 
     if tg.thermal:
         scored = []
@@ -246,8 +278,11 @@ def shed_drafts(adv, net, state, sens, tg: Targets, limits: Limits) -> list[Draf
             scored.append((covers, 0 if needed <= p else 1, round(needed, 6), lid, p))
         scored.sort()
         for covers, feasible, needed, lid, p in scored[: limits.max_shed]:
-            add([(lid, p)], f"dc_relief_rank needed~{needed:.1f}MW",
-                (0, covers, feasible, needed, lid))
+            add(
+                [(lid, p)],
+                f"dc_relief_rank needed~{needed:.1f}MW",
+                (0, covers, feasible, needed, lid),
+            )
         if len(scored) > 1:  # targeted group: the most effective loads, shed by one fraction
             group = scored[: limits.max_shed]
             add([(e[3], e[4]) for e in group], "dc_relief_group", (1, 0, 0, 0.0, "group"))
@@ -277,7 +312,9 @@ def _islands_anything(adv: AdvisorNetwork, net, bid: str, base_unsupplied: set[i
         return False
     has_load = bool((net.load.in_service & net.load.bus.isin(unsup)).any())
     has_gen = bool((net.gen.in_service & net.gen.bus.isin(unsup)).any())
-    has_sgen = bool((net.sgen.in_service & net.sgen.bus.isin(unsup)).any()) if len(net.sgen) else False
+    has_sgen = (
+        bool((net.sgen.in_service & net.sgen.bus.isin(unsup)).any()) if len(net.sgen) else False
+    )
     return has_load or has_gen or has_sgen
 
 
@@ -286,9 +323,7 @@ def switching_drafts(adv, net, state, sens, tg: Targets, limits: Limits) -> list
         return []
     base_unsup = set(top.unsupplied_buses(net, respect_switches=True))
     target_idx = [sens.branch_ids.index(b) for b in tg.thermal]
-    current = max(
-        abs(sens.dc_flow_mw[b]) / rating_mva(adv, net, b) * 100.0 for b in tg.thermal
-    )
+    current = max(abs(sens.dc_flow_mw[b]) / rating_mva(adv, net, b) * 100.0 for b in tg.thermal)
     drafts = []
     for k, bid in enumerate(sens.branch_ids):
         if bid in tg.thermal:
@@ -300,7 +335,8 @@ def switching_drafts(adv, net, state, sens, tg: Targets, limits: Limits) -> list
         delta[k] = -sens.dc_flow_mw[bid]
         est_targets = max(
             abs(sens.dc_flow_mw[sens.branch_ids[i]] + delta[i])
-            / rating_mva(adv, net, sens.branch_ids[i]) * 100.0
+            / rating_mva(adv, net, sens.branch_ids[i])
+            * 100.0
             for i in target_idx
         )
         if est_targets >= current - 1e-6:
@@ -308,13 +344,18 @@ def switching_drafts(adv, net, state, sens, tg: Targets, limits: Limits) -> list
         if _islands_anything(adv, net, bid, base_unsup):
             continue
         est, est_id = _dc_max_loading(adv, net, sens, delta)
-        drafts.append(Draft(
-            actions=[{"type": "open_branch", "branch_id": bid}],
-            origin="switching",
-            dc_estimate={"est_target_max_loading_pct": round(est_targets, 3),
-                         "est_max_loading_pct": round(est, 3), "est_max_branch_id": est_id},
-            rank_key=(round(max(est, est_targets), 6), bid),
-        ))
+        drafts.append(
+            Draft(
+                actions=[{"type": "open_branch", "branch_id": bid}],
+                origin="switching",
+                dc_estimate={
+                    "est_target_max_loading_pct": round(est_targets, 3),
+                    "est_max_loading_pct": round(est, 3),
+                    "est_max_branch_id": est_id,
+                },
+                rank_key=(round(max(est, est_targets), 6), bid),
+            )
+        )
     drafts.sort(key=lambda d: d.rank_key)
     return drafts[: limits.max_switch]
 
@@ -333,6 +374,9 @@ def combination_drafts(singles: dict[str, list[Draft]], limits: Limits) -> list[
             gens_b = {b.actions[0]["gen_up"], b.actions[0]["gen_down"]}
             if gens_a & gens_b:
                 continue
-        out.append(Draft(actions=acts, origin="combination",
-                         dc_estimate={"components": [a.origin, b.origin]}))
+        out.append(
+            Draft(
+                actions=acts, origin="combination", dc_estimate={"components": [a.origin, b.origin]}
+            )
+        )
     return out

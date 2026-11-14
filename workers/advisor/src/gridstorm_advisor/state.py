@@ -5,7 +5,6 @@ from __future__ import annotations
 import math
 import warnings
 
-import numpy as np
 import pandapower as pp
 import pandapower.topology as top
 
@@ -60,7 +59,9 @@ def _slack_rows(net: pp.pandapowerNet) -> list[tuple[str, int, float, float, flo
                 "ext_grid",
                 int(idx),
                 float(net.res_ext_grid.at[idx, "p_mw"]),
-                float(net.ext_grid.at[idx, "min_p_mw"]) if "min_p_mw" in net.ext_grid else -math.inf,
+                float(net.ext_grid.at[idx, "min_p_mw"])
+                if "min_p_mw" in net.ext_grid
+                else -math.inf,
                 float(net.ext_grid.at[idx, "max_p_mw"]) if "max_p_mw" in net.ext_grid else math.inf,
             )
         )
@@ -137,8 +138,15 @@ def evaluate_state(adv: AdvisorNetwork, net: pp.pandapowerNet) -> dict:
         return {
             **base,
             "converged": False,
-            "violations": [{"kind": "non_convergence", "asset_id": None, "value": None,
-                            "limit": None, "unit": None}],
+            "violations": [
+                {
+                    "kind": "non_convergence",
+                    "asset_id": None,
+                    "value": None,
+                    "limit": None,
+                    "unit": None,
+                }
+            ],
             "max_branch_loading_pct": None,
             "max_branch_id": None,
             "min_vm_pu": None,
@@ -153,10 +161,27 @@ def evaluate_state(adv: AdvisorNetwork, net: pp.pandapowerNet) -> dict:
 
     loading = branch_loading(adv, net)
     violations: list[dict] = []
+    if islanded_mw > 1e-6:
+        violations.append(
+            {
+                "kind": "islanded_load",
+                "asset_id": None,
+                "value": _r(islanded_mw),
+                "limit": 0.0,
+                "unit": "mw",
+            }
+        )
     for bid, val in loading.items():
         if val > THERMAL_LIMIT_PCT + THERMAL_TOL_PCT:
-            violations.append({"kind": "thermal", "asset_id": bid, "value": _r(val, 3),
-                               "limit": THERMAL_LIMIT_PCT, "unit": "pct"})
+            violations.append(
+                {
+                    "kind": "thermal",
+                    "asset_id": bid,
+                    "value": _r(val, 3),
+                    "limit": THERMAL_LIMIT_PCT,
+                    "unit": "pct",
+                }
+            )
     vm = net.res_bus.vm_pu
     bus_vm: dict[str, float] = {}
     for bid, b in adv.buses.items():
@@ -167,21 +192,49 @@ def evaluate_state(adv: AdvisorNetwork, net: pp.pandapowerNet) -> dict:
         vmin = float(net.bus.at[b, "min_vm_pu"]) if "min_vm_pu" in net.bus else 0.95
         vmax = float(net.bus.at[b, "max_vm_pu"]) if "max_vm_pu" in net.bus else 1.05
         if v < vmin - VOLTAGE_TOL_PU:
-            violations.append({"kind": "voltage_low", "asset_id": bid, "value": _r(v, 5),
-                               "limit": vmin, "unit": "pu"})
+            violations.append(
+                {
+                    "kind": "voltage_low",
+                    "asset_id": bid,
+                    "value": _r(v, 5),
+                    "limit": vmin,
+                    "unit": "pu",
+                }
+            )
         elif v > vmax + VOLTAGE_TOL_PU:
-            violations.append({"kind": "voltage_high", "asset_id": bid, "value": _r(v, 5),
-                               "limit": vmax, "unit": "pu"})
+            violations.append(
+                {
+                    "kind": "voltage_high",
+                    "asset_id": bid,
+                    "value": _r(v, 5),
+                    "limit": vmax,
+                    "unit": "pu",
+                }
+            )
     slack_total = 0.0
     for table, idx, p, pmin, pmax in _slack_rows(net):
         slack_total += p
         gid = adv.gen_id_of(table, idx)
         if p > pmax + SLACK_P_TOL_MW:
-            violations.append({"kind": "slack_p_max", "asset_id": gid, "value": _r(p, 3),
-                               "limit": pmax, "unit": "mw"})
+            violations.append(
+                {
+                    "kind": "slack_p_max",
+                    "asset_id": gid,
+                    "value": _r(p, 3),
+                    "limit": pmax,
+                    "unit": "mw",
+                }
+            )
         elif p < pmin - SLACK_P_TOL_MW:
-            violations.append({"kind": "slack_p_min", "asset_id": gid, "value": _r(p, 3),
-                               "limit": pmin, "unit": "mw"})
+            violations.append(
+                {
+                    "kind": "slack_p_min",
+                    "asset_id": gid,
+                    "value": _r(p, 3),
+                    "limit": pmin,
+                    "unit": "mw",
+                }
+            )
     violations.sort(key=lambda v: (v["kind"], str(v["asset_id"])))
 
     dispatch = gen_dispatch(adv, net)

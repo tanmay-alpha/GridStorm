@@ -45,7 +45,10 @@ def envelope(
             "engine_version": __version__,
             "power_flow_engine": {"name": "pandapower", "version": pp.__version__},
             "network_id": network_id,
-            "created_at": datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
+            "created_at": datetime.now(UTC)
+            .replace(microsecond=0)
+            .isoformat()
+            .replace("+00:00", "Z"),
             "command": command,
             "inputs": inputs,
             "platform": f"{platform.system()}-{platform.release()} Python {sys.version.split()[0]}",
@@ -76,15 +79,23 @@ def write_index(out_dir: Path) -> Path:
         art = json.loads(path.read_text(encoding="utf-8"))
         head = art["artifact"]
         payload = art["payload"]
-        items.append({
-            "artifact_id": head["artifact_id"],
-            "kind": head["kind"],
-            "network_id": head["network_id"],
-            "title": payload.get("title") or payload["crisis"].get("title") or head["artifact_id"],
-            "outcome": payload.get("outcome"),
-            "payload_sha256": head["payload_sha256"],
-        })
-    index = {"schema_version": "gridstorm-artifact-index/1.0", "engine": "advisor", "artifacts": items}
+        items.append(
+            {
+                "artifact_id": head["artifact_id"],
+                "kind": head["kind"],
+                "network_id": head["network_id"],
+                "title": payload.get("title")
+                or payload["crisis"].get("title")
+                or head["artifact_id"],
+                "outcome": payload.get("outcome"),
+                "payload_sha256": head["payload_sha256"],
+            }
+        )
+    index = {
+        "schema_version": "gridstorm-artifact-index/1.0",
+        "engine": "advisor",
+        "artifacts": items,
+    }
     path = out_dir / "index.json"
     path.write_text(json.dumps(index, indent=2) + "\n", encoding="utf-8", newline="\n")
     return path

@@ -59,7 +59,20 @@ parked; the numbers above are from the complete re-run.)
 
 ## 3. Claims: reproduced vs not reproduced
 
-REPRO_SECTION
+| Claim | Evidence from this audit | Status |
+|---|---|---|
+| Deterministic plan verifies before commit without an API key | `test_agent_plan_demo_overload_verifies`, `test_verify_action_structure_and_no_commit`, and agent shape/decision tests passed in the complete suite above | Reproduced as test assertions; not an independent proof of every proposed action |
+| Iterative cascade, slack guard, no fabricated shedding | Integrity/remediation tests passed, including `test_cascade_is_iterative` and `test_load_shed_avoided_never_exceeds_total_load` | Reproduced within upstream test coverage |
+| 24-step simulation and three-policy comparison execute | Timeseries simulation and comparison assertions passed | Reproduced functionality; relative cost/severity claims not independently benchmarked |
+| Full suite passes within performance budget | 129 passed, one wall-clock assertion failed (77.1 s versus 30 s) | Not reproduced on this shared Windows host |
+| Approximately 18 s for the 24-step demonstration | Observed 77.1 s for the suite's stress fixture; machines/workloads differ | Not reproduced; not a cross-machine disproof |
+| “1,794 MW across 50 generators” in the README demonstration | Source and fixture inspection only; the separately drafted reproduction script was not executed to completion | Unverified numerical demonstration claim |
+| Resulting state “holds N-1” | Source verifies only the three worst screened contingencies; the rest are not rechecked after action | Not established as exhaustive N-1 security |
+| Competition winner / prize | No independent public results evidence collected | Unverified |
+
+No Anthropic calls or paid services were used. The test result is upstream self-test evidence,
+not independent validation of its competition claims. The optional demonstration reproduction
+script outside this repository is not relied on as evidence.
 
 ## 4. Assessment and what GridStorm takes from it
 

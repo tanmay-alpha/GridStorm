@@ -69,9 +69,7 @@ def apply(adv: AdvisorNetwork, net: pp.pandapowerNet, actions: list[dict]) -> No
 
 
 def shed_mw(actions: list[dict]) -> float:
-    return float(
-        sum(e["shed_mw"] for a in actions if a["type"] == "load_shed" for e in a["loads"])
-    )
+    return float(sum(e["shed_mw"] for a in actions if a["type"] == "load_shed" for e in a["loads"]))
 
 
 def n_switching(actions: list[dict]) -> int:
@@ -83,8 +81,6 @@ def describe(adv: AdvisorNetwork, action: dict) -> str:
     if kind == "open_branch":
         return f"open {action['branch_id']}"
     if kind == "redispatch":
-        return (
-            f"shift {action['delta_mw']:.1f} MW from {action['gen_down']} to {action['gen_up']}"
-        )
+        return f"shift {action['delta_mw']:.1f} MW from {action['gen_down']} to {action['gen_up']}"
     parts = ", ".join(f"{e['shed_mw']:.1f} MW at {e['load_id']}" for e in action["loads"])
     return f"shed {parts}"

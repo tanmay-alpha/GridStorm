@@ -81,9 +81,18 @@ def _summary(state: dict, top_n: int = 5) -> dict:
     loading = state.get("branch_loading_pct", {})
     top = sorted(loading.items(), key=lambda kv: (-kv[1], kv[0]))[:top_n]
     keys = (
-        "converged", "max_branch_loading_pct", "max_branch_id", "min_vm_pu", "max_vm_pu",
-        "slack_p_mw", "losses_mw", "generation_cost_eur_per_h", "supplied_load_mw",
-        "islanded_load_mw", "islanded_buses", "violations",
+        "converged",
+        "max_branch_loading_pct",
+        "max_branch_id",
+        "min_vm_pu",
+        "max_vm_pu",
+        "slack_p_mw",
+        "losses_mw",
+        "generation_cost_eur_per_h",
+        "supplied_load_mw",
+        "islanded_load_mw",
+        "islanded_buses",
+        "violations",
     )
     out = {k: state[k] for k in keys}
     out["n_violations"] = len(state["violations"])
@@ -205,14 +214,18 @@ def _fmt_violation(v: dict) -> str:
         return f"slack {v['asset_id']} P {v['value']:.2f} MW > Pmax {v['limit']:.2f} MW"
     if v["kind"] == "slack_p_min":
         return f"slack {v['asset_id']} P {v['value']:.2f} MW < Pmin {v['limit']:.2f} MW"
+    if v["kind"] == "islanded_load":
+        return f"unsupplied islanded load {v['value']:.2f} MW > 0 MW"
     return "power flow did not converge"
 
 
 def _candidate_id(actions: list[dict]) -> str:
     sig = json.dumps(
-        [{k: v for k, v in a.items() if k not in ("delta_mw", "loads")}
-         | ({"loads": sorted(e["load_id"] for e in a["loads"])} if "loads" in a else {})
-         for a in actions],
+        [
+            {k: v for k, v in a.items() if k not in ("delta_mw", "loads")}
+            | ({"loads": sorted(e["load_id"] for e in a["loads"])} if "loads" in a else {})
+            for a in actions
+        ],
         sort_keys=True,
     )
     return "cand-" + hashlib.sha256(sig.encode()).hexdigest()[:10]
@@ -279,20 +292,26 @@ def n_minus_1(adv: AdvisorNetwork, net: pp.pandapowerNet, exclude: set[str]) -> 
         work = copy.deepcopy(net)
         work[ref.table].loc[ref.index, "in_service"] = False
         st = evaluate_state(adv, work)
-        rows.append({
-            "outage_branch_id": bid,
-            "converged": st["converged"],
-            "n_violations": len(st["violations"]) if st["converged"] else None,
-            "max_branch_loading_pct": st["max_branch_loading_pct"],
-            "min_vm_pu": st["min_vm_pu"],
-            "islanded_load_mw": st["islanded_load_mw"],
-            "violations": st["violations"][:5],
-        })
+        rows.append(
+            {
+                "outage_branch_id": bid,
+                "converged": st["converged"],
+                "n_violations": len(st["violations"]) if st["converged"] else None,
+                "max_branch_loading_pct": st["max_branch_loading_pct"],
+                "min_vm_pu": st["min_vm_pu"],
+                "islanded_load_mw": st["islanded_load_mw"],
+                "violations": st["violations"][:5],
+            }
+        )
     insecure = [r for r in rows if not r["converged"] or r["n_violations"] or r["islanded_load_mw"]]
     worst = sorted(
         insecure,
-        key=lambda r: (r["converged"], -(r["islanded_load_mw"] or 0),
-                       -(r["max_branch_loading_pct"] or 0), r["outage_branch_id"]),
+        key=lambda r: (
+            r["converged"],
+            -(r["islanded_load_mw"] or 0),
+            -(r["max_branch_loading_pct"] or 0),
+            r["outage_branch_id"],
+        ),
     )[:10]
     return {
         "n_contingencies": len(rows),
@@ -302,7 +321,7 @@ def n_minus_1(adv: AdvisorNetwork, net: pp.pandapowerNet, exclude: set[str]) -> 
         "n_islanding": sum(1 for r in rows if r["islanded_load_mw"]),
         "worst": worst,
         "criteria": "AC power flow per single branch outage; same violation rules as acceptance; "
-                    "no remedial action assumed after the second outage.",
+        "no remedial action assumed after the second outage.",
     }
 
 
@@ -334,13 +353,15 @@ def evaluate_actions(
 def proportional_shed_baseline(adv, crisis_net, crisis_state, original, cfg, ref_cost) -> dict:
     """Baseline: shed the same fraction of every supplied load (AC-bisected minimal fraction)."""
     supplied = [
-        lid for lid in sorted(adv.loads)
+        lid
+        for lid in sorted(adv.loads)
         if act.load_p_mw(adv, crisis_net, lid) > 0
         and adv.bus_id_of(int(crisis_net.load.at[adv.loads[lid][0], "bus"]))
         not in set(crisis_state["islanded_buses"])
     ]
-    cap = [{"load_id": lid, "shed_mw": act.load_p_mw(adv, crisis_net, lid) * 0.99}
-           for lid in supplied]
+    cap = [
+        {"load_id": lid, "shed_mw": act.load_p_mw(adv, crisis_net, lid) * 0.99} for lid in supplied
+    ]
     draft = cand.Draft(actions=[{"type": "load_shed", "loads": cap}], origin="baseline")
     row = _evaluate_draft(adv, crisis_net, crisis_state, draft, original, cfg, ref_cost)
     row.pop("_state")
@@ -349,7 +370,7 @@ def proportional_shed_baseline(adv, crisis_net, crisis_state, original, cfg, ref
     return {
         "policy": "proportional_load_shed",
         "description": "Uniform fraction of every supplied load shed (constant power factor); "
-                       "fraction found by AC bisection, max 99 %.",
+        "fraction found by AC bisection, max 99 %.",
         "shed_fraction": _r(shed / total, 6) if total else None,
         "status": row["status"],
         "rejection_reasons": row["rejection_reasons"],
@@ -358,9 +379,7 @@ def proportional_shed_baseline(adv, crisis_net, crisis_state, original, cfg, ref
     }
 
 
-def advise(
-    adv: AdvisorNetwork, crisis: Crisis, cfg: AdvisorConfig | None = None
-) -> dict:
+def advise(adv: AdvisorNetwork, crisis: Crisis, cfg: AdvisorConfig | None = None) -> dict:
     """Run the advisor and return the deterministic ``gridstorm-advisor/1.0`` payload."""
     cfg = cfg or AdvisorConfig()
     base_net = adv.copy_net()
@@ -394,11 +413,11 @@ def advise(
         },
         "objective": {
             "definition": "objective_eur = generation_cost_eur (MATPOWER gencost of the "
-                          "post-action AC dispatch incl. slack, over assumed_duration_h) + "
-                          "voll_eur_per_mwh * load_shed_mw * assumed_duration_h + "
-                          "switching_penalty_eur * n_switching_actions",
+            "post-action AC dispatch incl. slack, over assumed_duration_h) + "
+            "voll_eur_per_mwh * load_shed_mw * assumed_duration_h + "
+            "switching_penalty_eur * n_switching_actions",
             "ranking": "accepted candidates sorted by (objective_eur, max branch loading after, "
-                       "candidate_id)",
+            "candidate_id)",
             "voll_eur_per_mwh": cfg.voll_eur_per_mwh,
             "switching_penalty_eur": cfg.switching_penalty_eur,
             "assumed_duration_h": cfg.assumed_duration_h,
@@ -410,19 +429,38 @@ def advise(
     }
 
     if not original:
-        payload.update({
-            "outcome": "no_violation",
-            "candidates": [], "ranking": [], "recommendation": None,
-            "baselines": {"do_nothing": {"policy": "do_nothing", "status": "accepted",
-                                         "after": _summary(crisis_state)}},
-            "n_minus_1": None,
-            "security_statement": "The crisis state has no thermal/voltage/slack violation in "
-                                  "the AC steady state; no action proposed. N-1 not checked.",
-            "assumptions": adv.assumptions,
-        })
+        payload.update(
+            {
+                "outcome": "no_violation",
+                "candidates": [],
+                "ranking": [],
+                "recommendation": None,
+                "baselines": {
+                    "do_nothing": {
+                        "policy": "do_nothing",
+                        "status": "accepted",
+                        "after": _summary(crisis_state),
+                    }
+                },
+                "n_minus_1": None,
+                "security_statement": "The crisis state has no thermal/voltage/slack violation in "
+                "the AC steady state; no action proposed. N-1 not checked.",
+                "assumptions": adv.assumptions,
+            }
+        )
         return payload
 
     sens = sensitivity.compute(adv, crisis_net)
+    payload["candidate_generation"] = {
+        "status": "ok" if sens is not None else "unavailable",
+        "warnings": []
+        if sens is not None
+        else [
+            "DC sensitivity calculation failed; targeted candidate generation was not run. "
+            "No accepted candidate does not establish that the crisis is unfixable. "
+            "The proportional-shedding baseline is still AC-evaluated."
+        ],
+    }
     drafts: list[cand.Draft] = []
     singles: dict[str, list[cand.Draft]] = {}
     if sens is not None:
@@ -430,7 +468,8 @@ def advise(
         singles = {
             "switching": cand.switching_drafts(adv, crisis_net, crisis_state, sens, tg, cfg.limits),
             "redispatch": cand.redispatch_drafts(
-                adv, crisis_net, crisis_state, sens, tg, cfg.limits),
+                adv, crisis_net, crisis_state, sens, tg, cfg.limits
+            ),
             "load_shed": cand.shed_drafts(adv, crisis_net, crisis_state, sens, tg, cfg.limits),
         }
         for kind in ("switching", "redispatch", "load_shed"):
@@ -448,8 +487,11 @@ def advise(
 
     accepted = sorted(
         (c for c in evaluated if c["status"] == "accepted"),
-        key=lambda c: (c["objective"]["objective_eur"], c["after"]["max_branch_loading_pct"],
-                       c["candidate_id"]),
+        key=lambda c: (
+            c["objective"]["objective_eur"],
+            c["after"]["max_branch_loading_pct"],
+            c["candidate_id"],
+        ),
     )
     for i, c in enumerate(accepted, start=1):
         c["rank"] = i
@@ -460,15 +502,24 @@ def advise(
         net = copy.deepcopy(crisis_net)
         act.apply(adv, net, c["actions"])
         res = n_minus_1(adv, net, exclude)
-        c["n_minus_1"] = {k: res[k] for k in ("n_contingencies", "n_secure", "n_with_violations",
-                                               "n_non_converged", "n_islanding")}
+        c["n_minus_1"] = {
+            k: res[k]
+            for k in (
+                "n_contingencies",
+                "n_secure",
+                "n_with_violations",
+                "n_non_converged",
+                "n_islanding",
+            )
+        }
         n1.append({"candidate_id": c["candidate_id"], **res})
     base_n1 = n_minus_1(adv, adv.copy_net(), set())
 
     for c in evaluated:
         c.pop("_state")
-    evaluated.sort(key=lambda c: (c["rank"] is None, c["rank"] or 0, c["origin"],
-                                  c["candidate_id"]))
+    evaluated.sort(
+        key=lambda c: (c["rank"] is None, c["rank"] or 0, c["origin"], c["candidate_id"])
+    )
 
     baselines = {
         "do_nothing": {
@@ -479,48 +530,59 @@ def advise(
             "objective": _objective(adv, crisis_state, [], cfg, ref_cost),
         },
         "proportional_load_shed": proportional_shed_baseline(
-            adv, crisis_net, crisis_state, original, cfg, ref_cost),
+            adv, crisis_net, crisis_state, original, cfg, ref_cost
+        ),
     }
     top = accepted[0] if accepted else None
     n1_note = (
         f"AC N-1 re-checked for the top {len(n1)} accepted candidate(s) (single branch outages)."
-        if n1 else "N-1 of the resulting state NOT checked (no accepted candidate)."
+        if n1
+        else "N-1 of the resulting state NOT checked (no accepted candidate)."
     )
-    payload.update({
-        "outcome": "recommended" if top else "no_accepted_candidate",
-        "candidates": evaluated,
-        "ranking": [c["candidate_id"] for c in accepted],
-        "recommendation": None if top is None else {
-            "candidate_id": top["candidate_id"],
-            "actions": top["actions"],
-            "objective": top["objective"],
-            "explanation": top["explanation"],
-            "n_minus_1": top.get("n_minus_1"),
-        },
-        "baselines": baselines,
-        "comparison": _comparison(baselines, top),
-        "n_minus_1": {"candidates": n1, "base_case_pre_crisis": base_n1},
-        "counts": {
-            "candidates_evaluated": len(evaluated),
-            "accepted": len(accepted),
-            "rejected": len(evaluated) - len(accepted),
-            "by_origin": {k: sum(1 for c in evaluated if c["origin"] == k)
-                          for k in ("switching", "redispatch", "load_shed", "combination")},
-        },
-        "security_statement": (
-            "'Accepted' means: clears all thermal/voltage/slack-limit violations in the "
-            "post-crisis AC steady state (single snapshot). " + n1_note + " Not checked: "
-            "dynamic/transient stability, protection settings, ramp rates, reactive reserve "
-            "adequacy beyond generator Q limits, time coupling. Not an operational instruction."
-        ),
-        "assumptions": adv.assumptions + [
-            "Single-slack balancing: the slack generator absorbs all imbalance and loss changes.",
-            "Load shedding reduces P and Q proportionally (constant power factor).",
-            "Amounts are the smallest AC-bisected scale (to the configured resolution) that "
-            "clears the original violations with originally overloaded branches at or below "
-            f"{cfg.sizing_target_pct} % loading; post-action loadings close to that are expected.",
-        ],
-    })
+    payload.update(
+        {
+            "outcome": "recommended" if top else "no_accepted_candidate",
+            "candidates": evaluated,
+            "ranking": [c["candidate_id"] for c in accepted],
+            "recommendation": None
+            if top is None
+            else {
+                "candidate_id": top["candidate_id"],
+                "actions": top["actions"],
+                "objective": top["objective"],
+                "explanation": top["explanation"],
+                "n_minus_1": top.get("n_minus_1"),
+            },
+            "baselines": baselines,
+            "comparison": _comparison(baselines, top),
+            "n_minus_1": {"candidates": n1, "base_case_pre_crisis": base_n1},
+            "counts": {
+                "candidates_evaluated": len(evaluated),
+                "accepted": len(accepted),
+                "rejected": len(evaluated) - len(accepted),
+                "by_origin": {
+                    k: sum(1 for c in evaluated if c["origin"] == k)
+                    for k in ("switching", "redispatch", "load_shed", "combination")
+                },
+            },
+            "security_statement": (
+                "'Accepted' means: clears all thermal/voltage/slack-limit violations in the "
+                "post-crisis AC steady state (single snapshot). " + n1_note + " Not checked: "
+                "dynamic/transient stability, protection settings, ramp rates, reactive reserve "
+                "adequacy beyond generator Q limits, time coupling. Not an operational instruction."
+            ),
+            "assumptions": adv.assumptions
+            + [
+                "Single-slack balancing: the slack generator absorbs all imbalance "
+                "and loss changes.",
+                "Load shedding reduces P and Q proportionally (constant power factor).",
+                "Amounts are the smallest AC-bisected scale (to the configured resolution) that "
+                "clears the original violations with originally overloaded branches at or below "
+                f"{cfg.sizing_target_pct} % loading; post-action loadings close "
+                "to that are expected.",
+            ],
+        }
+    )
     return payload
 
 
@@ -528,24 +590,28 @@ def _comparison(baselines: dict, top: dict | None) -> list[dict]:
     rows = []
     for key in ("do_nothing", "proportional_load_shed"):
         b = baselines[key]
-        rows.append({
-            "policy": key,
-            "status": b["status"],
-            "n_violations_after": b["after"]["n_violations"],
-            "max_branch_loading_pct": b["after"]["max_branch_loading_pct"],
-            "min_vm_pu": b["after"]["min_vm_pu"],
-            "load_shed_mw": b["objective"]["load_shed_mw"],
-            "objective_eur": b["objective"]["objective_eur"],
-        })
+        rows.append(
+            {
+                "policy": key,
+                "status": b["status"],
+                "n_violations_after": b["after"]["n_violations"],
+                "max_branch_loading_pct": b["after"]["max_branch_loading_pct"],
+                "min_vm_pu": b["after"]["min_vm_pu"],
+                "load_shed_mw": b["objective"]["load_shed_mw"],
+                "objective_eur": b["objective"]["objective_eur"],
+            }
+        )
     if top is not None:
-        rows.append({
-            "policy": "advisor_top_candidate",
-            "candidate_id": top["candidate_id"],
-            "status": top["status"],
-            "n_violations_after": top["after"]["n_violations"],
-            "max_branch_loading_pct": top["after"]["max_branch_loading_pct"],
-            "min_vm_pu": top["after"]["min_vm_pu"],
-            "load_shed_mw": top["objective"]["load_shed_mw"],
-            "objective_eur": top["objective"]["objective_eur"],
-        })
+        rows.append(
+            {
+                "policy": "advisor_top_candidate",
+                "candidate_id": top["candidate_id"],
+                "status": top["status"],
+                "n_violations_after": top["after"]["n_violations"],
+                "max_branch_loading_pct": top["after"]["max_branch_loading_pct"],
+                "min_vm_pu": top["after"]["min_vm_pu"],
+                "load_shed_mw": top["objective"]["load_shed_mw"],
+                "objective_eur": top["objective"]["objective_eur"],
+            }
+        )
     return rows
