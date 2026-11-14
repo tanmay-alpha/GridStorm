@@ -67,8 +67,8 @@ Last updated: 2026-11-14
 
 | ID | Task | Pri | Owner | Deps | Status | Acceptance criteria |
 |---|---|---|---|---|---|---|
-| P4-01 | pandapower reference validation (case9–case300) | P1 | B/ACValidation | — | IMPLEMENTING | Max errors vs MATPOWER reference reported |
-| P4-02 | N-1 engine with explicit classification + ranking | P1 | B/ACValidation | P1-02 | IMPLEMENTING | Artifacts for case14/118 with class counts |
+| P4-01 | pandapower reference validation (case9–case300) | P1 | B/ACValidation | — | VERIFIED | 13 comparisons pass (max ΔVm 9.7e-11 pu, ΔVa 1.1e-8°, ΔP 8.8e-8 MW); only case9 vs MATPOWER stored solution is fully independent; fixed converter tap-side bug (case300 Ybus diff 4.6e-13) |
+| P4-02 | N-1 engine with explicit classification + ranking | P1 | B/ACValidation | P1-02 | VERIFIED | AC-OPF bases match PGLib costs (2178.08 / 97213.61 / 565220.14 $/h); N-1: case14 20 (18 secure), case118 186 (56 secure, 119 thermal), case300 411 (18 non-convergent, classified); N-2 case14 10 pairs; 22 tests. Pin scipy<1.14 → pandapower 3.5.4 in this env only |
 | P4-03 | Warden audit | P2 | B/CrisisAdvisor | — | VERIFIED | `docs/audit/warden-audit.md`; Warden suite reproduced 129 passed / 1 timing failure; competition claims kept as unverified |
 | P4-04 | Crisis Response Advisor (deterministic, solver-verified) | P1 | B/CrisisAdvisor | P4-02 | VERIFIED | 5 PGLib crisis artifacts (3 with accepted recommendation, 2 honestly none accepted); 15 tests pass (commit `4fe25fb`) |
 | P4-05 | Cross-engine check PyPSA LPF vs pandapower DC/AC PF on same PGLib case | P1 | B/CrossEngine | P1-02, P4-01 | VERIFIED | DC PF max abs diff 2.84e-13 MW (case14), 2.56e-12 MW (case118); AC-vs-DC linearisation 11.9 / 69.4 MW (expected); DC-OPF objective rel. diff ≤ 6.4e-11; `tests/cross_engine/run_all.py` 41.6 s; 10 harness tests pass (commit `49679ce`) |
