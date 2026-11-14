@@ -47,20 +47,102 @@ OPSD_DOI = f"https://doi.org/10.25832/time_series/{OPSD_VERSION}"
 OPSD_ATTRIBUTION = (
     "Open Power System Data. 2020. Data Package Time series. Version 2020-10-06. "
     "https://doi.org/10.25832/time_series/2020-10-06. (Primary data from various sources, "
-    "for a complete list see URL). German load/generation: ENTSO-E Transparency Platform; "
-    "German capacities: OPSD calculations based on BNetzA and netztransparenz.de."
+    "for a complete list see URL). German load forecast and load/generation: ENTSO-E "
+    "Transparency Platform; German capacities: OPSD calculations based on BNetzA and "
+    "netztransparenz.de."
 )
 
-#: German columns of the OPSD 60-min single-index CSV used here (all in MW).
-OPSD_DE_COLUMNS = (
-    "DE_load_actual_entsoe_transparency",
-    "DE_solar_capacity",
-    "DE_solar_generation_actual",
-    "DE_wind_onshore_capacity",
-    "DE_wind_onshore_generation_actual",
-    "DE_wind_offshore_capacity",
-    "DE_wind_offshore_generation_actual",
+ENTSOE_TERMS_URL = "https://transparencyplatform.zendesk.com/hc/en-us/articles/40921911218961-Legal-Terms-and-Conditions"
+ENTSOE_REUSE_LIST_URL = (
+    "https://transparencyplatform.zendesk.com/hc/en-us/article_attachments/40921869379729"
 )
+ENTSOE_REUSE_LIST_SHA256 = "b21717e8a5a41b9b8544db730d11c2a717abc9b07f89704437a89332b708ff9a"
+ENTSOE_REUSE_LIST_VERSION = "2023-10-18"
+CC_BY_4_URL = "https://creativecommons.org/licenses/by/4.0/"
+
+#: The only OPSD column whose (derived) hourly values are committed: the ENTSO-E day-ahead total
+#: load forecast, Reg. (EU) 543/2013 Art. 6.1.b = item #1 of the ENTSO-E free re-use list.
+OPSD_LOAD_FORECAST_COL = "DE_load_forecast_entsoe_transparency"
+#: CC BY 4.0 attribution (title, source, licence, changes) for the committed demand multipliers.
+LOAD_FORECAST_ATTRIBUTION = (
+    "Day-ahead forecast of the total load per market time unit, Germany (Reg. (EU) 543/2013 "
+    "Art. 6.1.b), ENTSO-E Transparency Platform (https://transparency.entsoe.eu/), obtained via "
+    f"Open Power System Data, Time series {OPSD_VERSION} ({OPSD_DOI}), column "
+    f"{OPSD_LOAD_FORECAST_COL}. Licensed under CC BY 4.0 ({CC_BY_4_URL}) per the ENTSO-E list of "
+    f"data available for free re-use ({ENTSOE_REUSE_LIST_VERSION}), item #1. Changes made by "
+    "GridStorm: the stress day's 24 hourly values are divided by the mean of the nearest "
+    "1 January (UTC), then by the scigrid-de network's normalized hourly load, and rounded to "
+    "4 decimals; only these ratios are published."
+)
+
+_NOT_LISTED = (
+    f"NOT on the ENTSO-E free re-use list ({ENTSOE_REUSE_LIST_VERSION}); Terms of Use cl. 3.1/5.1"
+    " apply (Primary Owner's rights; no permission obtained)"
+)
+_ENTSOE_ACTUAL_GEN = "ENTSO-E Transparency, Reg. (EU) 543/2013 Art. 16.1.b/c (actual generation)"
+_CAPACITY_ORIGIN = "OPSD calculation based on BNetzA and netztransparenz.de (not ENTSO-E)"
+_CAPACITY_TERMS = "no data licence declared by OPSD; BNetzA/netztransparenz.de terms not checked"
+_GEN_USE = (
+    "detection of the Dunkelflaute/combined days; one daily availability ratio per carrier "
+    "(rounded to 0.05, clipped to <= 1)"
+)
+_GEN_COMMITTED = (
+    "one MODELED daily multiplier per carrier and stress day (ratio of daily-mean CFs, rounded "
+    "to 0.05, clipped to <= 1); no hourly value, no daily-mean CF, no MW value"
+)
+
+
+def _reuse(origin: str, status: str, raw: str, used_for: str, committed: str) -> dict[str, str]:
+    return {
+        "origin": origin,
+        "free_reuse_status": status,
+        "raw_redistribution": raw,
+        "used_for": used_for,
+        "committed_derivative": committed,
+    }
+
+
+#: Per-column redistribution assessment (docs/research/entsoe-reuse-check.md); written into the
+#: manifest. Key order = the order the columns are read.
+OPSD_COLUMN_REUSE: dict[str, dict[str, str]] = {
+    OPSD_LOAD_FORECAST_COL: _reuse(
+        "ENTSO-E Transparency, Reg. (EU) 543/2013 Art. 6.1.b (day-ahead total load forecast)",
+        f"ON the free re-use list ({ENTSOE_REUSE_LIST_VERSION}), item #1: CC BY 4.0",
+        "permitted with attribution and indication of changes",
+        "hourly demand multipliers (shape and level relative to the nearest 1 January)",
+        "24 hourly ratios per stress day (4 decimals); CC BY 4.0, attribution in "
+        "license.load_forecast_attribution",
+    ),
+    "DE_load_actual_entsoe_transparency": _reuse(
+        "ENTSO-E Transparency, Reg. (EU) 543/2013 Art. 6.1.a (actual total load)",
+        _NOT_LISTED,
+        "not permitted",
+        "stress-day detection only (highest-load and combined criteria)",
+        "the selected dates only; no value or statistic",
+    ),
+    "DE_solar_capacity": _reuse(
+        _CAPACITY_ORIGIN, _CAPACITY_TERMS, "unclear", _GEN_USE, _GEN_COMMITTED
+    ),
+    "DE_solar_generation_actual": _reuse(
+        _ENTSOE_ACTUAL_GEN, _NOT_LISTED, "not permitted", _GEN_USE, _GEN_COMMITTED
+    ),
+    "DE_wind_onshore_capacity": _reuse(
+        _CAPACITY_ORIGIN, _CAPACITY_TERMS, "unclear", _GEN_USE, _GEN_COMMITTED
+    ),
+    "DE_wind_onshore_generation_actual": _reuse(
+        _ENTSOE_ACTUAL_GEN, _NOT_LISTED, "not permitted", _GEN_USE, _GEN_COMMITTED
+    ),
+    "DE_wind_offshore_capacity": _reuse(
+        _CAPACITY_ORIGIN, _CAPACITY_TERMS, "unclear", _GEN_USE, _GEN_COMMITTED
+    ),
+    "DE_wind_offshore_generation_actual": _reuse(
+        _ENTSOE_ACTUAL_GEN, _NOT_LISTED, "not permitted", _GEN_USE, _GEN_COMMITTED
+    ),
+}
+#: German columns of the OPSD 60-min single-index CSV used here (all in MW).
+OPSD_DE_COLUMNS = tuple(OPSD_COLUMN_REUSE)
+#: Columns that are not openly licensed: no value derived from them may be committed hourly.
+OPSD_NON_OPEN_COLUMNS = tuple(c for c in OPSD_DE_COLUMNS if c != OPSD_LOAD_FORECAST_COL)
 
 # --- NASA POWER hourly API (no key) ------------------------------------------------------------
 

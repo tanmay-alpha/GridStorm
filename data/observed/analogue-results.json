@@ -34,11 +34,11 @@
         "status": "ok",
         "termination_condition": "optimal",
         "objective_eur": 6684817.323607,
-        "wall_time_s": 4.741
+        "wall_time_s": 2.548
       },
-      "run_wall_time_s": 12.15,
-      "started_at": "2026-11-14T20:59:04.417Z",
-      "finished_at": "2026-11-14T20:59:16.498Z",
+      "run_wall_time_s": 5.98,
+      "started_at": "2026-11-14T23:11:47.848Z",
+      "finished_at": "2026-11-14T23:11:53.779Z",
       "series_integrals_mwh": {
         "load": 1209951.6799999997,
         "load_shed": 0.0,
@@ -103,9 +103,9 @@
       "scenario_id": "observed-dunkelflaute-2015-01-20",
       "role": "observed_analogue",
       "scenario_file": "data/scenarios/observed/observed-dunkelflaute-2015-01-20.yaml",
-      "scenario_sha256": "8fdf5d8d2b60d1d98d59f16dc9f2dc3a2e68f21211e8ea81916f0a6853fcdce7",
-      "scenario_hash": "f7924982613ab9ad8e6c706e1f558fb53d4ec4a409e814e84163631917ce9c6a",
-      "events": 79,
+      "scenario_sha256": "ac7ecff0a3e79d5de32bb677854a003dc92b21c94197d1cfd69ef5716f27553d",
+      "scenario_hash": "66d25e27837b544bd01ee8b504a6dac14d9398600340443e41649fa2d43f053b",
+      "events": 27,
       "validation": {
         "canonical_json": {
           "valid": true,
@@ -127,27 +127,27 @@
         "version": "1.16.0",
         "status": "ok",
         "termination_condition": "optimal",
-        "objective_eur": 66230004.947724,
-        "wall_time_s": 5.569
+        "objective_eur": 59147317.53326,
+        "wall_time_s": 2.405
       },
-      "run_wall_time_s": 21.46,
-      "started_at": "2026-11-14T20:59:16.790Z",
-      "finished_at": "2026-11-14T20:59:38.170Z",
+      "run_wall_time_s": 7.47,
+      "started_at": "2026-11-14T23:11:53.909Z",
+      "finished_at": "2026-11-14T23:12:01.330Z",
       "series_integrals_mwh": {
-        "load": 1655703.1195,
-        "load_shed": 3237.0991000000004,
-        "storage_dispatch": -3454.9251000000036,
-        "generation": 1655920.9456999986
+        "load": 1623498.8766999997,
+        "load_shed": 2721.0068999999994,
+        "storage_dispatch": -2177.862999999999,
+        "generation": 1622955.7333999986
       },
       "metrics": {
-        "total_load_mwh": 1655703.119504,
-        "served_load_mwh": 1652466.02028,
-        "unserved_energy_mwh": 3237.099224,
-        "peak_load_shed_mw": 260.880833,
+        "total_load_mwh": 1623498.876832,
+        "served_load_mwh": 1620777.869935,
+        "unserved_energy_mwh": 2721.006897,
+        "peak_load_shed_mw": 230.022431,
         "load_shed_hours": 17.0,
-        "total_system_cost_eur": 66230004.947724,
-        "generation_cost_eur": 33859012.710466,
-        "load_shedding_cost_eur": 32370992.237258,
+        "total_system_cost_eur": 59147317.53326,
+        "generation_cost_eur": 31937248.560357,
+        "load_shedding_cost_eur": 27210068.972903,
         "curtailment_mwh": 0.0,
         "curtailment_by_carrier_mwh": {
           "Solar": 0.0,
@@ -155,34 +155,34 @@
           "Wind Onshore": 0.0
         },
         "max_line_loading_pct": 100.0,
-        "mean_line_loading_pct": 22.176496,
-        "congested_line_count": 32,
-        "storage_discharge_mwh": 31980.204182,
-        "storage_charge_mwh": 35435.129288,
-        "balance_residual_max_mw": 4e-09
+        "mean_line_loading_pct": 22.006211,
+        "congested_line_count": 26,
+        "storage_discharge_mwh": 20159.193929,
+        "storage_charge_mwh": 22337.056985,
+        "balance_residual_max_mw": 3e-09
       },
       "wind_solar_curtailment_mwh": 0.0,
       "generation_by_carrier_mwh": {
-        "Brown Coal": 344541.145438,
-        "Gas": 237262.505432,
+        "Brown Coal": 343214.005266,
+        "Gas": 199518.121253,
         "Geothermal": 760.8,
-        "Hard Coal": 558339.58463,
+        "Hard Coal": 560591.956008,
         "Multiple": 3544.8,
-        "Nuclear": 257555.908167,
-        "Oil": 2926.0,
-        "Other": 43595.218059,
-        "Run of River": 95955.57099,
-        "Solar": 10458.380229,
+        "Nuclear": 256259.015378,
+        "Oil": 2487.1,
+        "Other": 43974.670695,
+        "Run of River": 95956.525924,
+        "Solar": 11847.760802,
         "Storage Hydro": 34680.0,
         "Waste": 39501.6,
-        "Wind Offshore": 5749.275642,
-        "Wind Onshore": 21050.1568
+        "Wind Offshore": 6947.36493,
+        "Wind Onshore": 23672.012733
       },
       "result_warnings": [
         "Dataset carriers carry no CO2 intensities (all zero/missing): co2_emissions_t is null (data gap, not a zero-emission finding)"
       ],
       "dataset_sha256": "284850c8e922414f9da69ffda0623431148e0c28a3380ba370e4135ac5236500",
-      "result_sha256": "6352e3979d5d7d6993c4488904cf87f8a4ec89b3927dae701acdbaef322d0f6b",
+      "result_sha256": "0cb44a0650af16bf6de2d13c8496cc958e4faa978636a9f213254a0a9e23c552",
       "package_versions": {
         "pypsa": "1.4.0",
         "linopy": "0.10.1",
@@ -197,25 +197,21 @@
       "scenario_id": "observed-high-load-low-res-2017-01-24",
       "role": "observed_analogue",
       "scenario_file": "data/scenarios/observed/observed-high-load-low-res-2017-01-24.yaml",
-      "scenario_sha256": "eaf7aa3499f8676d40060c43db6d5e5f9c0112122d01aff8e76cc44d3ba84168",
-      "scenario_hash": "514b5b103a25ef04d14009222f03c81882a9cf6dc26cd8299ad1539608b71a58",
-      "events": 79,
+      "scenario_sha256": "61f299c556c04d0ab70ccc68eaafb74dd98fe376961b52eac36f6758c5067bf7",
+      "scenario_hash": "f17ad1b777b7fc136b15f193cd46a7e865be09c73c73f3a47a9034f1a0248f39",
+      "events": 27,
       "validation": {
         "canonical_json": {
           "valid": true,
           "errors": [],
-          "warnings": [
-            "large_multiplier"
-          ],
-          "warning_count": 2
+          "warnings": [],
+          "warning_count": 0
         },
         "pypsa_network_index": {
           "valid": true,
           "errors": [],
-          "warnings": [
-            "large_multiplier"
-          ],
-          "warning_count": 2
+          "warnings": [],
+          "warning_count": 0
         }
       },
       "outcome": "feasible",
@@ -225,64 +221,62 @@
         "version": "1.16.0",
         "status": "ok",
         "termination_condition": "optimal",
-        "objective_eur": 253032522.79879,
-        "wall_time_s": 6.201
+        "objective_eur": 87280269.396206,
+        "wall_time_s": 2.83
       },
-      "run_wall_time_s": 21.4,
-      "started_at": "2026-11-14T20:59:38.454Z",
-      "finished_at": "2026-11-14T20:59:59.767Z",
+      "run_wall_time_s": 7.85,
+      "started_at": "2026-11-14T23:12:01.465Z",
+      "finished_at": "2026-11-14T23:12:09.275Z",
       "series_integrals_mwh": {
-        "load": 1916278.4338999998,
-        "load_shed": 20499.6724,
-        "storage_dispatch": -4881.557800000002,
-        "generation": 1900660.3180999975
+        "load": 1779121.2005,
+        "load_shed": 4731.4538999999995,
+        "storage_dispatch": -4281.555499999999,
+        "generation": 1778671.3023999971
       },
       "metrics": {
-        "total_load_mwh": 1916278.434,
-        "served_load_mwh": 1895778.761473,
-        "unserved_energy_mwh": 20499.672527,
-        "peak_load_shed_mw": 1661.96852,
-        "load_shed_hours": 24.0,
-        "total_system_cost_eur": 253032522.79879,
-        "generation_cost_eur": 48035797.527951,
-        "load_shedding_cost_eur": 204996725.270839,
-        "curtailment_mwh": 458.035376,
+        "total_load_mwh": 1779121.200528,
+        "served_load_mwh": 1774389.746632,
+        "unserved_energy_mwh": 4731.453896,
+        "peak_load_shed_mw": 346.189509,
+        "load_shed_hours": 20.0,
+        "total_system_cost_eur": 87280269.396206,
+        "generation_cost_eur": 39965730.433782,
+        "load_shedding_cost_eur": 47314538.962425,
+        "curtailment_mwh": 0.0,
         "curtailment_by_carrier_mwh": {
-          "Solar": 116.540875,
+          "Solar": 0.0,
           "Wind Offshore": 0.0,
-          "Wind Onshore": 341.494501
+          "Wind Onshore": 0.0
         },
         "max_line_loading_pct": 100.0,
-        "mean_line_loading_pct": 24.798883,
-        "congested_line_count": 44,
-        "storage_discharge_mwh": 45185.699679,
-        "storage_charge_mwh": 50067.257262,
-        "balance_residual_max_mw": 1e-09
+        "mean_line_loading_pct": 23.360983,
+        "congested_line_count": 36,
+        "storage_discharge_mwh": 39631.835294,
+        "storage_charge_mwh": 43913.390907,
+        "balance_residual_max_mw": 2e-09
       },
-      "wind_solar_curtailment_mwh": 458.035,
+      "wind_solar_curtailment_mwh": 0.0,
       "generation_by_carrier_mwh": {
-        "Brown Coal": 330477.211383,
-        "Gas": 453748.131149,
+        "Brown Coal": 334985.46631,
+        "Gas": 355368.562086,
         "Geothermal": 760.8,
-        "Hard Coal": 555626.983903,
+        "Hard Coal": 558419.949488,
         "Multiple": 3664.8,
-        "Nuclear": 258304.390671,
-        "Oil": 35419.613529,
-        "Other": 52081.374328,
-        "Run of River": 93778.167753,
-        "Solar": 9134.371253,
-        "Storage Hydro": 34657.632316,
-        "Waste": 39114.017176,
-        "Wind Offshore": 11663.133214,
-        "Wind Onshore": 22229.692381
+        "Nuclear": 258621.863266,
+        "Oil": 3511.2,
+        "Other": 49924.256559,
+        "Run of River": 95677.235767,
+        "Solar": 9478.208641,
+        "Storage Hydro": 34680.0,
+        "Waste": 39485.9,
+        "Wind Offshore": 10421.047395,
+        "Wind Onshore": 23672.012733
       },
       "result_warnings": [
-        "large_multiplier: demand multiplier 2.0398 is far from 1; check plausibility",
-        "large_multiplier: demand multiplier 2.0729 is far from 1; check plausibility",
         "Dataset carriers carry no CO2 intensities (all zero/missing): co2_emissions_t is null (data gap, not a zero-emission finding)"
       ],
       "dataset_sha256": "284850c8e922414f9da69ffda0623431148e0c28a3380ba370e4135ac5236500",
-      "result_sha256": "9645beb177267d2940a1abf34b0f531228a9695db02ebc1e38d0f5cf0926767e",
+      "result_sha256": "a95056309b1e39f0940bd569c765251642a0a90b612bdbb5f1e7b727a3083a80",
       "package_versions": {
         "pypsa": "1.4.0",
         "linopy": "0.10.1",
@@ -297,9 +291,9 @@
       "scenario_id": "observed-peak-load-2017-12-13",
       "role": "observed_analogue",
       "scenario_file": "data/scenarios/observed/observed-peak-load-2017-12-13.yaml",
-      "scenario_sha256": "5375290b71aa5ede5abbe7dc12c5e181c643e5a860f39eb74c2087896a1398c8",
-      "scenario_hash": "1b723486519d98e49123a4b7abd624793c4cb2ae0f91309f0cfcdf84917f7c9d",
-      "events": 56,
+      "scenario_sha256": "39853b9c3cf5017b967e8562db43c0988cc51d5a1da05c91b38760efa12c45aa",
+      "scenario_hash": "19bc47855528d8aaa31e2cae718ee84b80bab80270b7c831dd8684a1c03ac658",
+      "events": 26,
       "validation": {
         "canonical_json": {
           "valid": true,
@@ -321,62 +315,62 @@
         "version": "1.16.0",
         "status": "ok",
         "termination_condition": "optimal",
-        "objective_eur": 82186647.607053,
-        "wall_time_s": 4.521
+        "objective_eur": 66189364.283908,
+        "wall_time_s": 2.673
       },
-      "run_wall_time_s": 19.29,
-      "started_at": "2026-11-14T21:00:00.064Z",
-      "finished_at": "2026-11-14T21:00:19.292Z",
+      "run_wall_time_s": 7.61,
+      "started_at": "2026-11-14T23:12:09.414Z",
+      "finished_at": "2026-11-14T23:12:16.976Z",
       "series_integrals_mwh": {
-        "load": 1836261.0035000003,
-        "load_shed": 5647.7254,
-        "storage_dispatch": -4729.749900000008,
-        "generation": 1835343.0278999999
+        "load": 1760101.2145000002,
+        "load_shed": 4429.345699999999,
+        "storage_dispatch": -3671.0513000000096,
+        "generation": 1759342.9193999998
       },
       "metrics": {
-        "total_load_mwh": 1836261.003472,
-        "served_load_mwh": 1830613.278104,
-        "unserved_energy_mwh": 5647.725368,
-        "peak_load_shed_mw": 436.531875,
-        "load_shed_hours": 20.0,
-        "total_system_cost_eur": 82186647.607053,
-        "generation_cost_eur": 25709393.928581,
-        "load_shedding_cost_eur": 56477253.678472,
-        "curtailment_mwh": 19198.837581,
+        "total_load_mwh": 1760101.214592,
+        "served_load_mwh": 1755671.869037,
+        "unserved_energy_mwh": 4429.345555,
+        "peak_load_shed_mw": 334.927487,
+        "load_shed_hours": 19.0,
+        "total_system_cost_eur": 66189364.283908,
+        "generation_cost_eur": 21895908.734465,
+        "load_shedding_cost_eur": 44293455.549443,
+        "curtailment_mwh": 38620.957729,
         "curtailment_by_carrier_mwh": {
-          "Solar": 675.53168,
-          "Wind Offshore": 6672.031056,
-          "Wind Onshore": 11851.274845
+          "Solar": 1194.414404,
+          "Wind Offshore": 11271.636453,
+          "Wind Onshore": 26154.906873
         },
         "max_line_loading_pct": 100.0,
-        "mean_line_loading_pct": 26.145864,
-        "congested_line_count": 51,
-        "storage_discharge_mwh": 43780.505133,
-        "storage_charge_mwh": 48510.254996,
-        "balance_residual_max_mw": 2.9e-08
+        "mean_line_loading_pct": 25.724663,
+        "congested_line_count": 50,
+        "storage_discharge_mwh": 33980.756135,
+        "storage_charge_mwh": 37651.807352,
+        "balance_residual_max_mw": 1e-08
       },
-      "wind_solar_curtailment_mwh": 19198.838,
+      "wind_solar_curtailment_mwh": 38620.958,
       "generation_by_carrier_mwh": {
-        "Brown Coal": 306758.780666,
-        "Gas": 153840.511046,
-        "Geothermal": 385.3,
-        "Hard Coal": 440751.294128,
-        "Multiple": 2519.7,
-        "Nuclear": 226921.941759,
-        "Oil": 3431.533,
-        "Other": 30024.947549,
-        "Run of River": 91657.727682,
-        "Solar": 31622.087658,
-        "Storage Hydro": 31657.520777,
-        "Waste": 38302.4,
-        "Wind Offshore": 52377.229366,
-        "Wind Onshore": 425092.054336
+        "Brown Coal": 302944.522821,
+        "Gas": 107373.125943,
+        "Geothermal": 327.6,
+        "Hard Coal": 415748.591437,
+        "Multiple": 2181.6,
+        "Nuclear": 222012.242116,
+        "Oil": 0.0,
+        "Other": 17558.604561,
+        "Run of River": 91530.677313,
+        "Solar": 31979.315841,
+        "Storage Hydro": 31632.475697,
+        "Waste": 37514.168809,
+        "Wind Offshore": 51254.647919,
+        "Wind Onshore": 447285.347797
       },
       "result_warnings": [
         "Dataset carriers carry no CO2 intensities (all zero/missing): co2_emissions_t is null (data gap, not a zero-emission finding)"
       ],
       "dataset_sha256": "284850c8e922414f9da69ffda0623431148e0c28a3380ba370e4135ac5236500",
-      "result_sha256": "645966379489b6c2a967d7adcd5203d44791ea7d9bad373b53f2859bb0cd5200",
+      "result_sha256": "1414938364606be1a515b1a8e11a6cdd3959ef83d03eda3a0d85c8342435ba9d",
       "package_versions": {
         "pypsa": "1.4.0",
         "linopy": "0.10.1",

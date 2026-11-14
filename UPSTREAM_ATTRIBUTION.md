@@ -148,6 +148,27 @@ Integration owners append to these lists when they add derived files.
   `data/artifacts/stormrisk/stormrisk-ac-dc-meshed-storm-stress.json` (they reference the network id
   whose manifest carries the CC-BY-4.0 / ODbL-1.0 attribution).
 
+### PyPSA-Eur Belgium tutorial network (pypsa-eur-be) — ODbL-1.0
+* Built by `pipelines/pypsa-eur/build.sh` from PyPSA-Eur `v2026.09.0` (`c8209014`), tutorial config
+  `config/test/config.electricity.yaml`; upstream `composed_2050.nc` sha256
+  `0648933ae2cbffdbf61bcd80df999a7af6eedc84cc56b69d0e9acdb65c532b36`.
+* Modified by `pipelines/pypsa-eur/replace_load.py`: the ENTSO-E/OPSD Belgian load (not
+  redistributable) was replaced by the BE column of the *Interannual Electricity Demand Calculator*
+  (Frysztacki, van der Most, Neumann; https://doi.org/10.5281/zenodo.10820928, CC-BY-4.0;
+  `demand_hourly.csv` sha256 `1c96ff5a041abbb85d6d24f880455e13a931c5cbaf0e54e3f7fc0f7644b12bc0`),
+  24 h means, split with the upstream JRC Energy Atlas keys (© European Union, 1995-2026, CC-BY-4.0).
+* Licence: the network is an ODbL Derivative Database of the OSM-based PyPSA-Eur prebuilt grid v0.7
+  (Xiong et al., https://doi.org/10.5281/zenodo.18619025, © OpenStreetMap contributors) and is
+  published under ODbL-1.0 (https://opendatacommons.org/licenses/odbl/1-0/). The full attribution
+  block (ERA5, CORINE, Natura 2000, World Bank shipping density, MarineRegions EEZ,
+  powerplantmatching, technology-data, IAEA, TYNDP 2020, EuroGeographics NUTS) is in the manifest
+  `license.attribution`, in the NetCDF global attribute `attribution`, and in
+  `docs/research/pypsa-eur-be-licensing.md` §4. Method offer (ODbL §4.6): `pipelines/pypsa-eur/`.
+
+#### Reused files
+* `data/networks/pypsa-eur-be/{network.nc,canonical.json,manifest.json,analytics/*.json}`
+* Derived results (Produced Works, ODbL §4.3): `data/artifacts/pypsa/pypsa-eur-be-baseline.json`.
+
 ### MATPOWER test cases — case data (not BSD-covered)
 * Repo: https://github.com/MATPOWER/matpower (release 8.1; master `952ebcb1a274cfeae2cebda617b4041d941cbc9e`).
   MATPOWER's `LICENSE` states that its code is BSD-3-Clause but "the MATPOWER case files distributed
@@ -180,9 +201,14 @@ Integration owners append to these lists when they add derived files.
 #### Reused files (each manifest carries `source`, `license` and `attribution` fields)
 * `data/observed/nasa-power-de/{t2m_ws10m_hourly.csv,manifest.json}` — NASA POWER Hourly API v2.10.4
   values redistributed with the NASA LaRC POWER acknowledgement.
-* `data/observed/opsd-de/{derived-multipliers.json,manifest.json}` — multipliers derived from OPSD
-  Time series 2020-10-06; the manifest records that redistribution permission for the
-  ENTSO-E-derived load/generation columns has **not** been established.
+* `data/observed/opsd-de/{derived-multipliers.json,manifest.json}` — hourly demand multipliers derived
+  from the ENTSO-E **day-ahead total load forecast** for Germany (Reg. (EU) 543/2013 Art. 6.1.b; item #1
+  of the ENTSO-E list of data for free re-use, CC BY 4.0), obtained via Open Power System Data Time
+  series 2020-10-06; GridStorm normalised it to the network profile (exact attribution string:
+  `LOAD_FORECAST_ATTRIBUTION` in `pipelines/observed/src/gridstorm_observed/sources.py`).
+  Renewable shortfalls are one rounded daily multiplier per carrier (labelled MODELED); no actual
+  load or generation series (not on the free re-use list) is committed or reconstructable
+  (`pipelines/observed/tests/test_reuse.py`, `docs/research/entsoe-reuse-check.md` §6).
 * `data/observed/analogue-results.json` — results computed from the two inputs above.
 
 ## Concepts only (no code or data copied)

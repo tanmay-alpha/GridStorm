@@ -12,14 +12,14 @@ H = np.arange(24)
 NET_LOAD = 50_000 + 8_000 * np.sin((H - 11) / 24 * 2 * np.pi)
 
 
-def test_demand_multipliers_reproduce_observed_shape_and_relative_level():
+def test_demand_multipliers_reproduce_shape_and_relative_level():
     ref = 40_000 + 5_000 * np.cos(H / 24 * 2 * np.pi)
     obs = 1.4 * ref.mean() * (1 + 0.2 * np.sin(H / 3))
     dm = mapping.demand_multipliers(obs, ref, NET_LOAD)
     scaled = np.asarray(dm.raw) * NET_LOAD
-    # Scaled network load / network mean == observed day / observed reference-day mean.
+    # Scaled network load / network mean == stress day / reference-day mean.
     np.testing.assert_allclose(scaled / NET_LOAD.mean(), obs / ref.mean(), rtol=1e-12)
-    np.testing.assert_allclose(dm.target_load_mw, scaled, rtol=1e-12)
+    assert dm.reference_mean_mw == pytest.approx(ref.mean())
     assert dm.clipped_hours == []
     np.testing.assert_allclose(dm.multipliers, np.round(dm.raw, 4), atol=0)
 
@@ -49,24 +49,26 @@ def test_demand_rejects_missing_values():
         mapping.demand_multipliers(NET_LOAD[:23], NET_LOAD[:23], NET_LOAD[:23])
 
 
-def test_renewable_multipliers_ratio_clip_and_undefined():
+def test_renewable_daily_multiplier_is_rounded_ratio_of_daily_means():
     net = np.full(24, 0.5)
     net[:6] = 0.0  # e.g. solar at night
     obs = np.full(24, 0.1)
-    obs[10] = 0.8  # observed above network -> clipped to 1
-    rm = mapping.renewable_multipliers("Solar", obs, net)
-    assert rm.undefined_hours == [0, 1, 2, 3, 4, 5]
-    assert rm.multipliers[:6] == [None] * 6
-    assert rm.clipped_hours == [10]
-    assert rm.multipliers[10] == 1.0
-    assert rm.raw[10] == pytest.approx(1.6)
-    assert rm.multipliers[12] == pytest.approx(0.2)
-    eff = mapping.effective_cf(rm)
-    # Unclipped, defined hours reproduce the observed CF exactly (up to 4-decimal rounding).
-    for h in range(6, 24):
-        if h != 10:
-            assert eff[h] == pytest.approx(obs[h], abs=0.5e-4)
-    assert eff[10] == pytest.approx(0.5)
+    obs[10] = 0.8
+    rm = mapping.renewable_daily_multiplier("Solar", obs, net)
+    # mean(obs) / mean(net) = (3.1 / 24) / 0.375 = 0.344 -> 0.35 on the 0.05 grid
+    assert rm.multiplier == 0.35
+    assert not rm.clipped
+    # Applied to the whole day: the network's hourly shape is kept, only its level changes.
+    np.testing.assert_allclose(mapping.effective_cf(rm), 0.35 * net)
+
+
+def test_renewable_daily_multiplier_clipped_at_one_and_zero_network_rejected():
+    net = np.full(24, 0.5)
+    rm = mapping.renewable_daily_multiplier("Wind Onshore", np.full(24, 0.6), net)
+    assert rm.multiplier == 1.0 and rm.clipped
+    assert mapping.renewable_daily_multiplier("Wind Onshore", np.zeros(24), net).multiplier == 0.0
+    with pytest.raises(ValueError, match="undefined"):
+        mapping.renewable_daily_multiplier("Solar", np.zeros(24), np.zeros(24))
 
 
 def test_capacity_weighted_cf():

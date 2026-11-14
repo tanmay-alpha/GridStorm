@@ -22,7 +22,7 @@ def test_at_least_two_scenarios():
 
 
 @pytest.mark.parametrize("path", SCENARIOS, ids=lambda p: p.stem)
-def test_scenario_valid_and_hourly(path):
+def test_scenario_valid_hourly_demand_daily_renewables(path):
     scen = stormspec.load_scenario(path)
     assert scen.id == path.stem
     assert scen.dataset.network_id == "scigrid-de"
@@ -33,7 +33,8 @@ def test_scenario_valid_and_hourly(path):
     demand = [e for e in scen.events if e.type == "demand_multiplier"]
     assert [(e.window.start, e.window.end) for e in demand] == [(h, h + 1) for h in range(24)]
     for e in scen.events:
-        assert e.window is not None and e.window.end - e.window.start == 1
+        if e.type == "renewable_availability_multiplier":
+            assert (e.window.start, e.window.end) == (0, 24)
 
 
 @pytest.mark.parametrize("path", SCENARIOS, ids=lambda p: p.stem)
@@ -43,15 +44,16 @@ def test_scenario_matches_derived_parameters(path):
     demand = [e.value for e in scen.events if e.type == "demand_multiplier"]
     assert demand == rec["demand"]["multipliers"]
     for carrier, r in rec["renewables"].items():
-        got = {
-            e.window.start: e.value
+        got = [
+            e.value
             for e in scen.events
             if e.type == "renewable_availability_multiplier" and e.carrier == carrier
-        }
-        want = {h: w for h, w in enumerate(r["multipliers"]) if w is not None and w != 1.0}
-        assert got == want
-        assert all(r["multipliers"][h] is None for h in r["undefined_hours"])
-        assert all(r["multipliers"][h] == 1.0 for h in r["clipped_hours"])
+        ]
+        assert got == ([] if r["daily_multiplier"] == 1.0 else [r["daily_multiplier"]])
+        assert not r["clipped_at_1"] or r["daily_multiplier"] == 1.0
+        assert r["modeled_daily_mean_cf"] == pytest.approx(
+            r["daily_multiplier"] * r["network_daily_mean_cf"], abs=1e-4
+        )
     assert rec["events"] == len(scen.events)
 
 
@@ -66,20 +68,26 @@ def test_opsd_manifest_checksums_and_license():
     src = OPSD_MANIFEST["source"]
     assert src["sha256"] == sources.OPSD_CSV_SHA256
     assert src["url"] == sources.OPSD_CSV_URL
-    assert OPSD_MANIFEST["license"]["redistribution"] == "restricted"
+    lic = OPSD_MANIFEST["license"]
+    assert lic["redistribution"] == "derived-only"
+    assert lic["load_forecast_license"] == "CC-BY-4.0"
+    assert lic["load_forecast_attribution"] == sources.LOAD_FORECAST_ATTRIBUTION
+    assert "CC BY 4.0" in lic["load_forecast_attribution"]
+    assert "Changes made by GridStorm" in lic["load_forecast_attribution"]
     assert set(src["column_sources"]) == set(sources.OPSD_DE_COLUMNS)
+    assert src["column_reuse"] == sources.OPSD_COLUMN_REUSE
     assert "BNetzA" in src["column_sources"]["DE_solar_capacity"]["name"]
-    assert "ENTSO-E" in src["column_sources"][sources.OPSD_DE_COLUMNS[0]]["name"]
+    for col in sources.OPSD_DE_COLUMNS:
+        if col.endswith(("_entsoe_transparency", "_generation_actual")):
+            assert "ENTSO-E" in src["column_sources"][col]["name"], col
     assert set(OPSD_MANIFEST["quality_flags"]) == {r["scenario_id"] for r in DERIVED["scenarios"]}
 
 
 def test_no_observed_opsd_series_committed():
-    # Redistribution of the ENTSO-E-derived hourly columns is not established: only JSON
-    # (derived parameters + manifest) may live in data/observed/opsd-de.
+    # Only JSON (derived parameters + manifest) may live in data/observed/opsd-de; the
+    # information content of these files is checked in test_reuse.py.
     files = sorted(p.name for p in sources.OPSD_OUT_DIR.iterdir())
     assert files == ["derived-multipliers.json", "manifest.json"]
-    text = (sources.OPSD_OUT_DIR / "derived-multipliers.json").read_text("utf-8")
-    assert "target_load_mw" not in text and 'observed_cf"' not in text
 
 
 def test_power_manifest_checksum():

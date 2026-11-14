@@ -2,7 +2,9 @@
 
 The 60-min single-index CSV (~130 MB) is downloaded once to the cache outside the repo and
 verified against the sha256 published in the version's ``datapackage.json``. Only the German
-columns listed in :data:`sources.OPSD_DE_COLUMNS` are read.
+columns listed in :data:`sources.OPSD_DE_COLUMNS` are read. The actual load (``LOAD_COL``) and the
+generation/capacity columns are used for stress-day detection and coarse daily ratios only; the
+hourly demand mapping uses the openly licensed day-ahead load forecast (``LOAD_FORECAST_COL``).
 
 Capacity factors are computed from generation and capacity (``generation_actual / capacity``)
 per technology and for the wind+solar aggregate::
@@ -27,6 +29,7 @@ TECHS = {
     "solar": "Solar",
 }
 LOAD_COL = "DE_load_actual_entsoe_transparency"
+LOAD_FORECAST_COL = sources.OPSD_LOAD_FORECAST_COL
 
 
 def fetch_csv(dest_dir: Path | None = None) -> Path:

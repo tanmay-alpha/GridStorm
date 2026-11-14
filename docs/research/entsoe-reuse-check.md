@@ -76,7 +76,7 @@ What the repo actually commits (`data/observed/opsd-de/derived-multipliers.json`
   `pipelines/observed/src/gridstorm_observed/mapping.py` L15–27.
 - The network's own hourly `load_mw` and `capacity_factor` (from SciGRID-DE, not OPSD).
 - Point values taken straight from the observed series:
-  - `detection.detail.peak_load_mw` = 77549.0, and the matching `peak_hour_utc`;
+  - `detection.detail.peak_load_mw` (the observed peak in MW; value redacted here, see §6), and the matching `peak_hour_utc`;
   - `daily_mean_load_mw`, `max_daily_mean_load_mw`;
   - `reference_day_mean_load_mw`;
   - `observed_daily_mean_cf`;
@@ -119,3 +119,47 @@ and `committed_content` strings in `data/observed/opsd-de/manifest.json` were up
 `redistribution: "restricted"` is unchanged. The generator writes the same strings
 (`pipelines/observed/src/gridstorm_observed/build.py` L420–434 and module docstring L13–17), so it must be
 changed to match, or the next build will revert the manifest.
+
+## 6. Outcome: rebuild of 2026-11-15 (option 3 for load; non-invertible values for renewables)
+
+The owner chose to remove the uncertainty rather than ask for permission. Details:
+`docs/research/observed-analogue-scenarios.md` §1.1, §3 and §4.
+
+- **Load → listed item.** Demand multipliers now come from `DE_load_forecast_entsoe_transparency`.
+  The OPSD datapackage describes it as "Day-ahead load forecast in Germany in MW as published on
+  ENTSO-E Transparency Platform", TP view `totalLoadR2`. It is Reg. 543/2013 Art. 6.1.b = S3 item #1
+  ("Day-ahead forecast of the total load per market time unit", confirmed in the cached
+  `231018_List_of_Data_available_for_reuse.pdf`).
+  - It is used under CC BY 4.0. The manifest (`license.load_forecast_attribution`) and every
+    scenario carry the attribution and the list of changes.
+  - The actual load (Art. 6.1.a) now only selects the stress dates.
+- **Renewables → MODELED daily shortfall.**
+  - A per-hour ratio rounded to 0.05 and clipped to ≤ 1 was tested first. It still returned the
+    observed hourly CF to within 0.004–0.025 CF in unclipped hours (offshore 2017-12-13: within
+    0.022 at a CF of about 0.9), so it was rejected.
+  - Each carrier now gets one daily multiplier: the ratio of the daily-mean observed CF to the
+    daily-mean network CF, rounded to 0.05 and clipped to ≤ 1, applied to the whole day.
+- **Absolutes removed.** The committed files no longer contain:
+  - `reference_day_mean_load_mw`, peak/daily-mean loads, peak hour, combined-day threshold and
+    observed CF means;
+  - per-hour renewable multipliers and clipped-hour lists;
+  - the observed-peak value in §4 above (redacted).
+- **Reconstruction test.** `pipelines/observed/tests/test_reuse.py` runs against the cached OPSD
+  CSV, with an oracle least-squares scale.
+  - Actual hourly load now misses by at least 1 054 / 2 059 / 2 608 MW (2017-01-24 / 2015-01-20 /
+    2017-12-13), against a required > 500 MW. Before: 2.2–2.5 MW.
+  - Hourly CF misses by at least 0.15 of the day's peak CF, against a required > 0.10. Before:
+    0.000–0.076 in several carrier-days.
+  - The test also checks that no non-open column name appears in the scenarios,
+    `derived-multipliers.json` or `analogue-results.json`.
+- **Manifest.**
+  - `redistribution` is now `"derived-only"`.
+  - `source.column_reuse` gives, per column: origin, free re-use status, raw redistribution
+    (forecast: permitted with attribution; actual load and generation: not permitted;
+    capacities: unclear), use and committed derivative.
+  - The generator (`build.py`, `sources.py`) writes the same strings, so rebuilding keeps them.
+- **Residual [INFERENCE].** The daily renewable multiplier still derives from unlisted Art. 16.1
+  data. It gives the daily-mean observed CF only to ±0.025 · mean network CF (one rounded number
+  per carrier and day, not a series). I judge this not to prejudice the Primary Owners' rights,
+  but no permission was obtained. A licence-pure alternative would replace it with a fully
+  assumed shortfall.

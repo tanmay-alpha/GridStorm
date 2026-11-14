@@ -10,11 +10,13 @@ stress days (:mod:`detect`); (3) map each day onto the network's own 24 snapshot
 manifest to ``data/observed/opsd-de/``; (5) optionally fetch NASA POWER temperature/wind for the
 stress windows into ``data/observed/nasa-power-de/``.
 
-Licensing: OPSD German load/generation columns derive from ENTSO-E Transparency; capacities are
-OPSD calculations based on BNetzA and netztransparenz.de (per-column datapackage metadata).
-Redistribution permission for the ENTSO-E-derived series is not established. No observed hourly
-OPSD series is written into the repository: only derived multipliers, summary statistics,
-source URLs and sha256 checksums.
+Licensing (docs/research/entsoe-reuse-check.md): only the ENTSO-E day-ahead total load forecast
+(Reg. 543/2013 Art. 6.1.b, item #1 of the ENTSO-E free re-use list, CC BY 4.0) feeds hourly
+committed values. The actual load (Art. 6.1.a) and actual generation (Art. 16.1) are not on that
+list, and the capacities (OPSD/BNetzA/netztransparenz.de) carry no declared licence: they are used
+to select the stress days and, for renewables, one coarse daily ratio per carrier (rounded to
+0.05); no hourly value, statistic or absolute derived from them is written into the repository.
+``tests/test_reuse.py`` attempts the reconstruction from the committed files.
 """
 
 from __future__ import annotations
@@ -33,7 +35,7 @@ import yaml
 
 from . import detect, mapping, opsd, sources, weather
 
-OPSD_MANIFEST_SCHEMA = "gridstorm-observed-derived/1.0"
+OPSD_MANIFEST_SCHEMA = "gridstorm-observed-derived/2.0"
 WEATHER_MANIFEST_SCHEMA = "gridstorm-observed-extract/1.0"
 DERIVED_NAME = "derived-multipliers.json"
 MANIFEST_NAME = "manifest.json"
@@ -41,12 +43,6 @@ WEATHER_CSV_NAME = "t2m_ws10m_hourly.csv"
 WEATHER_PAD_DAYS = 3
 HOURS = 24
 CARRIERS = tuple(opsd.TECHS.values())
-
-ENTSOE_TERMS_URL = "https://transparencyplatform.zendesk.com/hc/en-us/articles/40921911218961-Legal-Terms-and-Conditions"
-ENTSOE_REUSE_LIST_URL = (
-    "https://transparencyplatform.zendesk.com/hc/en-us/article_attachments/40921869379729"
-)
-ENTSOE_REUSE_LIST_SHA256 = "b21717e8a5a41b9b8544db730d11c2a717abc9b07f89704437a89332b708ff9a"
 
 
 @dataclass(frozen=True)
@@ -139,10 +135,11 @@ def reference_day(load: pd.Series, day: str) -> str:
 def alignment_evidence(load: pd.Series, cf: pd.DataFrame, net: NetworkProfiles) -> dict:
     """Compare observed 1-January profiles with the network's under UTC vs local-time days.
 
-    Reports, per alignment, the mean Pearson r of load and solar CF over the years with complete
-    data, and how often the observed daily load minimum/maximum hour coincides with the
-    network's. Solar CF is the physically decisive check (sun position does not depend on
-    behaviour); 1 January load is a holiday profile whose timing varies between years.
+    ``load`` is the day-ahead load forecast (openly licensed). Reports, per alignment, the mean
+    Pearson r of load and solar CF over the years with complete data, and how often the daily
+    load minimum/maximum hour coincides with the network's. Solar CF is the physically decisive
+    check (sun position does not depend on behaviour); 1 January load is a holiday profile whose
+    timing varies between years. Only these aggregate statistics are committed.
     """
     net_lo, net_hi = int(np.argmin(net.load_mw)), int(np.argmax(net.load_mw))
     out: dict[str, dict] = {}
@@ -174,6 +171,19 @@ def alignment_evidence(load: pd.Series, cf: pd.DataFrame, net: NetworkProfiles) 
 # --- scenario assembly ----------------------------------------------------------------------
 
 
+def public_detection(det: detect.DayResult) -> dict:
+    """The committable part of a detection: date, criterion and counts, no observed value."""
+    d = det.detail
+    out: dict = {"date": det.date, "criterion": d["criterion"]}
+    for key in ("load_quantile", "high_load_days", "complete_days_considered"):
+        if key in d:
+            out[key] = d[key]
+    if "rolling_24h_minimum_any_start" in d:
+        w = d["rolling_24h_minimum_any_start"]
+        out["rolling_24h_minimum_window_utc"] = [w["start"], w["end"]]
+    return out
+
+
 def _fmt_hours(hours: list[int]) -> str:
     return "none" if not hours else ", ".join(str(h) for h in hours)
 
@@ -192,20 +202,18 @@ def scenario_dict(
         for h, v in enumerate(dm.multipliers)
     ]
     for rm in rms:
-        for h, w in enumerate(rm.multipliers):
-            if w is None or w == 1.0:  # undefined (network CF = 0) or clipped to a no-op
-                continue
+        if rm.multiplier < 1.0:  # w = 1 is a no-op
             events.append(
                 {
                     "type": "renewable_availability_multiplier",
                     "carrier": rm.carrier,
-                    "value": w,
-                    "window": {"start": h, "end": h + 1},
+                    "value": rm.multiplier,
+                    "window": {"start": 0, "end": HOURS},
                 }
             )
-    clip_notes = "; ".join(
-        f"{rm.carrier}: clipped to 1 at hours [{_fmt_hours(rm.clipped_hours)}], "
-        f"undefined (network CF = 0) at hours [{_fmt_hours(rm.undefined_hours)}]"
+    w_notes = "; ".join(
+        f"{rm.carrier} w = {rm.multiplier:.2f}"
+        + (" (ratio above 1, clipped)" if rm.clipped else "")
         for rm in rms
     )
     return {
@@ -213,13 +221,15 @@ def scenario_dict(
         "id": f"{kind.slug}-{day}",
         "name": f"Observed analogue: {kind.title} {day} (Germany, OPSD/ENTSO-E)",
         "description": (
-            f"Historical-analogue scenario. The observed German {kind.title} {day} (UTC), "
-            f"detected objectively in Open Power System Data time series {sources.OPSD_VERSION} "
-            f"({detection.detail['criterion']}), is mapped hour by hour onto the 24 snapshots of "
-            f"{net.network_id} (2011-01-01 00:00-23:00 UTC): national demand shape and level "
-            f"relative to the observed reference day {ref}, and wind onshore / wind offshore / "
-            "solar capacity factors. The inputs are OBSERVED; the mapping and every result are "
-            "MODELED. Generated by pipelines/observed (gridstorm_observed.build) - do not edit."
+            f"Historical-analogue scenario. The German {kind.title} {day} (UTC), detected "
+            f"objectively in Open Power System Data time series {sources.OPSD_VERSION} "
+            f"({detection.detail['criterion']}), is mapped onto the 24 snapshots of "
+            f"{net.network_id} (2011-01-01 00:00-23:00 UTC): hour by hour, the ENTSO-E day-ahead "
+            f"load forecast's shape and level relative to the reference day {ref} (CC BY 4.0); "
+            "for wind onshore / wind offshore / solar, one MODELED daily availability multiplier "
+            "per carrier (the day's renewable shortfall, rounded to 0.05) on the network's own "
+            "hourly profiles. The mapping and every result are MODELED. Generated by "
+            "pipelines/observed (gridstorm_observed.build) - do not edit."
         ),
         "dataset": {"network_id": net.network_id, "sha256": net.nc_sha256},
         "horizon": {"start": 0, "snapshots": HOURS},
@@ -238,32 +248,34 @@ def scenario_dict(
             "seed": 0,
         },
         "assumptions": [
-            f"OBSERVED input: OPSD time series {sources.OPSD_VERSION} "
-            f"({sources.OPSD_DOI}), German columns DE_load_actual_entsoe_transparency and "
-            "DE_{wind_onshore,wind_offshore,solar}_{generation_actual,capacity}; load/generation "
-            "derive from ENTSO-E Transparency, capacities from OPSD calculations based on BNetzA "
-            "and netztransparenz.de. Only derived multipliers are stored in GridStorm "
-            "(redistribution permission for the hourly series is not established).",
-            "Time alignment: network snapshot h = observed UTC hour h of the stress day. "
-            "Evidence (data/observed/opsd-de/derived-multipliers.json, alignment_evidence): the "
-            "network's solar availability matches observed 1 January solar CF far better in UTC "
-            "than shifted to local time; for load the evidence is weaker (correlation slightly "
-            "higher in local time, daily minimum/maximum hours coincide in UTC).",
-            "MODELED demand mapping, applied uniformly to every load: m_h = [L_obs(d,h) / "
-            f"mean_h L_obs(ref,h)] / [L_net(h) / mean_h L_net(h)] with reference day ref = {ref} "
-            "(the observed 1 January nearest to d, i.e. the analogue of the network's own "
-            "1 January profile). The scaled network load follows the observed day's shape and its "
-            "level relative to an observed 1 January. Multipliers rounded to 4 decimals; "
-            f"clipped to (0, 5] at hours [{_fmt_hours(dm.clipped_hours)}].",
-            "MODELED renewable mapping per carrier c (Wind Onshore, Wind Offshore, Solar), "
-            "applied uniformly to every generator of c: w_c,h = clip(CF_obs,c(h) / CF_net,c(h), "
-            "0, 1), CF_obs = national generation / national capacity, CF_net = capacity-weighted "
-            "mean p_max_pu of the network's generators of c. StormSpec only allows w <= 1, so "
-            "hours with CF_obs > CF_net keep the network's own (lower) availability and no event "
-            f"is emitted. {clip_notes}.",
+            f"Demand input (CC BY 4.0): {sources.LOAD_FORECAST_ATTRIBUTION}",
+            "Stress-day selection: the date was chosen in OPSD actual load and wind/solar "
+            "generation and capacity (ENTSO-E Reg. 543/2013 Art. 6.1.a and 16.1; OPSD "
+            "calculations based on BNetzA and netztransparenz.de). Those series are not openly "
+            "licensed; GridStorm stores no value or statistic derived from them except the date "
+            "and the coarse daily renewable multipliers below (data/observed/opsd-de/manifest.json"
+            ", source.column_reuse).",
+            "Time alignment: network snapshot h = UTC hour h of the stress day. Evidence "
+            "(data/observed/opsd-de/derived-multipliers.json, alignment_evidence): the network's "
+            "solar availability matches observed 1 January solar CF far better in UTC than "
+            "shifted to local time; for load the evidence is weaker.",
+            "MODELED demand mapping, applied uniformly to every load: m_h = [F(d,h) / "
+            f"mean_h F(ref,h)] / [L_net(h) / mean_h L_net(h)], F = day-ahead load forecast, "
+            f"reference day ref = {ref} (the 1 January nearest to d, i.e. the analogue of the "
+            "network's own 1 January profile). The scaled network load follows the forecast "
+            "stress-day shape and its level relative to a 1 January; the actual load differs "
+            "from the forecast by the forecast error. Multipliers rounded to 4 decimals; clipped "
+            f"to (0, 5] at hours [{_fmt_hours(dm.clipped_hours)}].",
+            "MODELED renewable shortfall per carrier c (Wind Onshore, Wind Offshore, Solar), "
+            "applied to every generator of c for the whole day: w_c = min(round(mean_h CF_obs,c / "
+            f"mean_h CF_net,c / {mapping.RENEWABLE_STEP}) * {mapping.RENEWABLE_STEP}, 1), CF_obs = "
+            "national generation / national capacity, CF_net = capacity-weighted p_max_pu of the "
+            "network's generators of c. The hourly shape stays the network's own 2011-01-01 "
+            "shape; the observed hourly profile is deliberately not reproduced (not openly "
+            f"licensed). No event when w = 1. {w_notes}.",
             "Aggregate national profiles are applied uniformly to every bus/generator: the spatial "
             "pattern of load and of wind/solar availability remains the network's 2011-01-01 "
-            "pattern; only hourly levels change.",
+            "pattern; only levels change.",
             "The network (2011 grid topology, 2014 renewable capacities, 2011 demand profile) "
             "differs from the observed year's system; installed capacities are NOT rescaled. "
             "This is an analogue stress test, not a reconstruction of the observed day.",
@@ -286,7 +298,8 @@ def build(network_dir: Path, *, csv_path: Path | None = None) -> dict:
     retrieved_at = datetime.fromtimestamp(csv.stat().st_mtime, UTC).replace(microsecond=0)
     de = opsd.read_de(csv)
     cf = opsd.capacity_factors(de)
-    load = de[opsd.LOAD_COL]
+    load = de[opsd.LOAD_COL]  # actual load: detection only, never committed
+    forecast = de[opsd.LOAD_FORECAST_COL]  # CC BY 4.0: drives the demand multipliers
     net = network_profiles(network_dir)
 
     detections = {
@@ -299,7 +312,11 @@ def build(network_dir: Path, *, csv_path: Path | None = None) -> dict:
     sources.OPSD_OUT_DIR.mkdir(parents=True, exist_ok=True)
     derived: dict = {
         "schema_version": OPSD_MANIFEST_SCHEMA,
-        "provenance": "derived (observed inputs, MODELED mapping)",
+        "provenance": "derived (CC BY 4.0 load forecast + coarse daily renewable ratios, "
+        "MODELED mapping)",
+        "license": "Demand multipliers: CC BY 4.0, attribution in manifest.json "
+        "license.load_forecast_attribution. Renewable multipliers: see manifest.json "
+        "source.column_reuse.",
         "network": {
             "network_id": net.network_id,
             "network_nc_sha256": net.nc_sha256,
@@ -310,26 +327,27 @@ def build(network_dir: Path, *, csv_path: Path | None = None) -> dict:
             "variable_capacity_mw": {c: round(v, 3) for c, v in net.p_nom_mw.items()},
             "variable_generators": net.variable_generators,
         },
-        "alignment_evidence": alignment_evidence(load, cf, net),
+        "alignment_evidence": alignment_evidence(forecast, cf, net),
         "scenarios": [],
     }
     written: list[Path] = []
     for kind in KINDS:
         det = detections[kind.key]
         day = det.date
-        ref = reference_day(load, day)
-        dm = mapping.demand_multipliers(day_values(load, day), day_values(load, ref), net.load_mw)
+        ref = reference_day(forecast, day)
+        fc_day, fc_ref = day_values(forecast, day), day_values(forecast, ref)
+        dm = mapping.demand_multipliers(fc_day, fc_ref, net.load_mw)
         rms = []
         flags: list[str] = []
         for tech, carrier in opsd.TECHS.items():
             obs = day_values(cf[tech].rename(tech), day)
-            over = [int(h) for h in np.flatnonzero(obs > 1.0)]
+            over = int(np.count_nonzero(obs > 1.0))
             if over:
                 flags.append(
-                    f"{tech}: observed generation exceeds OPSD capacity (CF > 1) at UTC hours "
-                    f"{over}; possibly lagging capacity data - values kept, not altered"
+                    f"{tech}: observed generation exceeds OPSD capacity (CF > 1) in {over} UTC "
+                    "hours; possibly lagging capacity data - values kept, not altered"
                 )
-            rms.append(mapping.renewable_multipliers(carrier, obs, net.cf[carrier]))
+            rms.append(mapping.renewable_daily_multiplier(carrier, obs, net.cf[carrier]))
         scen = scenario_dict(kind, day, ref, net, dm, rms, det)
         model = stormspec.Scenario.model_validate(scen)
         body = model.model_dump(mode="json")
@@ -348,13 +366,13 @@ def build(network_dir: Path, *, csv_path: Path | None = None) -> dict:
                 "kind": kind.key,
                 "stress_day_utc": day,
                 "reference_day_utc": ref,
-                "detection": det.as_dict(),
+                "detection": public_detection(det),
                 "demand": {
+                    "source_column": opsd.LOAD_FORECAST_COL,
                     "multipliers": dm.multipliers,
                     "clipped_hours": dm.clipped_hours,
-                    "reference_day_mean_load_mw": round(dm.reference_mean_obs_mw, 1),
-                    "stress_day_mean_over_reference_mean": round(
-                        float(np.mean(day_values(load, day))) / dm.reference_mean_obs_mw, 4
+                    "forecast_stress_day_mean_over_reference_mean": round(
+                        float(fc_day.mean()) / dm.reference_mean_mw, 4
                     ),
                     "scaled_network_peak_mw": round(
                         float(np.max(np.asarray(dm.multipliers) * net.load_mw)), 1
@@ -365,19 +383,10 @@ def build(network_dir: Path, *, csv_path: Path | None = None) -> dict:
                 },
                 "renewables": {
                     rm.carrier: {
-                        "multipliers": rm.multipliers,
-                        "clipped_hours": rm.clipped_hours,
-                        "max_raw_ratio_in_clipped_hours": (
-                            round(max(rm.raw[h] for h in rm.clipped_hours), 4)
-                            if rm.clipped_hours
-                            else None
-                        ),
-                        "undefined_hours": rm.undefined_hours,
+                        "daily_multiplier": rm.multiplier,
+                        "clipped_at_1": rm.clipped,
                         "network_daily_mean_cf": round(float(np.mean(rm.network_cf)), 4),
-                        "observed_daily_mean_cf": round(float(np.mean(rm.observed_cf)), 4),
-                        "modeled_daily_mean_cf_after_mapping": round(
-                            float(np.mean(mapping.effective_cf(rm))), 4
-                        ),
+                        "modeled_daily_mean_cf": round(float(np.mean(mapping.effective_cf(rm))), 4),
                     }
                     for rm in rms
                 },
@@ -416,22 +425,40 @@ def build(network_dir: Path, *, csv_path: Path | None = None) -> dict:
                 c: {"unit": fields[c]["unit"], **fields[c]["source"]}
                 for c in sources.OPSD_DE_COLUMNS
             },
+            "column_reuse": sources.OPSD_COLUMN_REUSE,
         },
         "license": {
             "opsd_package": "No data licence in datapackage.json (licenses: null); the OPSD page "
             "states 'Text is licensed under CC-BY license' (text only). OPSD notes primary data "
             "originate in ENTSO-E Transparency; capacities have separate per-column sources.",
-            "entsoe_terms_url": ENTSOE_TERMS_URL,
-            "entsoe_reuse_list_url": ENTSOE_REUSE_LIST_URL,
-            "entsoe_reuse_list_sha256": ENTSOE_REUSE_LIST_SHA256,
-            "entsoe_reuse_list_version": "2023-10-18",
-            "assessment": "Redistribution permission for the load/generation columns derived "
-            "from ENTSO-E Transparency has not been established. Capacities are OPSD "
-            "calculations based on BNetzA and netztransparenz.de; no hourly OPSD series are "
-            "redistributed, including these capacity columns.",
-            "redistribution": "restricted",
-            "committed_content": "derived hourly multipliers and summary statistics only; no "
-            "observed hourly series",
+            "entsoe_terms_url": sources.ENTSOE_TERMS_URL,
+            "entsoe_reuse_list_url": sources.ENTSOE_REUSE_LIST_URL,
+            "entsoe_reuse_list_sha256": sources.ENTSOE_REUSE_LIST_SHA256,
+            "entsoe_reuse_list_version": sources.ENTSOE_REUSE_LIST_VERSION,
+            "load_forecast_license": "CC-BY-4.0",
+            "load_forecast_license_url": sources.CC_BY_4_URL,
+            "load_forecast_attribution": sources.LOAD_FORECAST_ATTRIBUTION,
+            "assessment": "Checked 2026-11-15 (docs/research/entsoe-reuse-check.md). The hourly "
+            "demand multipliers derive only from the ENTSO-E day-ahead total load forecast "
+            "(Reg. (EU) 543/2013 Art. 6.1.b), item #1 of the ENTSO-E free re-use list of "
+            "2023-10-18 and therefore CC BY 4.0 with attribution and indication of changes. "
+            "Actual load (Art. 6.1.a) and actual generation (Art. 16.1.b/c) are NOT on that "
+            "list and remain subject to the Primary Owners' rights (Terms of Use 29/03/2023 "
+            "cl. 3.1/5.1); no permission has been obtained, so nothing from which their hourly "
+            "values can be reconstructed is committed: they only select the stress dates and "
+            "set one daily renewable multiplier per carrier, rounded to 0.05. Capacities are "
+            "OPSD calculations based on BNetzA and netztransparenz.de (no data licence "
+            "declared); no capacity value is committed. Per-column detail: "
+            "source.column_reuse.",
+            "redistribution": "derived-only",
+            "committed_content": "Per stress day: 24 hourly demand multipliers from the CC BY "
+            "4.0 load forecast; one MODELED daily availability multiplier per renewable carrier "
+            "(ratio of daily-mean observed CF to daily-mean network CF, rounded to 0.05, clipped "
+            "to <= 1); the stress and reference dates and the detection criteria. No OPSD "
+            "series, no observed MW value or statistic and no hourly observed capacity factor. "
+            "pipelines/observed/tests/test_reuse.py attempts the reconstruction: the actual "
+            "hourly load misses by more than 500 MW and the hourly observed CF by more than 10 % "
+            "of the day's peak CF, even with an oracle scale fitted to the observed values.",
         },
         "attribution": sources.OPSD_ATTRIBUTION,
         "units": {
@@ -549,9 +576,10 @@ def main(argv: list[str] | None = None) -> int:
     args = ap.parse_args(argv)
     res = build(args.network_dir, csv_path=args.csv)
     for s in res["derived"]["scenarios"]:
+        w = {c: r["daily_multiplier"] for c, r in s["renewables"].items()}
         print(
             f"{s['scenario_id']}: day {s['stress_day_utc']} ref {s['reference_day_utc']} "
-            f"events {s['events']} detection {s['detection']['value']:.4f}"
+            f"events {s['events']} renewable w {w}"
         )
     if not args.skip_weather:
         days = [s["stress_day_utc"] for s in res["derived"]["scenarios"]]
