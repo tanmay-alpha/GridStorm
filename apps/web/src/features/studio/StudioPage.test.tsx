@@ -94,23 +94,21 @@ describe('Crisis Studio on a network without live execution', () => {
     await waitFor(() => expect(screen.getByTestId('execution-forecast')).toHaveTextContent('matches a precomputed result'))
   })
 
-  it('renders the 422 live_execution_unavailable refusal for an edited scenario', async () => {
+  it('prevents submitting an edited scenario when no verified result exists', async () => {
     renderStudio('/studio?preset=scigrid-de-baseline')
     const limit = await screen.findByTestId('time-limit')
     fireEvent.change(limit, { target: { value: '120' } })
-    await waitFor(() => expect(screen.getByTestId('execution-forecast')).toHaveTextContent('No precomputed result matches'), {
+    await waitFor(() => expect(screen.getByTestId('execution-forecast')).toHaveTextContent('cannot run here'), {
       timeout: 3000,
     })
-    fireEvent.click(screen.getByTestId('run-scenario'))
-    const alert = await screen.findByTestId('live-unavailable')
-    expect(alert).toHaveTextContent('Run refused: live execution unavailable')
-    expect(alert).toHaveTextContent("Live execution is unavailable for network 'scigrid-de'")
-    expect(within(alert).getByText('HTTP 422 · live_execution_unavailable')).toBeInTheDocument()
-    expect(alert).toHaveTextContent('ac-dc-meshed, pglib-case118-ieee, pglib-case14-ieee')
-    // An edited spec is submitted inline (not by preset id), so the server sees the changed hash.
-    const sim = posts.find((x) => x.path === '/api/v1/simulations')
-    expect(sim?.body).toMatchObject({ scenario: { execution: { solver_options: { time_limit_s: 120 } } } })
-    expect(screen.queryByText('run page')).not.toBeInTheDocument()
+    expect(screen.getByTestId('run-scenario')).toBeDisabled()
+    const guidance = screen.getByTestId('unavailable-guidance')
+    expect(guidance).toHaveTextContent('not available for execution')
+    expect(within(guidance).getByRole('link', { name: 'Try the runnable IEEE 14-bus example' })).toHaveAttribute(
+      'href',
+      '/studio?preset=pglib-case14-ieee-baseline',
+    )
+    expect(posts.find((p) => p.path === '/api/v1/simulations')).toBeUndefined()
   })
 })
 
