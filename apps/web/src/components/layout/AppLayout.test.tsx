@@ -35,8 +35,8 @@ afterEach(() => {
 
 describe('AppLayout', () => {
   it('separates workspace links from advanced research and marks the active route', () => {
-    expect(WORKSPACE_NAV.map((n) => n.label)).toEqual(['Explore', 'Simulate', 'Compare', 'Library'])
-    expect(RESEARCH_NAV.map((n) => n.label)).toEqual(['Contingency', 'Operations', 'Benchmarks', 'Methods'])
+    expect(WORKSPACE_NAV.map((n) => n.label)).toEqual(['Explore', 'Simulate', 'Compare', 'Mitigation', 'Library'])
+    expect(RESEARCH_NAV.map((n) => n.label)).toEqual(['Workbench', 'Contingency', 'Operations', 'Benchmarks', 'Methods'])
     renderAt('/studio')
     expect(screen.getByRole('link', { name: 'Simulate' })).toHaveAttribute('aria-current', 'page')
     expect(screen.getByText('Advanced research')).toBeInTheDocument()

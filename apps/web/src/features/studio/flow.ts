@@ -1,4 +1,5 @@
 import type { NetworkSummary, ScenarioRecord } from '../../api/types'
+import type { ExecutionAvailability } from '../../components/ui'
 
 /** The four Crisis Studio stages, in order. */
 export const STEPS = ['grid', 'crisis', 'review', 'run'] as const
@@ -11,15 +12,6 @@ export const STEP_LABEL: Record<Step, string> = {
   run: 'Run',
 }
 
-/**
- * How the deployment would serve a scenario, derived only from server data:
- * - `live`: the network is solved live (GET /networks live_execution === true);
- * - `precomputed`: live solves are off, but a verified precomputed result has the exact scenario hash;
- * - `unavailable`: live solves are off and no verified result matches — the server would reply 422;
- * - `checking`: live solves are off and the hash or the precomputed index is not known yet.
- */
-export type Availability = 'live' | 'precomputed' | 'unavailable' | 'checking'
-
 export interface ExecutionPolicy {
   /** network_id -> live_execution as reported by GET /api/v1/networks (undefined: not reported). */
   live: Map<string, boolean | undefined>
@@ -27,18 +19,22 @@ export interface ExecutionPolicy {
   precomputed: Set<string> | null
 }
 
-export function availability(policy: ExecutionPolicy, networkId: string, scenarioHash: string | null): Availability {
+/**
+ * Availability is derived only from server data:
+ * - `live`: the network is solved live (GET /networks live_execution === true);
+ * - `precomputed`: live solves are off, but a verified precomputed result has the exact scenario hash;
+ * - `unavailable`: live solves are off and no verified result matches — the server would reply 422;
+ * - `checking`: live solves are off and the hash or the precomputed index is not known yet.
+ */
+export function availability(
+  policy: ExecutionPolicy,
+  networkId: string,
+  scenarioHash: string | null,
+): ExecutionAvailability {
   const live = policy.live.get(networkId)
   if (live === true) return 'live'
   if (live === undefined || !scenarioHash || !policy.precomputed) return 'checking'
   return policy.precomputed.has(scenarioHash) ? 'precomputed' : 'unavailable'
-}
-
-export const AVAILABILITY_LABEL: Record<Availability, string> = {
-  live: 'live solve',
-  precomputed: 'verified precomputed result',
-  unavailable: 'not runnable here',
-  checking: 'checking availability',
 }
 
 export const recordNetwork = (r: ScenarioRecord): string => r.network_id ?? r.spec.dataset.network_id
@@ -50,6 +46,51 @@ export function baselinePreset(networkId: string, records: ScenarioRecord[]): Sc
   if (named) return named
   const eventFree = presets.filter((r) => (r.spec.events?.length ?? 0) === 0)
   return eventFree.length === 1 ? eventFree[0]! : null
+}
+
+const eventCount = (r: ScenarioRecord) => r.spec.events?.length ?? 0
+
+/** The guided demo (contract §Guided demo): IEEE 14-bus, loss of generator gen-1. */
+export const GUIDED_DEMO = { network: 'pglib-case14-ieee', preset: 'pglib-case14-ieee-gen-1-outage' } as const
+
+export const GUIDED_DEMO_URL = `/studio?network=${GUIDED_DEMO.network}&preset=${GUIDED_DEMO.preset}&guide=1`
+
+const runnable = (policy: ExecutionPolicy, r: ScenarioRecord) => {
+  const a = availability(policy, recordNetwork(r), r.hash)
+  return a === 'live' || a === 'precomputed'
+}
+
+/**
+ * Default crisis for a grid: the guided-demo preset on its grid, else the first runnable preset that
+ * has crisis events (live grid, or a verified result for its exact hash), else the runnable
+ * baseline. Null while availability is unknown.
+ */
+export function recommendedPreset(networkId: string, records: ScenarioRecord[], policy: ExecutionPolicy): ScenarioRecord | null {
+  const presets = records
+    .filter((r) => r.preset && recordNetwork(r) === networkId && runnable(policy, r))
+    .sort((a, b) => a.id.localeCompare(b.id))
+  return (
+    presets.find((r) => r.id === GUIDED_DEMO.preset) ??
+    presets.find((r) => eventCount(r) > 0) ??
+    presets.find((r) => eventCount(r) === 0) ??
+    null
+  )
+}
+
+/**
+ * Default grid for a first visit: the guided-demo grid when it is solved live here, else the
+ * smallest live-solved grid that has a crisis preset, else the smallest live-solved grid.
+ */
+export function recommendedNetwork(networks: NetworkSummary[], records: ScenarioRecord[]): NetworkSummary | null {
+  const live = networks
+    .filter((n) => n.live_execution === true)
+    .sort((a, b) => (a.counts.buses ?? Infinity) - (b.counts.buses ?? Infinity))
+  return (
+    live.find((n) => n.id === GUIDED_DEMO.network) ??
+    live.find((n) => records.some((r) => r.preset && recordNetwork(r) === n.id && eventCount(r) > 0)) ??
+    live[0] ??
+    null
+  )
 }
 
 export interface StudioState {
@@ -86,7 +127,7 @@ export interface RunGateInput {
   valid: boolean | null
   validating: boolean
   submitting: boolean
-  availability: Availability
+  availability: ExecutionAvailability
 }
 
 /** Why Run is disabled (null = enabled). The message is shown next to the disabled button. */

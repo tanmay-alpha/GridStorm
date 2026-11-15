@@ -1,11 +1,18 @@
 import { useId, useState, type ReactNode } from 'react'
 import { cn } from './cn'
 
+/** ids for aria-describedby: hint and error text, when present. */
+function describedBy(id: string, hint: ReactNode, error: ReactNode): string | undefined {
+  const ids = [hint ? `${id}-hint` : null, error ? `${id}-error` : null].filter(Boolean)
+  return ids.length ? ids.join(' ') : undefined
+}
+
 function FieldShell({
   id,
   label,
   unit,
   hint,
+  error,
   children,
   className,
 }: {
@@ -13,6 +20,7 @@ function FieldShell({
   label: ReactNode
   unit?: string
   hint?: ReactNode
+  error?: ReactNode
   children: ReactNode
   className?: string
 }) {
@@ -23,6 +31,11 @@ function FieldShell({
         {unit && <span className="ml-1 normal-case tracking-normal text-fg-subtle">[{unit}]</span>}
       </label>
       {children}
+      {error && (
+        <p id={`${id}-error`} className="text-2xs font-medium text-danger" data-testid="field-error">
+          {error}
+        </p>
+      )}
       {hint && (
         <p id={`${id}-hint`} className="text-2xs text-fg-subtle">
           {hint}
@@ -37,6 +50,7 @@ export function TextField({
   value,
   onChange,
   hint,
+  error,
   className,
   testId,
   placeholder,
@@ -45,19 +59,22 @@ export function TextField({
   value: string
   onChange: (v: string) => void
   hint?: ReactNode
+  /** Validation message for this field (rendered as text and announced via aria-describedby). */
+  error?: ReactNode
   className?: string
   testId?: string
   placeholder?: string
 }) {
   const id = useId()
   return (
-    <FieldShell id={id} label={label} hint={hint} className={className}>
+    <FieldShell id={id} label={label} hint={hint} error={error} className={className}>
       <input
         id={id}
-        className="gs-input text-sm"
+        className={cn('gs-input text-sm', error ? 'border-danger' : null)}
         value={value}
         placeholder={placeholder}
-        aria-describedby={hint ? `${id}-hint` : undefined}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={describedBy(id, hint, error)}
         onChange={(e) => onChange(e.target.value)}
         data-testid={testId}
       />
@@ -78,6 +95,7 @@ export function NumberField({
   max,
   step,
   hint,
+  error,
   className,
   testId,
 }: {
@@ -89,6 +107,7 @@ export function NumberField({
   max?: number
   step?: number | 'any'
   hint?: ReactNode
+  error?: ReactNode
   className?: string
   testId?: string
 }) {
@@ -101,17 +120,18 @@ export function NumberField({
   }
   const id = useId()
   return (
-    <FieldShell id={id} label={label} unit={unit} hint={hint} className={className}>
+    <FieldShell id={id} label={label} unit={unit} hint={hint} error={error} className={className}>
       <input
         id={id}
         type="number"
         inputMode="decimal"
-        className="gs-input tabular text-sm"
+        className={cn('gs-input tabular text-sm', error ? 'border-danger' : null)}
         value={text}
         min={min}
         max={max}
         step={step ?? 'any'}
-        aria-describedby={hint ? `${id}-hint` : undefined}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={describedBy(id, hint, error)}
         onChange={(e) => {
           setText(e.target.value)
           const t = e.target.value.trim()

@@ -18,17 +18,21 @@ export function Badge({
   children,
   className,
   title,
+  caps = true,
 }: {
   tone?: Tone
   children: ReactNode
   className?: string
   title?: string
+  /** Upper-case label styling; turn off for text whose case is meaningful (units, ids). */
+  caps?: boolean
 }) {
   return (
     <span
       title={title}
       className={cn(
-        'inline-flex items-center gap-1 rounded-sm border px-1.5 py-px text-2xs font-semibold uppercase tracking-wide whitespace-nowrap',
+        'inline-flex items-center gap-1 rounded-sm border px-1.5 py-px text-2xs font-semibold whitespace-nowrap',
+        caps && 'uppercase tracking-wide',
         tones[tone],
         className,
       )}
@@ -61,6 +65,42 @@ export function ProvenanceBadge({ value }: { value: Provenance | string | null |
     <Badge tone={known ? PROVENANCE_TONE[known] : 'neutral'} title={known ? PROVENANCE_DESCRIPTION[known] : value}>
       {value}
     </Badge>
+  )
+}
+
+/**
+ * Provenance class with its meaning written out (no hover needed, works on touch/screen readers):
+ * e.g. “Load · SYNTHETIC · artificially generated, not real-world data”.
+ */
+export function ProvenanceLabel({
+  value,
+  label,
+  describe = true,
+  testId,
+}: {
+  value: Provenance | string | null | undefined
+  /** What the provenance applies to, e.g. "Load series". */
+  label?: string
+  /** Show the one-line meaning next to the badge (default). */
+  describe?: boolean
+  testId?: string
+}) {
+  const known = value && value in PROVENANCE_TONE ? (value as Provenance) : null
+  const meaning = known
+    ? PROVENANCE_DESCRIPTION[known].split(' — ')[1]
+    : value
+      ? 'class not in the GridStorm vocabulary'
+      : 'not declared by the data source'
+  return (
+    <span
+      data-testid={testId}
+      data-provenance={value ?? 'unknown'}
+      className="inline-flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs"
+    >
+      {label && <span className="font-medium text-fg">{label}</span>}
+      <ProvenanceBadge value={value} />
+      {describe && <span className="text-fg-muted">{meaning}</span>}
+    </span>
   )
 }
 

@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { AlertTriangle, Inbox, ServerOff } from 'lucide-react'
 import { ApiError } from '../../api/client'
 import { Button } from './Button'
@@ -14,6 +14,40 @@ export function SkeletonBlock({ rows = 4, label = 'Loading' }: { rows?: number; 
       {Array.from({ length: rows }, (_, i) => (
         <div key={i} className="gs-skeleton h-4" style={{ width: `${90 - ((i * 17) % 40)}%` }} />
       ))}
+    </div>
+  )
+}
+
+/**
+ * Labelled loading state. After `slowAfterMs` it explains the likely cause of a long wait (a hosted
+ * free-tier API waking from idle) instead of leaving an anonymous skeleton on screen.
+ */
+export function LoadingState({
+  label,
+  rows = 4,
+  slowAfterMs = 6000,
+  className,
+}: {
+  label: string
+  rows?: number
+  slowAfterMs?: number
+  className?: string
+}) {
+  const [slow, setSlow] = useState(false)
+  useEffect(() => {
+    const t = window.setTimeout(() => setSlow(true), slowAfterMs)
+    return () => window.clearTimeout(t)
+  }, [slowAfterMs])
+  return (
+    <div className={cn('flex flex-col gap-3', className)} data-testid="loading-state">
+      <p className="text-xs font-medium text-fg-muted">{label}…</p>
+      <SkeletonBlock rows={rows} label={label} />
+      {slow && (
+        <p role="status" className="text-xs text-fg-muted" data-testid="loading-slow">
+          Still waiting for the GridStorm API. A hosted backend that was idle can take 30–60 s to
+          start; this page continues automatically when it answers.
+        </p>
+      )}
     </div>
   )
 }
