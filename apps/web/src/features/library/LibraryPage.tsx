@@ -166,12 +166,32 @@ export default function LibraryPage() {
   const scenarios = useScenarios()
   const jobs = useJobs()
   const artifacts = useArtifactIndex()
+  // Four stacked tables of unknown height: rendering each as its query lands pushed the ones below
+  // off screen (CLS 0.6–0.9 on mobile). Show one placeholder until all four have answered.
+  const pending = [networks, scenarios, jobs, artifacts].some((q) => q.isPending)
   return (
     <div className="mx-auto flex max-w-[1500px] flex-col gap-3 p-3 md:p-4">
       <PageHeader
         title="Research Library"
         subtitle="Scenarios, run history, dataset catalog with licenses and manifests, and precomputed engine artifacts — all served by the API."
       />
+      {pending ? (
+        <SkeletonBlock rows={12} label="Loading the research library" />
+      ) : (
+        <LibraryPanels />
+      )}
+    </div>
+  )
+}
+
+/** Rendered once all queries have answered; the hooks read the same React Query cache entries. */
+function LibraryPanels() {
+  const networks = useNetworks()
+  const scenarios = useScenarios()
+  const jobs = useJobs()
+  const artifacts = useArtifactIndex()
+  return (
+    <>
       <Panel title="Simulation runs" id="runs">
         <QueryView query={jobs} loading={<SkeletonBlock rows={4} label="Loading runs" />} errorTitle="Could not load runs">
           {(rows) => (
@@ -215,6 +235,6 @@ export default function LibraryPage() {
           />
         )}
       </Panel>
-    </div>
+    </>
   )
 }

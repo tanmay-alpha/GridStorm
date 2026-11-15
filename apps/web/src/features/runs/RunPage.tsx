@@ -257,6 +257,10 @@ export default function RunPage() {
   const headlineMetrics = result.data?.metrics ?? storedMetrics.data?.metrics
   const basis = resolveCostBasis(result.data, network.data)
   const showResult = done && !unavailable && !!result.data
+  // A completed run lays out summary, result and status panels around the result document (or the
+  // stored metrics when it is gone); rendering them before it lands pushed the status panels off
+  // screen (CLS 0.28 desktop, 0.71 mobile). Wait for it, then render the page once.
+  const settling = done && (unavailable ? storedMetrics.isPending : !result.error && !result.data)
 
   return (
     <div className="mx-auto flex max-w-[1500px] flex-col gap-3 p-3 md:p-4">
@@ -297,72 +301,76 @@ export default function RunPage() {
       />
       {guide && <GuideStepsForRun job={j} ready={showResult} />}
       {cancel.error && <ErrorState error={cancel.error} title="Cancel failed" />}
-      <section className="gs-panel flex flex-col gap-2.5 p-3 md:p-4" aria-label="Run summary" data-testid="run-summary" id="run-summary">
-        <div className="flex flex-wrap items-center gap-2">
-          <h2 className="text-lg font-semibold" data-testid="outcome-headline">
-            {summary.label}
-          </h2>
-          <Badge tone={summary.tone}>{j.status}</Badge>
-          <p className="text-xs text-fg-muted">{summary.detail}</p>
-          {headlineMetrics && (
-            <span className="ml-auto">
-              <CostBasisBadge basis={basis} />
-            </span>
-          )}
-        </div>
-        {headlineMetrics && <HeadlineCards facts={headlineFacts(headlineMetrics, basis)} />}
-        {result.data && <KeyAssumptions result={result.data} basis={basis} />}
-      </section>
-
-      {done &&
-        (unavailable ? (
-          <Panel title="Result file unavailable" className="border-warn/50" id="result-unavailable">
-            <div role="alert" data-testid="result-artifact-missing" className="flex flex-col gap-2 text-sm text-fg">
-              <p>This simulation completed, but its detailed result file is no longer available.</p>
-              <p className="text-xs text-fg-muted">
-                The job record remains available. Numerical series cannot be recovered from metadata alone; re-run the stored scenario to generate a new result.
-              </p>
-              <Button size="sm" onClick={() => rerun.mutate()} disabled={rerun.isPending}>
-                <RotateCcw aria-hidden className="size-3.5" /> {rerun.isPending ? 'Starting new run…' : 'Re-run this scenario'}
-              </Button>
-              {rerun.error && <ErrorState error={rerun.error} title="Could not re-run this scenario" />}
+      {settling ? (
+        <SkeletonBlock rows={10} label="Loading result" />
+      ) : (
+        <>
+          <section className="gs-panel flex flex-col gap-2.5 p-3 md:p-4" aria-label="Run summary" data-testid="run-summary" id="run-summary">
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="text-lg font-semibold" data-testid="outcome-headline">
+                {summary.label}
+              </h2>
+              <Badge tone={summary.tone}>{j.status}</Badge>
+              <p className="text-xs text-fg-muted">{summary.detail}</p>
+              {headlineMetrics && (
+                <span className="ml-auto">
+                  <CostBasisBadge basis={basis} />
+                </span>
+              )}
             </div>
-          </Panel>
-        ) : result.error ? (
-          <ErrorState
-            error={result.error}
-            title={isIntegrityError(result.error) ? 'Result integrity check failed' : 'Could not load result'}
-            onRetry={() => void result.refetch()}
-          />
-        ) : !result.data ? (
-          <SkeletonBlock rows={8} label="Loading result" />
-        ) : (
-          <CompletedRun job={j} result={result.data} guide={guide} />
-        ))}
-      <Diagnostics job={j} result={result.data} />
-      <div className="grid gap-3 lg:grid-cols-3">
-        <Panel title="Status">
-          <StageTimeline job={j} />
-          {!terminal && <p className="mt-2 text-2xs text-fg-subtle">Polling the backend every second; stages appear as the worker reports them.</p>}
-        </Panel>
-        <Panel title="Solver configuration">
-          <KeyValue
-            rows={[
-              ['Solver', solver ? `${solver.name ?? NO_VALUE} ${solver.version ?? ''}` : NO_VALUE],
-              ['Status', solver?.status ?? NO_VALUE],
-              ['Termination', solver?.termination_condition ?? NO_VALUE],
-              ['Objective', formatMoney(solver?.objective_eur, basis, { scale: true })],
-              ['Wall time', formatDuration(solver?.wall_time_s)],
-              ['Attempts', j.attempts ?? NO_VALUE],
-              ['Started', formatTimestamp(j.started_at)],
-              ['Finished', formatTimestamp(j.finished_at)],
-            ]}
-          />
-        </Panel>
-        <Downloads job={j} result={result.data} />
-      </div>
-      {terminal && !done && (
-        <EmptyState title={`Run ${j.status}`}>No result is available for a {j.status} job. See diagnostics above.</EmptyState>
+            {headlineMetrics && <HeadlineCards facts={headlineFacts(headlineMetrics, basis)} />}
+            {result.data && <KeyAssumptions result={result.data} basis={basis} />}
+          </section>
+
+          {done &&
+            (unavailable ? (
+              <Panel title="Result file unavailable" className="border-warn/50" id="result-unavailable">
+                <div role="alert" data-testid="result-artifact-missing" className="flex flex-col gap-2 text-sm text-fg">
+                  <p>This simulation completed, but its detailed result file is no longer available.</p>
+                  <p className="text-xs text-fg-muted">
+                    The job record remains available. Numerical series cannot be recovered from metadata alone; re-run the stored scenario to generate a new result.
+                  </p>
+                  <Button size="sm" onClick={() => rerun.mutate()} disabled={rerun.isPending}>
+                    <RotateCcw aria-hidden className="size-3.5" /> {rerun.isPending ? 'Starting new run…' : 'Re-run this scenario'}
+                  </Button>
+                  {rerun.error && <ErrorState error={rerun.error} title="Could not re-run this scenario" />}
+                </div>
+              </Panel>
+            ) : result.data ? (
+              <CompletedRun job={j} result={result.data} guide={guide} />
+            ) : (
+              <ErrorState
+                error={result.error}
+                title={isIntegrityError(result.error) ? 'Result integrity check failed' : 'Could not load result'}
+                onRetry={() => void result.refetch()}
+              />
+            ))}
+          <Diagnostics job={j} result={result.data} />
+          <div className="grid gap-3 lg:grid-cols-3">
+            <Panel title="Status">
+              <StageTimeline job={j} />
+              {!terminal && <p className="mt-2 text-2xs text-fg-subtle">Polling the backend every second; stages appear as the worker reports them.</p>}
+            </Panel>
+            <Panel title="Solver configuration">
+              <KeyValue
+                rows={[
+                  ['Solver', solver ? `${solver.name ?? NO_VALUE} ${solver.version ?? ''}` : NO_VALUE],
+                  ['Status', solver?.status ?? NO_VALUE],
+                  ['Termination', solver?.termination_condition ?? NO_VALUE],
+                  ['Objective', formatMoney(solver?.objective_eur, basis, { scale: true })],
+                  ['Wall time', formatDuration(solver?.wall_time_s)],
+                  ['Attempts', j.attempts ?? NO_VALUE],
+                  ['Started', formatTimestamp(j.started_at)],
+                  ['Finished', formatTimestamp(j.finished_at)],
+                ]}
+              />
+            </Panel>
+            <Downloads job={j} result={result.data} />
+          </div>
+          {terminal && !done && (
+            <EmptyState title={`Run ${j.status}`}>No result is available for a {j.status} job. See diagnostics above.</EmptyState>
+          )}
+        </>
       )}
     </div>
   )
