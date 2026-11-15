@@ -1,0 +1,36 @@
+name: Public browser smoke (read-only)
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  public-browser:
+    name: Vercel desktop + mobile Playwright
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Read-only production journeys
+        run: npx playwright test --config playwright.production.config.ts
+      - name: Upload screenshot evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gridstorm-production-browser
+          path: apps/web/test-results/*.png
+          if-no-files-found: ignore
+          retention-days: 7
