@@ -36,6 +36,11 @@ test('real API: explorer, validation, live simulations, comparison, replay and e
   }
 
   await page.getByTestId('network-select').selectOption('pglib-case14-ieee')
+  await expect(page.locator('[data-preset-id="scigrid-de-baseline"]')).toHaveCount(0)
+  await page.getByTestId('show-all-presets').click()
+  await expect(page.locator('[data-preset-id="scigrid-de-baseline"]')).toBeVisible()
+  await page.getByTestId('show-all-presets').click()
+  await expect(page.locator('[data-preset-id="scigrid-de-baseline"]')).toHaveCount(0)
   await page.getByTestId('scenario-name').fill('')
   await expect(page.getByTestId('validation-error').first()).toBeVisible()
   await expect(page.getByTestId('run-scenario')).toBeDisabled()
