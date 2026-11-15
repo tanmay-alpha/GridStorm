@@ -16,6 +16,15 @@ const fake = vi.hoisted(() => {
     removed = false
     layout = new Map<string, string>()
     private handlers = new Map<string, Handler[]>()
+    missingImageResolver: ((id: string) => void) | null = null
+    images = new Map<string, { width: number; height: number; data: Uint8Array }>()
+    setMissingStyleImageResolver(resolver: (id: string) => void) {
+      this.missingImageResolver = resolver
+    }
+    hasImage(id: string) { return this.images.has(id) }
+    addImage(id: string, image: { width: number; height: number; data: Uint8Array }) {
+      this.images.set(id, image)
+    }
     touchZoomRotate = { disableRotation() {} }
     constructor() {
       FakeMap.instances.push(this)
@@ -103,6 +112,24 @@ afterEach(() => {
 })
 
 describe('NetworkMap', () => {
+  it('resolves circle-11 before the missing-image request fails, with a visible settlement marker', () => {
+    vi.stubGlobal('ResizeObserver', class { observe() {} disconnect() {} })
+    render(ui('geographic'))
+    const map = fake.FakeMap.instances.at(-1)!
+    expect(map.styleLoaded).toBe(false)
+    expect(map.missingImageResolver).toBeTypeOf('function')
+    map.missingImageResolver!('other-icon')
+    expect(map.images.size).toBe(0)
+    map.missingImageResolver!('circle-11')
+    const marker = map.images.get('circle-11')!
+    expect(marker.width).toBe(22)
+    expect(marker.height).toBe(22)
+    expect(marker.data[(10 * 22 + 10) * 4 + 3]).toBe(255)
+    expect(marker.data[3]).toBe(0)
+    map.missingImageResolver!('circle-11')
+    expect(map.images.get('circle-11')).toBe(marker)
+  })
+
   it('does not touch a re-created map before its style has loaded (run page crash)', () => {
     vi.stubGlobal('ResizeObserver', class { observe() {} disconnect() {} })
     // Run page: the map is first created as schematic (networks list still loading), its inline

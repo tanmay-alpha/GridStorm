@@ -165,8 +165,8 @@ export function NetworkMap({
     mapRef.current = map
     window.__gridstormMap = map
     // OpenFreeMap's dark style references this settlement marker but omits it from its sprite.
-    // Supply the actual circle symbol, not an empty image that would silently hide settlements.
-    map.on('styleimagemissing', ({ id }: { id: string }) => {
+    // Resolve before MapLibre 6 requests the image; styleimagemissing fires too late to satisfy it.
+    map.setMissingStyleImageResolver((id) => {
       if (id !== 'circle-11' || map.hasImage(id)) return
       const size = 22
       const pixels = new Uint8Array(size * size * 4)
