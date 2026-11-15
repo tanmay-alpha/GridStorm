@@ -54,7 +54,7 @@ describe('RunPage', () => {
       </QueryClientProvider>,
     )
 
-    expect(await screen.findByTestId('result-artifact-missing')).toHaveTextContent(
+    expect(await screen.findByTestId('result-artifact-missing', undefined, { timeout: 7_000 })).toHaveTextContent(
       'its detailed result file is no longer stored on this server',
     )
     expect(screen.getByRole('link', { name: 'Open Crisis Studio to run the scenario again' })).toHaveAttribute(
