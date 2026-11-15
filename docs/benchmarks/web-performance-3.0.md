@@ -91,3 +91,32 @@ tiles, not GridStorm data loading or React. Further reduction would need per-net
 
 Exactly one MapLibre container and one WebGL canvas after every walk, no page errors; post-GC heap
 23.8 / 23.8 / 23.8 MB before → 21.3 / 22.4 / 22.7 MB after.
+
+## Production route vitals before / after the 3.0 release
+
+`apps/web/scripts/measure-routes.mjs` against https://gridstorm.vercel.app + https://gridstorm-api.onrender.com
+(warm API), Chromium headless, 1440×900, no throttling, fresh context per rep, discarded warm-up
+navigation, medians of 3. Before: web `dpl_fbnkrtGtHYTcVeMir2Psy9QgB3fB` / API `dd185d1`
+([data](data/routes-before-prod.json)). After: web from `main` `cf482f2` / API `cf482f2`
+([data](data/routes-after-prod.json)). Same machine and network, about 50 minutes apart; public
+internet and basemap-tile latency vary, so differences under ~150 ms in FCP/LCP are noise.
+
+| Route | FCP ms | LCP ms | CLS | Requests (API) | KB | Heap MB |
+|---|---|---|---|---|---|---|
+| `/` | 540 → 652 | 860 → 956 | 0.0002 → 0.0002 | 7 (1) → 10 (1) | 371 → 390 | 4.4 → 4.5 |
+| `/explore` IEEE-14 | 632 → 344 | 1120 → 836 | 0.0275 → 0.0254 | 13 (4) → 17 (8) | 680 → 419 | 9.9 → 5.7 |
+| `/explore` SciGRID | 568 → 332 | 1060 → 868 | 0.0309 → 0.0309 | 32 (4) → 29 (4) | 2754 → 2498 | 17.9 → 15.6 |
+| `/studio` | 524 → 612 | 1012 → 1448 | 0.0002 → **0.0505** | 14 (4) → 17 (4) | 392 → 417 | 4.9 → 5.3 |
+| `/benchmarks` | 612 → 544 | 924 → 860 | 0.0002 → 0.0002 | 32 (23) → 18 (8) | 605 → 540 | 9.9 → 9.6 |
+| `/contingency` | 628 → 548 | 1504 → 1448 | **0.2288 → 0.0021** | 15 (6) → 16 (6) | 508 → 543 | 7.0 → 7.3 |
+| `/methods` | 624 → 980 | 984 → 1336 | 0.0003 → 0.0003 | 29 (15) → 18 (3) | 763 → 593 | 8.2 → 6.8 |
+| `/workbench` (new) | — → 532 | — → 844 | — → 0.0044 | — → 12 (4) | — → 437 | — → 5.3 |
+| `/mitigation` (new) | — → 608 | — → 920 | — → 0.0002 | — → 17 (1) | — → 425 | — → 4.7 |
+
+Improvements: `/contingency` layout shift fixed; IEEE-14 Explorer transfers 38 % less and uses
+42 % less heap; `/benchmarks` and `/methods` API fan-out cut from 23 → 8 and 15 → 3 requests.
+Regressions: `/studio` CLS 0.0002 → 0.0505 (still "good" < 0.1; cause not yet profiled) and LCP
++436 ms; `/methods` FCP/LCP +350 ms in this sample. IEEE-14
+makes 4 more small API requests (unit tables for schematic symbols). The SciGRID "settled" time is
+dominated by basemap tiles (11.9 s and 30.3 s in two samples) and is not a page-readiness metric.
+The cached geographic network switch is unchanged (see above).

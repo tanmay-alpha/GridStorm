@@ -60,8 +60,9 @@ test('mobile public journey: map and navigation', async ({ page }) => {
   const errors: string[] = []
   page.on('pageerror', (error) => errors.push(error.message))
   await page.setViewportSize({ width: 390, height: 844 })
-  await page.goto('/?network=pglib-case14-ieee')
-  await expect(page.locator('.maplibregl-canvas')).toBeVisible({ timeout: 120_000 })
+  await page.goto('/explore?network=pglib-case14-ieee')
+  // IEEE-14 has schematic coordinates: rendered by the SVG schematic view since 3.0, not MapLibre.
+  expect(await waitForNetworkView(page, 'pglib-case14-ieee', 120_000)).toBe('schematic')
   await page.getByRole('button', { name: 'Open navigation menu' }).click()
   await page.getByRole('navigation', { name: 'Mobile' }).getByRole('link', { name: 'Simulate', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Crisis Studio', exact: true })).toBeVisible()
