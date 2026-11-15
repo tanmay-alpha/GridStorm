@@ -20,10 +20,20 @@ import {
   type Column,
 } from '../../components/ui'
 import { NO_VALUE, formatDuration, formatTimestamp, shortHash } from '../../lib/format'
-import { downloadJson } from '../../lib/download'
+import { downloadBlob, downloadJson } from '../../lib/download'
 
+/**
+ * `fetcher` returns either the server's exact bytes (Blob, saved unchanged) or a JSON value that
+ * has no standalone endpoint (spec / manifest fields), which is serialised client-side.
+ */
 function DownloadButton({ label, fetcher, filename }: { label: string; fetcher: () => Promise<unknown>; filename: string }) {
-  const m = useMutation({ mutationFn: async () => downloadJson(filename, await fetcher()) })
+  const m = useMutation({
+    mutationFn: async () => {
+      const data = await fetcher()
+      if (data instanceof Blob) downloadBlob(filename, data)
+      else downloadJson(filename, data)
+    },
+  })
   return (
     <span className="inline-flex items-center gap-1">
       <Button size="sm" variant="ghost" onClick={() => m.mutate()} disabled={m.isPending} aria-label={`${label} (${filename})`}>
@@ -161,7 +171,7 @@ const artifactColumns: Column<ArtifactIndexItem>[] = [
       <DownloadButton
         label="JSON"
         filename={`${a.engine}-${a.artifact_id}.json`}
-        fetcher={() => api.artifact(a.engine, a.artifact_id)}
+        fetcher={() => api.artifactBlob(a.engine, a.artifact_id)}
       />
     ),
   },
