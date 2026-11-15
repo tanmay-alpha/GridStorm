@@ -12,7 +12,7 @@ Last updated: 2026-11-15
 
 ## Progress dashboard
 
-**58 tracked tasks: 58 done (46 VERIFIED + 12 DEPLOYED) · 0 in progress · 0 blocked (100 %).**
+**Original implementation scope:** 58/58 tasks complete (46 VERIFIED + 12 DEPLOYED). **Post-launch production audit:** new defects and UX work remain open below; the public product is **not** yet fully reliable.
 
 | State | Count | Tasks |
 |---|---|---|
@@ -20,6 +20,22 @@ Last updated: 2026-11-15
 | VERIFIED (evidence recorded) | 46 | research, licensing (incl. ENTSO-E remediation), all science engines, data, CI, verification, security, a11y/perf audit, EENS wording |
 
 Live: https://gridstorm.vercel.app · https://gridstorm-api.onrender.com · CI green on `17d76e4`.
+
+## Post-launch production audit — 2026-11-15
+
+Evidence: [production audit](docs/audit/production-2026-11-15.md) · [draft UX PR #7](https://github.com/tanmay-alpha/GridStorm/pull/7) · [P0 artifact loss issue #8](https://github.com/tanmay-alpha/GridStorm/issues/8).
+
+These items are **not** included in the original 58/58 delivery count.
+
+| ID | Task | Pri | Owner | Deps | Status | Acceptance criteria |
+|---|---|---|---|---|---|---|
+| POST-01 | Durable generated-result artifact storage (Render resets disk) | P0 | E/Backend | storage provider credentials; issue #8 | BACKLOG | Complete live job; controlled Render restart; retrieve result/report with unchanged SHA256; older missing files recovered only via verified recomputation |
+| POST-02 | Crisis Studio proactive unavailable-run guard, runnable example CTA, scoped presets, clearer missing-result state, polish | P1 | C/Frontend | audit evidence | TESTING | Draft PR #7 passes type/lint/unit/Playwright, visually reviewed; no knowingly doomed POST; honest missing artifact message |
+| POST-03 | Read-only public Vercel + Render checks | P1 | F/Verification | deployed URLs | TESTING | Chromium desktop/mobile browser smoke succeeded; public GET probe validates APIs and catches known result artifact failure. Keep failing persistence check until issue #8 fixed |
+| POST-04 | GeoJSON-first map loading and demand-loaded details instead of nine large asset fetches | P1 | C/Frontend + E/Backend | POST-02 | BACKLOG | Faster measured first paint with no loss of click/legend/filter functionality; browser coverage |
+| POST-05 | Guided run-to-compare journey and grouped primary/research navigation | P2 | C/Frontend | POST-02 | BACKLOG | First-time visitor can use map → crisis → result → compare without confusion; desktop/mobile accessibility |
+| POST-06 | Verify production Supabase RLS, policies and privilege boundaries directly | P1 | E/Backend + F/Verification | authorized access | BACKLOG | Direct production schema/policy tests on intended project; no client-exposed privileged secrets |
+| POST-07 | Explicitly distinguish artifact writability from durability in readiness and Library | P1 | E/Backend + C/Frontend | POST-01 | BACKLOG | /ready and UI show storage type/durability; no false indication a completed job is fully preserved |
 
 ## Phase 0 — Research, audit, baseline
 
