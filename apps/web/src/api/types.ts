@@ -166,6 +166,44 @@ export type AssetRow =
   | CanonicalStore
   | CanonicalCarrier
 
+// ---------- gridstorm-cost-basis/1.0 ----------
+/**
+ * What the monetary numbers of a dataset (and every result/comparison on it) actually mean.
+ * - currency_verified: coefficients are documented in a real currency (`currency`, `currency_year`).
+ * - benchmark_nominal: benchmark cost coefficients (e.g. PGLib/MATPOWER nominal $); not a currency claim.
+ * - illustrative: example-network placeholder costs; only meaningful relative to each other.
+ */
+export type CostBasisKind = 'currency_verified' | 'benchmark_nominal' | 'illustrative'
+
+export interface CostPenalty {
+  /** e.g. "load_shedding" */
+  term: string
+  value_per_mwh: number | null
+  /** `${money_unit}/MWh` */
+  unit: string
+  /** Penalties are modelling parameters, not economic cost estimates. */
+  nature: 'penalty'
+  description?: string
+}
+
+export interface CostBasis {
+  schema_version: 'gridstorm-cost-basis/1.0'
+  kind: CostBasisKind
+  /** ISO 4217 code only for currency_verified; null otherwise. */
+  currency: string | null
+  currency_year: number | null
+  /** Display unit for totals, e.g. "EUR", "PGLib cost units", "illustrative cost units". */
+  money_unit: string
+  /** Display unit for prices / marginal costs, e.g. "EUR/MWh". */
+  price_unit: string
+  /** Costs/deltas are only comparable between documents with the same key. */
+  comparability_key: string
+  provenance: string
+  assumptions: string[]
+  /** Present on results: scenario penalty terms, denominated in money_unit per MWh. */
+  penalties?: CostPenalty[]
+}
+
 // ---------- §2 dataset-manifest/1.0 ----------
 export interface DatasetManifest {
   schema_version: 'dataset-manifest/1.0'
@@ -193,6 +231,8 @@ export interface DatasetManifest {
   transformations: { step: string; tool: string; version: string; description: string }[]
   engines: string[]
   provenance_class: Provenance
+  /** Absent only on legacy manifests; consumers must then show an "unknown cost basis" label, never EUR. */
+  cost_basis?: CostBasis | null
 }
 
 /** Item of GET /api/v1/networks (services/api catalog.NetworkEntry.summary()). */
@@ -215,6 +255,8 @@ export interface NetworkSummary {
   /** False when this deployment refuses live solves for the network (precomputed results only). */
   live_execution?: boolean
   source: DatasetManifest['source'] | null
+  /** Dataset cost basis (manifest.cost_basis); null for legacy catalogs. */
+  cost_basis?: CostBasis | null
 }
 
 /** GET /api/v1/networks/{id}: summary + manifest + assumptions. */
@@ -399,6 +441,8 @@ export interface GridstormResult {
   assumptions: string[]
   warnings: string[]
   manifest: ExecutionManifest | null
+  /** Results produced since GridStorm 3.0 embed the basis (incl. VOLL penalty); legacy results fall back to the network's. */
+  cost_basis?: CostBasis | null
 }
 
 export interface MetricsResponse {
@@ -471,6 +515,10 @@ export interface ComparisonReport {
   warnings: string[]
   assumptions: string[]
   reproducibility: Record<string, unknown>
+  /** Basis of the cost metrics; null when baseline and scenario bases differ (cost deltas are then null). */
+  cost_basis?: CostBasis | null
+  /** false when the two runs' cost bases differ: cost metric deltas are withheld. */
+  costs_comparable?: boolean
 }
 
 export interface Comparison {

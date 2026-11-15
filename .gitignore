@@ -13,6 +13,7 @@ htmlcov/
 # Node
 node_modules/
 dist/
+.dist-*/
 .vite/
 playwright-report/
 test-results/
