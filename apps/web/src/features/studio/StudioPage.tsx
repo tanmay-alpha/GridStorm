@@ -103,6 +103,7 @@ export default function StudioPage() {
   const scenarios = useScenarios()
   const [edited, setEdited] = useState<StormSpec | null>(null)
   const [addType, setAddType] = useState<EventType>('line_outage')
+  const [showAllPresets, setShowAllPresets] = useState(false)
 
   const presetId = params.get('preset')
   const records = useMemo(() => scenarios.data ?? [], [scenarios.data])
@@ -222,6 +223,7 @@ export default function StudioPage() {
   const canRun = !blocked && report?.valid === true && !validating && !run.isPending && !liveRunUnavailable
   const netPresets = presets.filter((r) => (r.network_id ?? r.spec.dataset.network_id) === spec.dataset.network_id)
   const runnablePresets = netPresets.filter((r) => policy.precomputed.has(r.hash))
+  const visiblePresets = showAllPresets ? presets : netPresets
   const liveUnavailable =
     run.error instanceof ApiError && run.error.code === 'live_execution_unavailable' ? run.error : null
   const liveNetworksFromError = Array.isArray(liveUnavailable?.details.live_networks)
@@ -283,10 +285,22 @@ export default function StudioPage() {
           ) : (
             <div className="flex flex-col gap-2">
               <section aria-labelledby="presets-h">
-                <h3 id="presets-h" className="gs-label px-1">
-                  Presets
-                </h3>
-                <PresetList records={presets} activeId={edited ? null : presetId} onPick={pickPreset} policy={policy} />
+                <div className="flex items-center justify-between gap-1 px-1">
+                  <h3 id="presets-h" className="gs-label">
+                    Presets ({visiblePresets.length})
+                  </h3>
+                  {presets.length > netPresets.length && (
+                    <button
+                      type="button"
+                      className="text-2xs font-semibold text-accent underline underline-offset-2"
+                      data-testid="show-all-presets"
+                      onClick={() => setShowAllPresets((v) => !v)}
+                    >
+                      {showAllPresets ? 'Current network only' : 'All networks'}
+                    </button>
+                  )}
+                </div>
+                <PresetList records={visiblePresets} activeId={edited ? null : presetId} onPick={pickPreset} policy={policy} />
               </section>
               <section aria-labelledby="saved-h">
                 <h3 id="saved-h" className="gs-label px-1">
