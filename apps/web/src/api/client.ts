@@ -5,7 +5,7 @@ import type {
   AssetType,
   CanonicalGrid,
   Comparison,
-  GeoFeatureCollection,
+  NetworkGeojson,
   GridstormResult,
   Health,
   Job,
@@ -132,7 +132,7 @@ export const api = {
   assets: <T = Record<string, unknown>>(id: string, type: AssetType, limit = 10000, offset = 0, s?: AbortSignal) =>
     request<Page<T>>(`${v1}/networks/${enc(id)}/assets`, { query: { type, limit, offset }, signal: s }),
   geojson: (id: string, s?: AbortSignal) =>
-    request<GeoFeatureCollection>(`${v1}/networks/${enc(id)}/geojson`, { signal: s }),
+    request<NetworkGeojson>(`${v1}/networks/${enc(id)}/geojson`, { signal: s }),
   analytics: (id: string, kind: string, s?: AbortSignal) =>
     request<Record<string, unknown>>(`${v1}/networks/${enc(id)}/analytics/${enc(kind)}`, { signal: s }),
 
@@ -150,6 +150,8 @@ export const api = {
     request<Page<Job>>(`${v1}/simulations`, { query: { limit, offset }, signal: s }),
   simulation: (id: string, s?: AbortSignal) => request<Job>(`${v1}/simulations/${enc(id)}`, { signal: s }),
   cancelSimulation: (id: string) => request<Job>(`${v1}/simulations/${enc(id)}/cancel`, { method: 'POST' }),
+  /** 202 → a new Job that recomputes a job whose stored result is unavailable. */
+  recomputeSimulation: (id: string) => request<Job>(`${v1}/simulations/${enc(id)}/recompute`, { method: 'POST' }),
   simulationMetrics: (id: string, s?: AbortSignal) =>
     request<MetricsResponse>(`${v1}/simulations/${enc(id)}/metrics`, { signal: s }),
   simulationResult: (id: string, s?: AbortSignal) =>

@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Maximize, Minus, Plus } from 'lucide-react'
 import {
   Map as MapLibreMap,
-  NavigationControl,
   ScaleControl,
   setWorkerUrl,
   type ExpressionSpecification,
@@ -22,8 +22,25 @@ import {
 } from '../../lib/scales'
 import { cn } from '../ui/cn'
 import { assetKey, type AssetRef, type MapFeatures } from './features'
+import { planFit } from './fit'
 
 setWorkerUrl(maplibreWorkerUrl)
+
+function reducedMotion(): boolean {
+  return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
+}
+
+/** Frame the whole network (planFit) in the map's current canvas; no-op while the canvas has no size. */
+function fitToNetwork(map: MapLibreMap, bounds: MapFeatures['bounds']): void {
+  const el = map.getContainer()
+  const plan = planFit(bounds, el.clientWidth, el.clientHeight)
+  if (!plan) return
+  if (plan.kind === 'center') map.jumpTo({ center: plan.center, zoom: plan.zoom })
+  else map.fitBounds(plan.bounds, { padding: plan.padding, animate: false })
+}
+
+const CONTROL =
+  'inline-flex size-11 items-center justify-center text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg disabled:opacity-50'
 
 export interface LayerVisibility {
   buses: boolean
@@ -43,9 +60,6 @@ export const DEFAULT_LAYERS: LayerVisibility = {
 
 /** voltage = colour lines by kV; loading = by `value` (%); delta = by `value` (percentage points). */
 export type BranchColorMode = 'voltage' | 'loading' | 'delta'
-
-export const OPENFREEMAP_ATTRIBUTION =
-  '<a href="https://openfreemap.org" target="_blank" rel="noreferrer">OpenFreeMap</a> · <a href="https://www.openmaptiles.org/" target="_blank" rel="noreferrer">© OpenMapTiles</a> · Data <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">© OpenStreetMap contributors</a>'
 
 function basemapStyle(kind: CoordinateKind, theme: 'light' | 'dark'): string | StyleSpecification {
   if (kind === 'geographic') {
@@ -98,6 +112,7 @@ export function NetworkMap({
   onSelect,
   className,
   ariaLabel,
+  showControls = true,
 }: {
   coordinateKind: CoordinateKind
   features: MapFeatures
@@ -108,6 +123,7 @@ export function NetworkMap({
   onSelect?: (ref: AssetRef | null) => void
   className?: string
   ariaLabel: string
+  showControls?: boolean
 }) {
   const container = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MapLibreMap | null>(null)
@@ -126,6 +142,9 @@ export function NetworkMap({
   useEffect(() => {
     boundsRef.current = features.bounds
   }, [features.bounds])
+  // Once the user pans/zooms, canvas resizes (sidebar/bottom sheet toggles) no longer re-frame the
+  // network; switching network or pressing "Fit to network" resets this.
+  const userMovedRef = useRef(false)
 
   // (Re)create the map when coordinate kind or theme changes (basemap style differs).
   useEffect(() => {
@@ -135,19 +154,40 @@ export function NetworkMap({
     const map = new MapLibreMap({
       container: container.current,
       style: basemapStyle(coordinateKind, theme),
-      attributionControl: geographic ? { compact: true, customAttribution: OPENFREEMAP_ATTRIBUTION } : false,
+      attributionControl: geographic ? { compact: true } : false,
       dragRotate: false,
       pitchWithRotate: false,
       renderWorldCopies: geographic,
-      bounds: boundsRef.current ?? undefined,
-      fitBoundsOptions: { padding: 40 },
       maxZoom: 16,
     })
     map.touchZoomRotate.disableRotation()
-    map.addControl(new NavigationControl({ showCompass: false }), 'top-right')
     if (geographic) map.addControl(new ScaleControl({ unit: 'metric' }), 'bottom-right')
     mapRef.current = map
     window.__gridstormMap = map
+    // OpenFreeMap's dark style references this settlement marker but omits it from its sprite.
+    // Resolve before MapLibre 6 requests the image; styleimagemissing fires too late to satisfy it.
+    map.setMissingStyleImageResolver((id) => {
+      if (id !== 'circle-11' || map.hasImage(id)) return
+      const size = 22
+      const pixels = new Uint8Array(size * size * 4)
+      const color = theme === 'dark' ? 190 : 70
+      for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+        const i = (y * size + x) * 4
+        const radius = Math.hypot(x - 10.5, y - 10.5)
+        pixels[i] = pixels[i + 1] = pixels[i + 2] = color
+        pixels[i + 3] = Math.round(255 * Math.max(0, Math.min(1, 8 - radius)))
+      }
+      map.addImage(id, { width: size, height: size, data: pixels }, { pixelRatio: 2 })
+    })
+    fitToNetwork(map, boundsRef.current)
+    map.on('movestart', (e: { originalEvent?: unknown }) => {
+      if (e.originalEvent) userMovedRef.current = true
+    })
+    map.on('resize', () => {
+      if (!userMovedRef.current) fitToNetwork(map, boundsRef.current)
+    })
+    const observer = new ResizeObserver(() => map.resize())
+    observer.observe(container.current)
 
     map.on('load', () => {
       const empty = { type: 'FeatureCollection' as const, features: [] }
@@ -256,6 +296,7 @@ export function NetworkMap({
     }
 
     return () => {
+      observer.disconnect()
       if (window.__gridstormMap === map) delete window.__gridstormMap
       map.remove()
       mapRef.current = null
@@ -276,15 +317,29 @@ export function NetworkMap({
     ;(map.getSource('gs-storage-src') as GeoJSONSource | undefined)?.setData(features.storage)
   }, [features, loadedMap])
 
-  // Fit to network when the bounds change (new network).
+  // Frame the network whenever its extent changes (new network, or data arriving after a loading
+  // state). Camera calls do not need a loaded style, so this also runs before `load`.
   const boundsKey = features.bounds?.join(',') ?? ''
   useEffect(() => {
-    const map = loadedMap
-    if (!map || map !== mapRef.current || !boundsRef.current) return
-    const [a, b, c, d] = boundsRef.current
-    if (a === c && b === d) map.jumpTo({ center: [a, b], zoom: 8 })
-    else map.fitBounds([a, b, c, d], { padding: 40, animate: false })
-  }, [boundsKey, loadedMap])
+    const map = mapRef.current
+    if (!map || !boundsRef.current) return
+    userMovedRef.current = false
+    fitToNetwork(map, boundsRef.current)
+  }, [boundsKey])
+
+  const zoomBy = useCallback((delta: 1 | -1) => {
+    const map = mapRef.current
+    if (!map) return
+    userMovedRef.current = true
+    if (delta > 0) map.zoomIn({ animate: !reducedMotion() })
+    else map.zoomOut({ animate: !reducedMotion() })
+  }, [])
+  const refit = useCallback(() => {
+    const map = mapRef.current
+    if (!map) return
+    userMovedRef.current = false
+    fitToNetwork(map, boundsRef.current)
+  }, [])
 
   // Styling / visibility.
   useEffect(() => {
@@ -316,13 +371,41 @@ export function NetworkMap({
   }, [selected, loadedMap])
 
   return (
-    <div
-      ref={container}
-      role="region"
-      aria-label={ariaLabel}
-      data-testid="network-map"
-      data-map-ready={ready ? 'true' : 'false'}
-      className={cn('relative h-full w-full', className)}
-    />
+    <div className={cn('relative h-full w-full', className)}>
+      <div
+        ref={container}
+        role="region"
+        aria-label={ariaLabel}
+        data-testid="network-map"
+        data-map-ready={ready ? 'true' : 'false'}
+        className="h-full w-full"
+      />
+      {!ready && <div role="status" className="pointer-events-none absolute inset-0 flex items-center justify-center bg-canvas/80 text-sm text-fg-muted">Rendering network map…</div>}
+      {showControls && (
+        <div
+          role="group"
+          aria-label="Map view"
+          className="gs-panel absolute right-2 top-2 z-10 flex flex-col divide-y divide-line overflow-hidden p-0"
+        >
+          <button type="button" className={CONTROL} onClick={() => zoomBy(1)} aria-label="Zoom in" title="Zoom in">
+            <Plus aria-hidden className="size-4" />
+          </button>
+          <button type="button" className={CONTROL} onClick={() => zoomBy(-1)} aria-label="Zoom out" title="Zoom out">
+            <Minus aria-hidden className="size-4" />
+          </button>
+          <button
+            type="button"
+            className={CONTROL}
+            onClick={refit}
+            disabled={!features.bounds}
+            aria-label="Fit to network"
+            title="Fit to network"
+            data-testid="map-fit"
+          >
+            <Maximize aria-hidden className="size-4" />
+          </button>
+        </div>
+      )}
+    </div>
   )
 }

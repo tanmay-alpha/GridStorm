@@ -9,7 +9,12 @@ import pytest
 
 from conftest import NETWORK_ID
 from gridstorm_api.config import REPO_ROOT
-from gridstorm_api.storage import ArtifactIntegrityError, LocalArtifactStore, S3ArtifactStore
+from gridstorm_api.storage import (
+    ArtifactIntegrityError,
+    ArtifactUnavailable,
+    LocalArtifactStore,
+    S3ArtifactStore,
+)
 
 PRECOMPUTE = REPO_ROOT / "services" / "analytics" / "scripts" / "precompute_analytics.py"
 
@@ -135,7 +140,11 @@ class _FakeS3:
             raise ClientError({"Error": {"Code": "404"}}, "HeadObject")
         return {}
 
-    def put_object(self, Bucket, Key, Body, ContentType=None):  # noqa: N803
+    def put_object(self, Bucket, Key, Body, ContentType=None, IfNoneMatch=None):  # noqa: N803
+        from botocore.exceptions import ClientError
+
+        if IfNoneMatch == "*" and (Bucket, Key) in self.objects:
+            raise ClientError({"Error": {"Code": "PreconditionFailed"}}, "PutObject")
         self.puts += 1
         self.objects[(Bucket, Key)] = Body
 
@@ -160,6 +169,6 @@ def test_s3_store_with_prefix():
     store.put(b"hello", ext="txt")
     assert fake.puts == 1  # immutable: existing keys are never rewritten
     assert store.get(blob.key, expected_sha256=blob.sha256) == b"hello"
-    with pytest.raises(ArtifactIntegrityError):
-        store.get("sha256/missing.json")
+    with pytest.raises(ArtifactUnavailable):
+        store.get(f"sha256/{'0' * 64}.json")
     assert store.check_writable() == "s3:bucket"

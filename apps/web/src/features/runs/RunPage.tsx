@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
-import { Link, useParams } from 'react-router'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Ban, Download, FileJson, FileText, GitCompare } from 'lucide-react'
+import { Link, useNavigate, useParams } from 'react-router'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Ban, Download, FileJson, FileText, RotateCcw } from 'lucide-react'
 import { api, ApiError } from '../../api/client'
 import { qk, TERMINAL_STATUSES, useJob, useJobArtifacts, useNetwork, useNetworks, useResult } from '../../api/hooks'
 import type { GridstormResult, Job, JobStage } from '../../api/types'
@@ -27,20 +27,25 @@ import {
   cn,
   type Column,
 } from '../../components/ui'
-import { NO_VALUE, formatDuration, formatQuantity, formatTimestamp, shortHash } from '../../lib/format'
+import { NO_VALUE, formatDuration, formatQuantity, formatTimestamp, isFiniteNumber, shortHash } from '../../lib/format'
 import { downloadJson, downloadText } from '../../lib/download'
 import { cssVar, useTheme } from '../../lib/theme'
 import { useDocumentTitle } from '../../lib/title'
+import { CompareWithBaseline } from '../compare/CompareWithBaseline'
 import {
   branchLoadingAt,
   branchRows,
   generationOption,
   hasData,
   loadShedOption,
+  isIntegrityError,
+  isResultUnavailable,
+  outcomeSummary,
   priceOption,
   snapshotLabels,
   storageOption,
   type BranchRow,
+  summaryMetrics,
 } from './result'
 
 const STAGES: JobStage[] = [
@@ -190,26 +195,6 @@ function ResultView({ job, result }: { job: Job; result: GridstormResult }) {
 
   return (
     <>
-      <section aria-label="Key metrics" className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-6" data-testid="metrics">
-        <MetricCard
-          label="Unserved energy (MWh)"
-          value={m.unserved_energy_mwh}
-          unit="MWh"
-          scale={false}
-          tone={m.unserved_energy_mwh ? 'danger' : undefined}
-        />
-        <MetricCard label="Peak load shed" value={m.peak_load_shed_mw} unit="MW" />
-        <MetricCard label="Load-shed hours" value={m.load_shed_hours} unit="h" scale={false} />
-        <MetricCard label="Total system cost" value={m.total_system_cost_eur} unit="EUR" />
-        <MetricCard label="Max line loading" value={m.max_line_loading_pct} unit="%" tone={m.max_line_loading_pct != null && m.max_line_loading_pct >= 99.9 ? 'warn' : undefined} />
-        <MetricCard label="Congested branches" value={m.congested_line_count} unit="" hint="loading ≥ 99.9 %" />
-        <MetricCard label="Total load" value={m.total_load_mwh} unit="MWh" />
-        <MetricCard label="Served load" value={m.served_load_mwh} unit="MWh" />
-        <MetricCard label="Curtailment" value={m.curtailment_mwh} unit="MWh" />
-        <MetricCard label="Generation cost" value={m.generation_cost_eur} unit="EUR" hint="total system cost − load-shedding cost" />
-        <MetricCard label="CO₂ emissions" value={m.co2_emissions_t} unit="t" />
-        <MetricCard label="Mean line loading" value={m.mean_line_loading_pct} unit="%" />
-      </section>
 
       <div className="grid gap-3 xl:grid-cols-2">
         <Panel title="Generation by carrier vs demand" description="Stacked dispatch [MW]; dashed line = demand.">
@@ -243,7 +228,7 @@ function ResultView({ job, result }: { job: Job; result: GridstormResult }) {
             <Chart option={shedOpt} ariaLabel="Load shed in MW per snapshot" testId="chart-load-shed" />
           ) : (
             <p className="py-6 text-center text-xs text-fg-muted" data-testid="no-load-shed">
-              No load was shed in this run.
+              {s.load_shed_mw?.some(isFiniteNumber) ? 'No load was shed in this run.' : 'Load-shedding series not reported.'}
             </p>
           )}
         </Panel>
@@ -251,11 +236,11 @@ function ResultView({ job, result }: { job: Job; result: GridstormResult }) {
           {hasStorage ? (
             <Chart option={storeOpt} ariaLabel="Storage dispatch in MW and state of charge in MWh" testId="chart-storage" />
           ) : (
-            <p className="py-6 text-center text-xs text-fg-muted">No storage activity (network has no storage or it was idle/disabled).</p>
+            <p className="py-6 text-center text-xs text-fg-muted">{s.storage_dispatch_mw?.some(isFiniteNumber) || s.storage_soc_mwh?.some(isFiniteNumber) ? 'No storage activity (network has no storage or it was idle/disabled).' : 'Storage series not reported.'}</p>
           )}
         </Panel>
         <Panel title="Prices" description="Mean nodal marginal price [EUR/MWh].">
-          {hasData(s.mean_marginal_price_eur_per_mwh) ? (
+          {s.mean_marginal_price_eur_per_mwh?.some(isFiniteNumber) ? (
             <Chart option={priceOpt} ariaLabel="Mean marginal price in EUR per MWh" testId="chart-prices" />
           ) : (
             <p className="py-6 text-center text-xs text-fg-muted">No price series in this result.</p>
@@ -270,7 +255,7 @@ function ResultView({ job, result }: { job: Job; result: GridstormResult }) {
         </Panel>
       </div>
 
-      <Panel title={`Branches (${rows.length})`} description="Maximum over the horizon. Click a row to highlight it on the map.">
+      <Panel title={`Congested elements & branch details (${rows.length})`} description={`${rows.filter((row) => row.max_loading_pct !== null && row.max_loading_pct >= 99.9).length} branches at ≥ 99.9 % loading. Maximum over the horizon; click a row to highlight it on the map.`}>
         <DataTable
           columns={branchColumns}
           rows={rows}
@@ -281,6 +266,16 @@ function ResultView({ job, result }: { job: Job; result: GridstormResult }) {
           selectedKey={selected ? `${selected.kind}:${selected.id}` : null}
           onRowClick={(r) => setSelected({ kind: r.kind, id: r.id })}
         />
+      </Panel>
+      <Panel title="Additional metrics">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+          <MetricCard label="Peak load shed" value={m.peak_load_shed_mw} unit="MW" />
+          <MetricCard label="Load-shed duration" value={m.load_shed_hours} unit="h" />
+          <MetricCard label="Total load" value={m.total_load_mwh} unit="MWh" />
+          <MetricCard label="Served load" value={m.served_load_mwh} unit="MWh" />
+          <MetricCard label="Generation cost" value={m.generation_cost_eur} unit="EUR" />
+          <MetricCard label="Mean line loading" value={m.mean_line_loading_pct} unit="%" />
+        </div>
       </Panel>
 
       <div className="grid gap-3 lg:grid-cols-2">
@@ -301,7 +296,8 @@ function ResultView({ job, result }: { job: Job; result: GridstormResult }) {
               ['Engine', `${result.engine.name} ${result.engine.version} (${result.engine.formulation})`],
               ['Scenario', `${result.scenario_id} · hash ${shortHash(result.scenario_hash, 16)}`],
               ['Snapshots', `${result.snapshots.length} (${formatTimestamp(result.snapshots[0])} → ${formatTimestamp(result.snapshots.at(-1))})`],
-              ['Result sha256', <code key="r" className="font-mono">{shortHash(job.result_sha256, 16)}</code>],
+              ['Result sha256', <code key="r" className="break-all font-mono">{job.result_sha256 ?? NO_VALUE}</code>],
+              ['Scenario sha256', <code key="s" className="break-all font-mono">{result.scenario_hash ?? NO_VALUE}</code>],
               ['Balance residual', formatQuantity(m.balance_residual_max_mw, 'MW')],
             ]}
           />
@@ -312,7 +308,7 @@ function ResultView({ job, result }: { job: Job; result: GridstormResult }) {
 }
 
 function Downloads({ job, result }: { job: Job; result: GridstormResult | undefined }) {
-  const artifacts = useJobArtifacts(job.id, job.status === 'completed')
+  const artifacts = useJobArtifacts(job.id, job.status === 'completed' && job.result_available !== false && !!result)
   const report = useMutation({
     mutationFn: async (format: 'json' | 'md') => {
       if (format === 'json') downloadJson(`gridstorm-run-${job.id}-report.json`, await api.reportJson(job.id))
@@ -334,10 +330,10 @@ function Downloads({ job, result }: { job: Job; result: GridstormResult | undefi
           >
             <FileJson aria-hidden className="size-3.5" /> Manifest
           </Button>
-          <Button size="sm" disabled={job.status !== 'completed' || report.isPending} onClick={() => report.mutate('md')}>
+          <Button size="sm" disabled={!result || report.isPending} onClick={() => report.mutate('md')}>
             <FileText aria-hidden className="size-3.5" /> Report MD
           </Button>
-          <Button size="sm" disabled={job.status !== 'completed' || report.isPending} onClick={() => report.mutate('json')}>
+          <Button size="sm" disabled={!result || report.isPending} onClick={() => report.mutate('json')}>
             <FileJson aria-hidden className="size-3.5" /> Report JSON
           </Button>
         </div>
@@ -361,10 +357,23 @@ function Downloads({ job, result }: { job: Job; result: GridstormResult | undefi
 
 export default function RunPage() {
   const { id } = useParams()
+  const navigate = useNavigate()
   const job = useJob(id)
   const queryClient = useQueryClient()
   const done = job.data?.status === 'completed'
-  const result = useResult(id, done)
+  const result = useResult(id, done && job.data?.result_available !== false)
+  const storedMetrics = useQuery({
+    queryKey: ['run-metrics', id],
+    queryFn: ({ signal }) => api.simulationMetrics(id!, signal),
+    enabled: done && (job.data?.result_available === false || isResultUnavailable(result.error)),
+  })
+  const rerun = useMutation({
+    mutationFn: () => api.recomputeSimulation(id!),
+    onSuccess: (next) => {
+      void queryClient.invalidateQueries({ queryKey: qk.jobs })
+      void navigate(`/runs/${encodeURIComponent(next.id)}`)
+    },
+  })
   const cancel = useMutation({
     mutationFn: () => api.cancelSimulation(id!),
     onSuccess: (j) => queryClient.setQueryData(qk.job(j.id), j),
@@ -378,8 +387,7 @@ export default function RunPage() {
       <div className="mx-auto max-w-xl p-6" data-testid="job-not-found">
         <h1 className="text-lg font-semibold">Job not found</h1>
         <p className="mt-1 text-sm text-fg-muted">
-          The API has no simulation job <code className="font-mono">{id}</code>. The id may be mistyped, or the job
-          store was reset (the hosted demo keeps jobs in ephemeral storage, so older run links expire).
+          The API has no simulation job <code className="font-mono">{id}</code>. Check the link or find an available run in the Library.
         </p>
         <p className="mt-1 font-mono text-2xs text-fg-muted">HTTP 404 · {notFound.code}</p>
         <div className="mt-3 flex flex-wrap gap-2">
@@ -407,6 +415,9 @@ export default function RunPage() {
   const j = job.data
   const terminal = TERMINAL_STATUSES.includes(j.status)
   const solver = j.solver ?? result.data?.solver ?? null
+  const unavailable = j.result_available === false || isResultUnavailable(result.error)
+  const summary = outcomeSummary(j.status, result.data?.outcome ?? storedMetrics.data?.outcome ?? j.outcome, solver)
+  const headlineMetrics = result.data?.metrics ?? storedMetrics.data?.metrics
 
   return (
     <div className="mx-auto flex max-w-[1500px] flex-col gap-3 p-3 md:p-4">
@@ -441,16 +452,46 @@ export default function RunPage() {
                 <Ban aria-hidden className="size-3.5" /> {j.cancel_requested ? 'Cancel requested' : 'Cancel'}
               </Button>
             )}
-            {done && (
-              <Link to={`/compare?scenario=${encodeURIComponent(j.id)}`} className={buttonClass('secondary', 'sm')}>
-                <GitCompare aria-hidden className="size-3.5" /> Compare
-              </Link>
-            )}
+            {done && result.data && !unavailable && <CompareWithBaseline job={j} />}
           </>
         }
       />
       {cancel.error && <ErrorState error={cancel.error} title="Cancel failed" />}
+      <section className="gs-panel p-4" aria-label="Run summary" data-testid="run-summary">
+        <div className="flex flex-wrap items-center gap-2">
+          <h2 className="text-lg font-semibold" data-testid="outcome-headline">{summary.label}</h2>
+          <Badge tone={summary.tone}>{j.status}</Badge>
+          <p className="text-xs text-fg-muted">{summary.detail}</p>
+        </div>
+        {headlineMetrics && (
+          <div aria-label="Key metrics" className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-5" data-testid="metrics">
+            {summaryMetrics(headlineMetrics).map((metric) => (
+              <MetricCard key={metric.key} label={metric.label} value={metric.value} unit={metric.unit} tone={metric.tone} hint={metric.hint} />
+            ))}
+          </div>
+        )}
+      </section>
 
+
+      {done &&
+        (unavailable ? (
+          <Panel title="Result file unavailable" className="border-warn/50" id="result-unavailable">
+            <div role="alert" data-testid="result-artifact-missing" className="flex flex-col gap-2 text-sm text-fg">
+              <p>This simulation completed, but its detailed result file is no longer available.</p>
+              <p className="text-xs text-fg-muted">The job record remains available. Numerical series cannot be recovered from metadata alone; re-run the stored scenario to generate a new result.</p>
+              <Button size="sm" onClick={() => rerun.mutate()} disabled={rerun.isPending}>
+                <RotateCcw aria-hidden className="size-3.5" /> {rerun.isPending ? 'Starting new run…' : 'Re-run this scenario'}
+              </Button>
+              {rerun.error && <ErrorState error={rerun.error} title="Could not re-run this scenario" />}
+            </div>
+          </Panel>
+        ) : result.error ? (
+          <ErrorState error={result.error} title={isIntegrityError(result.error) ? 'Result integrity check failed' : 'Could not load result'} onRetry={() => void result.refetch()} />
+        ) : !result.data ? (
+          <SkeletonBlock rows={8} label="Loading result" />
+        ) : (
+          <ResultView job={j} result={result.data} />
+        ))}
       <div className="grid gap-3 lg:grid-cols-3">
         <Panel title="Status">
           <StageTimeline job={j} />
@@ -476,15 +517,6 @@ export default function RunPage() {
       </div>
 
       <Diagnostics job={j} result={result.data} />
-
-      {done &&
-        (result.error ? (
-          <ErrorState error={result.error} title="Could not load result" onRetry={() => void result.refetch()} />
-        ) : !result.data ? (
-          <SkeletonBlock rows={8} label="Loading result" />
-        ) : (
-          <ResultView job={j} result={result.data} />
-        ))}
       {terminal && !done && (
         <EmptyState title={`Run ${j.status}`}>No result is available for a {j.status} job. See diagnostics above.</EmptyState>
       )}

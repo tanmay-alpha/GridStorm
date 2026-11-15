@@ -239,6 +239,15 @@ export interface GeoFeatureCollection {
   features: GeoFeature[]
   [k: string]: unknown
 }
+/** GET /api/v1/networks/{id}/geojson (services/api geojson.py). Generators/loads/storage are not included. */
+export interface NetworkGeojson extends GeoFeatureCollection {
+  network_id: string
+  coordinate_kind: CoordinateKind
+  crs: string | null
+  provenance: Provenance | null
+  /** Assets left out because a bus has no coordinates (never placed at a guess). */
+  skipped: { buses: number; lines: number; links: number; transformers: number }
+}
 
 // ---------- §3 StormSpec validation ----------
 export interface ValidationIssue {
@@ -307,11 +316,15 @@ export interface Job {
   started_at: string | null
   finished_at: string | null
   result_sha256: string | null
+  /** false when the stored result blob is gone (HTTP 410 artifact_unavailable on /result); null/absent = unknown (legacy). */
+  result_available?: boolean | null
   owner_id: string | null
   cancel_requested?: boolean
   attempts?: number
   visibility?: 'public' | 'private'
   reused_from_job_id?: string | null
+  /** Set on a job created by POST /simulations/{id}/recompute: the job whose result it replaces. */
+  recomputed_from_job_id?: string | null
   scenario_record_id?: string | null
 }
 
@@ -407,6 +420,8 @@ export interface StoredArtifact {
   storage_backend?: string
   storage_key?: string
   created_at?: string
+  /** false when the stored blob is missing from the artifact store. */
+  available?: boolean
 }
 
 // ---------- Comparisons (gridstorm-comparison/1.0) ----------

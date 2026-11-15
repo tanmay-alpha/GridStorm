@@ -1,0 +1,32 @@
+[project]
+name = "gridstorm-scientific-tests"
+version = "0.1.0"
+description = "Independent scientific invariant checks of PyPSA gridstorm-result/1.0 artifacts (committed and live) and reproducibility re-runs."
+requires-python = ">=3.11,<3.12"
+dependencies = [
+    "gridstorm-pypsa",
+    "stormspec[yaml]",
+    "pytest>=8",
+]
+
+[tool.uv]
+package = false
+
+[tool.uv.sources]
+gridstorm-pypsa = { path = "../../workers/pypsa", editable = true }
+stormspec = { path = "../../packages/stormspec", editable = true }
+
+[tool.pytest.ini_options]
+testpaths = ["."]
+addopts = "-ra -m 'not network and not slow'"
+markers = [
+    "slow: re-solves presets locally with workers/pypsa (reproducibility)",
+    "network: reads the public production API (GRIDSTORM_API_URL, default the Render URL)",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]

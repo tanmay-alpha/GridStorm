@@ -1,0 +1,5 @@
+{
+  "interceptedResultStatus": 410,
+  "responses": 1,
+  "notice": "This simulation completed, but its detailed result file is no longer available.\n\nThe job record remains available. Numerical series cannot be recovered from metadata alone; re-run the stored scenario to generate a new result.\n\nRe-run this scenario"
+}

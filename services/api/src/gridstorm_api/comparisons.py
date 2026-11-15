@@ -100,8 +100,15 @@ def compare_results(baseline: dict[str, Any], scenario: dict[str, Any]) -> dict[
     for name in sorted(set(bm) | set(sm)):
         if isinstance(bm.get(name), dict) or isinstance(sm.get(name), dict):
             continue
+        unit = unit_of(name)
         metrics.append(
-            {"metric": name, "unit": unit_of(name), **delta_row(bm.get(name), sm.get(name))}
+            {
+                "metric": name,
+                "unit": unit,
+                # An absolute change of a percentage is in percentage points, not percent.
+                "delta_unit": "pp" if unit == "%" else unit,
+                **delta_row(bm.get(name), sm.get(name)),
+            }
         )
 
     carriers: dict[str, list[dict[str, Any]]] = {}
@@ -306,9 +313,17 @@ def comparison_markdown(report: dict[str, Any], comparison_id: str) -> str:
         "## Metrics",
         "",
         _table(
-            ["metric", "unit", "baseline", "scenario", "delta", "delta %"],
+            ["metric", "unit", "baseline", "scenario", "delta", "delta unit", "relative delta %"],
             [
-                [m["metric"], m["unit"], m["baseline"], m["scenario"], m["delta"], m["delta_pct"]]
+                [
+                    m["metric"],
+                    m["unit"],
+                    m["baseline"],
+                    m["scenario"],
+                    m["delta"],
+                    m["delta_unit"],
+                    m["delta_pct"],
+                ]
                 for m in report["metrics"]
             ],
         ),

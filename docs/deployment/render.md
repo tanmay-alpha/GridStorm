@@ -38,24 +38,30 @@ The Blueprint sets these explicitly; these are deployment overrides, not all API
 | `GRIDSTORM_JOB_MEMORY_MB` | `400` per engine subprocess; **not** a guarantee that total service memory fits 512 MB |
 | `GRIDSTORM_CORS_ORIGINS` | Explicit comma-separated frontend origins; update for your Vercel production/preview domains |
 | `DATABASE_URL` | Secret; supply the Supabase session-pooler URL with `sslmode=require`, or leave unset for ephemeral SQLite |
-| `SUPABASE_URL`, `SUPABASE_JWT_SECRET` | Optional server-side JWT verification configuration |
+| `GRIDSTORM_ARTIFACT_STORE` | `supabase` |
+| `GRIDSTORM_SUPABASE_BUCKET` | `gridstorm-artifacts`; create it private, with no public policies |
+| `SUPABASE_URL` | Required Supabase project URL; `sync: false` |
+| `SUPABASE_SERVICE_ROLE_KEY` | Required server-only storage credential; `sync: false` |
+| `GRIDSTORM_STORAGE_CHECK_TTL_S` | `300`; cached storage readiness TTL in seconds |
+| `GRIDSTORM_SUPABASE_STORAGE_TIMEOUT_S` | `30`; storage request timeout in seconds |
+| `SUPABASE_JWT_SECRET` | Optional server-side JWT verification secret |
 
-The live service's `DATABASE_URL` points at the Supabase session pooler (see [Supabase setup](supabase.md));
-`/ready` reports `postgres`. Without it, the image falls back to `/tmp/gridstorm/gridstorm.db`, which is
-**not durable**.
-Follow [Supabase setup](supabase.md) before claiming persistent storage. Apply migrations before
-using Postgres, or explicitly enable `GRIDSTORM_DB_AUTO_MIGRATE=true` after reviewing them.
+Supply `DATABASE_URL` for persistent metadata and the storage settings above for persistent
+payloads. Without `DATABASE_URL`, the image falls back to `/tmp/gridstorm/gridstorm.db`, which
+is **not durable**. These are operator requirements, not a claim about the current live
+environment. Follow [Supabase setup](supabase.md), and apply migrations before using Postgres,
+or explicitly enable `GRIDSTORM_DB_AUTO_MIGRATE=true` after reviewing them.
 
 The image sets `GRIDSTORM_DATA_DIR=/app/data`, `GRIDSTORM_STATE_DIR=/tmp/gridstorm` and
 `GRIDSTORM_MIGRATIONS_DIR=/app/database/migrations`. Do not replace these with relative paths copied
 from a local shell. More options and defaults are defined in
 `services/api/src/gridstorm_api/config.py`.
 
-For durable generated payloads the API supports `GRIDSTORM_ARTIFACT_STORE=s3`,
-`GRIDSTORM_S3_BUCKET`, `GRIDSTORM_S3_ENDPOINT_URL`, optional `GRIDSTORM_S3_REGION` and
-`GRIDSTORM_S3_PREFIX`; the S3 client uses standard AWS credentials such as
-`AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY`. Database persistence alone does not preserve files
-in the default local artifact store. Never put credentials in `VITE_*` variables.
+The Blueprint selects Supabase Storage, but does not create the bucket or credentials. Create
+the private `gridstorm-artifacts` bucket with no public policies, then supply `SUPABASE_URL`
+and `SUPABASE_SERVICE_ROLE_KEY` securely on the API service. Never put the service-role key in
+`VITE_*`, browser code, or the engine subprocess environment. Local artifacts remain supported
+for development but are never durable on Render; database persistence alone does not save them.
 
 ## Local image commands
 
@@ -76,6 +82,19 @@ dataset readiness. A healthy HTTP process is not evidence that simulations work.
 body and Render logs, load `/api/v1/networks`, then run a small validated preset and inspect its
 status, scientific outcome and solver termination separately. These are operator verification
 steps, not checks claimed to have been run by this document.
+
+Inspect `checks.storage.backend` and `checks.storage.durable`. Supabase reports `durable: true`
+only after writing, reading back and deleting a probe under `_ready`; results are cached for
+300 seconds by default, with a 30-second storage request timeout. A configured bucket alone
+does not establish readiness. Missing result/report/artifact blobs return 410
+`artifact_unavailable` with recovery advice; integrity failures return 500
+`artifact_integrity_error`. Job `result_available` is cached.
+
+Use the rate-limited `POST /api/v1/simulations/{id}/recompute` with the same access checks, or
+`python -m gridstorm_api.jobs.recover JOB_ID [--force]` from `services/api` with the API
+environment. Both rerun the stored specification as a **new** job, retaining old metadata,
+recording `recomputed_from_job_id` and the old checksum in the initial stage event's
+`lost_result_sha256`. Never reuse missing/corrupt artifacts or inaccessible private jobs.
 
 ## Free-tier limits
 

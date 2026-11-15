@@ -57,6 +57,14 @@ LOG_LIMIT_BYTES = 256 * 1024
 _RUN_STAGES = frozenset(JOB_STAGES) - {"queued"}
 # POSIX returncode of a child killed by SIGKILL (signal.SIGKILL does not exist on Windows).
 _SIGKILL_RETURNCODE = -9
+# Server secrets never passed to the engine subprocess.
+_ENGINE_ENV_DENYLIST = (
+    "SUPABASE_JWT_SECRET",
+    "SUPABASE_SERVICE_ROLE_KEY",
+    "DATABASE_URL",
+    "AWS_SECRET_ACCESS_KEY",
+    "AWS_SESSION_TOKEN",
+)
 
 
 def build_command(
@@ -401,7 +409,7 @@ class WorkerPool:
                 "OMP_NUM_THREADS": "1",
                 "MKL_NUM_THREADS": "1",
             }
-            for secret in ("SUPABASE_JWT_SECRET", "DATABASE_URL", "AWS_SECRET_ACCESS_KEY"):
+            for secret in _ENGINE_ENV_DENYLIST:
                 env.pop(secret, None)
             popen_kw: dict[str, Any] = {}
             if os.name == "posix":
@@ -504,9 +512,7 @@ class WorkerPool:
             self._cancel.discard(job_id)
 
         try:
-            log_blob = self.ctx.store.put(
-                logbuf.text().encode("utf-8"), ext="txt", content_type="text/plain; charset=utf-8"
-            )
+            log_blob = self._put_log(job_id, logbuf)
             if reason == "lost":
                 log.warning("job %s was taken over by recovery; result discarded", job_id)
                 return
@@ -603,7 +609,26 @@ class WorkerPool:
                     },
                 )
                 return
-            blob = self.ctx.store.put(data, ext="json")
+            try:
+                blob = self.ctx.store.put(data, ext="json")
+            except Exception as exc:
+                # Never mark a job completed without a stored, verified result (issue #8).
+                log.exception("job %s: durable result write failed", job_id)
+                self._finish(
+                    job_id,
+                    status="failed",
+                    history=history,
+                    log_blob=log_blob,
+                    error={
+                        "code": "artifact_persist_failed",
+                        "message": (
+                            "the simulation finished but its result could not be written to "
+                            f"durable artifact storage ({type(exc).__name__}); nothing was "
+                            "stored. Re-run the scenario."
+                        ),
+                    },
+                )
+                return
             error = None
             if result["outcome"] == "error":
                 warnings = "; ".join(str(w) for w in result.get("warnings") or [])
@@ -622,6 +647,17 @@ class WorkerPool:
             )
         finally:
             shutil.rmtree(workdir, ignore_errors=True)
+
+    def _put_log(self, job_id: uuid.UUID, logbuf: _Tail) -> Any:
+        """Store the engine log (best effort: a log that cannot be stored must not decide the
+        job's outcome; the result write below is the durability gate)."""
+        try:
+            return self.ctx.store.put(
+                logbuf.text().encode("utf-8"), ext="txt", content_type="text/plain; charset=utf-8"
+            )
+        except Exception as exc:
+            log.warning("job %s: engine log not stored (%s)", job_id, type(exc).__name__)
+            return None
 
     def _finish(
         self,

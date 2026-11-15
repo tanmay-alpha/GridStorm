@@ -23,7 +23,7 @@ from .config import Settings
 from .context import AppContext
 from .errors import install_error_handlers
 from .ratelimit import BodySizeLimitMiddleware
-from .readiness import SolverProbe
+from .readiness import SolverProbe, StorageProbe
 from .routers import artifacts, comparisons, health, networks, scenarios, simulations
 from .security_headers import SecurityHeadersMiddleware
 from .sync import sync_catalog, sync_presets
@@ -41,6 +41,7 @@ EXPOSED_HEADERS = [
 def _startup(ctx: AppContext) -> None:
     s = ctx.settings
     ctx.solver_probe = SolverProbe(s.python_executable, s.solver_check_ttl_s)
+    ctx.storage_probe = StorageProbe(ctx.store, s.storage_check_ttl_s)
     ctx.analytics = AnalyticsService()
     try:
         ctx.db.init_schema(
@@ -89,6 +90,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             if ctx.pool is not None:
                 ctx.pool.stop()
             ctx.db.dispose()
+            ctx.store.close()
 
     app = FastAPI(
         title="GridStorm API",

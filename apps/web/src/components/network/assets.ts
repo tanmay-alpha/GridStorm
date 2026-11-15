@@ -1,5 +1,5 @@
 import type { NetworkAssets } from '../../api/hooks'
-import type { AssetRef } from '../map/features'
+import type { AssetRef, MapAssets } from '../map/features'
 
 /** Canonical table (field_provenance prefix) for each map/selection kind. */
 export const KIND_TABLE: Record<AssetRef['kind'], keyof NetworkAssets> = {
@@ -38,7 +38,7 @@ export interface SearchEntry {
   haystack: string
 }
 
-export function buildSearchIndex(a: NetworkAssets): SearchEntry[] {
+export function buildSearchIndex(a: MapAssets & Pick<NetworkAssets, 'loads'>): SearchEntry[] {
   const out: SearchEntry[] = []
   for (const b of a.buses)
     out.push({

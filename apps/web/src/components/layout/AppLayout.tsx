@@ -7,16 +7,7 @@ import { useTheme } from '../../lib/theme'
 import { useDocumentTitle } from '../../lib/title'
 import { cn } from '../ui/cn'
 
-export const NAV = [
-  { to: '/', label: 'Grid Explorer', end: true },
-  { to: '/studio', label: 'Crisis Studio' },
-  { to: '/compare', label: 'Compare & Replay' },
-  { to: '/library', label: 'Library' },
-  { to: '/contingency', label: 'Contingency' },
-  { to: '/operations', label: 'Operations' },
-  { to: '/benchmarks', label: 'Benchmarks' },
-  { to: '/methods', label: 'Methods' },
-] as const
+import { NAV, RESEARCH_NAV, WORKSPACE_NAV } from './navigation'
 
 function BackendStatus() {
   const h = useHealth()
@@ -56,32 +47,22 @@ function ThemeToggle() {
       type="button"
       onClick={toggle}
       aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
-      className="inline-flex size-8 items-center justify-center rounded text-fg-muted hover:bg-surface-2 hover:text-fg"
+      className="inline-flex size-11 items-center justify-center rounded text-fg-muted hover:bg-surface-2 hover:text-fg"
     >
       {theme === 'dark' ? <Sun aria-hidden className="size-4" /> : <Moon aria-hidden className="size-4" />}
     </button>
   )
 }
 
-function NavItems({ onNavigate, vertical }: { onNavigate?: () => void; vertical?: boolean }) {
+function NavItems({ onNavigate, vertical, research = false }: { onNavigate?: () => void; vertical?: boolean; research?: boolean }) {
   return (
-    <ul className={cn('flex', vertical ? 'flex-col gap-0.5' : 'items-center gap-0.5')}>
-      {NAV.map((n) => (
+    <ul className={cn('flex', vertical ? 'flex-col gap-1' : 'items-center gap-1')}>
+      {(research ? RESEARCH_NAV : WORKSPACE_NAV).map((n) => (
         <li key={n.to}>
-          <NavLink
-            to={n.to}
-            end={'end' in n ? n.end : false}
-            onClick={onNavigate}
-            className={({ isActive }) =>
-              cn(
-                'block rounded px-2 py-1 text-[13px] font-medium whitespace-nowrap',
-                isActive ? 'bg-accent-soft text-accent' : 'text-fg-muted hover:bg-surface-2 hover:text-fg',
-                vertical && 'px-3 py-2 text-sm',
-              )
-            }
-          >
-            {n.label}
-          </NavLink>
+          <NavLink to={n.to} onClick={onNavigate} className={({ isActive }) => cn(
+            'flex min-h-11 items-center rounded-lg px-3 text-sm font-medium whitespace-nowrap transition-colors',
+            isActive ? 'bg-accent-soft text-accent' : 'text-fg-muted hover:bg-surface-2 hover:text-fg',
+          )}>{n.label}</NavLink>
         </li>
       ))}
     </ul>
@@ -91,9 +72,8 @@ function NavItems({ onNavigate, vertical }: { onNavigate?: () => void; vertical?
 export function AppLayout() {
   const [menuOpen, setMenuOpen] = useState(false)
   const location = useLocation()
-  const nav = NAV.find((x) => (x.to === '/' ? location.pathname === '/' : location.pathname.startsWith(x.to)))
-  // Other routes (run pages, 404) set their own descriptive title.
-  useDocumentTitle(nav?.label ?? null)
+  const nav = NAV.find((x) => location.pathname.startsWith(x.to))
+  useDocumentTitle(location.pathname === '/' ? 'Overview' : nav?.title ?? null)
 
   return (
     <div className="flex h-full flex-col">
@@ -103,13 +83,19 @@ export function AppLayout() {
       >
         Skip to main content
       </a>
-      <header className="flex h-11 shrink-0 items-center gap-3 border-b border-line bg-surface px-3">
-        <NavLink to="/" className="flex items-center gap-1.5 font-semibold text-fg" aria-label="GridStorm home">
-          <Zap aria-hidden className="size-4 text-warn" />
-          GridStorm
+      <header className="relative z-30 flex h-14 shrink-0 items-center gap-3 border-b border-line bg-surface px-4 shadow-sm">
+        <NavLink to="/" className="group flex shrink-0 items-center gap-2.5 font-semibold tracking-tight text-fg" aria-label="GridStorm home">
+          <span className="flex size-8 items-center justify-center rounded-lg border border-accent/20 bg-accent-soft shadow-sm transition-colors group-hover:border-accent/50">
+            <Zap aria-hidden className="size-4 text-accent" />
+          </span>
+          <span className="text-[15px]">GridStorm</span>
         </NavLink>
-        <nav aria-label="Main" className="ml-2 hidden min-w-0 flex-1 overflow-x-auto lg:block">
-          <NavItems />
+        <nav aria-label="Main" className="ml-2 hidden min-w-0 flex-1 items-center gap-4 lg:flex">
+          <div aria-label="Main workspace"><NavItems /></div>
+          <details className="relative">
+            <summary className={cn('flex min-h-11 cursor-pointer items-center rounded-lg px-3 text-sm text-fg-muted hover:bg-surface-2', RESEARCH_NAV.some((n) => location.pathname.startsWith(n.to)) && 'bg-accent-soft text-accent')}>Advanced research</summary>
+            <div className="gs-panel absolute right-0 top-full mt-2 min-w-48 p-2 shadow-xl"><NavItems research vertical /></div>
+          </details>
         </nav>
         <div className="ml-auto flex items-center gap-2">
           <BackendStatus />
@@ -119,7 +105,7 @@ export function AppLayout() {
               <button
                 type="button"
                 aria-label="Open navigation menu"
-                className="inline-flex size-8 items-center justify-center rounded text-fg-muted hover:bg-surface-2 lg:hidden"
+                className="inline-flex size-11 items-center justify-center rounded text-fg-muted hover:bg-surface-2 lg:hidden"
               >
                 <Menu aria-hidden className="size-4" />
               </button>
@@ -130,14 +116,17 @@ export function AppLayout() {
                 <div className="mb-2 flex items-center justify-between">
                   <Dialog.Title className="text-sm font-semibold">Navigation</Dialog.Title>
                   <Dialog.Close asChild>
-                    <button type="button" aria-label="Close menu" className="rounded p-1 hover:bg-surface-2">
+                    <button type="button" aria-label="Close menu" className="flex size-11 items-center justify-center rounded hover:bg-surface-2">
                       <X aria-hidden className="size-4" />
                     </button>
                   </Dialog.Close>
                 </div>
                 <Dialog.Description className="sr-only">GridStorm sections</Dialog.Description>
                 <nav aria-label="Mobile">
+                  <p className="gs-label mb-2">Main workspace</p>
                   <NavItems vertical onNavigate={() => setMenuOpen(false)} />
+                  <p className="gs-label mb-2 mt-6">Advanced research</p>
+                  <NavItems research vertical onNavigate={() => setMenuOpen(false)} />
                 </nav>
               </Dialog.Content>
             </Dialog.Portal>
@@ -150,7 +139,7 @@ export function AppLayout() {
       {/* Safety disclaimer: one line at every width, every route (VER-012). */}
       <footer
         data-testid="safety-disclaimer"
-        className="shrink-0 border-t border-line bg-surface px-3 py-0.5 text-center text-2xs text-fg-subtle"
+        className="shrink-0 border-t border-line bg-surface px-3 py-1 text-center text-2xs text-fg-subtle"
       >
         Research tool · not a real-time control system
       </footer>

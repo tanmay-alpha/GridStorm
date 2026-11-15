@@ -22,6 +22,10 @@ export function DatasetInfo({ summary, detail }: { summary: NetworkSummary; deta
         )}
       </div>
       {summary.description && <p className="text-xs text-fg-muted">{summary.description}</p>}
+      {flags.length > 0 && <div><h3 className="gs-label mb-1">Scientific warnings</h3><ul className="list-disc space-y-1 pl-4 text-xs text-warn">{flags.map((f) => <li key={f}>{f}</li>)}</ul></div>}
+      <details className="rounded-lg border border-line bg-surface-2/40 p-2 text-xs">
+        <summary className="flex min-h-11 cursor-pointer items-center font-semibold text-fg">Provenance, attribution and assumptions</summary>
+        <div className="mt-2 space-y-3">
       <KeyValue
         rows={[
           ['Source', src?.url ? <a className="text-accent underline" href={src.url} target="_blank" rel="noreferrer">{src.url}</a> : NO_VALUE],
@@ -38,16 +42,6 @@ export function DatasetInfo({ summary, detail }: { summary: NetworkSummary; deta
           ['Engines', summary.engines.length ? summary.engines.join(', ') : NO_VALUE],
         ]}
       />
-      {flags.length > 0 && (
-        <div>
-          <h3 className="gs-label mb-1">Quality flags</h3>
-          <ul className="list-disc space-y-0.5 pl-4 text-xs text-warn">
-            {flags.map((f) => (
-              <li key={f}>{f}</li>
-            ))}
-          </ul>
-        </div>
-      )}
       {assumptions.length > 0 && (
         <details className="text-xs">
           <summary className="cursor-pointer gs-label">Dataset assumptions ({assumptions.length})</summary>
@@ -58,6 +52,8 @@ export function DatasetInfo({ summary, detail }: { summary: NetworkSummary; deta
           </ul>
         </details>
       )}
+        </div>
+      </details>
     </div>
   )
 }

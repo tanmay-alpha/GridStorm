@@ -12,7 +12,7 @@ Last updated: 2026-11-15
 
 ## Progress dashboard
 
-**58 tracked tasks: 58 done (46 VERIFIED + 12 DEPLOYED) · 0 in progress · 0 blocked (100 %).**
+**Original implementation scope:** 58/58 tasks complete (46 VERIFIED + 12 DEPLOYED). **Post-launch production audit:** new defects and UX work remain open below; the public product is **not** yet fully reliable.
 
 | State | Count | Tasks |
 |---|---|---|
@@ -20,6 +20,30 @@ Last updated: 2026-11-15
 | VERIFIED (evidence recorded) | 46 | research, licensing (incl. ENTSO-E remediation), all science engines, data, CI, verification, security, a11y/perf audit, EENS wording |
 
 Live: https://gridstorm.vercel.app · https://gridstorm-api.onrender.com · CI green on `17d76e4`.
+
+## Post-launch production audit — 2026-11-15
+
+Evidence: [production audit](docs/audit/production-2026-11-15.md) · [draft UX PR #7](https://github.com/tanmay-alpha/GridStorm/pull/7) · [P0 artifact loss issue #8](https://github.com/tanmay-alpha/GridStorm/issues/8).
+
+These items are **not** included in the original 58/58 delivery count.
+
+Statuses for this section: `BACKLOG → IMPLEMENTING → LOCALLY TESTED → CI VERIFIED → DEPLOYED → PROD TESTED`, or `BLOCKED`.
+Integration branch: `release/production-recovery` (PR #7 head + recovery work). Coordinator: I.
+
+| ID | Task | Pri | Owner | Deps | Status | Acceptance criteria / evidence |
+|---|---|---|---|---|---|---|
+| POST-01 | Durable generated-result artifact storage (Render resets disk) | P0 | E/Storage | Supabase Storage bucket `gridstorm-artifacts` (private; anon read denied) | LOCALLY TESTED | `SupabaseArtifactStore` (sha256-verified put/get, retries); worker fails job with `artifact_persist_failed` if durable write fails; 25 durability tests + real-bucket integration test pass; Render env set (`GRIDSTORM_ARTIFACT_STORE=supabase`). Pending: deploy + restart acceptance |
+| POST-01b | Truthful missing-artifact semantics (410 `artifact_unavailable`, `result_available`), reuse only verified blobs (owner-safe), recovery by recomputation with provenance | P0 | E/Storage + C/UXWorkflow | POST-01 | LOCALLY TESTED | API 115 tests; recompute endpoint + CLI write a NEW artifact with `recomputed_from`; UI 410 state with Re-run; reuse authz leak (private job id) fixed + tested |
+| POST-02 | Crisis Studio proactive unavailable-run guard, runnable example CTA, scoped presets, clearer missing-result state, polish | P1 | C/Frontend | audit evidence | LOCALLY TESTED | Integrated in PR #9; F-08 edited SciGRID blocked pre-POST (Playwright with request interception) |
+| POST-03 | Read-only public Vercel + Render checks + keep-alive for free Supabase | P1 | F/LiveAudit | deployed URLs | LOCALLY TESTED | Recovery-aware probe (410 or sha-verified), `GRIDSTORM_DURABLE_JOB_ID` restart check, `keepalive.yml` every 3 days; actionlint clean |
+| POST-04 | GeoJSON-first map loading and demand-loaded details instead of nine large asset fetches | P1 | C/UXShell | POST-02 | LOCALLY TESTED | Initial requests 12/12/13 → 4; first-map median 2591→1931 / 1642→1138 / 2296→2178 ms (ac-dc / case118 / scigrid, local build vs live API); regression: cached return-switch 117→273 ms (documented) |
+| POST-05 | Landing + grouped navigation + Explorer map-first redesign | P1 | C/UXShell | POST-02 | LOCALLY TESTED | Landing CTA → runnable IEEE-14 preset; grouped nav + mobile drawer; fit-to-network; screenshots 3 viewports × 2 themes |
+| POST-06 | Verify production Supabase RLS, policies, indexes, privilege boundaries; secrets hygiene | P1 | E/SecurityDB | authorized access | DEPLOYED | Rolled-back RLS probe 38/38; migration 0003 applied (indexes; client TRUNCATE/TRIGGER/REFERENCES revoked); 16 privileged/unused Supabase vars removed from Vercel web project (only `VITE_API_BASE_URL` remains); bundle + gitleaks clean |
+| POST-07 | Readiness distinguishes writable vs durable storage | P1 | E/Storage | POST-01 | LOCALLY TESTED | `/ready.checks.storage.durable`; local=false; supabase=true after cached round-trip probe |
+| POST-08 | Studio staged flow, results dashboard hierarchy, compare-with-baseline | P1 | C/UXWorkflow | POST-02 | LOCALLY TESTED | 4-stage Studio, summary-first results, baseline discovery, `?a=&b=`, pp vs relative %; live-API Playwright 5 passed |
+| POST-09 | Deep functional audit of production (all routes, 3 viewports, 2 themes) | P1 | F/LiveAudit | — | LOCALLY TESTED | 9 findings; F-02..F-09 re-verified FIXED on integrated build (F-01/F-02 via mocked 410; live after deploy) |
+| POST-10 | Scientific invariant regression suite over committed + live results | P1 | B/Science | — | LOCALLY TESTED | 161 offline tests pass over 12 artifacts; 2 presets reproduce objectives exactly; live check blocked by #8 until deploy |
+| POST-11 | Absolute deltas of percentage metrics reported as percentage points (UI + report export) | P2 | C/UXWorkflow + I | — | LOCALLY TESTED | `delta_unit: "pp"` in comparison JSON/MD; UI labels pp; test asserts |
 
 ## Phase 0 — Research, audit, baseline
 

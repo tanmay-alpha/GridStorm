@@ -91,7 +91,7 @@ class Settings:
     job_poll_s: float = 2.0
     max_queued_jobs: int = 50
 
-    artifact_store: Literal["local", "s3"] = "local"
+    artifact_store: Literal["local", "s3", "supabase"] = "local"
     artifact_dir: Path | None = None
     s3_bucket: str | None = None
     s3_endpoint_url: str | None = None
@@ -99,10 +99,15 @@ class Settings:
     s3_prefix: str = ""
 
     supabase_url: str | None = None
-    supabase_jwt_secret: str | None = None
+    supabase_jwt_secret: str | None = field(default=None, repr=False)
     supabase_jwt_audience: str = "authenticated"
+    # Server-only secret for GRIDSTORM_ARTIFACT_STORE=supabase; never sent to clients or engines.
+    supabase_service_role_key: str | None = field(default=None, repr=False)
+    supabase_bucket: str = "gridstorm-artifacts"
+    supabase_storage_timeout_s: float = 30.0
 
     solver_check_ttl_s: float = 600.0
+    storage_check_ttl_s: float = 300.0
 
     git_sha: str | None = None
     python_executable: str = field(default_factory=lambda: sys.executable)
@@ -149,8 +154,8 @@ class Settings:
         if mode not in ("live", "precomputed"):
             raise ValueError("GRIDSTORM_EXECUTION_MODE must be 'live' or 'precomputed'")
         store = _env("GRIDSTORM_ARTIFACT_STORE", "local")
-        if store not in ("local", "s3"):
-            raise ValueError("GRIDSTORM_ARTIFACT_STORE must be 'local' or 's3'")
+        if store not in ("local", "s3", "supabase"):
+            raise ValueError("GRIDSTORM_ARTIFACT_STORE must be 'local', 's3' or 'supabase'")
         return cls(
             data_dir=data_dir,
             state_dir=state_dir,
@@ -191,5 +196,10 @@ class Settings:
             supabase_url=_env("SUPABASE_URL"),
             supabase_jwt_secret=_env("SUPABASE_JWT_SECRET"),
             supabase_jwt_audience=_env("SUPABASE_JWT_AUDIENCE", "authenticated") or "authenticated",
+            supabase_service_role_key=_env("SUPABASE_SERVICE_ROLE_KEY"),
+            supabase_bucket=_env("GRIDSTORM_SUPABASE_BUCKET", "gridstorm-artifacts")
+            or "gridstorm-artifacts",
+            supabase_storage_timeout_s=_env_float("GRIDSTORM_SUPABASE_STORAGE_TIMEOUT_S", 30.0),
+            storage_check_ttl_s=_env_float("GRIDSTORM_STORAGE_CHECK_TTL_S", 300.0),
             git_sha=_env("GRIDSTORM_GIT_SHA") or _env("RENDER_GIT_COMMIT"),
         )

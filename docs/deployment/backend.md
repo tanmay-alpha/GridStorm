@@ -13,8 +13,8 @@ Optional environment settings are in `services/api/.env.example`. Copy it to `.e
 use `uv run --env-file .env.local uvicorn gridstorm_api.main:app`; the application does not
 implicitly load dotenv files. With no `DATABASE_URL`, SQLite is created under `var/` in the
 checkout; local result artifacts go under `var/artifacts/`. `/docs` and `/openapi.json` describe
-the HTTP interface. `/health` is liveness; `/ready` probes database connectivity, storage
-writability, solver imports in a separate process, and catalog datasets.
+the HTTP interface. `/health` is liveness; `/ready` probes database connectivity, artifact
+write/read/delete round trips, solver imports in a separate process, and catalog datasets.
 
 ## Docker (repository-root build context)
 
@@ -50,8 +50,8 @@ non-demo use. Its plain Postgres auth stub and automatic migrations are **local-
 <https://gridstorm-api.onrender.com>: free Docker, Frankfurt, main-branch auto-deploy,
 `./services/api/Dockerfile`, context `.`, health path `/health`. Render injects `PORT`.
 The blueprint sets live execution, one worker, a 180-second timeout, a 400-MB child-process-tree
-RSS limit, and the two production frontend origins plus localhost. It contains no secrets.
-Blank optional secret settings can remain unset until provisioning; do not insert dummy URLs.
+RSS limit, the two production frontend origins, and Supabase artifact storage. It contains no
+secrets. Provision the private bucket and server credentials before using this configuration.
 
 `buildFilter` limits auto-deploys to commits touching image inputs (the `.dockerignore`
 allow-list). The blueprint value only applies when the service is synced from `render.yaml`;
@@ -67,10 +67,50 @@ replacement. Committed catalog/preset/precomputed files survive because they are
 image. This is a demo, not durable production persistence. Free Render services may cold-start.
 
 For durable storage, provide a real Postgres connection URL and apply migrations (below), and
-configure S3/R2 for artifacts. A Postgres database alone does not preserve local result files.
-Set `GRIDSTORM_ARTIFACT_STORE=s3`, `GRIDSTORM_S3_BUCKET`, optional `GRIDSTORM_S3_ENDPOINT_URL`,
-`GRIDSTORM_S3_REGION`, `GRIDSTORM_S3_PREFIX`, and boto3 credentials via secret environment
-variables. Cloudflare R2 uses its S3-compatible endpoint. Never expose these in frontend envs.
+configure Supabase Storage. A Postgres database alone does not preserve local result files.
+Create a **private** `gridstorm-artifacts` bucket with **no public policies** in Supabase Storage.
+Set these API-server environment variables (the Blueprint declares the credentials `sync: false`):
+
+```text
+GRIDSTORM_ARTIFACT_STORE=supabase
+GRIDSTORM_SUPABASE_BUCKET=gridstorm-artifacts
+SUPABASE_URL=https://<project-ref>.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=<server-only service-role key>
+GRIDSTORM_STORAGE_CHECK_TTL_S=300
+GRIDSTORM_SUPABASE_STORAGE_TIMEOUT_S=30
+```
+
+Keep the service-role key server-only: never in `VITE_*`, browser code, logs, or the engine
+subprocess environment. Local storage remains the development default but is never durable on
+Render. `/ready` exposes `checks.storage.backend` and `checks.storage.durable`; the Supabase
+check reports `durable: true` only after a verified write/read/delete round trip under `_ready`.
+Probe results are cached for `GRIDSTORM_STORAGE_CHECK_TTL_S` (300 seconds); Supabase requests
+use `GRIDSTORM_SUPABASE_STORAGE_TIMEOUT_S` (30 seconds). Configuration alone is not evidence
+of durable storage. See [Supabase setup](supabase.md) for provisioning.
+
+### Lost or corrupt artifacts
+
+Completed job metadata is retained even if its blob is lost. Job responses expose cached
+`result_available`; it is not a fresh storage probe on every response. Missing blobs from
+result, report or artifact endpoints return HTTP 410 `artifact_unavailable` with recovery
+advice; checksum/integrity failures return HTTP 500 `artifact_integrity_error`, never fabricated
+output. Do not reuse a missing/corrupt artifact or an inaccessible private job.
+
+`POST /api/v1/simulations/{id}/recompute` applies the same access checks and submission rate
+limits, reruns the stored specification, and creates a **new** job rather than changing the old
+job or erasing its metadata. The new job records `recomputed_from_job_id`; its initial stage
+event records the old checksum as `lost_result_sha256`.
+
+Operators can run the same new-job recovery from `services/api`, with the API's environment:
+
+```sh
+python -m gridstorm_api.jobs.recover JOB_ID
+# Explicitly request recomputation even when a result is available:
+python -m gridstorm_api.jobs.recover JOB_ID --force
+```
+
+Track the new job to completion before using its result or rebuilding a comparison/report.
+These are operator instructions, not evidence of an executed recovery or deployment.
 
 ## Postgres / Supabase schema and seed
 

@@ -1,0 +1,7 @@
+{
+  "before": 33,
+  "carrierOff": 28,
+  "layerOff": 0,
+  "loadDetails": "LOAD\n\nload-3\nAttributes of load-3 with units and provenance\nField\tValue\tProvenance\nBus\tbus-3\t\nP peak [MW]\t94.2 MW\tSYNTHETIC\nP mean [MW]\t94.2 MW\tSYNTHETIC\nEnergy [MWh]\t94.2 MWh\tCALCULATED\nCONNECTED (1)\nBUS\nbus-3\n\nValues from canonical-grid/1.0. Empty values (—) are missing in the source and are not imputed.",
+  "escapeClosed": false
+}

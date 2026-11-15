@@ -65,6 +65,7 @@ def test_compare_results_carriers_and_branches():
     m = {r["metric"]: r for r in out["metrics"]}
     assert m["total_load_mwh"]["delta"] == 80.0 and m["total_load_mwh"]["unit"] == "MWh"
     assert m["total_load_mwh"]["delta_pct"] == pytest.approx(20.0)
+    assert m["total_load_mwh"]["delta_unit"] == "MWh"
     carriers = {r["carrier"]: r for r in out["carriers"]["generation_by_carrier_mwh"]}
     assert carriers["gas"]["delta"] == 60.0
     assert carriers["wind"]["scenario"] is None and carriers["wind"]["delta"] is None

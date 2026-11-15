@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { ThemeProvider } from '../../lib/theme'
 import { AppLayout } from './AppLayout'
+import { WORKSPACE_NAV, RESEARCH_NAV } from './navigation'
 import NotFound from './NotFound'
 
 function renderAt(path: string) {
@@ -33,6 +34,13 @@ afterEach(() => {
 })
 
 describe('AppLayout', () => {
+  it('separates workspace links from advanced research and marks the active route', () => {
+    expect(WORKSPACE_NAV.map((n) => n.label)).toEqual(['Explore', 'Simulate', 'Compare', 'Library'])
+    expect(RESEARCH_NAV.map((n) => n.label)).toEqual(['Contingency', 'Operations', 'Benchmarks', 'Methods'])
+    renderAt('/studio')
+    expect(screen.getByRole('link', { name: 'Simulate' })).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByText('Advanced research')).toBeInTheDocument()
+  })
   it('shows the safety disclaimer without any breakpoint-hidden class (VER-012)', () => {
     renderAt('/studio')
     const notes = screen.getAllByText(/not a real-time control system/i)

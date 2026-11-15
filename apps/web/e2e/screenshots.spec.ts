@@ -46,9 +46,10 @@ test('screenshot matrix of all routes', async ({ browser, request }) => {
   const baseline = await completedJob(request, 'pglib-case14-ieee-baseline')
   const outage = await completedJob(request, 'pglib-case14-ieee-gen-1-outage')
   const routes: { name: string; url: string; prepare?: (page: Page) => Promise<void> }[] = [
+    { name: 'landing', url: '/' },
     {
       name: 'explorer',
-      url: '/?network=pglib-case14-ieee',
+      url: '/explore?network=pglib-case14-ieee',
       prepare: async (page) => {
         await page.waitForFunction(() => window.__gridstormMap?.loaded())
       },
@@ -64,7 +65,7 @@ test('screenshot matrix of all routes', async ({ browser, request }) => {
     },
     {
       name: 'compare',
-      url: `/compare?baseline=${baseline}&scenario=${outage}`,
+      url: `/compare?a=${baseline}&b=${outage}`,
       prepare: async (page) => {
         await page.getByTestId('create-comparison').click()
         await expect(page.getByTestId('comparison')).toBeVisible()

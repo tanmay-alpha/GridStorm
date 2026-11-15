@@ -92,12 +92,12 @@ export function NumberField({
   className?: string
   testId?: string
 }) {
-  const [text, setText] = useState(value === null ? '' : String(value))
+  const [text, setText] = useState(value === null || !Number.isFinite(value) ? '' : String(value))
   const [synced, setSynced] = useState(value)
-  if (value !== synced) {
+  if (!Object.is(value, synced)) {
     // External change (e.g. preset load): adopt it unless the in-progress text already means it.
     setSynced(value)
-    if (!(text.trim() !== '' && Number(text) === value)) setText(value === null ? '' : String(value))
+    if (!(text.trim() !== '' && Number(text) === value)) setText(value === null || !Number.isFinite(value) ? '' : String(value))
   }
   const id = useId()
   return (

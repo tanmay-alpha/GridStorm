@@ -27,7 +27,8 @@ export const router = createBrowserRouter([
     element: <AppLayout />,
     errorElement: <RouteError />,
     children: [
-      { index: true, element: page(() => import('./features/explorer/ExplorerPage')) },
+      { index: true, element: page(() => import('./features/home/HomePage')) },
+      { path: 'explore', element: page(() => import('./features/explorer/ExplorerPage')) },
       { path: 'studio', element: page(() => import('./features/studio/StudioPage')) },
       { path: 'runs/:id', element: page(() => import('./features/runs/RunPage')) },
       { path: 'compare', element: page(() => import('./features/compare/ComparePage')) },

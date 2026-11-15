@@ -1,0 +1,17 @@
+{
+  "viewport": {
+    "width": 768,
+    "height": 1024
+  },
+  "image": {
+    "resolved": true,
+    "attribution": "OpenFreeMap © OpenMapTiles Data from OpenStreetMap"
+  },
+  "requests": [
+    "http://127.0.0.1:4190/api/v1/networks?limit=200",
+    "http://127.0.0.1:4190/api/v1/networks/ac-dc-meshed",
+    "http://127.0.0.1:4190/api/v1/networks/ac-dc-meshed/geojson"
+  ],
+  "messages": [],
+  "errors": []
+}

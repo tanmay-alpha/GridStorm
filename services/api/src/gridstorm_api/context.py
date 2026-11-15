@@ -17,7 +17,7 @@ from .storage import ArtifactStore, make_store
 if TYPE_CHECKING:
     from .analytics import AnalyticsService
     from .jobs.worker import WorkerPool
-    from .readiness import SolverProbe
+    from .readiness import SolverProbe, StorageProbe
 
 
 @dataclass
@@ -34,6 +34,7 @@ class AppContext:
     pool: WorkerPool | None = None
     analytics: AnalyticsService | None = None
     solver_probe: SolverProbe | None = None
+    storage_probe: StorageProbe | None = None
 
     @classmethod
     def build(cls, settings: Settings) -> AppContext:

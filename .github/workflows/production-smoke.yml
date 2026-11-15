@@ -1,0 +1,28 @@
+name: Production smoke (read-only)
+
+on:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      durable_job_id:
+        description: Post-deploy completed job to verify after a controlled API restart
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  public-api-and-frontend:
+    name: public Vercel + Render smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Probe public endpoints without writes
+        env:
+          GRIDSTORM_DURABLE_JOB_ID: ${{ inputs.durable_job_id }}
+        run: python scripts/probe_production.py

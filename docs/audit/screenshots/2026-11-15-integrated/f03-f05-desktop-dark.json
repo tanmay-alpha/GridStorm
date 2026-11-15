@@ -1,0 +1,22 @@
+{
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "image": {
+    "resolved": true,
+    "attribution": "OpenFreeMap © OpenMapTiles Data from OpenStreetMap"
+  },
+  "requests": [
+    "http://127.0.0.1:4190/api/v1/networks?limit=200",
+    "http://127.0.0.1:4190/api/v1/networks/ac-dc-meshed",
+    "http://127.0.0.1:4190/api/v1/networks/ac-dc-meshed/geojson"
+  ],
+  "messages": [
+    "[.WebGL-0x71bc00622400]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+    "[.WebGL-0x71bc00622400]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+    "[.WebGL-0x71bc00622400]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+    "[.WebGL-0x71bc00622400]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)"
+  ],
+  "errors": []
+}

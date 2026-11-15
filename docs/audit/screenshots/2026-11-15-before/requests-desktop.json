@@ -1,0 +1,339 @@
+[
+ {
+  "name": "explorer",
+  "route": "/",
+  "viewport": "desktop",
+  "theme": "light",
+  "console": [
+   "warning: [.WebGL-0xd1c02587600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+   "warning: [.WebGL-0xd1c02587600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+   "warning: [.WebGL-0xd1c02587600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+   "warning: [.WebGL-0xd1c02587600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)"
+  ],
+  "pageerrors": [],
+  "failed": [],
+  "requests": 35,
+  "api": 12,
+  "ms": 6588,
+  "h1": "Grid Explorer",
+  "overflowX": 0,
+  "dataTheme": "light",
+  "bodyErrorText": [
+   "missing"
+  ]
+ },
+ {
+  "name": "studio",
+  "route": "/studio",
+  "viewport": "desktop",
+  "theme": "light",
+  "console": [],
+  "pageerrors": [],
+  "failed": [],
+  "requests": 23,
+  "api": 15,
+  "ms": 3462,
+  "h1": "Crisis Studio",
+  "overflowX": 0,
+  "dataTheme": "light",
+  "bodyErrorText": []
+ },
+ {
+  "name": "run-missing-artifact",
+  "route": "/runs/2d47898b-8546-420e-a382-acc29f14d3d4",
+  "viewport": "desktop",
+  "theme": "light",
+  "console": [
+   "error: Failed to load resource: the server responded with a status of 500 ()"
+  ],
+  "pageerrors": [],
+  "failed": [
+   "500 GET https://gridstorm-api.onrender.com/api/v1/simulations/2d47898b-8546-420e-a382-acc29f14d3d4/result"
+  ],
+  "requests": 18,
+  "api": 5,
+  "ms": 2934,
+  "h1": "Run pglib-case14-ieee-baseline",
+  "overflowX": 0,
+  "dataTheme": "light",
+  "bodyErrorText": []
+ },
+ {
+  "name": "compare",
+  "route": "/compare",
+  "viewport": "desktop",
+  "theme": "light",
+  "console": [],
+  "pageerrors": [],
+  "failed": [],
+  "requests": 14,
+  "api": 2,
+  "ms": 2634,
+  "h1": "Compare & Replay",
+  "overflowX": 0,
+  "dataTheme": "light",
+  "bodyErrorText": []
+ },
+ {
+  "name": "library",
+  "route": "/library",
+  "viewport": "desktop",
+  "theme": "light",
+  "console": [],
+  "pageerrors": [],
+  "failed": [],
+  "requests": 13,
+  "api": 5,
+  "ms": 2642,
+  "h1": "Research Library",
+  "overflowX": 0,
+  "dataTheme": "light",
+  "bodyErrorText": []
+ },
+ {
+  "name": "contingency",
+  "route": "/contingency",
+  "viewport": "desktop",
+  "theme": "light",
+  "console": [],
+  "pageerrors": [],
+  "failed": [],
+  "requests": 15,
+  "api": 6,
+  "ms": 3020,
+  "h1": "Contingency analysis",
+  "overflowX": 0,
+  "dataTheme": "light",
+  "bodyErrorText": [
+   "ERROR"
+  ]
+ },
+ {
+  "name": "operations",
+  "route": "/operations",
+  "viewport": "desktop",
+  "theme": "light",
+  "console": [],
+  "pageerrors": [],
+  "failed": [],
+  "requests": 14,
+  "api": 5,
+  "ms": 5789,
+  "h1": "Operations replay",
+  "overflowX": 0,
+  "dataTheme": "light",
+  "bodyErrorText": [
+   "Error: Grid2OpException BackendError \"Divergence of DC powerflow (non connected grid) at the initialization of AC powerflow. ",
+   "error: ErrorType.SolverFactor\""
+  ]
+ },
+ {
+  "name": "benchmarks",
+  "route": "/benchmarks",
+  "viewport": "desktop",
+  "theme": "light",
+  "console": [],
+  "pageerrors": [],
+  "failed": [],
+  "requests": 32,
+  "api": 23,
+  "ms": 6819,
+  "h1": "Benchmarks",
+  "overflowX": 0,
+  "dataTheme": "light",
+  "bodyErrorText": [
+   "ERROR",
+   "error 0, invalid 0 · loss-of-load samples 87",
+   "error\tpandapower-ac vs pypsa-dc\t186\t",
+   "error of the DC approximation, not an engine disagreement.",
+   "error\tpandapower-ac vs pypsa-dc\t20\t",
+   "error of the DC approximation, not an engine disagreement."
+  ]
+ },
+ {
+  "name": "methods",
+  "route": "/methods",
+  "viewport": "desktop",
+  "theme": "light",
+  "console": [],
+  "pageerrors": [],
+  "failed": [],
+  "requests": 29,
+  "api": 15,
+  "ms": 2908,
+  "h1": "Methods",
+  "overflowX": 0,
+  "dataTheme": "light",
+  "bodyErrorText": [
+   "missing",
+   "missing"
+  ]
+ },
+ {
+  "name": "explorer",
+  "route": "/",
+  "viewport": "desktop",
+  "theme": "dark",
+  "console": [
+   "warning: Image \"circle-11\" could not be loaded. Please make sure you have added the image before it is needed with map.addImage(), resolved it with map.setMissingStyleImageResolver(), or included it in a \"sprite\" property in your style."
+  ],
+  "pageerrors": [],
+  "failed": [],
+  "requests": 33,
+  "api": 12,
+  "ms": 3944,
+  "h1": "Grid Explorer",
+  "overflowX": 0,
+  "dataTheme": "dark",
+  "bodyErrorText": [
+   "missing"
+  ]
+ },
+ {
+  "name": "studio",
+  "route": "/studio",
+  "viewport": "desktop",
+  "theme": "dark",
+  "console": [],
+  "pageerrors": [],
+  "failed": [],
+  "requests": 23,
+  "api": 15,
+  "ms": 3220,
+  "h1": "Crisis Studio",
+  "overflowX": 0,
+  "dataTheme": "dark",
+  "bodyErrorText": []
+ },
+ {
+  "name": "run-missing-artifact",
+  "route": "/runs/2d47898b-8546-420e-a382-acc29f14d3d4",
+  "viewport": "desktop",
+  "theme": "dark",
+  "console": [
+   "error: Failed to load resource: the server responded with a status of 500 ()"
+  ],
+  "pageerrors": [],
+  "failed": [
+   "500 GET https://gridstorm-api.onrender.com/api/v1/simulations/2d47898b-8546-420e-a382-acc29f14d3d4/result"
+  ],
+  "requests": 18,
+  "api": 5,
+  "ms": 22309,
+  "h1": "Run pglib-case14-ieee-baseline",
+  "overflowX": 0,
+  "dataTheme": "dark",
+  "bodyErrorText": []
+ },
+ {
+  "name": "compare",
+  "route": "/compare",
+  "viewport": "desktop",
+  "theme": "dark",
+  "console": [],
+  "pageerrors": [],
+  "failed": [],
+  "requests": 14,
+  "api": 2,
+  "ms": 2688,
+  "h1": "Compare & Replay",
+  "overflowX": 0,
+  "dataTheme": "dark",
+  "bodyErrorText": []
+ },
+ {
+  "name": "library",
+  "route": "/library",
+  "viewport": "desktop",
+  "theme": "dark",
+  "console": [],
+  "pageerrors": [],
+  "failed": [],
+  "requests": 13,
+  "api": 5,
+  "ms": 2680,
+  "h1": "Research Library",
+  "overflowX": 0,
+  "dataTheme": "dark",
+  "bodyErrorText": []
+ },
+ {
+  "name": "contingency",
+  "route": "/contingency",
+  "viewport": "desktop",
+  "theme": "dark",
+  "console": [],
+  "pageerrors": [],
+  "failed": [],
+  "requests": 15,
+  "api": 6,
+  "ms": 3059,
+  "h1": "Contingency analysis",
+  "overflowX": 0,
+  "dataTheme": "dark",
+  "bodyErrorText": [
+   "ERROR"
+  ]
+ },
+ {
+  "name": "operations",
+  "route": "/operations",
+  "viewport": "desktop",
+  "theme": "dark",
+  "console": [],
+  "pageerrors": [],
+  "failed": [],
+  "requests": 14,
+  "api": 5,
+  "ms": 5088,
+  "h1": "Operations replay",
+  "overflowX": 0,
+  "dataTheme": "dark",
+  "bodyErrorText": [
+   "Error: Grid2OpException BackendError \"Divergence of DC powerflow (non connected grid) at the initialization of AC powerflow. ",
+   "error: ErrorType.SolverFactor\""
+  ]
+ },
+ {
+  "name": "benchmarks",
+  "route": "/benchmarks",
+  "viewport": "desktop",
+  "theme": "dark",
+  "console": [],
+  "pageerrors": [],
+  "failed": [],
+  "requests": 32,
+  "api": 23,
+  "ms": 4939,
+  "h1": "Benchmarks",
+  "overflowX": 0,
+  "dataTheme": "dark",
+  "bodyErrorText": [
+   "ERROR",
+   "error 0, invalid 0 · loss-of-load samples 87",
+   "error\tpandapower-ac vs pypsa-dc\t186\t",
+   "error of the DC approximation, not an engine disagreement.",
+   "error\tpandapower-ac vs pypsa-dc\t20\t",
+   "error of the DC approximation, not an engine disagreement."
+  ]
+ },
+ {
+  "name": "methods",
+  "route": "/methods",
+  "viewport": "desktop",
+  "theme": "dark",
+  "console": [],
+  "pageerrors": [],
+  "failed": [],
+  "requests": 29,
+  "api": 15,
+  "ms": 2684,
+  "h1": "Methods",
+  "overflowX": 0,
+  "dataTheme": "dark",
+  "bodyErrorText": [
+   "missing",
+   "missing"
+  ]
+ }
+]

@@ -3,10 +3,10 @@ import { test, expect } from '@playwright/test'
 /**
  * scigrid-de is not in the backend's default GRIDSTORM_LIVE_NETWORKS (its measured solve exceeds
  * the hosted memory budget), so GET /api/v1/networks/scigrid-de reports live_execution=false.
- * An unchanged preset is served from its verified precomputed artifact; an edited scenario is
- * refused with HTTP 422 live_execution_unavailable. Both paths hit the real backend.
+ * An unchanged preset is served from its verified precomputed artifact; the UI prevents
+ * an edited scenario from submitting when there is no matching result.
  */
-test('Crisis Studio honours live_execution=false: precomputed preset runs, edited scenario is refused', async ({
+test('Crisis Studio honours live_execution=false: precomputed preset runs, unavailable edits cannot submit', async ({
   page,
   request,
 }) => {
@@ -18,12 +18,14 @@ test('Crisis Studio honours live_execution=false: precomputed preset runs, edite
   await page.goto('/studio?preset=scigrid-de-baseline')
   const notice = page.getByTestId('live-execution-notice')
   await expect(notice).toContainText('Live solves disabled for scigrid-de')
-  await expect(notice).toContainText('6 of 6 presets for this network have a precomputed result')
+  await expect(notice).toContainText('6 of 6 presets for this grid have a precomputed result')
+  await page.getByTestId('step-crisis').click()
   await expect(page.locator('[data-preset-id="scigrid-de-baseline"]').getByTestId('preset-execution')).toHaveText(
-    'precomputed result',
+    'verified precomputed result',
   )
+  await page.getByTestId('step-run').click()
   await expect(page.getByTestId('validation-status')).toHaveAttribute('data-valid', 'true')
-  await expect(page.getByTestId('execution-forecast')).toContainText('matches a precomputed result')
+  await expect(page.getByTestId('execution-forecast')).toHaveAttribute('data-availability', 'precomputed')
   await page.getByTestId('run-scenario').click()
   await expect(page).toHaveURL(/\/runs\//)
   await expect(page.getByTestId('execution-mode')).toHaveText('precomputed')
@@ -33,18 +35,58 @@ test('Crisis Studio honours live_execution=false: precomputed preset runs, edite
   await expect(page.getByTestId('metrics')).not.toContainText('EENS')
 
   await page.goto('/studio?preset=scigrid-de-baseline')
-  await expect(page.getByTestId('validation-status')).toHaveAttribute('data-valid', 'true')
+  await page.getByTestId('advanced-settings').locator('summary').click()
   await page.getByTestId('time-limit').fill('120')
-  await expect(page.getByTestId('execution-forecast')).toContainText('No precomputed result matches')
-  const refused = page.waitForResponse((r) => r.url().endsWith('/api/v1/simulations') && r.request().method() === 'POST')
-  await page.getByTestId('run-scenario').click()
-  const resp = await refused
-  expect(resp.status()).toBe(422)
-  expect((await resp.json()).error.code).toBe('live_execution_unavailable')
-  const alert = page.getByTestId('live-unavailable')
-  await expect(alert).toContainText('Run refused: live execution unavailable')
-  await expect(alert).toContainText("Live execution is unavailable for network 'scigrid-de'")
-  await expect(alert).toContainText('HTTP 422 · live_execution_unavailable')
+  await page.getByTestId('step-run').click()
+  await expect(page.getByTestId('execution-forecast')).toContainText('cannot run here')
+  await expect(page.getByTestId('run-scenario')).toBeDisabled()
+  const guidance = page.getByTestId('unavailable-guidance')
+  await expect(guidance).toContainText('not available for execution')
+  await expect(guidance.getByRole('link', { name: /Open the verified result of preset/ })).toHaveAttribute(
+    'href',
+    '/studio?network=scigrid-de&preset=scigrid-de-baseline',
+  )
   await expect(page).toHaveURL(/\/studio/)
   expect(errors).toEqual([])
 })
+
+test('a valid physical edit on a precomputed-only grid is blocked before simulation POST', async ({ page }) => {
+  const submissions: string[] = []
+  page.on('request', (request) => {
+    if (request.method() === 'POST' && new URL(request.url()).pathname === '/api/v1/simulations')
+      submissions.push(request.url())
+  })
+  await page.goto('/studio?preset=scigrid-de-baseline')
+  await page.getByTestId('step-crisis').click()
+  await page.getByTestId('add-event-type').selectOption('demand_multiplier')
+  await page.getByTestId('add-event').click()
+  await page.getByTestId('step-run').click()
+  await expect(page.getByTestId('validation-status')).toHaveAttribute('data-valid', 'true')
+  await expect(page.getByTestId('execution-forecast')).toHaveAttribute('data-availability', 'unavailable')
+  await expect(page.getByTestId('run-scenario')).toBeDisabled()
+  await expect(page.getByTestId('run-block-reason')).toContainText('server would refuse')
+  expect(submissions).toEqual([])
+})
+
+for (const field of ['voll', 'time-limit']) {
+  test(`clearing required ${field} does not crash and can be corrected`, async ({ page }) => {
+    const errors: string[] = []
+    page.on('pageerror', (error) => errors.push(error.message))
+    await page.goto('/studio?preset=pglib-case14-ieee-baseline')
+    if (field === 'time-limit') await page.getByTestId('advanced-settings').locator('summary').click()
+    const input = page.getByTestId(field)
+    const original = await input.inputValue()
+    await input.fill('')
+    await expect(input).toHaveValue('')
+    await page.getByTestId('step-run').click()
+    await expect(page.getByTestId('validation-status')).toHaveAttribute('data-valid', 'false')
+    await expect(page.getByTestId('run-scenario')).toBeDisabled()
+    await page.getByTestId('step-review').click()
+    if (field === 'time-limit') await page.getByTestId('advanced-settings').locator('summary').click()
+    await page.getByTestId(field).fill(original)
+    await page.getByTestId('step-run').click()
+    await expect(page.getByTestId('validation-status')).toHaveAttribute('data-valid', 'true')
+    await expect(page.getByTestId('run-scenario')).toBeEnabled()
+    expect(errors).toEqual([])
+  })
+}

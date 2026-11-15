@@ -1,0 +1,600 @@
+{
+  "config": {
+    "argv": [
+      "C:\\Program Files\\nodejs\\node.exe",
+      "D:\\New folder (4)\\GridStorm\\apps\\web\\node_modules\\@playwright\\test\\cli.js",
+      "test",
+      "-c",
+      "playwright.audit.config.ts"
+    ],
+    "configFile": "D:\\New folder (4)\\GridStorm\\apps\\web\\playwright.audit.config.ts",
+    "rootDir": "D:/New folder (4)/GridStorm/apps/web/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "D:/New folder (4)/GridStorm/apps/web/test-results/integrated-findings",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "D:/New folder (4)/GridStorm/apps/web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "integrated-findings.spec.ts"
+        ],
+        "timeout": 150000
+      }
+    ],
+    "filteredProjects": [
+      {
+        "grep": {},
+        "grepInvert": null,
+        "outputDir": "D:\\New folder (4)\\GridStorm\\apps\\web\\test-results\\integrated-findings",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "name": "",
+        "testDir": "D:\\New folder (4)\\GridStorm\\apps\\web\\e2e",
+        "snapshotDir": "D:\\New folder (4)\\GridStorm\\apps\\web\\e2e",
+        "testIgnore": [],
+        "testMatch": "integrated-findings.spec.ts",
+        "timeout": 150000,
+        "use": {
+          "baseURL": "http://127.0.0.1:4190",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36",
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "screen": {
+            "width": 1920,
+            "height": 1080
+          },
+          "deviceScaleFactor": 1,
+          "isMobile": false,
+          "hasTouch": false,
+          "defaultBrowserType": "chromium",
+          "trace": "retain-on-failure",
+          "screenshot": "only-on-failure",
+          "launchOptions": {
+            "args": [
+              "--enable-unsafe-swiftshader"
+            ]
+          }
+        },
+        "dependencies": [],
+        "ignoreSnapshots": false,
+        "__projectId": ""
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "../../docs/audit/screenshots/2026-11-15-integrated/results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "default",
+    "updateSourceMethod": "patch",
+    "version": "1.65.1",
+    "workers": 1,
+    "webServer": {
+      "command": "npx vite preview --host 127.0.0.1 --port 4190 --strictPort",
+      "url": "http://127.0.0.1:4190",
+      "reuseExistingServer": true,
+      "env": {
+        "GRIDSTORM_API_PROXY": "https://gridstorm-api.onrender.com"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "integrated-findings.spec.ts",
+      "file": "integrated-findings.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "F-01/F-02: mocked 410 exposes unavailable evidence and recovery (light)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 625,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-15T00:54:35.999Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "aa8a69698f10cb3a0640-0fa1f254a2082a3bfa3c",
+          "file": "integrated-findings.spec.ts",
+          "line": 31,
+          "column": 3
+        },
+        {
+          "title": "F-01/F-02: mocked 410 exposes unavailable evidence and recovery (dark)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 591,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-15T00:54:36.691Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "aa8a69698f10cb3a0640-6aa740d82f5dd3406730",
+          "file": "integrated-findings.spec.ts",
+          "line": 31,
+          "column": 3
+        },
+        {
+          "title": "F-03/F-04/F-05: compact attribution, resolved circle image, lazy assets (desktop dark)",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 2157,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 3\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"Image \\\"circle-11\\\" could not be loaded. Please make sure you have added the image before it is needed with map.addImage(), resolved it with map.setMissingStyleImageResolver(), or included it in a \\\"sprite\\\" property in your style.\",\u001b[39m\n\u001b[31m+ ]\u001b[39m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 3\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"Image \\\"circle-11\\\" could not be loaded. Please make sure you have added the image before it is needed with map.addImage(), resolved it with map.setMissingStyleImageResolver(), or included it in a \\\"sprite\\\" property in your style.\",\u001b[39m\n\u001b[31m+ ]\u001b[39m\n    at D:\\New folder (4)\\GridStorm\\apps\\web\\e2e\\integrated-findings.spec.ts:77:97)\n    at D:\\New folder (4)\\GridStorm\\apps\\web\\node_modules\\playwright\\lib\\worker\\workerProcessEntry.js:1646:9)\n    at D:\\New folder (4)\\GridStorm\\apps\\web\\node_modules\\playwright\\lib\\worker\\workerProcessEntry.js:1135:11)\n    at D:\\New folder (4)\\GridStorm\\apps\\web\\node_modules\\playwright\\lib\\worker\\workerProcessEntry.js:1644:7)",
+                    "location": {
+                      "file": "4)\\GridStorm\\apps\\web\\e2e\\integrated-findings.spec.ts",
+                      "column": 97,
+                      "line": 77
+                    }
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "4)\\GridStorm\\apps\\web\\e2e\\integrated-findings.spec.ts",
+                        "column": 97,
+                        "line": 77
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 3\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"Image \\\"circle-11\\\" could not be loaded. Please make sure you have added the image before it is needed with map.addImage(), resolved it with map.setMissingStyleImageResolver(), or included it in a \\\"sprite\\\" property in your style.\",\u001b[39m\n\u001b[31m+ ]\u001b[39m\n    at D:\\New folder (4)\\GridStorm\\apps\\web\\e2e\\integrated-findings.spec.ts:77:97)\n    at D:\\New folder (4)\\GridStorm\\apps\\web\\node_modules\\playwright\\lib\\worker\\workerProcessEntry.js:1646:9)\n    at D:\\New folder (4)\\GridStorm\\apps\\web\\node_modules\\playwright\\lib\\worker\\workerProcessEntry.js:1135:11)\n    at D:\\New folder (4)\\GridStorm\\apps\\web\\node_modules\\playwright\\lib\\worker\\workerProcessEntry.js:1644:7)"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-15T00:54:37.290Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "D:\\New folder (4)\\GridStorm\\apps\\web\\test-results\\integrated-findings\\integrated-findings-F-03-F-581f0-e-lazy-assets-desktop-dark-\\test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "D:\\New folder (4)\\GridStorm\\apps\\web\\test-results\\integrated-findings\\integrated-findings-F-03-F-581f0-e-lazy-assets-desktop-dark-\\error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "D:\\New folder (4)\\GridStorm\\apps\\web\\test-results\\integrated-findings\\integrated-findings-F-03-F-581f0-e-lazy-assets-desktop-dark-\\trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "4)\\GridStorm\\apps\\web\\e2e\\integrated-findings.spec.ts",
+                    "column": 97,
+                    "line": 77
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "aa8a69698f10cb3a0640-80905d7a50ba9985d421",
+          "file": "integrated-findings.spec.ts",
+          "line": 61,
+          "column": 3
+        },
+        {
+          "title": "F-03/F-04/F-05: compact attribution, resolved circle image, lazy assets (tablet dark)",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 2206,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 3\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"Image \\\"circle-11\\\" could not be loaded. Please make sure you have added the image before it is needed with map.addImage(), resolved it with map.setMissingStyleImageResolver(), or included it in a \\\"sprite\\\" property in your style.\",\u001b[39m\n\u001b[31m+ ]\u001b[39m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 3\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"Image \\\"circle-11\\\" could not be loaded. Please make sure you have added the image before it is needed with map.addImage(), resolved it with map.setMissingStyleImageResolver(), or included it in a \\\"sprite\\\" property in your style.\",\u001b[39m\n\u001b[31m+ ]\u001b[39m\n    at D:\\New folder (4)\\GridStorm\\apps\\web\\e2e\\integrated-findings.spec.ts:77:97)\n    at D:\\New folder (4)\\GridStorm\\apps\\web\\node_modules\\playwright\\lib\\worker\\workerProcessEntry.js:1646:9)\n    at D:\\New folder (4)\\GridStorm\\apps\\web\\node_modules\\playwright\\lib\\worker\\workerProcessEntry.js:1135:11)\n    at D:\\New folder (4)\\GridStorm\\apps\\web\\node_modules\\playwright\\lib\\worker\\workerProcessEntry.js:1644:7)",
+                    "location": {
+                      "file": "4)\\GridStorm\\apps\\web\\e2e\\integrated-findings.spec.ts",
+                      "column": 97,
+                      "line": 77
+                    }
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "4)\\GridStorm\\apps\\web\\e2e\\integrated-findings.spec.ts",
+                        "column": 97,
+                        "line": 77
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 3\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"Image \\\"circle-11\\\" could not be loaded. Please make sure you have added the image before it is needed with map.addImage(), resolved it with map.setMissingStyleImageResolver(), or included it in a \\\"sprite\\\" property in your style.\",\u001b[39m\n\u001b[31m+ ]\u001b[39m\n    at D:\\New folder (4)\\GridStorm\\apps\\web\\e2e\\integrated-findings.spec.ts:77:97)\n    at D:\\New folder (4)\\GridStorm\\apps\\web\\node_modules\\playwright\\lib\\worker\\workerProcessEntry.js:1646:9)\n    at D:\\New folder (4)\\GridStorm\\apps\\web\\node_modules\\playwright\\lib\\worker\\workerProcessEntry.js:1135:11)\n    at D:\\New folder (4)\\GridStorm\\apps\\web\\node_modules\\playwright\\lib\\worker\\workerProcessEntry.js:1644:7)"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-15T00:54:39.889Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "D:\\New folder (4)\\GridStorm\\apps\\web\\test-results\\integrated-findings\\integrated-findings-F-03-F-63d85-ge-lazy-assets-tablet-dark-\\test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "D:\\New folder (4)\\GridStorm\\apps\\web\\test-results\\integrated-findings\\integrated-findings-F-03-F-63d85-ge-lazy-assets-tablet-dark-\\error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "D:\\New folder (4)\\GridStorm\\apps\\web\\test-results\\integrated-findings\\integrated-findings-F-03-F-63d85-ge-lazy-assets-tablet-dark-\\trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "4)\\GridStorm\\apps\\web\\e2e\\integrated-findings.spec.ts",
+                    "column": 97,
+                    "line": 77
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "aa8a69698f10cb3a0640-180d559e916c65958a96",
+          "file": "integrated-findings.spec.ts",
+          "line": 61,
+          "column": 3
+        },
+        {
+          "title": "F-03/F-04/F-05: compact attribution, resolved circle image, lazy assets (mobile dark)",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 2265,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 3\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"Image \\\"circle-11\\\" could not be loaded. Please make sure you have added the image before it is needed with map.addImage(), resolved it with map.setMissingStyleImageResolver(), or included it in a \\\"sprite\\\" property in your style.\",\u001b[39m\n\u001b[31m+ ]\u001b[39m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 3\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"Image \\\"circle-11\\\" could not be loaded. Please make sure you have added the image before it is needed with map.addImage(), resolved it with map.setMissingStyleImageResolver(), or included it in a \\\"sprite\\\" property in your style.\",\u001b[39m\n\u001b[31m+ ]\u001b[39m\n    at D:\\New folder (4)\\GridStorm\\apps\\web\\e2e\\integrated-findings.spec.ts:77:97)\n    at D:\\New folder (4)\\GridStorm\\apps\\web\\node_modules\\playwright\\lib\\worker\\workerProcessEntry.js:1646:9)\n    at D:\\New folder (4)\\GridStorm\\apps\\web\\node_modules\\playwright\\lib\\worker\\workerProcessEntry.js:1135:11)\n    at D:\\New folder (4)\\GridStorm\\apps\\web\\node_modules\\playwright\\lib\\worker\\workerProcessEntry.js:1644:7)",
+                    "location": {
+                      "file": "4)\\GridStorm\\apps\\web\\e2e\\integrated-findings.spec.ts",
+                      "column": 97,
+                      "line": 77
+                    }
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "4)\\GridStorm\\apps\\web\\e2e\\integrated-findings.spec.ts",
+                        "column": 97,
+                        "line": 77
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 3\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"Image \\\"circle-11\\\" could not be loaded. Please make sure you have added the image before it is needed with map.addImage(), resolved it with map.setMissingStyleImageResolver(), or included it in a \\\"sprite\\\" property in your style.\",\u001b[39m\n\u001b[31m+ ]\u001b[39m\n    at D:\\New folder (4)\\GridStorm\\apps\\web\\e2e\\integrated-findings.spec.ts:77:97)\n    at D:\\New folder (4)\\GridStorm\\apps\\web\\node_modules\\playwright\\lib\\worker\\workerProcessEntry.js:1646:9)\n    at D:\\New folder (4)\\GridStorm\\apps\\web\\node_modules\\playwright\\lib\\worker\\workerProcessEntry.js:1135:11)\n    at D:\\New folder (4)\\GridStorm\\apps\\web\\node_modules\\playwright\\lib\\worker\\workerProcessEntry.js:1644:7)"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-15T00:54:42.596Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "D:\\New folder (4)\\GridStorm\\apps\\web\\test-results\\integrated-findings\\integrated-findings-F-03-F-31cad-ge-lazy-assets-mobile-dark-\\test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "D:\\New folder (4)\\GridStorm\\apps\\web\\test-results\\integrated-findings\\integrated-findings-F-03-F-31cad-ge-lazy-assets-mobile-dark-\\error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "D:\\New folder (4)\\GridStorm\\apps\\web\\test-results\\integrated-findings\\integrated-findings-F-03-F-31cad-ge-lazy-assets-mobile-dark-\\trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "4)\\GridStorm\\apps\\web\\e2e\\integrated-findings.spec.ts",
+                    "column": 97,
+                    "line": 77
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "aa8a69698f10cb3a0640-dd0d31df495414ab1dae",
+          "file": "integrated-findings.spec.ts",
+          "line": 61,
+          "column": 3
+        },
+        {
+          "title": "F-06: absolute loading change uses pp while relative change uses percent",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 61343,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('comparison').getByRole('row').filter({ has: locator('[title=\"max_line_loading_pct\"]') })\nExpected substring: \u001b[32m\"−85.45%\"\u001b[39m\nReceived string:    \u001b[31m\"\u001b[7mMax line loading [%]60.668.83−51.83 pp\u001b[27m−85.45\u001b[7m \u001b[27m%\"\u001b[39m\nTimeout: 60000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" getByTestId('comparison').getByRole('row').filter({ has: locator('[title=\"max_line_loading_pct\"]') }) with timeout 60000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('comparison').getByRole('row').filter({ has: locator('[title=\"max_line_loading_pct\"]') })\u001b[22m\n\u001b[2m    121 × locator resolved to <tr class=\"border-b border-line/60\">…</tr>\u001b[22m\n\u001b[2m        - unexpected value \"Max line loading [%]60.668.83−51.83 pp−85.45 %\"\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('comparison').getByRole('row').filter({ has: locator('[title=\"max_line_loading_pct\"]') })\nExpected substring: \u001b[32m\"−85.45%\"\u001b[39m\nReceived string:    \u001b[31m\"\u001b[7mMax line loading [%]60.668.83−51.83 pp\u001b[27m−85.45\u001b[7m \u001b[27m%\"\u001b[39m\nTimeout: 60000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" getByTestId('comparison').getByRole('row').filter({ has: locator('[title=\"max_line_loading_pct\"]') }) with timeout 60000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('comparison').getByRole('row').filter({ has: locator('[title=\"max_line_loading_pct\"]') })\u001b[22m\n\u001b[2m    121 × locator resolved to <tr class=\"border-b border-line/60\">…</tr>\u001b[22m\n\u001b[2m        - unexpected value \"Max line loading [%]60.668.83−51.83 pp−85.45 %\"\u001b[22m\n\n    at D:\\New folder (4)\\GridStorm\\apps\\web\\e2e\\integrated-findings.spec.ts:94:21)\n    at D:\\New folder (4)\\GridStorm\\apps\\web\\node_modules\\playwright\\lib\\worker\\workerProcessEntry.js:1646:9)\n    at D:\\New folder (4)\\GridStorm\\apps\\web\\node_modules\\playwright\\lib\\worker\\workerProcessEntry.js:1135:11)\n    at D:\\New folder (4)\\GridStorm\\apps\\web\\node_modules\\playwright\\lib\\worker\\workerProcessEntry.js:1644:7)",
+                    "location": {
+                      "file": "4)\\GridStorm\\apps\\web\\e2e\\integrated-findings.spec.ts",
+                      "column": 21,
+                      "line": 94
+                    }
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "4)\\GridStorm\\apps\\web\\e2e\\integrated-findings.spec.ts",
+                        "column": 21,
+                        "line": 94
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('comparison').getByRole('row').filter({ has: locator('[title=\"max_line_loading_pct\"]') })\nExpected substring: \u001b[32m\"−85.45%\"\u001b[39m\nReceived string:    \u001b[31m\"\u001b[7mMax line loading [%]60.668.83−51.83 pp\u001b[27m−85.45\u001b[7m \u001b[27m%\"\u001b[39m\nTimeout: 60000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" getByTestId('comparison').getByRole('row').filter({ has: locator('[title=\"max_line_loading_pct\"]') }) with timeout 60000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('comparison').getByRole('row').filter({ has: locator('[title=\"max_line_loading_pct\"]') })\u001b[22m\n\u001b[2m    121 × locator resolved to <tr class=\"border-b border-line/60\">…</tr>\u001b[22m\n\u001b[2m        - unexpected value \"Max line loading [%]60.668.83−51.83 pp−85.45 %\"\u001b[22m\n\n    at D:\\New folder (4)\\GridStorm\\apps\\web\\e2e\\integrated-findings.spec.ts:94:21)\n    at D:\\New folder (4)\\GridStorm\\apps\\web\\node_modules\\playwright\\lib\\worker\\workerProcessEntry.js:1646:9)\n    at D:\\New folder (4)\\GridStorm\\apps\\web\\node_modules\\playwright\\lib\\worker\\workerProcessEntry.js:1135:11)\n    at D:\\New folder (4)\\GridStorm\\apps\\web\\node_modules\\playwright\\lib\\worker\\workerProcessEntry.js:1644:7)"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-15T00:54:45.341Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "D:\\New folder (4)\\GridStorm\\apps\\web\\test-results\\integrated-findings\\integrated-findings-F-06-a-ed195-elative-change-uses-percent\\test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "D:\\New folder (4)\\GridStorm\\apps\\web\\test-results\\integrated-findings\\integrated-findings-F-06-a-ed195-elative-change-uses-percent\\error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "D:\\New folder (4)\\GridStorm\\apps\\web\\test-results\\integrated-findings\\integrated-findings-F-06-a-ed195-elative-change-uses-percent\\trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "4)\\GridStorm\\apps\\web\\e2e\\integrated-findings.spec.ts",
+                    "column": 21,
+                    "line": 94
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "aa8a69698f10cb3a0640-7e7092ec217b843760f1",
+          "file": "integrated-findings.spec.ts",
+          "line": 88,
+          "column": 1
+        },
+        {
+          "title": "F-07: clearing VOLL stays usable, blocks invalid input and recovers",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2869,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-15T00:55:47.196Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "aa8a69698f10cb3a0640-977cf8de342f0530688b",
+          "file": "integrated-findings.spec.ts",
+          "line": 98,
+          "column": 1
+        },
+        {
+          "title": "F-08: demand times 1.2 disables Run before any simulation POST",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3362,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-15T00:55:50.137Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "aa8a69698f10cb3a0640-82a9375e309f25ad9f33",
+          "file": "integrated-findings.spec.ts",
+          "line": 118,
+          "column": 1
+        },
+        {
+          "title": "F-09: Ctrl+K, load-3 selection, Escape dismisses asset details",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3067,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-15T00:55:53.505Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "aa8a69698f10cb3a0640-aff7de1e65afa93bb9c9",
+          "file": "integrated-findings.spec.ts",
+          "line": 140,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-15T00:54:35.637Z",
+    "duration": 81014.09700000001,
+    "expected": 5,
+    "skipped": 0,
+    "unexpected": 4,
+    "flaky": 0
+  }
+}

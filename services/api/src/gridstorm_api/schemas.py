@@ -236,6 +236,7 @@ class Job(BaseModel):
     execution_mode: Literal["live", "precomputed"]
     reused: bool
     reused_from_job_id: str | None
+    recomputed_from_job_id: str | None
     status: JobStatus
     stage: JobStage
     stage_history: list[StageEvent]
@@ -248,6 +249,7 @@ class Job(BaseModel):
     started_at: str | None
     finished_at: str | None
     result_sha256: str | None
+    result_available: bool
     owner_id: str | None
     visibility: Visibility
 

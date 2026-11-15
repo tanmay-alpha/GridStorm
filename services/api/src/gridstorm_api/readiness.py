@@ -9,6 +9,7 @@ import time
 from typing import Any
 
 from .context import AppContext
+from .storage import ArtifactStore
 
 _PROBE = (
     "import json, highspy, pypsa, linopy; "
@@ -58,6 +59,36 @@ class SolverProbe:
             return res
 
 
+class StorageProbe:
+    """Cache a verified storage round-trip, not merely a successful upload."""
+
+    def __init__(self, store: ArtifactStore, ttl_s: float) -> None:
+        self.store = store
+        self.ttl_s = ttl_s
+        self._lock = threading.Lock()
+        self._cached: tuple[float, dict[str, Any]] | None = None
+
+    def check(self) -> dict[str, Any]:
+        with self._lock:
+            if self._cached and time.monotonic() < self._cached[0]:
+                return self._cached[1]
+            result: dict[str, Any] = {
+                "status": "error",
+                "backend": self.store.backend,
+                "durable": False,
+            }
+            try:
+                result["detail"] = self.store.check_writable()
+            except Exception as exc:
+                # Backend exceptions can contain URLs or credentials; never return them.
+                result["detail"] = f"artifact storage probe failed ({type(exc).__name__})"
+            else:
+                result["status"] = "ok"
+                result["durable"] = self.store.durable
+            self._cached = (time.monotonic() + self.ttl_s, result)
+            return result
+
+
 def _safe(fn: Any) -> dict[str, Any]:
     try:
         return fn()
@@ -78,7 +109,8 @@ def run_checks(ctx: AppContext) -> dict[str, Any]:
         }
 
     def storage() -> dict[str, Any]:
-        return {"status": "ok", "detail": ctx.store.check_writable()}
+        assert ctx.storage_probe is not None
+        return ctx.storage_probe.check()
 
     def solver() -> dict[str, Any]:
         if ctx.settings.execution_mode == "precomputed":

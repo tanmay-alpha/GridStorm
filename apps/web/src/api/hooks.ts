@@ -18,6 +18,8 @@ export const qk = {
   networks: ['networks'] as const,
   network: (id: string) => ['network', id] as const,
   assets: (id: string, type: string) => ['assets', id, type] as const,
+  /** Keyed by content hash too, so a redeployed dataset never reuses a stale in-memory copy. */
+  geojson: (id: string, sha256: string | null | undefined) => ['geojson', id, sha256 ?? ''] as const,
   scenarios: ['scenarios'] as const,
   scenario: (id: string) => ['scenario', id] as const,
   jobs: ['jobs'] as const,
@@ -75,10 +77,12 @@ const ASSET_TYPES = [
   'carriers',
 ] as const
 
-/** Page size per request; the API caps `limit`, so larger tables are fetched in pages. */
-const PAGE = 1000
+export type AssetTable = (typeof ASSET_TYPES)[number]
 
-async function fetchAll<T>(networkId: string, type: (typeof ASSET_TYPES)[number], signal: AbortSignal): Promise<T[]> {
+/** Page size per request: the API maximum (`limit ≤ 5000`), so every current table is one request. */
+const PAGE = 5000
+
+async function fetchAll<T>(networkId: string, type: AssetTable, signal: AbortSignal): Promise<T[]> {
   const out: T[] = []
   let offset = 0
   for (;;) {
@@ -113,6 +117,35 @@ export function useNetworkAssets(networkId: string | null | undefined) {
     error,
     refetch: () => results.forEach((r) => void r.refetch()),
   }
+}
+
+/**
+ * One canonical table, fetched only while `enabled`. Shares its cache entry with
+ * useNetworkAssets, so a table loaded on demand in the Explorer is reused by Crisis Studio.
+ */
+export function useAssetTable<K extends AssetTable>(networkId: string | null | undefined, type: K, enabled = true) {
+  return useQuery({
+    queryKey: qk.assets(networkId ?? '', type),
+    queryFn: ({ signal }) => fetchAll<NetworkAssets[K][number]>(networkId!, type, signal),
+    enabled: enabled && !!networkId,
+    staleTime: Infinity,
+  })
+}
+
+/**
+ * Map geometry (buses + lines/transformers/links with their display properties) in a single
+ * request — the Explorer's first paint. In-memory cache: network id + content sha256 for the
+ * session. HTTP cache: the API sends `Cache-Control: max-age=3600` and a body-hash `ETag`, so the
+ * browser serves reloads from cache and revalidates with `If-None-Match` (304) afterwards.
+ */
+export function useNetworkGeojson(networkId: string | null | undefined, sha256: string | null | undefined) {
+  return useQuery({
+    queryKey: qk.geojson(networkId ?? '', sha256),
+    queryFn: ({ signal }) => api.geojson(networkId!, signal),
+    enabled: !!networkId,
+    staleTime: Infinity,
+    gcTime: 30 * 60_000,
+  })
 }
 
 export function useScenarios() {
