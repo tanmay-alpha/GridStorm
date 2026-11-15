@@ -12,7 +12,7 @@ Last updated: 2026-11-15
 
 ## Progress dashboard
 
-**Original implementation scope:** 58/58 tasks complete (46 VERIFIED + 12 DEPLOYED). **Post-launch production audit:** new defects and UX work remain open below; the public product is **not** yet fully reliable.
+**Original implementation scope:** 58/58 tasks complete (46 VERIFIED + 12 DEPLOYED). **Post-launch production recovery (2026-11-15):** 12 of 13 items deployed and tested on production (P0 artifact loss fixed and verified across a controlled restart); 1 cosmetic backlog item.
 
 | State | Count | Tasks |
 |---|---|---|
@@ -32,18 +32,19 @@ Integration branch: `release/production-recovery` (PR #7 head + recovery work). 
 
 | ID | Task | Pri | Owner | Deps | Status | Acceptance criteria / evidence |
 |---|---|---|---|---|---|---|
-| POST-01 | Durable generated-result artifact storage (Render resets disk) | P0 | E/Storage | Supabase Storage bucket `gridstorm-artifacts` (private; anon read denied) | LOCALLY TESTED | `SupabaseArtifactStore` (sha256-verified put/get, retries); worker fails job with `artifact_persist_failed` if durable write fails; 25 durability tests + real-bucket integration test pass; Render env set (`GRIDSTORM_ARTIFACT_STORE=supabase`). Pending: deploy + restart acceptance |
-| POST-01b | Truthful missing-artifact semantics (410 `artifact_unavailable`, `result_available`), reuse only verified blobs (owner-safe), recovery by recomputation with provenance | P0 | E/Storage + C/UXWorkflow | POST-01 | LOCALLY TESTED | API 115 tests; recompute endpoint + CLI write a NEW artifact with `recomputed_from`; UI 410 state with Re-run; reuse authz leak (private job id) fixed + tested |
-| POST-02 | Crisis Studio proactive unavailable-run guard, runnable example CTA, scoped presets, clearer missing-result state, polish | P1 | C/Frontend | audit evidence | LOCALLY TESTED | Integrated in PR #9; F-08 edited SciGRID blocked pre-POST (Playwright with request interception) |
-| POST-03 | Read-only public Vercel + Render checks + keep-alive for free Supabase | P1 | F/LiveAudit | deployed URLs | LOCALLY TESTED | Recovery-aware probe (410 or sha-verified), `GRIDSTORM_DURABLE_JOB_ID` restart check, `keepalive.yml` every 3 days; actionlint clean |
-| POST-04 | GeoJSON-first map loading and demand-loaded details instead of nine large asset fetches | P1 | C/UXShell | POST-02 | LOCALLY TESTED | Initial requests 12/12/13 → 4; first-map median 2591→1931 / 1642→1138 / 2296→2178 ms (ac-dc / case118 / scigrid, local build vs live API); regression: cached return-switch 117→273 ms (documented) |
-| POST-05 | Landing + grouped navigation + Explorer map-first redesign | P1 | C/UXShell | POST-02 | LOCALLY TESTED | Landing CTA → runnable IEEE-14 preset; grouped nav + mobile drawer; fit-to-network; screenshots 3 viewports × 2 themes |
-| POST-06 | Verify production Supabase RLS, policies, indexes, privilege boundaries; secrets hygiene | P1 | E/SecurityDB | authorized access | DEPLOYED | Rolled-back RLS probe 38/38; migration 0003 applied (indexes; client TRUNCATE/TRIGGER/REFERENCES revoked); 16 privileged/unused Supabase vars removed from Vercel web project (only `VITE_API_BASE_URL` remains); bundle + gitleaks clean |
-| POST-07 | Readiness distinguishes writable vs durable storage | P1 | E/Storage | POST-01 | LOCALLY TESTED | `/ready.checks.storage.durable`; local=false; supabase=true after cached round-trip probe |
-| POST-08 | Studio staged flow, results dashboard hierarchy, compare-with-baseline | P1 | C/UXWorkflow | POST-02 | LOCALLY TESTED | 4-stage Studio, summary-first results, baseline discovery, `?a=&b=`, pp vs relative %; live-API Playwright 5 passed |
-| POST-09 | Deep functional audit of production (all routes, 3 viewports, 2 themes) | P1 | F/LiveAudit | — | LOCALLY TESTED | 9 findings; F-02..F-09 re-verified FIXED on integrated build (F-01/F-02 via mocked 410; live after deploy) |
-| POST-10 | Scientific invariant regression suite over committed + live results | P1 | B/Science | — | LOCALLY TESTED | 161 offline tests pass over 12 artifacts; 2 presets reproduce objectives exactly; live check blocked by #8 until deploy |
-| POST-11 | Absolute deltas of percentage metrics reported as percentage points (UI + report export) | P2 | C/UXWorkflow + I | — | LOCALLY TESTED | `delta_unit: "pp"` in comparison JSON/MD; UI labels pp; test asserts |
+| POST-01 | Durable generated-result artifact storage (Render resets disk) | P0 | E/Storage | Supabase Storage bucket `gridstorm-artifacts` | PROD TESTED | Deployed `dd185d1`; `/ready` storage `supabase`, `durable: true`. Job `34424ec2` (IEEE-14, HiGHS optimal) sha256 `77bcc325…` verified; **controlled Render restart 01:19:33Z** → HTTP 200, identical bytes + sha; MD report 200 |
+| POST-01b | Truthful missing-artifact semantics, owner-safe verified reuse, recompute recovery | P0 | E/Storage + C/UXWorkflow | POST-01 | PROD TESTED | Legacy `2d47898b` → HTTP 410 `artifact_unavailable` with recovery path; recomputed as `458fddab` (new sha `4bc42de8…`, `recomputed_from`), cost 2051.526309 EUR = committed precomputed baseline; lost checksum not reused |
+| POST-02 | Crisis Studio unavailable-run guard, runnable example CTA, scoped presets | P1 | C/Frontend | — | PROD TESTED | Live: edited SciGRID scenario → Run disabled, 0 simulation POSTs (production Playwright) |
+| POST-03 | Read-only public Vercel + Render checks + keep-alive | P1 | F/LiveAudit | — | PROD TESTED | `scripts/probe_production.py` all PASS (incl. durable job); production Playwright 11/11; `keepalive.yml` scheduled |
+| POST-04 | GeoJSON-first map loading | P1 | C/UXShell | — | DEPLOYED | Requests 12/12/13 → 4; first-map medians 2591→1931 / 1642→1138 / 2296→2178 ms (local build vs live API); cached return-switch regressed 117→273 ms (documented) |
+| POST-05 | Landing + grouped navigation + Explorer map-first redesign | P1 | C/UXShell | — | PROD TESTED | Live Overview page; "Try a sample crisis" → `/studio?network=pglib-case14-ieee&preset=pglib-case14-ieee-gen-1-outage` (review step, LIVE SOLVE); 0 console errors |
+| POST-06 | Supabase RLS/policies/indexes/privileges; secrets hygiene | P1 | E/SecurityDB | — | DEPLOYED | RLS probe 38/38 (rolled back); 0003 applied; 16 Supabase vars removed from Vercel web project; bundle + gitleaks clean |
+| POST-07 | Readiness distinguishes writable vs durable storage | P1 | E/Storage | POST-01 | PROD TESTED | Live `/ready.checks.storage = {backend: supabase, durable: true}` |
+| POST-08 | Studio staged flow, results hierarchy, compare-with-baseline | P1 | C/UXWorkflow | — | PROD TESTED | Live run page: summary (outcome, unserved 200 MWh, cost, curtailment, max loading), map/replay, "Compare with baseline" |
+| POST-09 | Deep functional audit (all routes, 3 viewports, 2 themes) | P1 | F/LiveAudit | — | PROD TESTED | F-01..F-09 fixed; production Playwright covers routes × viewports × themes |
+| POST-10 | Scientific invariant regression suite | P1 | B/Science | — | PROD TESTED | 161 offline tests; live network test passes on retrievable live results |
+| POST-11 | Percentage-point units for absolute deltas of % metrics | P2 | C/UXWorkflow + I | — | DEPLOYED | `delta_unit: "pp"` (API), UI "pp"; unit + hermetic e2e tests |
+| POST-12 | Cosmetic: PGLib single-snapshot label shows PyPSA default `now` in replay | P3 | C | — | BACKLOG | Show "single period (no timestamp)" for networks without a time index |
 
 ## Phase 0 — Research, audit, baseline
 

@@ -72,8 +72,12 @@ test('mobile public journey: map and navigation', async ({ page }) => {
 })
 
 test('edited SciGRID preset is blocked before simulation submission', async ({ page }) => {
+  const submissions: string[] = []
+  page.on('request', (request) => {
+    if (request.method() === 'POST' && new URL(request.url()).pathname === '/api/v1/simulations') submissions.push(request.url())
+  })
   await page.goto('/studio?preset=scigrid-de-baseline')
-  await page.getByTestId('scenario-name').fill('SciGRID edited availability check')
+  await page.getByTestId('step-crisis').click()
   await page.getByTestId('add-event-type').selectOption('demand_multiplier')
   await page.getByTestId('add-event').click()
   await page.getByTestId('event-0-value').fill('1.2')
@@ -81,6 +85,7 @@ test('edited SciGRID preset is blocked before simulation submission', async ({ p
   await expect(page.getByTestId('validation-status')).toHaveAttribute('data-valid', 'true', { timeout: 60_000 })
   await expect(page.getByTestId('execution-forecast')).toHaveAttribute('data-availability', 'unavailable')
   await expect(page.getByTestId('run-scenario')).toBeDisabled()
+  expect(submissions).toEqual([])
 })
 
 test('all five public networks render and match the API catalog', async ({ page, request }) => {
