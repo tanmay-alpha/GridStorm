@@ -1,7 +1,20 @@
 import { describe, expect, it } from 'vitest'
-import { generationOption, isIntegrityError, isResultUnavailable, outcomeSummary, priceOption, snapshotLabels, summaryMetrics } from './result'
-import type { GridstormResult, SolverInfo } from '../../api/types'
+import { generationOption, headlineFacts, horizonLabel, isIntegrityError, isResultUnavailable, outcomeSummary, priceOption, SINGLE_PERIOD, snapshotLabels } from './result'
+import type { CostBasis, GridstormResult, SolverInfo } from '../../api/types'
+
 import { ApiError } from '../../api/client'
+
+const PGLIB: CostBasis = {
+  schema_version: 'gridstorm-cost-basis/1.0',
+  kind: 'benchmark_nominal',
+  currency: null,
+  currency_year: null,
+  money_unit: 'PGLib cost units',
+  price_unit: 'PGLib cost units/MWh',
+  comparability_key: 'pglib',
+  provenance: 'MATPOWER gencost',
+  assumptions: [],
+}
 
 const withSnapshots = (snapshots: string[]) => ({ snapshots }) as unknown as GridstormResult
 const optimal: SolverInfo = { name: 'highs', version: null, status: 'ok', termination_condition: 'optimal', objective_eur: null, wall_time_s: null }
@@ -27,10 +40,23 @@ describe('run summary', () => {
     expect(outcomeSummary('completed', 'feasible', optimal)).toMatchObject({ label: 'Feasible', detail: expect.stringContaining('optimal') })
   })
   it('keeps null values missing and omits unreported emissions', () => {
-    const metrics = summaryMetrics({ unserved_energy_mwh: null, curtailment_mwh: 0, co2_emissions_t: null })
-    expect(metrics.find((m) => m.key === 'unserved_energy_mwh')?.value).toBeNull()
-    expect(metrics.find((m) => m.key === 'curtailment_mwh')?.value).toBe(0)
-    expect(metrics.some((m) => m.key === 'co2_emissions_t')).toBe(false)
+    const facts = headlineFacts({ unserved_energy_mwh: null, curtailment_mwh: 0, co2_emissions_t: null }, PGLIB)
+    expect(facts.find((m) => m.key === 'unserved')).toMatchObject({ value: null, display: '—' })
+    expect(facts.find((m) => m.key === 'curtailment')).toMatchObject({ value: 0, display: '0 MWh' })
+    expect(facts.find((m) => m.key === 'served')?.display).toBe('—')
+    expect(facts.some((m) => m.key === 'co2')).toBe(false)
+  })
+  it('labels operating cost in the cost basis (never EUR) and names the VOLL term a penalty', () => {
+    const facts = headlineFacts(
+      { total_system_cost_eur: 2001372.900146, load_shedding_cost_eur: 2_000_000, served_load_mwh: 59, total_load_mwh: 259, unserved_energy_mwh: 200 },
+      PGLIB,
+    )
+    const cost = facts.find((m) => m.key === 'cost')!
+    expect(cost.display).toBe('2 M PGLib cost units')
+    expect(cost.hint).toBe('incl. 2 M PGLib cost units load-shedding penalty')
+    expect(facts.find((m) => m.key === 'served')?.display).toBe('22.78 %')
+    expect(headlineFacts({ total_system_cost_eur: 5 }, null).find((m) => m.key === 'cost')?.display).toBe('5 cost units (basis unknown)')
+    expect(JSON.stringify(facts)).not.toContain('EUR')
   })
   it('distinguishes unavailable blobs from integrity failures', () => {
     const gone = new ApiError(410, 'artifact_unavailable', 'Gone', {})
@@ -48,6 +74,24 @@ describe('single-snapshot result visuals', () => {
       xAxis: { boundaryGap: true },
       series: [{ type: 'bar', data: [59] }, { name: 'Demand', symbol: 'circle', data: [259] }],
     })
-    expect(priceOption(result)).toMatchObject({ series: [{ symbol: 'circle', data: [10000] }] })
+    expect(priceOption(result, PGLIB)).toMatchObject({
+      yAxis: { name: 'PGLib cost units/MWh' },
+      xAxis: { data: [SINGLE_PERIOD] },
+      series: [{ symbol: 'circle', data: [10000] }],
+    })
+  })
+})
+
+describe('networks without a time index (POST-12)', () => {
+  it('shows "single period (no timestamp)" instead of PyPSA\'s placeholder `now`', () => {
+    const r = withSnapshots(['now'])
+    expect(snapshotLabels(r)).toEqual([SINGLE_PERIOD])
+    expect(SINGLE_PERIOD).toBe('single period (no timestamp)')
+    expect(horizonLabel(r)).toBe(SINGLE_PERIOD)
+  })
+  it('numbers integer-indexed periods and keeps real horizons', () => {
+    expect(snapshotLabels(withSnapshots(['0', '1']))).toEqual(['period 1', 'period 2'])
+    expect(horizonLabel(withSnapshots(['0', '1']))).toBe('2 periods (no timestamps)')
+    expect(horizonLabel(withSnapshots(['2011-01-01T00:00:00', '2011-01-01T23:00:00']))).toBe('2 snapshots · 2011-01-01 00:00 → 2011-01-01 23:00')
   })
 })

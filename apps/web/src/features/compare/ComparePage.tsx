@@ -1,12 +1,13 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { FileJson, FileText, GitCompare } from 'lucide-react'
 import { api } from '../../api/client'
-import { qk, useJob, useJobs, useNetworks, useResult } from '../../api/hooks'
-import type { BranchLoadingDelta, CarrierDelta, Comparison, MetricDelta } from '../../api/types'
+import { qk, useJob, useJobs, useNetwork, useResult } from '../../api/hooks'
+import type { BranchLoadingDelta, CarrierDelta, Comparison, CostBasis, Job, MetricDelta } from '../../api/types'
 import { BranchValueMap } from '../../components/map/BranchValueMap'
 import { SnapshotSlider } from '../../components/map/SnapshotSlider'
+import { assetKey } from '../../components/map/features'
 import {
   Badge,
   Button,
@@ -22,79 +23,102 @@ import {
   type ChartOption,
   type Column,
 } from '../../components/ui'
-import { formatDelta, formatNumber } from '../../lib/format'
+import { formatDelta, formatNumber, formatQuantity, formatRelativeChange, NO_VALUE } from '../../lib/format'
+import { resolveCostBasis } from '../../lib/money'
 import { downloadJson, downloadText } from '../../lib/download'
-import { branchLoadingAt, isResultUnavailable, snapshotLabels } from '../runs/result'
-import { comparableJobs, deltaAt, deltaValues, jobLabel, deltaCell, metricLabel } from './compare'
-
-
-const metricColumns: Column<MetricDelta>[] = [
-  {
-    key: 'metric',
-    header: 'Metric',
-    sortValue: (r) => r.metric,
-    render: (r) => <span title={r.metric}>{metricLabel(r.metric, r.unit)}</span>,
-  },
-  { key: 'b', header: 'Baseline', align: 'right', sortValue: (r) => r.baseline, render: (r) => formatNumber(r.baseline) },
-  { key: 's', header: 'Scenario', align: 'right', sortValue: (r) => r.scenario, render: (r) => formatNumber(r.scenario) },
-  {
-    key: 'd',
-    header: 'Δ',
-    align: 'right',
-    sortValue: (r) => deltaCell(r.baseline, r.scenario).delta,
-    render: (r) => {
-      const delta = deltaCell(r.baseline, r.scenario).delta
-      return <span className="tabular">{formatDelta(delta, '')}{delta !== null && r.unit ? ` ${r.unit === '%' ? 'pp' : r.unit}` : ''}</span>
-    },
-  },
-  {
-    key: 'dp',
-    header: 'Δ %',
-    align: 'right',
-    sortValue: (r) => deltaCell(r.baseline, r.scenario).pct,
-    render: (r) => <span title={deltaCell(r.baseline, r.scenario).pctNote ?? '100 × (scenario − baseline) / |baseline|'}>{formatDelta(deltaCell(r.baseline, r.scenario).pct, '%')}</span>,
-  },
-]
+import { buildBrief } from '../brief/brief'
+import { GridImpactBrief } from '../brief/GridImpactBrief'
+import { CostBasisNote } from '../runs/CostBasis'
+import { GuideSteps, GUIDE_STUDIO_URL } from '../runs/GuideSteps'
+import { branchLoadingAt, isResultUnavailable, outagedKeys, snapshotLabels } from '../runs/result'
+import { compareUrl } from './baseline'
+import { useBaselinePlan } from './useBaselinePlan'
+import {
+  SIGN_CONVENTION,
+  branchChange,
+  comparableJobs,
+  costComparability,
+  deltaAt,
+  deltaValues,
+  formatMetricDelta,
+  formatMetricValue,
+  jobLabel,
+  metricLabel,
+  metricUnitLabel,
+  topBranchChanges,
+  type CostComparability,
+} from './compare'
 
 const carrierColumns: Column<CarrierDelta>[] = [
   { key: 'c', header: 'Carrier', sortValue: (r) => r.carrier, render: (r) => r.carrier },
   { key: 'b', header: 'Baseline [MWh]', align: 'right', sortValue: (r) => r.baseline, render: (r) => formatNumber(r.baseline) },
   { key: 's', header: 'Scenario [MWh]', align: 'right', sortValue: (r) => r.scenario, render: (r) => formatNumber(r.scenario) },
   { key: 'd', header: 'Δ [MWh]', align: 'right', sortValue: (r) => r.delta, render: (r) => formatDelta(r.delta, '') },
+  { key: 'r', header: 'Relative', align: 'right', sortValue: (r) => r.delta_pct, render: (r) => formatRelativeChange(r.baseline, r.scenario) },
 ]
+
+const loading = (v: number | null, outaged: boolean | null) => (outaged ? <Badge tone="danger">outaged</Badge> : formatQuantity(v, '%'))
 
 const branchColumns: Column<BranchLoadingDelta>[] = [
   { key: 'k', header: 'Type', sortValue: (r) => r.component, render: (r) => r.component },
   { key: 'id', header: 'Id', sortValue: (r) => r.id, render: (r) => <span className="font-mono">{r.id}</span> },
-  {
-    key: 'b',
-    header: 'Baseline max [%]',
-    align: 'right',
-    sortValue: (r) => r.baseline_max_loading_pct,
-    render: (r) => (r.baseline_outaged ? <Badge tone="danger">outaged</Badge> : formatNumber(r.baseline_max_loading_pct)),
-  },
-  {
-    key: 's',
-    header: 'Scenario max [%]',
-    align: 'right',
-    sortValue: (r) => r.scenario_max_loading_pct,
-    render: (r) => (r.scenario_outaged ? <Badge tone="danger">outaged</Badge> : formatNumber(r.scenario_max_loading_pct)),
-  },
+  { key: 'b', header: 'Baseline max', align: 'right', sortValue: (r) => r.baseline_max_loading_pct, render: (r) => loading(r.baseline_max_loading_pct, r.baseline_outaged) },
+  { key: 's', header: 'Scenario max', align: 'right', sortValue: (r) => r.scenario_max_loading_pct, render: (r) => loading(r.scenario_max_loading_pct, r.scenario_outaged) },
   {
     key: 'd',
-    header: 'Δ [pp]',
+    header: 'Change',
     align: 'right',
     sortValue: (r) => (r.delta_pct_points === null ? null : Math.abs(r.delta_pct_points)),
-    render: (r) => formatDelta(r.delta_pct_points, ''),
+    render: (r) => <span className="tabular">{branchChange(r)}</span>,
   },
 ]
 
+function metricColumns(costs: CostComparability, bBasis: CostBasis | null, sBasis: CostBasis | null): Column<MetricDelta>[] {
+  return [
+    {
+      key: 'metric',
+      header: 'Metric',
+      sortValue: (r) => r.metric,
+      render: (r) => <span title={r.metric}>{metricLabel(r.metric, metricUnitLabel(r, costs.basis ?? sBasis))}</span>,
+    },
+    { key: 'b', header: 'Baseline', align: 'right', sortValue: (r) => r.baseline, render: (r) => formatMetricValue(r.baseline, r, bBasis) },
+    { key: 's', header: 'Scenario', align: 'right', sortValue: (r) => r.scenario, render: (r) => formatMetricValue(r.scenario, r, sBasis) },
+    {
+      key: 'd',
+      header: 'Δ',
+      align: 'right',
+      sortValue: (r) => (r.baseline !== null && r.scenario !== null ? r.scenario - r.baseline : null),
+      render: (r) => {
+        const d = formatMetricDelta(r, costs)
+        return (
+          <span className="tabular" title={d.absoluteNote ?? undefined}>
+            {d.absolute}
+          </span>
+        )
+      },
+    },
+    {
+      key: 'dp',
+      header: 'Relative',
+      align: 'right',
+      sortValue: (r) => r.delta_pct,
+      render: (r) => {
+        const d = formatMetricDelta(r, costs)
+        return (
+          <span className="tabular" title={d.relativeNote ?? '(scenario − baseline) ÷ |baseline| × 100'}>
+            {d.relative}
+          </span>
+        )
+      },
+    },
+  ]
+}
+
 type MapView = 'delta_max' | 'delta_t' | 'scenario_t' | 'baseline_t'
 
-function ComparisonView({ comparison }: { comparison: Comparison }) {
+function ComparisonView({ comparison, guide }: { comparison: Comparison; guide: boolean }) {
   const rep = comparison.report
-  const networks = useNetworks()
-  const kind = networks.data?.find((n) => n.id === comparison.network_id)?.coordinate_kind ?? 'schematic'
+  const network = useNetwork(comparison.network_id)
   const baseline = useResult(comparison.baseline_job_id, true)
   const scenario = useResult(comparison.scenario_job_id, true)
   const [view, setView] = useState<MapView>('delta_max')
@@ -106,10 +130,12 @@ function ComparisonView({ comparison }: { comparison: Comparison }) {
     },
   })
 
-  const series = useMemo(
-    () => (baseline.data && scenario.data ? { b: baseline.data, s: scenario.data } : null),
-    [baseline.data, scenario.data],
-  )
+  const series = useMemo(() => (baseline.data && scenario.data ? { b: baseline.data, s: scenario.data } : null), [baseline.data, scenario.data])
+  const bBasis = resolveCostBasis(baseline.data, network.data)
+  const sBasis = resolveCostBasis(scenario.data, network.data)
+  const costs = costComparability(rep, bBasis, sBasis)
+  const columns = metricColumns(costs, bBasis, sBasis)
+  const brief = useMemo(() => (series ? buildBrief(series.s, { baseline: series.b, network: network.data }) : null), [series, network.data])
   const labels = useMemo(() => (series ? snapshotLabels(series.s) : []), [series])
   const tt = Math.min(t, Math.max(0, labels.length - 1))
   const maxDelta = useMemo(() => deltaValues(rep.branch_loading), [rep.branch_loading])
@@ -118,46 +144,46 @@ function ComparisonView({ comparison }: { comparison: Comparison }) {
     if (view === 'delta_t') return deltaAt(series.b, series.s, tt)
     return branchLoadingAt(view === 'scenario_t' ? series.s : series.b, tt)
   }, [view, series, tt, maxDelta])
+  const top = useMemo(() => topBranchChanges(rep.branch_loading, 8), [rep.branch_loading])
+  const outaged = useMemo(
+    () => (series ? outagedKeys(view === 'baseline_t' ? series.b : series.s) : rep.branch_loading.filter((r) => r.scenario_outaged).map((r) => assetKey(r.component, r.id))),
+    [series, view, rep.branch_loading],
+  )
+  const highlighted = useMemo(() => top.slice(0, 5).map((r) => assetKey(r.component, r.id)), [top])
 
   const gen = useMemo(() => rep.carriers.generation_by_carrier_mwh ?? [], [rep.carriers])
   const carrierChart: ChartOption = useMemo(
     () => ({
-      tooltip: { trigger: 'axis', valueFormatter: (v: unknown) => (typeof v === 'number' ? `${formatNumber(v)} MWh` : '—') },
+      tooltip: { trigger: 'axis', valueFormatter: (v: unknown) => (typeof v === 'number' ? `${formatNumber(v)} MWh` : NO_VALUE) },
       legend: false,
       xAxis: { type: 'category', data: gen.map((g) => g.carrier) },
       yAxis: { type: 'value', name: 'Δ MWh', nameGap: 8 },
-      series: [
-        {
-          type: 'bar',
-          name: 'Δ generation',
-          data: gen.map((g) => ({ value: g.delta, itemStyle: { color: (g.delta ?? 0) >= 0 ? '#d9661f' : '#2b6cb0' } })),
-        },
-      ],
+      series: [{ type: 'bar', name: 'Δ generation', data: gen.map((g) => ({ value: g.delta, itemStyle: { color: (g.delta ?? 0) >= 0 ? '#d9661f' : '#2b6cb0' } })) }],
     }),
     [gen],
   )
 
   return (
     <div className="flex flex-col gap-3" data-testid="comparison">
-      <div className="flex flex-wrap items-center gap-2 text-xs">
+      <div className="gs-panel flex flex-wrap items-center gap-2 p-3 text-xs">
         <Badge tone="accent">provenance: {rep.provenance}</Badge>
         <span>
-          Baseline <Link className="font-mono text-accent underline" to={`/runs/${rep.baseline.job_id}`}>{rep.baseline.scenario_name ?? rep.baseline.scenario_id}</Link>{' '}
+          Baseline{' '}
+          <Link className="font-mono text-accent underline" to={`/runs/${rep.baseline.job_id}`}>
+            {rep.baseline.scenario_name ?? rep.baseline.scenario_id}
+          </Link>{' '}
           <OutcomeBadge outcome={rep.baseline.outcome} />
         </span>
-        <span>vs</span>
+        <span aria-hidden>→</span>
         <span>
-          Scenario <Link className="font-mono text-accent underline" to={`/runs/${rep.scenario.job_id}`}>{rep.scenario.scenario_name ?? rep.scenario.scenario_id}</Link>{' '}
+          Scenario{' '}
+          <Link className="font-mono text-accent underline" to={`/runs/${rep.scenario.job_id}`}>
+            {rep.scenario.scenario_name ?? rep.scenario.scenario_id}
+          </Link>{' '}
           <OutcomeBadge outcome={rep.scenario.outcome} />
         </span>
-        <span className="ml-auto flex gap-1.5">
-          <Button size="sm" onClick={() => export_.mutate('md')} disabled={export_.isPending} data-testid="export-md">
-            <FileText aria-hidden className="size-3.5" /> Export MD
-          </Button>
-          <Button size="sm" onClick={() => export_.mutate('json')} disabled={export_.isPending} data-testid="export-json">
-            <FileJson aria-hidden className="size-3.5" /> Export JSON
-          </Button>
-        </span>
+        <span className="text-fg-muted">on {comparison.network_id}</span>
+        <CostBasisNote basis={costs.basis ?? sBasis} className="ml-auto" />
       </div>
       {export_.error && <ErrorState error={export_.error} title="Report export failed" />}
       {rep.warnings.length > 0 && (
@@ -168,45 +194,79 @@ function ComparisonView({ comparison }: { comparison: Comparison }) {
         </ul>
       )}
 
-      <div className="grid gap-3 xl:grid-cols-2">
-        <Panel title="Metric deltas" description="Δ = scenario − baseline (percentage-point change for metrics measured in %); Δ % = 100 × Δ / |baseline| (— when baseline is zero or missing). Positive means more, not always better: lower cost, unserved energy, emissions and congestion are preferable.">
-          <DataTable columns={metricColumns} rows={rep.metrics} rowKey={(r) => r.metric} caption="Metric deltas" pageSize={40} />
+      <div className="grid gap-3 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+        <Panel title="Metric changes" description={SIGN_CONVENTION}>
+          {costs.reason && (
+            <p role="note" className="mb-2 rounded border border-warn/40 bg-warn-soft px-2 py-1 text-xs text-warn" data-testid="costs-withheld">
+              {costs.reason}
+            </p>
+          )}
+          <DataTable columns={columns} rows={rep.metrics} rowKey={(r) => r.metric} caption="Metric deltas" pageSize={40} />
         </Panel>
-        <Panel title="Line loading difference">
+        <Panel title="Grid Impact Brief" id="brief" description="Scenario versus baseline, derived by fixed rules from both stored results.">
+          {brief ? (
+            <GridImpactBrief brief={brief} />
+          ) : baseline.error || scenario.error ? (
+            <p className="text-xs text-warn">The brief needs both stored results; one could not be loaded.</p>
+          ) : (
+            <SkeletonBlock rows={4} label="Loading results for the brief" />
+          )}
+        </Panel>
+      </div>
+
+      <div className="grid gap-3 xl:grid-cols-2">
+        <Panel title="Network: loading difference" description="Outlined = largest branch changes; dashed = out of service.">
           <div className="flex flex-col gap-2">
-            <div className="flex flex-wrap items-end gap-2">
-              <SelectField<MapView>
-                label="Map shows"
-                value={view}
-                onChange={setView}
-                testId="map-view"
-                options={[
-                  { value: 'delta_max', label: 'Δ max loading over horizon [pp]' },
-                  { value: 'delta_t', label: 'Δ loading at snapshot [pp]' },
-                  { value: 'scenario_t', label: 'Scenario loading at snapshot [%]' },
-                  { value: 'baseline_t', label: 'Baseline loading at snapshot [%]' },
-                ]}
-              />
-            </div>
+            <SelectField<MapView>
+              label="Map shows"
+              value={view}
+              onChange={setView}
+              testId="map-view"
+              options={[
+                { value: 'delta_max', label: 'Δ max loading over horizon [pp]' },
+                { value: 'delta_t', label: 'Δ loading at snapshot [pp]' },
+                { value: 'scenario_t', label: 'Scenario loading at snapshot [%]' },
+                { value: 'baseline_t', label: 'Baseline loading at snapshot [%]' },
+              ]}
+            />
             {view !== 'delta_max' &&
               (series ? (
-                <SnapshotSlider labels={labels} value={tt} onChange={setT} />
+                labels.length > 1 ? (
+                  <SnapshotSlider labels={labels} value={tt} onChange={setT} />
+                ) : (
+                  <p className="text-xs text-fg-muted" data-testid="snapshot-label">
+                    <span className="gs-label mr-1">Snapshot</span>
+                    {labels[0] ?? NO_VALUE}
+                  </p>
+                )
               ) : baseline.error || scenario.error ? (
                 isResultUnavailable(baseline.error) || isResultUnavailable(scenario.error) ? (
-                  <p role="alert" className="text-xs text-warn">Replay unavailable: a run's stored result is missing. Open the baseline or scenario run above and choose “Re-run this scenario”. The stored comparison summary remains readable.</p>
-                ) : <ErrorState error={baseline.error ?? scenario.error} title="Could not load run results for replay" />
+                  <p role="alert" className="text-xs text-warn">
+                    Replay unavailable: a run's stored result is missing. Open the baseline or scenario run above and choose “Re-run this scenario”. The stored comparison summary remains readable.
+                  </p>
+                ) : (
+                  <ErrorState error={baseline.error ?? scenario.error} title="Could not load run results for replay" />
+                )
               ) : (
                 <SkeletonBlock rows={1} label="Loading run results" />
               ))}
             <BranchValueMap
               networkId={comparison.network_id}
-              coordinateKind={kind}
               values={values}
               mode={view === 'delta_max' || view === 'delta_t' ? 'delta' : 'loading'}
+              outaged={outaged}
+              highlighted={highlighted}
               className="h-[360px]"
               ariaLabel="Map of line loading differences between scenario and baseline"
             />
           </div>
+        </Panel>
+        <Panel title={`Largest branch changes (${top.length})`} description="Status changes first, then by |Δ max loading| (percentage points).">
+          {top.length ? (
+            <DataTable columns={branchColumns} rows={top} rowKey={(r) => `${r.component}:${r.id}`} caption="Top branch changes" pageSize={8} />
+          ) : (
+            <p className="text-xs text-fg-muted">No branch changes its maximum loading by 0.01 pp or more, and no branch changes service status.</p>
+          )}
         </Panel>
         <Panel title="Generation by carrier Δ">
           {gen.length ? (
@@ -218,29 +278,50 @@ function ComparisonView({ comparison }: { comparison: Comparison }) {
             <p className="text-xs text-fg-muted">No per-carrier generation in these results.</p>
           )}
         </Panel>
-        <Panel title={`Branch loading Δ (${rep.branch_loading.length})`} description="Max over horizon of |loading|; sorted by |Δ|.">
-          <DataTable
-            columns={branchColumns}
-            rows={rep.branch_loading}
-            rowKey={(r) => `${r.component}:${r.id}`}
-            caption="Branch loading deltas"
-            pageSize={20}
-          />
+        <Panel title={`All branches (${rep.branch_loading.length})`} description="Max over horizon of |loading|; sorted by |Δ|.">
+          <DataTable columns={branchColumns} rows={rep.branch_loading} rowKey={(r) => `${r.component}:${r.id}`} caption="Branch loading deltas" pageSize={15} />
         </Panel>
       </div>
-      <Panel title="Assumptions">
-        <ul className="list-disc space-y-0.5 pl-4 text-xs text-fg-muted">
-          {rep.assumptions.map((a) => (
-            <li key={a}>{a}</li>
-          ))}
-        </ul>
-      </Panel>
+      <div className="grid gap-3 lg:grid-cols-2">
+        <Panel title="Assumptions">
+          <ul className="list-disc space-y-0.5 pl-4 text-xs text-fg-muted">
+            {rep.assumptions.map((a) => (
+              <li key={a}>{a}</li>
+            ))}
+          </ul>
+        </Panel>
+        <Panel title="Export comparison report" id="downloads" description={`Server-built report (gridstorm-comparison/1.0) incl. reproducibility hashes${guide ? ' — last step of the guided demo' : ''}.`}>
+          <div className="flex flex-wrap gap-1.5">
+            <Button size="sm" onClick={() => export_.mutate('md')} disabled={export_.isPending} data-testid="export-md">
+              <FileText aria-hidden className="size-3.5" /> Export MD
+            </Button>
+            <Button size="sm" onClick={() => export_.mutate('json')} disabled={export_.isPending} data-testid="export-json">
+              <FileJson aria-hidden className="size-3.5" /> Export JSON
+            </Button>
+          </div>
+          <p className="mt-2 text-2xs text-fg-subtle">
+            Money columns in the report keep legacy <code>_eur</code> field names; they are denominated in the cost basis shown above, not in euros unless that basis says so.
+          </p>
+        </Panel>
+      </div>
     </div>
+  )
+}
+
+/** With only a scenario chosen: offer the network's latest completed baseline run. */
+function SuggestBaseline({ scenario, onPick }: { scenario: Job; onPick: (id: string) => void }) {
+  const { plan } = useBaselinePlan(scenario)
+  if (plan?.kind !== 'compare') return null
+  return (
+    <Button size="sm" onClick={() => onPick(plan.baselineJob.id)} data-testid="use-baseline">
+      Use the {scenario.network_id} baseline ({plan.preset.id})
+    </Button>
   )
 }
 
 export default function ComparePage() {
   const [params, setParams] = useSearchParams()
+  const guide = params.get('guide') === '1'
   const jobs = useJobs()
   const selectedBaseline = useJob(params.get('a') ?? undefined)
   const selectedScenario = useJob(params.get('b') ?? undefined)
@@ -256,6 +337,7 @@ export default function ComparePage() {
   const scenarioJob = completed.find((j) => j.id === scenarioId) ?? null
   const network = baselineJob?.network_id ?? scenarioJob?.network_id ?? null
   const sameNetwork = network ? completed.filter((j) => j.network_id === network) : completed
+  const valid = !!baselineJob && !!scenarioJob && baselineJob.id !== scenarioJob.id && baselineJob.network_id === scenarioJob.network_id
 
   const setParam = (k: string, v: string | null) =>
     setParams((p) => {
@@ -263,22 +345,32 @@ export default function ComparePage() {
       if (v) q.set(k, v)
       else q.delete(k)
       q.delete('comparison')
+      q.delete('auto')
       return q
     })
 
   const create = useMutation({
     mutationFn: () => {
-      if (!baselineJob || !scenarioJob || baselineJob.id === scenarioJob.id || baselineJob.network_id !== scenarioJob.network_id)
-        throw new Error('Select two different completed runs on the same network.')
+      if (!valid) throw new Error('Select two different completed runs on the same network.')
       return api.createComparison(baselineId, scenarioId)
     },
     onSuccess: (c) =>
       setParams((p) => {
         const q = new URLSearchParams(p)
         q.set('comparison', c.id)
+        q.delete('auto')
         return q
       }),
   })
+  // One-click "Compare with baseline" links carry auto=1: create the comparison once both runs are known.
+  const autoStarted = useRef(false)
+  const auto = params.get('auto') === '1' && !comparisonId
+  useEffect(() => {
+    if (auto && valid && !autoStarted.current && !create.isPending) {
+      autoStarted.current = true
+      create.mutate()
+    }
+  }, [auto, valid, create])
   const comparison = useQuery({
     queryKey: qk.comparison(comparisonId ?? ''),
     queryFn: ({ signal }) => api.comparison(comparisonId!, signal),
@@ -296,15 +388,41 @@ export default function ComparePage() {
     <div className="mx-auto flex max-w-[1500px] flex-col gap-3 p-3 md:p-4">
       <PageHeader
         title="Compare & Replay"
-        subtitle="Compare two completed runs on the same network: metric deltas, per-carrier changes, line loading difference map and snapshot replay."
+        subtitle="Compare two completed runs on the same network: what changed, the Grid Impact Brief, branch changes, replay and exportable reports."
       />
-      {[selectedBaseline, selectedScenario].map((query, index) => query.data && query.data.status !== 'completed' ? (
-        <p role="status" key={index} className="gs-panel p-3 text-sm">
-          {index === 0 ? 'Baseline' : 'Scenario'} run is {query.data.status}. <Link className="text-accent underline" to={`/runs/${query.data.id}`}>View run</Link>. Selection becomes available when the result is complete.
-        </p>
-      ) : query.data?.result_available === false ? (
-        <p role="alert" key={index} className="gs-panel p-3 text-sm">This run's result is unavailable. <Link className="text-accent underline" to={`/runs/${query.data.id}`}>Re-run this scenario</Link> before comparing.</p>
-      ) : query.error ? <ErrorState key={index} error={query.error} title={`Could not load ${index === 0 ? 'baseline' : 'scenario'} run`} /> : null)}
+      {guide && (
+        <GuideSteps
+          current={comparison.data ? 'brief' : 'compare'}
+          links={{
+            failure: GUIDE_STUDIO_URL,
+            result: scenarioId ? `/runs/${encodeURIComponent(scenarioId)}?guide=1` : null,
+            compare: null,
+            brief: comparison.data ? '#brief' : null,
+            download: comparison.data ? '#downloads' : null,
+          }}
+        />
+      )}
+      {[selectedBaseline, selectedScenario].map((query, index) =>
+        query.data && query.data.status !== 'completed' ? (
+          <p role="status" key={index} className="gs-panel p-3 text-sm">
+            {index === 0 ? 'Baseline' : 'Scenario'} run is {query.data.status}.{' '}
+            <Link className="text-accent underline" to={`/runs/${query.data.id}`}>
+              View run
+            </Link>
+            . Selection becomes available when the result is complete.
+          </p>
+        ) : query.data?.result_available === false ? (
+          <p role="alert" key={index} className="gs-panel p-3 text-sm">
+            This run's result is unavailable.{' '}
+            <Link className="text-accent underline" to={`/runs/${query.data.id}`}>
+              Re-run this scenario
+            </Link>{' '}
+            before comparing.
+          </p>
+        ) : query.error ? (
+          <ErrorState key={index} error={query.error} title={`Could not load ${index === 0 ? 'baseline' : 'scenario'} run`} />
+        ) : null,
+      )}
       {jobs.error ? (
         <ErrorState error={jobs.error} title="Could not load simulation jobs" onRetry={() => void jobs.refetch()} />
       ) : jobs.isPending ? (
@@ -321,7 +439,7 @@ export default function ComparePage() {
           A comparison needs two completed simulations on the same network.
         </EmptyState>
       ) : (
-        <Panel title="Select runs">
+        <Panel title="Select runs" description={network ? `Only runs on ${network} are offered once one side is chosen.` : 'Pick a baseline and a scenario run on the same network.'}>
           <div className="grid items-end gap-3 md:grid-cols-[1fr_1fr_auto]">
             <SelectField
               label="Baseline run"
@@ -337,15 +455,15 @@ export default function ComparePage() {
               onChange={(v) => setParam('b', v || null)}
               testId="scenario-select"
             />
-            <Button
-              variant="primary"
-              disabled={!baselineJob || !scenarioJob || baselineJob.network_id !== scenarioJob.network_id || create.isPending}
-              onClick={() => create.mutate()}
-              data-testid="create-comparison"
-            >
+            <Button variant="primary" disabled={!valid || create.isPending} onClick={() => create.mutate()} data-testid="create-comparison">
               <GitCompare aria-hidden className="size-4" /> {create.isPending ? 'Comparing…' : 'Compare'}
             </Button>
           </div>
+          {scenarioJob && !baselineJob && (
+            <div className="mt-2">
+              <SuggestBaseline scenario={scenarioJob} onPick={(id) => setParams(new URLSearchParams(compareUrl(id, scenarioJob.id, { auto: true, guide }).split('?')[1]))} />
+            </div>
+          )}
           {baselineJob && scenarioJob && baselineJob.network_id !== scenarioJob.network_id && (
             <p role="alert" className="mt-2 text-xs text-danger">
               The runs use different networks ({baselineJob.network_id} vs {scenarioJob.network_id}); pick runs on the same network.
@@ -358,7 +476,7 @@ export default function ComparePage() {
         (comparison.error ? (
           <ErrorState error={comparison.error} title="Could not load comparison" onRetry={() => void comparison.refetch()} />
         ) : comparison.data ? (
-          <ComparisonView comparison={comparison.data} />
+          <ComparisonView comparison={comparison.data} guide={guide} />
         ) : (
           <SkeletonBlock rows={6} label="Loading comparison" />
         ))}

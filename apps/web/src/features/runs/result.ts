@@ -1,9 +1,10 @@
 import { ApiError } from '../../api/client'
-import type { GridstormResult, Job, Outcome, ResultBranch, ResultMetrics, SolverInfo } from '../../api/types'
+import type { CostBasis, GridstormResult, Job, Outcome, ResultBranch, ResultMetrics, SolverInfo } from '../../api/types'
 import { assetKey } from '../../components/map/features'
 import type { ChartOption } from '../../components/ui'
 import { carrierColor } from '../../lib/scales'
-import { formatNumber, isFiniteNumber, type Unit } from '../../lib/format'
+import { formatNumber, formatQuantity, formatTimestamp, isFiniteNumber, NO_VALUE } from '../../lib/format'
+import { formatMoney, priceUnit } from '../../lib/money'
 
 /** Every branch of a result with its map component kind (ids are unique per component only). */
 export function resultBranches(r: GridstormResult): { kind: 'line' | 'transformer'; row: ResultBranch }[] {
@@ -59,11 +60,79 @@ export function branchRows(r: GridstormResult): BranchRow[] {
   }))
 }
 
+export interface GeneratorRow {
+  id: string
+  carrier: string | null
+  outaged: boolean
+  energy_mwh: number | null
+  max_p_mw: number | null
+  max_available_mw: number | null
+  /** Snapshots in which output is at the availability limit (in service, availability > 0). */
+  at_limit_snapshots: number
+}
+
+/** Per-generator summary; energy weighted by snapshot duration. */
+export function generatorRows(r: GridstormResult): GeneratorRow[] {
+  return (r.assets.generators ?? []).map((g) => {
+    let energy: number | null = null
+    let atLimit = 0
+    g.p_mw.forEach((p, t) => {
+      if (!isFiniteNumber(p)) return
+      energy = (energy ?? 0) + p * (r.snapshot_weightings_h?.[t] ?? 1)
+      const a = g.available_mw[t]
+      if (!g.outaged && isFiniteNumber(a) && a > 1e-3 && p >= a - Math.max(1e-3, 1e-4 * a)) atLimit++
+    })
+    return {
+      id: g.id,
+      carrier: g.carrier,
+      outaged: g.outaged,
+      energy_mwh: energy,
+      max_p_mw: maxAbs(g.p_mw),
+      max_available_mw: maxAbs(g.available_mw),
+      at_limit_snapshots: atLimit,
+    }
+  })
+}
+
+/** Map keys (assetKey) of every asset flagged out of service in the result. */
+export function outagedKeys(r: GridstormResult): string[] {
+  return [
+    ...resultBranches(r).filter(({ row }) => row.outaged).map(({ kind, row }) => assetKey(kind, row.id)),
+    ...(r.assets.links ?? []).filter((l) => l.outaged).map((l) => assetKey('link', l.id)),
+    ...(r.assets.generators ?? []).filter((g) => g.outaged).map((g) => assetKey('generator', g.id)),
+  ]
+}
+
+/** Branches whose max loading changes most versus a baseline (|Δ| ≥ 1 pp), for map highlighting. */
+export function changedBranchKeys(baseline: GridstormResult, scenario: GridstormResult, n = 5): string[] {
+  const before = new Map(branchRows(baseline).map((b) => [b.key, b.max_loading_pct]))
+  return branchRows(scenario)
+    .map((s) => ({ key: s.key, d: isFiniteNumber(s.max_loading_pct) && isFiniteNumber(before.get(s.key)) ? Math.abs(s.max_loading_pct - before.get(s.key)!) : 0 }))
+    .filter((x) => x.d >= 1)
+    .sort((a, b) => b.d - a.d || a.key.localeCompare(b.key))
+    .slice(0, n)
+    .map((x) => x.key)
+}
+
+/** Label of the only snapshot of a network without a time index (PGLib, PyPSA default `now`). */
+export const SINGLE_PERIOD = 'single period (no timestamp)'
+
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}([T ]\d{2}:\d{2}.*)?$/
+
+/** True when every snapshot is a calendar timestamp (not PyPSA's placeholder `now` or an integer index). */
+export function hasTimeIndex(snapshots: string[]): boolean {
+  return snapshots.length > 0 && snapshots.every((s) => ISO_DATE.test(s) && !Number.isNaN(new Date(s).getTime()))
+}
+
 /**
  * Short x-axis labels (MM-DD HH:MM) from snapshot timestamps. Timezone-naive snapshots keep their
- * model clock: parsing them with `new Date` would apply the browser's offset.
+ * model clock: parsing them with `new Date` would apply the browser's offset. Networks without a
+ * time index get "single period (no timestamp)" or "period n" instead of a placeholder like `now`.
  */
-export function snapshotLabels(r: GridstormResult): string[] {
+export function snapshotLabels(r: Pick<GridstormResult, 'snapshots'>): string[] {
+  if (!hasTimeIndex(r.snapshots)) {
+    return r.snapshots.length === 1 ? [SINGLE_PERIOD] : r.snapshots.map((_, i) => `period ${i + 1}`)
+  }
   return r.snapshots.map((s) => {
     if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(s) && !/(Z|[+-]\d{2}:?\d{2})$/.test(s)) {
       return s.slice(5, 16).replace('T', ' ')
@@ -71,6 +140,15 @@ export function snapshotLabels(r: GridstormResult): string[] {
     const d = new Date(s)
     return Number.isNaN(d.getTime()) ? s : d.toISOString().slice(5, 16).replace('T', ' ')
   })
+}
+
+/** Human description of the horizon, e.g. "24 snapshots · 2011-01-01 00:00 → 2011-01-01 23:00". */
+export function horizonLabel(r: Pick<GridstormResult, 'snapshots'>): string {
+  const n = r.snapshots.length
+  if (!n) return NO_VALUE
+  if (!hasTimeIndex(r.snapshots)) return n === 1 ? SINGLE_PERIOD : `${n} periods (no timestamps)`
+  if (n === 1) return `1 snapshot · ${formatTimestamp(r.snapshots[0])}`
+  return `${n} snapshots · ${formatTimestamp(r.snapshots[0])} → ${formatTimestamp(r.snapshots[n - 1])}`
 }
 
 const valueFmt = (unit: string) => (v: unknown) => (typeof v === 'number' ? `${formatNumber(v)} ${unit}` : '—')
@@ -149,12 +227,13 @@ export function storageOption(r: GridstormResult): ChartOption {
   }
 }
 
-export function priceOption(r: GridstormResult): ChartOption {
+export function priceOption(r: GridstormResult, basis: CostBasis | null | undefined): ChartOption {
+  const unit = priceUnit(basis)
   return {
-    tooltip: { trigger: 'axis', valueFormatter: valueFmt('EUR/MWh') },
+    tooltip: { trigger: 'axis', valueFormatter: valueFmt(unit) },
     legend: false,
     xAxis: { type: 'category', data: snapshotLabels(r) },
-    yAxis: { type: 'value', name: 'EUR/MWh', nameGap: 8 },
+    yAxis: { type: 'value', name: unit, nameGap: 8 },
     series: [
       {
         name: 'Mean marginal price',
@@ -209,39 +288,73 @@ export function outcomeSummary(
 /** Loading at or above this share of s_nom counts as congested (same threshold as the backend metric). */
 export const CONGESTED_PCT = 99.9
 
-export interface SummaryMetric {
-  key: keyof ResultMetrics
+export interface HeadlineFact {
+  key: 'unserved' | 'served' | 'congestion' | 'cost' | 'curtailment' | 'co2'
   label: string
-  unit: Unit
+  /** Fully formatted value (unit or cost basis included); "—" when not reported. */
+  display: string
+  /** Raw value the display is derived from (null = not reported, never 0). */
   value: number | null
-  tone?: 'danger' | 'warn'
+  tone?: 'danger' | 'warn' | 'ok'
   hint?: string
 }
 
+const num = (x: unknown): number | null => (isFiniteNumber(x) ? x : null)
+
 /**
- * The headline metrics of a run. Missing values stay null (rendered "—", never 0); CO₂ is listed
- * only when the result reports it (null = the dataset has no emission factors).
+ * The headline facts of a run. Missing values stay null (rendered "—", never 0); money is in the
+ * result's cost basis; CO₂ is listed only when the result reports it (null = no emission factors).
  */
-export function summaryMetrics(m: Partial<ResultMetrics>): SummaryMetric[] {
-  const num = (x: unknown): number | null => (isFiniteNumber(x) ? x : null)
+export function headlineFacts(m: Partial<ResultMetrics>, basis: CostBasis | null | undefined): HeadlineFact[] {
   const unserved = num(m.unserved_energy_mwh)
+  const served = num(m.served_load_mwh)
+  const total = num(m.total_load_mwh)
   const loading = num(m.max_line_loading_pct)
   const congested = num(m.congested_line_count)
-  const out: SummaryMetric[] = [
-    { key: 'unserved_energy_mwh', label: 'Unserved energy', unit: 'MWh', value: unserved, tone: unserved ? 'danger' : undefined },
-    { key: 'total_system_cost_eur', label: 'System cost', unit: 'EUR', value: num(m.total_system_cost_eur) },
-    { key: 'curtailment_mwh', label: 'Curtailment', unit: 'MWh', value: num(m.curtailment_mwh) },
+  const peakShed = num(m.peak_load_shed_mw)
+  const shedCost = num(m.load_shedding_cost_eur)
+  const servedPct = served !== null && total !== null && total > 0 ? (served / total) * 100 : null
+  const out: HeadlineFact[] = [
     {
-      key: 'max_line_loading_pct',
-      label: 'Max line loading',
-      unit: '%',
-      value: loading,
-      tone: loading !== null && loading >= CONGESTED_PCT ? 'warn' : undefined,
-      hint: `${congested === null ? '—' : formatNumber(congested)} branch(es) congested (≥ ${CONGESTED_PCT} %)`,
+      key: 'unserved',
+      label: 'Unserved energy',
+      value: unserved,
+      display: formatQuantity(unserved, 'MWh', { scale: true }),
+      tone: unserved === null ? undefined : unserved > 0 ? 'danger' : 'ok',
+      hint: peakShed ? `peak shedding ${formatQuantity(peakShed, 'MW')}` : unserved === 0 ? 'all demand served' : undefined,
+    },
+    {
+      key: 'served',
+      label: 'Demand served',
+      value: servedPct,
+      display: servedPct === null ? NO_VALUE : `${formatNumber(servedPct, servedPct >= 99.995 && servedPct < 100 ? 3 : 2)} %`,
+      tone: servedPct !== null && servedPct < 100 ? 'warn' : undefined,
+      hint: served !== null && total !== null ? `${formatQuantity(served, 'MWh', { scale: true })} of ${formatQuantity(total, 'MWh', { scale: true })}` : undefined,
+    },
+    {
+      key: 'congestion',
+      label: 'Congestion',
+      value: congested,
+      display: congested === null ? NO_VALUE : `${formatNumber(congested)} branch${congested === 1 ? '' : 'es'}`,
+      tone: congested ? 'warn' : undefined,
+      hint: `at ≥ ${CONGESTED_PCT} % loading · max ${formatQuantity(loading, '%')}`,
+    },
+    {
+      key: 'cost',
+      label: 'Operating cost (objective)',
+      value: num(m.total_system_cost_eur),
+      display: formatMoney(num(m.total_system_cost_eur), basis, { scale: true }),
+      hint: shedCost ? `incl. ${formatMoney(shedCost, basis, { scale: true })} load-shedding penalty` : undefined,
+    },
+    {
+      key: 'curtailment',
+      label: 'Curtailment',
+      value: num(m.curtailment_mwh),
+      display: formatQuantity(num(m.curtailment_mwh), 'MWh', { scale: true }),
     },
   ]
   const co2 = num(m.co2_emissions_t)
-  if (co2 !== null) out.push({ key: 'co2_emissions_t', label: 'CO₂ emissions', unit: 't', value: co2 })
+  if (co2 !== null) out.push({ key: 'co2', label: 'CO₂ emissions', value: co2, display: formatQuantity(co2, 't', { scale: true }) })
   return out
 }
 
