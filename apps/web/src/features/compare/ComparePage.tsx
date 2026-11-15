@@ -45,6 +45,7 @@ import {
   jobLabel,
   metricLabel,
   metricUnitLabel,
+  orderMetrics,
   topBranchChanges,
   type CostComparability,
 } from './compare'
@@ -135,6 +136,7 @@ function ComparisonView({ comparison, guide }: { comparison: Comparison; guide: 
   const sBasis = resolveCostBasis(scenario.data, network.data)
   const costs = costComparability(rep, bBasis, sBasis)
   const columns = metricColumns(costs, bBasis, sBasis)
+  const metricRows = useMemo(() => orderMetrics(rep.metrics), [rep.metrics])
   const brief = useMemo(() => (series ? buildBrief(series.s, { baseline: series.b, network: network.data }) : null), [series, network.data])
   const labels = useMemo(() => (series ? snapshotLabels(series.s) : []), [series])
   const tt = Math.min(t, Math.max(0, labels.length - 1))
@@ -201,7 +203,7 @@ function ComparisonView({ comparison, guide }: { comparison: Comparison; guide: 
               {costs.reason}
             </p>
           )}
-          <DataTable columns={columns} rows={rep.metrics} rowKey={(r) => r.metric} caption="Metric deltas" pageSize={40} />
+          <DataTable columns={columns} rows={metricRows} rowKey={(r) => r.metric} caption="Metric deltas" pageSize={40} />
         </Panel>
         <Panel title="Grid Impact Brief" id="brief" description="Scenario versus baseline, derived by fixed rules from both stored results.">
           {brief ? (
