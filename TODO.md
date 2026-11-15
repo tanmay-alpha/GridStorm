@@ -21,6 +21,23 @@ Last updated: 2026-11-15
 
 Live (since GridStorm 3.0, 2026-11-15): https://gridstorm.vercel.app (web from `main` `cf482f2`) · https://gridstorm-api.onrender.com (API `cf482f2`) · CI green on PR #10 head `78edabc` (run 43699511938). Earlier state: web `67354b0`, API `dd185d1`.
 
+## Production follow-up — recovery audit, round 2 (2026-11-15, branch `fix/legacy-restore-and-polish`)
+
+Baseline (before changes): `main` `68dcc09`; Render API `cf482f2` (`/ready` postgres + supabase durable); `scripts/probe_production.py` all PASS; production Playwright smoke on `main` green (run 43720944322); 9 completed jobs with lost results (HTTP 410). A fresh read-only live audit (15 routes × 3 viewports × 2 themes, 0 page errors, 0 overflow) found 1 P1, 3 P2, 14 P3 defects (LA-01…LA-17): [report](docs/audit/live-2026-11-15-round2.md). PR [#12](https://github.com/tanmay-alpha/GridStorm/pull/12).
+Statuses: `IMPLEMENTING → LOCALLY TESTED → CI VERIFIED → DEPLOYED → PROD TESTED`, or `BLOCKED` / `DOCUMENTED`.
+
+| ID | Task | Pri | Status | Evidence |
+|---|---|---|---|---|
+| R2-01 | Restore lost legacy blobs byte-for-byte when the original bytes still exist (`gridstorm_api.jobs.restore`) | P0 | PROD TESTED | 4 SciGRID precomputed jobs (`5dafdc1a`, `f2fc0cf3`, `5323bc95`, `c800561d`) recorded sha `e3e3494b…` = canonical payload of the artifact committed at `96f3f3a`; restored on production → HTTP 200, body sha = recorded sha = header, MD report 200. 5 live IEEE-14 results stay 410: their bytes embed solver wall time, so no recompute can reproduce them |
+| R2-02 | `/studio` CLS regression | P2 | LOCALLY TESTED | 0.0505 → 0.0002 (local build + API, 3 reps) |
+| R2-03 | Run page / Library layout shift (LA-04) | P2 | LOCALLY TESTED | run mobile 0.71 → 0.002, desktop 0.28 → 0.014, tablet → 0.025; Library mobile 0.91 → 0.002 |
+| R2-04 | Compare metric table in reading order | P3 | LOCALLY TESTED | `orderMetrics` + unit test |
+| R2-05 | Legacy comparison MD export 500 (LA-01); 500s lacked CORS → "backend unreachable" | P1 | LOCALLY TESTED | regression test rewrites a stored report to the legacy shape; 500 carries ACAO |
+| R2-06 | Downloads hash to the displayed sha (LA-02); comparison reuse (LA-09) | P2 | LOCALLY TESTED | report JSON served as canonical bytes; re-POST → 200 same id |
+| R2-08 | LA-03 legacy "EUR" assumption text; LA-05 stored-comparison view, CO₂ label; LA-07 error copy; LA-10 Benchmarks units; LA-12 timestamps / precomputed wall time; LA-15 4-sig-fig scaled money | P2/P3 | LOCALLY TESTED | unit tests in `result.test.ts`, `format.test.ts`, `client.test.ts` |
+| R2-09 | LA-06 Explorer search reset + focus; LA-08 one guide step list; LA-11 ≥ 24 px targets; LA-13 no "provenance n/a"; LA-14 plurals + custom-scenario name; LA-16 event-field aria-invalid; LA-17 themed scale bar | P3 | LOCALLY TESTED | `controls.a11y.test.tsx`, `EventEditor.test.tsx`, `presentation.test.ts`, `StudioPage.test.tsx` |
+| R2-07 | Cached geographic network switch (~250–285 ms) | P3 | DOCUMENTED | Profiled in 3.0: 39–58 ms with basemap tiles aborted; the remainder is third-party basemap tile work, not GridStorm data loading. Not changed |
+
 ## GridStorm 3.0 — science, product and research usability (started 2026-11-15)
 
 Branch `release/gridstorm-3.0` from `main` `ae4ee9a`. Separate count; **not** part of the 58/58 or post-launch tallies.

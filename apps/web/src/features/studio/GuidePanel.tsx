@@ -7,9 +7,8 @@ import type { CanonicalGenerator, NetworkSummary } from '../../api/types'
 import { Button, ErrorState, SkeletonBlock, type ExecutionAvailability } from '../../components/ui'
 import { formatNumber, formatQuantity } from '../../lib/format'
 import { formatPrice, resolveCostBasis } from '../../lib/money'
+import { GUIDE_STEPS } from '../runs/GuideSteps'
 import { investigationQuestion } from './presentation'
-
-const GUIDE_STEPS = ['Run the crisis in Studio', 'Read the impact brief', 'Compare with the baseline'] as const
 
 /** Plain-language description of generator outages, from the network's generator table. */
 function GeneratorOutages({ ids, generators, peakLoadMw }: { ids: string[]; generators: CanonicalGenerator[]; peakLoadMw: number | null }) {
@@ -104,8 +103,8 @@ export function GuidePanel({
       </div>
       <ol className="flex flex-wrap gap-x-4 gap-y-1 text-2xs text-fg-muted" aria-label="Guided demo steps">
         {GUIDE_STEPS.map((s, i) => (
-          <li key={s} className={i === 0 ? 'font-semibold text-fg' : undefined} aria-current={i === 0 ? 'step' : undefined}>
-            {i + 1}. {s}
+          <li key={s.key} className={i === 0 ? 'font-semibold text-fg' : undefined} aria-current={i === 0 ? 'step' : undefined}>
+            {i + 1}. {s.label}
           </li>
         ))}
       </ol>

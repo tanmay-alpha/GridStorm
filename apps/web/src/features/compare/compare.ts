@@ -25,6 +25,38 @@ export function metricLabel(metric: string, unit: string | null): string {
   return unit ? `${name} [${unit}]` : name
 }
 
+/**
+ * Reading order of the metric table: consequences for consumers first, then cost, network stress,
+ * renewables/emissions, energy totals, storage, and the numerical balance check last. The API
+ * reports metrics alphabetically; metrics not listed here follow in that order.
+ */
+export const METRIC_ORDER: readonly string[] = [
+  'unserved_energy_mwh',
+  'peak_load_shed_mw',
+  'load_shed_hours',
+  'total_system_cost_eur',
+  'generation_cost_eur',
+  'load_shedding_cost_eur',
+  'max_line_loading_pct',
+  'congested_line_count',
+  'mean_line_loading_pct',
+  'curtailment_mwh',
+  'co2_emissions_t',
+  'served_load_mwh',
+  'total_load_mwh',
+  'storage_charge_mwh',
+  'storage_discharge_mwh',
+  'balance_residual_max_mw',
+]
+
+export function orderMetrics<T extends { metric: string }>(rows: readonly T[]): T[] {
+  const rank = (m: string) => {
+    const i = METRIC_ORDER.indexOf(m)
+    return i === -1 ? METRIC_ORDER.length : i
+  }
+  return [...rows].sort((a, b) => rank(a.metric) - rank(b.metric) || a.metric.localeCompare(b.metric))
+}
+
 /** Map values from the report's branch_loading rows (delta of max loading, percentage points). */
 export function deltaValues(rows: BranchLoadingDelta[]): Record<string, number | null> {
   const out: Record<string, number | null> = {}

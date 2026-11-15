@@ -13,6 +13,9 @@ it('dismisses the selected-asset card on Escape without handling an already cons
   const close = vi.fn()
   const { unmount } = render(<QueryClientProvider client={client}><AssetDetails networkId="test" assets={NO_ASSETS} selected={{ kind: 'bus', id: 'bus-1' }} fieldProvenance={undefined} coordinateKind="schematic" costBasis={null} onSelect={() => {}} onClose={close} /></QueryClientProvider>)
   expect(screen.getByTestId('asset-details')).toBeVisible()
+  // Focus target after an asset-search pick: programmatically focusable and named by the asset id.
+  expect(screen.getByTestId('asset-details')).toHaveAttribute('tabindex', '-1')
+  expect(screen.getByTestId('asset-details')).toHaveAccessibleName('bus-1')
   const consumed = new KeyboardEvent('keydown', { key: 'Escape', cancelable: true })
   consumed.preventDefault()
   window.dispatchEvent(consumed)

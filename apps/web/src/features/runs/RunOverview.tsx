@@ -3,12 +3,12 @@ import type { UseQueryResult } from '@tanstack/react-query'
 import type { CostBasis, GridstormResult, Job, MetricDelta, ResultMetrics } from '../../api/types'
 import { cn, Panel, SkeletonBlock } from '../../components/ui'
 import { formatNumber, isFiniteNumber } from '../../lib/format'
-import { formatPrice, resolveCostBasis } from '../../lib/money'
+import { formatPrice, moneyUnit, resolveCostBasis } from '../../lib/money'
 import { compareUrl, type BaselinePlan } from '../compare/baseline'
 import { CompareWithBaseline } from '../compare/CompareWithBaseline'
 import { costComparability, formatMetricDelta, formatMetricValue, metricLabel, metricUnitLabel } from '../compare/compare'
 import type { HeadlineFact } from './result'
-import { horizonLabel } from './result'
+import { costBasisTexts, horizonLabel } from './result'
 
 /** Headline fact tiles (value already formatted with its unit / cost basis). */
 export function HeadlineCards({ facts, className }: { facts: HeadlineFact[]; className?: string }) {
@@ -16,9 +16,7 @@ export function HeadlineCards({ facts, className }: { facts: HeadlineFact[]; cla
     <div aria-label="Key metrics" className={cn('grid gap-2', className ?? 'grid-cols-2 sm:grid-cols-3 xl:grid-cols-5')} data-testid="metrics">
       {facts.map((f) => (
         <div key={f.key} className="gs-panel flex min-w-0 flex-col gap-0.5 px-3 py-2" data-metric={f.key}>
-          <span className="gs-label truncate" title={f.label}>
-            {f.label}
-          </span>
+          <span className="gs-label break-words">{f.label}</span>
           <span
             className={cn(
               'tabular text-lg font-semibold leading-tight break-words',
@@ -40,11 +38,13 @@ export function HeadlineCards({ facts, className }: { facts: HeadlineFact[]; cla
 /** One line of the assumptions that matter most for reading the numbers. */
 export function KeyAssumptions({ result, basis }: { result: GridstormResult; basis: CostBasis | null }) {
   const voll = basis?.penalties?.find((p) => p.term === 'load_shedding')
+  const { legacyEur } = costBasisTexts(result, basis)
   const items = [
     `${result.engine.name} ${result.engine.formulation.toUpperCase()}`,
     horizonLabel(result),
     voll ? `load shedding penalised at ${formatPrice(voll.value_per_mwh, basis)} (VOLL penalty, not an estimate)` : null,
     result.assumptions.some((a) => /DC linearised/i.test(a)) ? 'DC power flow: no voltages, reactive power or losses' : null,
+    legacyEur ? `assumption texts predate declared cost bases; their money amounts are in ${moneyUnit(basis)}` : null,
   ].filter((x): x is string => !!x)
   return (
     <p className="text-xs text-fg-muted" data-testid="key-assumptions">

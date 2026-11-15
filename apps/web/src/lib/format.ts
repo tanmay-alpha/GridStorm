@@ -61,8 +61,17 @@ export function formatNumber(v: number | null | undefined, maxFractionDigits?: n
   return v.toLocaleString('en-US', { maximumFractionDigits: digits, minimumFractionDigits: 0 })
 }
 
+/** Significant digits of SI-scaled values: enough that e.g. 2,001,373 and 2,000,000 stay distinct (2.001 M vs 2 M). */
+export const SCALED_SIGNIFICANT_DIGITS = 4
+
+/** A value already divided by an SI factor (k/M/bn, GW, GWh…), rounded to significant digits. */
+export function formatScaledNumber(v: number, significantDigits: number = SCALED_SIGNIFICANT_DIGITS): string {
+  return v.toLocaleString('en-US', { maximumSignificantDigits: significantDigits })
+}
+
 /**
- * Format a quantity with its unit. `scale: true` promotes MW→GW, MWh→GWh/TWh, EUR→k/M/bn EUR, t→kt/Mt.
+ * Format a quantity with its unit. `scale: true` promotes MW→GW, MWh→GWh/TWh, EUR→k/M/bn EUR, t→kt/Mt;
+ * promoted values keep 4 significant digits unless `digits` (fraction digits) is given.
  */
 export function formatQuantity(
   v: number | null | undefined,
@@ -72,6 +81,7 @@ export function formatQuantity(
   if (!isFiniteNumber(v)) return NO_VALUE
   let value = v
   let label: string = unit
+  let scaled = false
   if (opts.scale) {
     const steps = SI_SCALED[unit]
     if (steps) {
@@ -79,12 +89,13 @@ export function formatQuantity(
         if (Math.abs(v) >= factor) {
           value = v / factor
           label = l
+          scaled = factor > 1
           break
         }
       }
     }
   }
-  const n = formatNumber(value, opts.digits)
+  const n = scaled && opts.digits === undefined ? formatScaledNumber(value) : formatNumber(value, opts.digits)
   if (!label) return n
   return unit === '%' ? `${n} %` : `${n} ${label}`
 }
@@ -136,6 +147,10 @@ export function formatDuration(seconds: number | null | undefined): string {
   return `${m} min ${s} s`
 }
 
+/**
+ * Timezone-aware instants → UTC with seconds, always ("2026-11-15 00:41:00Z"), so one column never
+ * mixes "00:41Z" and "00:40:51Z". Timezone-naive snapshot labels keep their model clock.
+ */
 export function formatTimestamp(iso: string | null | undefined): string {
   if (!iso) return NO_VALUE
   // Network snapshot labels can be timezone-naive: preserve their model clock.
@@ -145,7 +160,7 @@ export function formatTimestamp(iso: string | null | undefined): string {
   }
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return iso
-  return d.toISOString().replace('T', ' ').replace(/\.\d+Z$/, 'Z').replace(/:00Z$/, 'Z')
+  return d.toISOString().replace('T', ' ').replace(/\.\d+Z$/, 'Z')
 }
 
 export function shortHash(h: string | null | undefined, n = 10): string {
@@ -172,12 +187,18 @@ export function unitFromFieldName(field: string): Unit {
   return ''
 }
 
-/** Human label from a snake_case field name, dropping the unit suffix. */
+/** Chemical formulas in field names, rendered with subscripts. */
+const FORMULAS: Record<string, string> = { co2: 'CO₂' }
+
+/** Human label from a snake_case field name, dropping the unit suffix ("co2_emissions_t" → "CO₂ emissions"). */
 export function labelFromFieldName(field: string): string {
   const stripped = field.replace(
     /_(eur_per_mwh|t_per_mwh|mwh|mw|mva|kv|pct|eur|hours|h|s|t|km|ohm|pu)$/,
     '',
   )
-  const s = stripped.replace(/_/g, ' ')
+  const s = stripped
+    .split('_')
+    .map((w) => FORMULAS[w] ?? w)
+    .join(' ')
   return s.charAt(0).toUpperCase() + s.slice(1)
 }

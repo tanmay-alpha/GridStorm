@@ -21,6 +21,7 @@ from sqlalchemy import delete, select
 from conftest import NETWORK_ID, run_job, scenario, wait_job
 from gridstorm_api import context, readiness, storage
 from gridstorm_api.db.models import SimulationArtifact, SimulationJob
+from gridstorm_api.jobs.restore import restore_job
 from gridstorm_api.main import create_app
 from gridstorm_api.storage import (
     ArtifactIntegrityError,
@@ -527,6 +528,101 @@ def test_recovery_cli_module_recomputes_from_sqlite_with_fake_engine(settings_fa
         assert previous["status"] == "completed"
         assert previous["result_sha256"] == original["result_sha256"]
         assert previous["recomputed_from_job_id"] is None
+
+
+def test_restore_puts_back_only_byte_identical_precomputed_blobs(
+    client_factory, supabase_store_factory, supabase_server, workspace
+):
+    """A lost precomputed result comes back from the *old* committed artifact file, verified by
+    its recorded sha256; a regenerated (different) artifact never stands in for it."""
+    client = client_factory(artifact_store="supabase", execution_mode="precomputed")
+    created = client.post("/api/v1/simulations", json={"scenario_id": "preset-base"})
+    assert created.status_code == 202, created.text
+    job = created.json()
+    original = client.get(f"/api/v1/simulations/{job['id']}/result").content
+    committed = workspace / "data" / "artifacts" / "pypsa" / "preset-base-result.json"
+    old_artifact = committed.read_bytes()
+    regenerated = json.loads(old_artifact)
+    regenerated["payload"]["metrics"]["total_load_mwh"] = 401.0
+    ctx = client.app.state.ctx
+    artifacts = client.get(f"/api/v1/simulations/{job['id']}/artifacts").json()["items"]
+    keys = {row["kind"]: row["storage_key"] for row in artifacts}
+    for key in keys.values():
+        ctx.store.delete(key)
+    _assert_gone(client, job)
+    with ctx.db.session() as session:
+        source = session.get(SimulationJob, uuid.UUID(job["id"]))
+        assert restore_job(ctx, session, source, [json.dumps(regenerated).encode()]) == {
+            "result": "missing",
+            "scenario": "restored",  # the canonical spec is always re-derivable
+        }
+        assert supabase_server.key(keys["result"]) not in supabase_server.blobs
+        assert restore_job(ctx, session, source, [old_artifact]) == {
+            "result": "restored",
+            "scenario": "present",
+        }
+        assert restore_job(ctx, session, source, []) == {"result": "present", "scenario": "present"}
+    restored = client.get(f"/api/v1/simulations/{job['id']}/result")
+    assert restored.status_code == 200 and restored.content == original
+    assert hashlib.sha256(restored.content).hexdigest() == job["result_sha256"]
+    current = client.get(f"/api/v1/simulations/{job['id']}").json()
+    assert current["id"] == job["id"] and current["result_sha256"] == job["result_sha256"]
+    assert current["result_available"] is True
+    rows = client.get(f"/api/v1/simulations/{job['id']}/artifacts").json()["items"]
+    assert {row["storage_backend"] for row in rows} == {"supabase"}
+    # A legacy row naming the old local disk is relabelled once its bytes verify in the store.
+    with ctx.db.session() as session:
+        source = session.get(SimulationJob, uuid.UUID(job["id"]))
+        for row in session.scalars(
+            select(SimulationArtifact).where(SimulationArtifact.job_id == source.id)
+        ):
+            row.storage_backend = "local"
+        session.commit()
+        assert restore_job(ctx, session, source, []) == {"result": "present", "scenario": "present"}
+    rows = client.get(f"/api/v1/simulations/{job['id']}/artifacts").json()["items"]
+    assert {row["storage_backend"] for row in rows} == {"supabase"}
+
+
+def test_restore_cli_restores_raw_live_result_and_fails_without_a_match(settings_factory):
+    settings = settings_factory(artifact_store="local")
+    with TestClient(create_app(settings)) as client:
+        job = run_job(client, scenario("cli-restore", demand=1.4))
+        assert job["status"] == "completed"
+        saved = client.get(f"/api/v1/simulations/{job['id']}/result").content
+        (settings.resolved_artifact_dir / _result_key(job)).unlink()
+        assert client.get(f"/api/v1/simulations/{job['id']}/result").status_code == 410
+    environment = {
+        name: value
+        for name, value in os.environ.items()
+        if not name.startswith(("GRIDSTORM_", "SUPABASE_")) and name != "DATABASE_URL"
+    }
+    environment.update(
+        {
+            "DATABASE_URL": settings.resolved_database_url,
+            "GRIDSTORM_DATA_DIR": str(settings.data_dir),
+            "GRIDSTORM_STATE_DIR": str(settings.state_dir),
+            "GRIDSTORM_ARTIFACT_DIR": str(settings.resolved_artifact_dir),
+            "GRIDSTORM_ARTIFACT_STORE": "local",
+        }
+    )
+    wrong = settings.state_dir / "wrong.json"
+    wrong.write_bytes(saved + b" ")
+    right = settings.state_dir / "right.json"
+    right.write_bytes(saved)
+    command = [sys.executable, "-m", "gridstorm_api.jobs.restore", job["id"], "--source"]
+    failed = subprocess.run(
+        [*command, str(wrong)], env=environment, capture_output=True, text=True, timeout=60
+    )
+    assert failed.returncode == 1, failed.stdout + failed.stderr
+    assert json.loads(failed.stdout)[0]["artifacts"]["result"] == "missing"
+    done = subprocess.run(
+        [*command, str(right)], env=environment, capture_output=True, text=True, timeout=60
+    )
+    assert done.returncode == 0, done.stdout + done.stderr
+    assert json.loads(done.stdout)[0]["artifacts"]["result"] == "restored"
+    with TestClient(create_app(settings_factory(run_workers=False))) as restarted:
+        response = restarted.get(f"/api/v1/simulations/{job['id']}/result")
+        assert response.status_code == 200 and response.content == saved
 
 
 @pytest.mark.network

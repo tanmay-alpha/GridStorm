@@ -2,18 +2,40 @@ import type { ReactNode } from 'react'
 import { Trash2 } from 'lucide-react'
 import type { NetworkAssets } from '../../api/hooks'
 import { LIMITS, type StormEvent, type StormSpec, type SnapshotWindow } from '../../api/stormspec'
+import type { ValidationIssue } from '../../api/types'
 import { Button, CheckboxField, NumberField, SelectField } from '../../components/ui'
 import { formatQuantity } from '../../lib/format'
 import { EVENT_LABEL, variableCarriers } from './spec'
+
+/** Path segments of an issue below `events[index]`, or null for another event. Indices are dropped
+ * (`buses[2]` → `buses`); paths may carry the event-type tag (`events[0].demand_multiplier.value`). */
+function eventSegments(path: string, index: number): string[] | null {
+  const m = path.match(/^events\[(\d+)\](?:\.(.*))?$/)
+  if (!m || Number(m[1]) !== index) return null
+  return (m[2] ?? '').split('.').filter(Boolean).map((s) => s.replace(/\[\d+\]$/, ''))
+}
+
+/** Joined messages of this event's issues whose path matches, for a field's `error` prop. */
+function issuesWhere(issues: ValidationIssue[], index: number, match: (segments: string[]) => boolean): string | undefined {
+  const hits = issues.filter((i) => {
+    const segs = eventSegments(i.path, index)
+    return segs !== null && match(segs)
+  })
+  return hits.length ? hits.map((i) => i.message).join(' ') : undefined
+}
 
 function WindowEditor({
   window,
   horizon,
   onChange,
+  startError,
+  endError,
 }: {
   window: SnapshotWindow | null | undefined
   horizon: StormSpec['horizon']
   onChange: (w: SnapshotWindow | null) => void
+  startError?: string
+  endError?: string
 }) {
   const start = horizon.start ?? 0
   return (
@@ -32,6 +54,7 @@ function WindowEditor({
             step={1}
             min={0}
             value={window.start}
+            error={startError}
             onChange={(v) => onChange({ ...window, start: v ?? 0 })}
           />
           <NumberField
@@ -40,6 +63,7 @@ function WindowEditor({
             step={1}
             min={1}
             value={window.end}
+            error={endError}
             onChange={(v) => onChange({ ...window, end: v ?? 0 })}
           />
         </div>
@@ -57,6 +81,7 @@ export function EventEditor({
   index,
   assets,
   horizon,
+  issues,
   onChange,
   onRemove,
 }: {
@@ -64,9 +89,17 @@ export function EventEditor({
   index: number
   assets: NetworkAssets
   horizon: StormSpec['horizon']
+  /** Validation issues of the crisis step; those under `events[index]` are attached to their field. */
+  issues: ValidationIssue[]
   onChange: (e: StormEvent) => void
   onRemove: () => void
 }) {
+  const errorOf = (field: string) => issuesWhere(issues, index, (segs) => segs.includes(field))
+  // Window-level issues (`events[i].window`, e.g. outside the horizon) are shown on the start field.
+  const windowErrors = {
+    startError: issuesWhere(issues, index, (segs) => segs.includes('window') && !segs.includes('end')),
+    endError: issuesWhere(issues, index, (segs) => segs.includes('window') && segs.includes('end')),
+  }
   const busKv = new Map(assets.buses.map((b) => [b.id, b.v_nom_kv]))
   let body: ReactNode
   switch (event.type) {
@@ -79,6 +112,7 @@ export function EventEditor({
         <>
           <SelectField
             label="Component"
+            error={errorOf('component')}
             value={event.component}
             options={[
               ...(assets.lines.length ? [{ value: 'line' as const, label: `Line (${assets.lines.length})` }] : []),
@@ -95,13 +129,14 @@ export function EventEditor({
             label={event.component === 'transformer' ? 'Transformer' : 'Line'}
             value={event.asset_id}
             testId={`event-${index}-asset`}
+            error={errorOf('asset_id')}
             options={assetOptions(
               rows,
               (r) => `${r.bus0} → ${r.bus1}, ${formatQuantity(r.kv, 'kV')}, ${formatQuantity(r.s_nom_mva, 'MVA')}`,
             )}
             onChange={(asset_id) => onChange({ ...event, asset_id })}
           />
-          <WindowEditor window={event.window} horizon={horizon} onChange={(window) => onChange({ ...event, window })} />
+          <WindowEditor window={event.window} horizon={horizon} onChange={(window) => onChange({ ...event, window })} {...windowErrors} />
         </>
       )
       break
@@ -113,10 +148,11 @@ export function EventEditor({
             label="Link"
             value={event.asset_id}
             testId={`event-${index}-asset`}
+            error={errorOf('asset_id')}
             options={assetOptions(assets.links, (l) => `${l.bus0} → ${l.bus1}, ${formatQuantity(l.p_nom_mw, 'MW')}`)}
             onChange={(asset_id) => onChange({ ...event, asset_id })}
           />
-          <WindowEditor window={event.window} horizon={horizon} onChange={(window) => onChange({ ...event, window })} />
+          <WindowEditor window={event.window} horizon={horizon} onChange={(window) => onChange({ ...event, window })} {...windowErrors} />
         </>
       )
       break
@@ -127,13 +163,14 @@ export function EventEditor({
             label="Generator"
             value={event.asset_id}
             testId={`event-${index}-asset`}
+            error={errorOf('asset_id')}
             options={assetOptions(
               assets.generators,
               (g) => `${g.carrier ?? 'carrier n/a'}, ${formatQuantity(g.p_nom_mw, 'MW')}, bus ${g.bus}`,
             )}
             onChange={(asset_id) => onChange({ ...event, asset_id })}
           />
-          <WindowEditor window={event.window} horizon={horizon} onChange={(window) => onChange({ ...event, window })} />
+          <WindowEditor window={event.window} horizon={horizon} onChange={(window) => onChange({ ...event, window })} {...windowErrors} />
         </>
       )
       break
@@ -149,9 +186,10 @@ export function EventEditor({
             hint={`Dimensionless, > 0 and ≤ ${LIMITS.demandMultiplier.max}. Applies to all loads.`}
             value={event.value}
             testId={`event-${index}-value`}
+            error={errorOf('value')}
             onChange={(v) => onChange({ ...event, value: v ?? Number.NaN })}
           />
-          <WindowEditor window={event.window} horizon={horizon} onChange={(window) => onChange({ ...event, window })} />
+          <WindowEditor window={event.window} horizon={horizon} onChange={(window) => onChange({ ...event, window })} {...windowErrors} />
         </>
       )
       break
@@ -160,6 +198,7 @@ export function EventEditor({
         <>
           <SelectField
             label="Carrier"
+            error={errorOf('carrier')}
             value={event.carrier}
             options={variableCarriers(assets).map((c) => ({ value: c, label: c }))}
             onChange={(carrier) => onChange({ ...event, carrier })}
@@ -173,9 +212,10 @@ export function EventEditor({
             hint="Scales p_max_pu of this carrier's generators; 0–1."
             value={event.value}
             testId={`event-${index}-value`}
+            error={errorOf('value')}
             onChange={(v) => onChange({ ...event, value: v ?? Number.NaN })}
           />
-          <WindowEditor window={event.window} horizon={horizon} onChange={(window) => onChange({ ...event, window })} />
+          <WindowEditor window={event.window} horizon={horizon} onChange={(window) => onChange({ ...event, window })} {...windowErrors} />
         </>
       )
       break
@@ -186,6 +226,7 @@ export function EventEditor({
             label="Storage unit"
             value={event.asset_id}
             testId={`event-${index}-asset`}
+            error={errorOf('asset_id')}
             options={assetOptions(
               assets.storage_units,
               (s) => `${s.carrier ?? 'carrier n/a'}, ${formatQuantity(s.p_nom_mw, 'MW')}, ${formatQuantity(s.max_hours, 'h')}`,
@@ -194,6 +235,7 @@ export function EventEditor({
           />
           <NumberField
             label="Initial state of charge"
+            error={errorOf('initial_soc_fraction')}
             unit="fraction of energy capacity"
             min={0}
             max={1}

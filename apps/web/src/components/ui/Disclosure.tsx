@@ -60,7 +60,7 @@ export function InfoPopover({
           type="button"
           aria-label={label}
           data-testid={testId}
-          className={cn('inline-flex cursor-pointer items-center rounded-sm hover:opacity-85', className)}
+          className={cn('inline-flex min-h-6 cursor-pointer items-center rounded-sm hover:opacity-85', className)}
         >
           {trigger}
         </button>

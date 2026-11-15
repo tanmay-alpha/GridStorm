@@ -45,7 +45,8 @@ export function GridImpactBrief({ brief, className, compact = false }: { brief: 
               <span className="text-fg">{s.text}</span>
               {s.evidence.length > 0 && (
                 <details className="group mt-0.5 text-2xs text-fg-muted">
-                  <summary className="cursor-pointer select-none text-accent underline-offset-2 hover:underline">
+                  {/* -my-1 py-1: 24 px tap target (WCAG 2.5.8) without changing the line spacing. */}
+                  <summary className="-my-1 cursor-pointer select-none py-1 text-accent underline-offset-2 hover:underline">
                     Evidence ({s.evidence.length})
                   </summary>
                   <dl className="mt-1 grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5 rounded border border-line bg-surface-2 p-1.5">

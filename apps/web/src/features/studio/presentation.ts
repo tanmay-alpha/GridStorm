@@ -4,7 +4,30 @@
  * here states a result.
  */
 import type { StormEvent, StormSpec } from '../../api/stormspec'
+import type { ScenarioRecord } from '../../api/types'
 import type { Step } from './flow'
+
+/** `1 event`, `2 events`; pass `many` for irregular plurals. */
+export function plural(n: number, one: string, many = `${one}s`): string {
+  return `${n} ${n === 1 ? one : many}`
+}
+
+/**
+ * Crisis name for the Studio summary. An edited preset is a custom scenario: it keeps a name the
+ * user typed, otherwise it reads "Custom (based on <preset>)" instead of the unchanged preset name.
+ */
+export function crisisLabel(
+  spec: Pick<StormSpec, 'id' | 'name'> | null,
+  preset: Pick<ScenarioRecord, 'name'> & { spec: Pick<StormSpec, 'name'> } | null,
+  edited: boolean,
+): string {
+  if (!spec) return 'Not chosen yet'
+  if (!preset) return spec.name || spec.id
+  const presetName = preset.name ?? preset.spec.name
+  if (!edited) return presetName
+  const renamed = spec.name && spec.name !== preset.spec.name && spec.name !== presetName
+  return renamed ? spec.name : `Custom (based on ${presetName})`
+}
 
 const CATEGORY: Record<StormEvent['type'], string> = {
   generator_outage: 'Generator outage',

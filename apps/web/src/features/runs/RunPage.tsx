@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Ban, Download, FileJson, FileText, RotateCcw } from 'lucide-react'
 import { api, ApiError } from '../../api/client'
 import { qk, TERMINAL_STATUSES, useAssetTable, useJob, useJobArtifacts, useNetwork, useResult, useScenario } from '../../api/hooks'
-import type { GridstormResult, Job, JobStage } from '../../api/types'
+import type { CostBasis, GridstormResult, Job, JobStage } from '../../api/types'
 import {
   Badge,
   Button,
@@ -23,7 +23,7 @@ import {
 } from '../../components/ui'
 import { NO_VALUE, formatDuration, formatQuantity, formatTimestamp, shortHash } from '../../lib/format'
 import { formatMoney, resolveCostBasis } from '../../lib/money'
-import { downloadJson, downloadText } from '../../lib/download'
+import { downloadBlob, downloadJson, downloadText } from '../../lib/download'
 import { useDocumentTitle } from '../../lib/title'
 import { buildBrief } from '../brief/brief'
 import { GridImpactBrief } from '../brief/GridImpactBrief'
@@ -33,7 +33,7 @@ import { useBaselinePlan } from '../compare/useBaselinePlan'
 import { GuideSteps, GUIDE_STUDIO_URL } from './GuideSteps'
 import { BaselineChange, HeadlineCards, KeyAssumptions } from './RunOverview'
 import { RunResultView } from './RunResultView'
-import { changedBranchKeys, headlineFacts, isIntegrityError, isResultUnavailable, outagedKeys, outcomeSummary } from './result'
+import { changedBranchKeys, costBasisTexts, headlineFacts, isIntegrityError, isResultUnavailable, outagedKeys, outcomeSummary } from './result'
 
 const STAGES: JobStage[] = ['queued', 'loading_network', 'applying_scenario', 'building_model', 'solving', 'postprocessing', 'done']
 
@@ -68,13 +68,14 @@ function StageTimeline({ job }: { job: Job }) {
 }
 
 /** Solver failures, infeasibility and numerical warnings reported by the worker. */
-function Diagnostics({ job, result }: { job: Job; result: GridstormResult | undefined }) {
+function Diagnostics({ job, result, basis }: { job: Job; result: GridstormResult | undefined; basis: CostBasis | null }) {
   const issues: string[] = []
   if (job.error) issues.push(`${job.error.code}: ${job.error.message}`)
   if (job.outcome === 'infeasible')
     issues.push('The optimisation is infeasible: demand cannot be met within network and generator limits. Enable load shedding or relax the scenario events.')
   if (!job.error && job.status === 'timeout') issues.push('The job exceeded its time limit.')
-  if (!issues.length && !result?.warnings.length) return null
+  const warnings = result ? costBasisTexts(result, basis).warnings : []
+  if (!issues.length && !warnings.length) return null
   return (
     <Panel title="Diagnostics & numerical warnings" className="border-warn/50" id="diagnostics">
       <div className="flex flex-col gap-2 text-xs" data-testid="diagnostics">
@@ -89,9 +90,9 @@ function Diagnostics({ job, result }: { job: Job; result: GridstormResult | unde
             <code className="font-mono">{job.solver.termination_condition ?? NO_VALUE}</code>.
           </p>
         )}
-        {!!result?.warnings.length && (
+        {!!warnings.length && (
           <ul className="list-disc pl-4 text-warn">
-            {result.warnings.map((w) => (
+            {warnings.map((w) => (
               <li key={w}>{w}</li>
             ))}
           </ul>
@@ -103,9 +104,11 @@ function Diagnostics({ job, result }: { job: Job; result: GridstormResult | unde
 
 function Downloads({ job, result }: { job: Job; result: GridstormResult | undefined }) {
   const artifacts = useJobArtifacts(job.id, job.status === 'completed' && job.result_available !== false && !!result)
+  // JSON documents are saved as the server's exact bytes so their sha256 matches the hash shown below.
   const report = useMutation({
-    mutationFn: async (format: 'json' | 'md') => {
-      if (format === 'json') downloadJson(`gridstorm-run-${job.id}-report.json`, await api.reportJson(job.id))
+    mutationFn: async (format: 'result' | 'json' | 'md') => {
+      if (format === 'result') downloadBlob(`gridstorm-result-${job.id}.json`, await api.simulationResultBlob(job.id))
+      else if (format === 'json') downloadBlob(`gridstorm-run-${job.id}-report.json`, await api.reportJsonBlob(job.id))
       else downloadText(`gridstorm-run-${job.id}-report.md`, await api.reportMarkdown(job.id), 'text/markdown')
     },
   })
@@ -113,7 +116,7 @@ function Downloads({ job, result }: { job: Job; result: GridstormResult | undefi
     <Panel title="Downloads" id="downloads">
       <div className="flex flex-col gap-2">
         <div className="flex flex-wrap gap-1.5">
-          <Button size="sm" disabled={!result} onClick={() => result && downloadJson(`gridstorm-result-${job.id}.json`, result)} data-testid="download-result">
+          <Button size="sm" disabled={!result || report.isPending} onClick={() => report.mutate('result')} data-testid="download-result">
             <Download aria-hidden className="size-3.5" /> Result JSON
           </Button>
           <Button
@@ -131,7 +134,7 @@ function Downloads({ job, result }: { job: Job; result: GridstormResult | undefi
             <FileJson aria-hidden className="size-3.5" /> Report JSON
           </Button>
         </div>
-        {report.error && <ErrorState error={report.error} title="Report download failed" />}
+        {report.error && <ErrorState error={report.error} title="Download failed" />}
         {artifacts.data && artifacts.data.length > 0 && (
           <ul className="flex flex-col gap-0.5 text-2xs text-fg-muted">
             {artifacts.data.map((a) => (
@@ -257,6 +260,10 @@ export default function RunPage() {
   const headlineMetrics = result.data?.metrics ?? storedMetrics.data?.metrics
   const basis = resolveCostBasis(result.data, network.data)
   const showResult = done && !unavailable && !!result.data
+  // A completed run lays out summary, result and status panels around the result document (or the
+  // stored metrics when it is gone); rendering them before it lands pushed the status panels off
+  // screen (CLS 0.28 desktop, 0.71 mobile). Wait for it, then render the page once.
+  const settling = done && (unavailable ? storedMetrics.isPending : !result.error && !result.data)
 
   return (
     <div className="mx-auto flex max-w-[1500px] flex-col gap-3 p-3 md:p-4">
@@ -297,72 +304,76 @@ export default function RunPage() {
       />
       {guide && <GuideStepsForRun job={j} ready={showResult} />}
       {cancel.error && <ErrorState error={cancel.error} title="Cancel failed" />}
-      <section className="gs-panel flex flex-col gap-2.5 p-3 md:p-4" aria-label="Run summary" data-testid="run-summary" id="run-summary">
-        <div className="flex flex-wrap items-center gap-2">
-          <h2 className="text-lg font-semibold" data-testid="outcome-headline">
-            {summary.label}
-          </h2>
-          <Badge tone={summary.tone}>{j.status}</Badge>
-          <p className="text-xs text-fg-muted">{summary.detail}</p>
-          {headlineMetrics && (
-            <span className="ml-auto">
-              <CostBasisBadge basis={basis} />
-            </span>
-          )}
-        </div>
-        {headlineMetrics && <HeadlineCards facts={headlineFacts(headlineMetrics, basis)} />}
-        {result.data && <KeyAssumptions result={result.data} basis={basis} />}
-      </section>
-
-      {done &&
-        (unavailable ? (
-          <Panel title="Result file unavailable" className="border-warn/50" id="result-unavailable">
-            <div role="alert" data-testid="result-artifact-missing" className="flex flex-col gap-2 text-sm text-fg">
-              <p>This simulation completed, but its detailed result file is no longer available.</p>
-              <p className="text-xs text-fg-muted">
-                The job record remains available. Numerical series cannot be recovered from metadata alone; re-run the stored scenario to generate a new result.
-              </p>
-              <Button size="sm" onClick={() => rerun.mutate()} disabled={rerun.isPending}>
-                <RotateCcw aria-hidden className="size-3.5" /> {rerun.isPending ? 'Starting new run…' : 'Re-run this scenario'}
-              </Button>
-              {rerun.error && <ErrorState error={rerun.error} title="Could not re-run this scenario" />}
+      {settling ? (
+        <SkeletonBlock rows={10} label="Loading result" />
+      ) : (
+        <>
+          <section className="gs-panel flex flex-col gap-2.5 p-3 md:p-4" aria-label="Run summary" data-testid="run-summary" id="run-summary">
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="text-lg font-semibold" data-testid="outcome-headline">
+                {summary.label}
+              </h2>
+              <Badge tone={summary.tone}>{j.status}</Badge>
+              <p className="text-xs text-fg-muted">{summary.detail}</p>
+              {headlineMetrics && (
+                <span className="ml-auto">
+                  <CostBasisBadge basis={basis} />
+                </span>
+              )}
             </div>
-          </Panel>
-        ) : result.error ? (
-          <ErrorState
-            error={result.error}
-            title={isIntegrityError(result.error) ? 'Result integrity check failed' : 'Could not load result'}
-            onRetry={() => void result.refetch()}
-          />
-        ) : !result.data ? (
-          <SkeletonBlock rows={8} label="Loading result" />
-        ) : (
-          <CompletedRun job={j} result={result.data} guide={guide} />
-        ))}
-      <Diagnostics job={j} result={result.data} />
-      <div className="grid gap-3 lg:grid-cols-3">
-        <Panel title="Status">
-          <StageTimeline job={j} />
-          {!terminal && <p className="mt-2 text-2xs text-fg-subtle">Polling the backend every second; stages appear as the worker reports them.</p>}
-        </Panel>
-        <Panel title="Solver configuration">
-          <KeyValue
-            rows={[
-              ['Solver', solver ? `${solver.name ?? NO_VALUE} ${solver.version ?? ''}` : NO_VALUE],
-              ['Status', solver?.status ?? NO_VALUE],
-              ['Termination', solver?.termination_condition ?? NO_VALUE],
-              ['Objective', formatMoney(solver?.objective_eur, basis, { scale: true })],
-              ['Wall time', formatDuration(solver?.wall_time_s)],
-              ['Attempts', j.attempts ?? NO_VALUE],
-              ['Started', formatTimestamp(j.started_at)],
-              ['Finished', formatTimestamp(j.finished_at)],
-            ]}
-          />
-        </Panel>
-        <Downloads job={j} result={result.data} />
-      </div>
-      {terminal && !done && (
-        <EmptyState title={`Run ${j.status}`}>No result is available for a {j.status} job. See diagnostics above.</EmptyState>
+            {headlineMetrics && <HeadlineCards facts={headlineFacts(headlineMetrics, basis)} />}
+            {result.data && <KeyAssumptions result={result.data} basis={basis} />}
+          </section>
+
+          {done &&
+            (unavailable ? (
+              <Panel title="Result file unavailable" className="border-warn/50" id="result-unavailable">
+                <div role="alert" data-testid="result-artifact-missing" className="flex flex-col gap-2 text-sm text-fg">
+                  <p>This simulation completed, but its detailed result file is no longer available.</p>
+                  <p className="text-xs text-fg-muted">
+                    The job record remains available. Numerical series cannot be recovered from metadata alone; re-run the stored scenario to generate a new result.
+                  </p>
+                  <Button size="sm" onClick={() => rerun.mutate()} disabled={rerun.isPending}>
+                    <RotateCcw aria-hidden className="size-3.5" /> {rerun.isPending ? 'Starting new run…' : 'Re-run this scenario'}
+                  </Button>
+                  {rerun.error && <ErrorState error={rerun.error} title="Could not re-run this scenario" />}
+                </div>
+              </Panel>
+            ) : result.data ? (
+              <CompletedRun job={j} result={result.data} guide={guide} />
+            ) : (
+              <ErrorState
+                error={result.error}
+                title={isIntegrityError(result.error) ? 'Result integrity check failed' : 'Could not load result'}
+                onRetry={() => void result.refetch()}
+              />
+            ))}
+          <Diagnostics job={j} result={result.data} basis={basis} />
+          <div className="grid gap-3 lg:grid-cols-3">
+            <Panel title="Status">
+              <StageTimeline job={j} />
+              {!terminal && <p className="mt-2 text-2xs text-fg-subtle">Polling the backend every second; stages appear as the worker reports them.</p>}
+            </Panel>
+            <Panel title="Solver configuration">
+              <KeyValue
+                rows={[
+                  ['Solver', solver ? `${solver.name ?? NO_VALUE} ${solver.version ?? ''}` : NO_VALUE],
+                  ['Status', solver?.status ?? NO_VALUE],
+                  ['Termination', solver?.termination_condition ?? NO_VALUE],
+                  ['Objective', formatMoney(solver?.objective_eur, basis, { scale: true })],
+                  [j.execution_mode === 'precomputed' ? 'Wall time (precomputed run)' : 'Wall time', formatDuration(solver?.wall_time_s)],
+                  ['Attempts', j.attempts ?? NO_VALUE],
+                  ['Started', formatTimestamp(j.started_at)],
+                  ['Finished', formatTimestamp(j.finished_at)],
+                ]}
+              />
+            </Panel>
+            <Downloads job={j} result={result.data} />
+          </div>
+          {terminal && !done && (
+            <EmptyState title={`Run ${j.status}`}>No result is available for a {j.status} job. See diagnostics above.</EmptyState>
+          )}
+        </>
       )}
     </div>
   )

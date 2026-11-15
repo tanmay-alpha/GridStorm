@@ -5,7 +5,7 @@ import { SnapshotSlider } from '../../components/map/SnapshotSlider'
 import type { AssetRef } from '../../components/map/features'
 import { Badge, Chart, DataTable, KeyValue, Panel, cn, type Column } from '../../components/ui'
 import { NO_VALUE, formatNumber, formatQuantity, isFiniteNumber, shortHash } from '../../lib/format'
-import { priceUnit } from '../../lib/money'
+import { moneyUnit, priceUnit } from '../../lib/money'
 import { cssVar, useTheme } from '../../lib/theme'
 import { CostBasisNote } from './CostBasis'
 import {
@@ -22,6 +22,7 @@ import {
   storageOption,
   type BranchRow,
   type GeneratorRow,
+  costBasisTexts,
 } from './result'
 
 const branchColumns: Column<BranchRow>[] = [
@@ -122,6 +123,7 @@ export function RunResultView({
   }
   const pkgs = manifest.package_versions
   const packages = pkgs && typeof pkgs === 'object' ? Object.entries(pkgs).map(([k, v]) => `${k} ${String(v)}`).join(', ') : null
+  const texts = useMemo(() => costBasisTexts(result, basis), [result, basis])
 
   return (
     <>
@@ -223,14 +225,19 @@ export function RunResultView({
 
       <div className="grid gap-3 lg:grid-cols-2 xl:grid-cols-3">
         <Panel title="Assumptions" id="assumptions">
-          {result.assumptions.length ? (
+          {texts.assumptions.length ? (
             <ul className="list-disc space-y-0.5 pl-4 text-xs text-fg-muted" data-testid="assumptions">
-              {result.assumptions.map((a) => (
+              {texts.assumptions.map((a) => (
                 <li key={a}>{a}</li>
               ))}
             </ul>
           ) : (
             <p className="text-xs text-fg-muted">The result lists no assumptions.</p>
+          )}
+          {texts.legacyEur && (
+            <p role="note" className="mt-2 rounded border border-warn/40 bg-warn-soft px-2 py-1 text-xs text-warn" data-testid="legacy-eur-note">
+              This result was recorded before cost bases were declared. Its assumption and warning texts said “EUR”, which meant the dataset’s money unit, not euros; they are shown here in {moneyUnit(basis)} ({priceUnit(basis)}).
+            </p>
           )}
           <CostBasisNote basis={basis} className="mt-2" />
         </Panel>

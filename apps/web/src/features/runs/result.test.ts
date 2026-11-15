@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { generationOption, headlineFacts, horizonLabel, isIntegrityError, isResultUnavailable, outcomeSummary, priceOption, SINGLE_PERIOD, snapshotLabels } from './result'
+import { costBasisTexts, generationOption, headlineFacts, horizonLabel, isIntegrityError, isResultUnavailable, outcomeSummary, priceOption, SINGLE_PERIOD, snapshotLabels } from './result'
 import type { CostBasis, GridstormResult, SolverInfo } from '../../api/types'
 
 import { ApiError } from '../../api/client'
@@ -52,7 +52,8 @@ describe('run summary', () => {
       PGLIB,
     )
     const cost = facts.find((m) => m.key === 'cost')!
-    expect(cost.display).toBe('2 M PGLib cost units')
+    // 2,001,372.9 total vs 2,000,000 penalty: scaled text must keep them distinguishable.
+    expect(cost.display).toBe('2.001 M PGLib cost units')
     expect(cost.hint).toBe('incl. 2 M PGLib cost units load-shedding penalty')
     expect(facts.find((m) => m.key === 'served')?.display).toBe('22.78 %')
     expect(headlineFacts({ total_system_cost_eur: 5 }, null).find((m) => m.key === 'cost')?.display).toBe('5 cost units (basis unknown)')
@@ -93,5 +94,32 @@ describe('networks without a time index (POST-12)', () => {
     expect(snapshotLabels(withSnapshots(['0', '1']))).toEqual(['period 1', 'period 2'])
     expect(horizonLabel(withSnapshots(['0', '1']))).toBe('2 periods (no timestamps)')
     expect(horizonLabel(withSnapshots(['2011-01-01T00:00:00', '2011-01-01T23:00:00']))).toBe('2 snapshots · 2011-01-01 00:00 → 2011-01-01 23:00')
+  })
+})
+
+describe('legacy cost wording (results stored before cost bases were declared)', () => {
+  const legacy = {
+    assumptions: ['Load shedding: one generator per load bus with marginal cost = VOLL 10000 EUR/MWh', 'DC linearised power flow'],
+    warnings: ['Shedding penalty 2000000 EUR dominates the objective'],
+    cost_basis: null,
+  }
+  it('never presents dataset money as EUR: rewrites to the resolved basis and flags the rewrite', () => {
+    const t = costBasisTexts(legacy, PGLIB)
+    expect(t.legacyEur).toBe(true)
+    expect(t.assumptions[0]).toBe('Load shedding: one generator per load bus with marginal cost = VOLL 10000 PGLib cost units/MWh')
+    expect(t.assumptions[1]).toBe('DC linearised power flow')
+    expect(t.warnings[0]).toBe('Shedding penalty 2000000 PGLib cost units dominates the objective')
+    expect(JSON.stringify(t)).not.toMatch(/\bEUR\b/)
+  })
+  it('keeps texts verbatim when the result embeds its basis or the basis is real euros', () => {
+    expect(costBasisTexts({ ...legacy, cost_basis: PGLIB }, PGLIB)).toEqual({ assumptions: legacy.assumptions, warnings: legacy.warnings, legacyEur: false })
+    const eur: CostBasis = { ...PGLIB, kind: 'currency_verified', currency: 'EUR', currency_year: 2020, money_unit: 'EUR', price_unit: 'EUR/MWh', comparability_key: 'eur' }
+    expect(costBasisTexts(legacy, eur).assumptions).toEqual(legacy.assumptions)
+  })
+  it('labels an undeclared basis as unknown rather than EUR', () => {
+    expect(costBasisTexts(legacy, null).assumptions[0]).toContain('VOLL 10000 cost units (basis unknown)/MWh')
+  })
+  it('does not flag legacy results without money text', () => {
+    expect(costBasisTexts({ assumptions: ['DC linearised power flow'], warnings: [], cost_basis: null }, PGLIB).legacyEur).toBe(false)
   })
 })

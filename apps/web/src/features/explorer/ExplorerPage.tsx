@@ -51,6 +51,7 @@ export default function ExplorerPage() {
   const setLayers = (next: LayerVisibility) => setLayersByKind((all) => ({ ...all, [kind]: next }))
   const [filters, setFilters] = useState<FeatureFilters>(NO_FILTERS)
   const [selected, setSelected] = useState<AssetRef | null>(null)
+  const detailsRef = useRef<HTMLElement | null>(null)
   const [panelOpen, setPanelOpen] = useState(true)
   const [legendOpen, setLegendOpen] = useState(wideScreen)
   // Legend panel size (incl. its offsets), kept clear by the schematic fit where the canvas has room.
@@ -132,7 +133,8 @@ export default function ExplorerPage() {
     kind === 'schematic' ? ['buses', 'lines', 'links', 'generators', 'storage', 'loads'] : ['buses', 'lines', 'links', 'generators', 'storage']
   const carrierLegend = groupCarriers(Object.keys(carrierColors)).map(({ group, carriers: names }) => (
     <details key={group} className="mt-2">
-      <summary className="cursor-pointer text-xs text-fg-muted">
+      {/* -my-1 py-1: 24 px tap target (WCAG 2.5.8) without changing the legend spacing. */}
+      <summary className="-my-1 cursor-pointer py-1 text-xs text-fg-muted">
         {group} ({names.length})
       </summary>
       <Legend
@@ -185,7 +187,7 @@ export default function ExplorerPage() {
               Requested network not found; showing {sel.id}.
             </p>
           )}
-          <AssetSearch index={searchIndex} onPick={setSelected} disabled={!data} />
+          <AssetSearch key={sel.id} index={searchIndex} onPick={setSelected} disabled={!data} pickedFocus={detailsRef} />
           <label className="flex min-h-11 items-center gap-2 text-xs text-fg-muted"><input type="checkbox" checked={searchAll} onChange={(e) => setSearchAll(e.target.checked)} />Include generation, storage and loads in search</label>
           {(generators.isFetching || storage.isFetching || loads.isFetching) && <p role="status" className="text-xs text-fg-muted">Loading requested asset tables…</p>}
           {(generators.error || storage.error || loads.error || carriers.error) && <ErrorState error={generators.error ?? storage.error ?? loads.error ?? carriers.error} title="Requested asset table unavailable" />}
@@ -266,7 +268,8 @@ export default function ExplorerPage() {
                 </p>
               )}
             </details>
-            <div className="absolute bottom-8 right-2 z-10 flex gap-1">
+            {/* Geographic maps: clear MapLibre's bottom-right scale bar (~44 px incl. margins) with a gap. */}
+            <div className={cn('absolute right-2 z-10 flex gap-1', kind === 'geographic' ? 'bottom-14' : 'bottom-8')}>
               {sel.summary.provenance_class && <Badge tone="neutral">data: {sel.summary.provenance_class}</Badge>}
             </div>
           </>
@@ -284,6 +287,7 @@ export default function ExplorerPage() {
             )}
           >
             <AssetDetails
+              ref={detailsRef}
               networkId={sel.id!}
               assets={data}
               selected={selected}

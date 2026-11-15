@@ -107,7 +107,8 @@ export async function request<T>(path: string, opts: RequestOptions = {}): Promi
   return (await res.json()) as T
 }
 
-export async function requestText(path: string, query?: Query, signal?: AbortSignal): Promise<string> {
+/** Fetch a non-JSON-decoded response; failures map to the same ApiError classes as `request`. */
+async function fetchOk(path: string, query?: Query, signal?: AbortSignal): Promise<Response> {
   let res: Response
   try {
     res = await fetch(buildUrl(path, query), { signal })
@@ -116,7 +117,19 @@ export async function requestText(path: string, query?: Query, signal?: AbortSig
     throw new ApiError(0, 'backend_unreachable', 'Backend unreachable')
   }
   if (!res.ok) throw await parseError(res)
-  return res.text()
+  return res
+}
+
+export async function requestText(path: string, query?: Query, signal?: AbortSignal): Promise<string> {
+  return (await fetchOk(path, query, signal)).text()
+}
+
+/**
+ * The response body exactly as the server sent it. Downloads that sit next to a sha256 must save
+ * these bytes: re-serialising parsed JSON changes the hash.
+ */
+export async function requestBlob(path: string, query?: Query, signal?: AbortSignal): Promise<Blob> {
+  return (await fetchOk(path, query, signal)).blob()
 }
 
 const v1 = '/api/v1'
@@ -165,8 +178,8 @@ export const api = {
   createComparison: (baseline_job_id: string, scenario_job_id: string) =>
     request<Comparison>(`${v1}/comparisons`, { method: 'POST', body: { baseline_job_id, scenario_job_id } }),
   comparison: (id: string, s?: AbortSignal) => request<Comparison>(`${v1}/comparisons/${enc(id)}`, { signal: s }),
-  reportJson: (id: string, s?: AbortSignal) =>
-    request<Record<string, unknown>>(`${v1}/reports/${enc(id)}`, { query: { format: 'json' }, signal: s }),
+  /** Report JSON bytes verbatim (hash matches `X-GridStorm-Report-SHA256`). */
+  reportJsonBlob: (id: string, s?: AbortSignal) => requestBlob(`${v1}/reports/${enc(id)}`, { format: 'json' }, s),
   reportMarkdown: (id: string, s?: AbortSignal) => requestText(`${v1}/reports/${enc(id)}`, { format: 'md' }, s),
   reportUrl: (id: string, format: 'json' | 'md') => buildUrl(`${v1}/reports/${enc(id)}`, { format }),
 
@@ -182,6 +195,8 @@ export const api = {
     }),
 
   simulationResultUrl: (id: string) => buildUrl(`${v1}/simulations/${enc(id)}/result`),
+  /** Stored result document bytes verbatim (hash matches `X-GridStorm-Result-SHA256`). */
+  simulationResultBlob: (id: string, s?: AbortSignal) => requestBlob(`${v1}/simulations/${enc(id)}/result`, undefined, s),
 }
 
 /** Normalise list endpoints that may return either a page or a bare array. */

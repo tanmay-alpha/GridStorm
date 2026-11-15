@@ -5,6 +5,7 @@ import type { ChartOption } from '../../components/ui'
 import { carrierColor } from '../../lib/scales'
 import { formatNumber, formatQuantity, formatTimestamp, isFiniteNumber, NO_VALUE } from '../../lib/format'
 import { formatMoney, priceUnit } from '../../lib/money'
+import { relabelLegacyEur } from '../research/lib/moneyText'
 
 /** Every branch of a result with its map component kind (ids are unique per component only). */
 export function resultBranches(r: GridstormResult): { kind: 'line' | 'transformer'; row: ResultBranch }[] {
@@ -356,6 +357,29 @@ export function headlineFacts(m: Partial<ResultMetrics>, basis: CostBasis | null
   const co2 = num(m.co2_emissions_t)
   if (co2 !== null) out.push({ key: 'co2', label: 'CO₂ emissions', value: co2, display: formatQuantity(co2, 't', { scale: true }) })
   return out
+}
+
+/** Assumption and warning texts of a result, with legacy "EUR" wording mapped to the cost basis. */
+export interface CostBasisTexts {
+  assumptions: string[]
+  warnings: string[]
+  /** True when a text was rewritten: it predates declared cost bases and its "EUR" meant the dataset money unit. */
+  legacyEur: boolean
+}
+
+/**
+ * Results stored before cost bases were declared (no embedded `cost_basis`) wrote dataset money as
+ * "EUR" (e.g. "VOLL 10000 EUR/MWh") whatever the dataset's unit. Like the server's reports
+ * (`load_result`, `legacy_report_cost_basis`), show those texts in the resolved basis' units unless
+ * it is real euros. Results with an embedded basis are shown verbatim.
+ */
+export function costBasisTexts(result: Pick<GridstormResult, 'assumptions' | 'warnings' | 'cost_basis'>, basis: CostBasis | null | undefined): CostBasisTexts {
+  const assumptions = result.assumptions ?? []
+  const warnings = result.warnings ?? []
+  if (result.cost_basis) return { assumptions, warnings, legacyEur: false }
+  const out = { assumptions: assumptions.map((a) => relabelLegacyEur(a, basis)), warnings: warnings.map((w) => relabelLegacyEur(w, basis)) }
+  const legacyEur = out.assumptions.some((a, i) => a !== assumptions[i]) || out.warnings.some((w, i) => w !== warnings[i])
+  return { ...out, legacyEur }
 }
 
 /** The completed job's stored result is unavailable; integrity failures are not missing results. */

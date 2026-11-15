@@ -152,7 +152,7 @@ describe('RunPage — completed run (real IEEE 14 gen-1 outage result)', () => {
     const metrics = screen.getByTestId('metrics')
     expect(within(metrics).getByText('200 MWh')).toBeInTheDocument()
     expect(within(metrics).getByText('22.78 %')).toBeInTheDocument()
-    expect(within(metrics).getByText('2 M PGLib cost units')).toBeInTheDocument()
+    expect(within(metrics).getByText('2.001 M PGLib cost units')).toBeInTheDocument()
     expect(within(brief).getByTestId('brief-headline')).toHaveTextContent('Feasible with 200 MWh unserved (77.22 % of demand)')
     expect(brief.querySelector('[data-statement="outage"]')).toHaveTextContent('generator gen-1')
     expect(screen.getByTestId('key-assumptions')).toHaveTextContent('single period (no timestamp)')

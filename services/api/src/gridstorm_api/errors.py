@@ -9,6 +9,7 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
+from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 log = logging.getLogger("gridstorm_api")
 
@@ -131,3 +132,37 @@ def install_error_handlers(app: FastAPI) -> None:
     async def _unhandled(_: Request, exc: Exception) -> JSONResponse:
         log.exception("unhandled error: %s", type(exc).__name__)
         return JSONResponse(error_body("internal_error", "internal server error"), status_code=500)
+
+
+class UnhandledErrorMiddleware:
+    """Render unexpected exceptions as the JSON 500 *inside* CORS.
+
+    Starlette sends ``exception_handler(Exception)`` responses from its outermost middleware, past
+    CORSMiddleware, so browsers saw a CORS failure ("backend unreachable") instead of the 500.
+    Registered innermost; a response that already started is re-raised unchanged.
+    """
+
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+        started = False
+
+        async def tracked(message: Message) -> None:
+            nonlocal started
+            started = started or message["type"] == "http.response.start"
+            await send(message)
+
+        try:
+            await self.app(scope, receive, tracked)
+        except Exception as exc:
+            if started:
+                raise
+            log.exception("unhandled error: %s", type(exc).__name__)
+            response = JSONResponse(
+                error_body("internal_error", "internal server error"), status_code=500
+            )
+            await response(scope, receive, send)

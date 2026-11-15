@@ -21,7 +21,7 @@ from . import __version__
 from .analytics import AnalyticsService
 from .config import Settings
 from .context import AppContext
-from .errors import install_error_handlers
+from .errors import UnhandledErrorMiddleware, install_error_handlers
 from .ratelimit import BodySizeLimitMiddleware, TrustedProxyMiddleware
 from .readiness import SolverProbe, StorageProbe
 from .routers import artifacts, comparisons, health, networks, scenarios, simulations
@@ -102,6 +102,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         lifespan=lifespan,
     )
     install_error_handlers(app)
+    # innermost: unexpected 500s still pass through CORS and the security headers
+    app.add_middleware(UnhandledErrorMiddleware)
     app.add_middleware(GZipMiddleware, minimum_size=2048)
     app.add_middleware(
         CORSMiddleware,

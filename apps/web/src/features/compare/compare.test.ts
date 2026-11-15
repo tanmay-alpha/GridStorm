@@ -1,12 +1,26 @@
 import { describe, expect, it } from 'vitest'
 import type { BranchLoadingDelta, CostBasis } from '../../api/types'
-import { branchChange, costComparability, deltaCell, formatMetricDelta, formatMetricValue, metricLabel, metricUnitLabel, topBranchChanges } from './compare'
+import { branchChange, costComparability, deltaCell, formatMetricDelta, formatMetricValue, metricLabel, metricUnitLabel, orderMetrics, topBranchChanges } from './compare'
 
 describe('metricLabel', () => {
   it('shows the unit exactly once (VER-014)', () => {
     expect(metricLabel('unserved_energy_mwh', 'MWh')).toBe('Unserved energy [MWh]')
     expect(metricLabel('total_system_cost_eur', 'EUR')).toBe('Total system cost [EUR]')
     expect(metricLabel('congested_line_count', null)).toBe('Congested line count')
+  })
+})
+
+describe('orderMetrics', () => {
+  it('leads with consequences, ends with the balance check, keeps unknown metrics alphabetical after', () => {
+    const rows = ['balance_residual_max_mw', 'zeta_new', 'co2_emissions_t', 'alpha_new', 'total_system_cost_eur', 'unserved_energy_mwh'].map((metric) => ({ metric }))
+    expect(orderMetrics(rows).map((r) => r.metric)).toEqual([
+      'unserved_energy_mwh',
+      'total_system_cost_eur',
+      'co2_emissions_t',
+      'balance_residual_max_mw',
+      'alpha_new',
+      'zeta_new',
+    ])
   })
 })
 

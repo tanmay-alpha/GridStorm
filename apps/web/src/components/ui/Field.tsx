@@ -150,6 +150,7 @@ export function SelectField<V extends string>({
   onChange,
   options,
   hint,
+  error,
   className,
   testId,
 }: {
@@ -158,15 +159,19 @@ export function SelectField<V extends string>({
   onChange: (v: V) => void
   options: { value: V; label: string }[]
   hint?: ReactNode
+  /** Validation message for this field (rendered as text and announced via aria-describedby). */
+  error?: ReactNode
   className?: string
   testId?: string
 }) {
   const id = useId()
   return (
-    <FieldShell id={id} label={label} hint={hint} className={className}>
+    <FieldShell id={id} label={label} hint={hint} error={error} className={className}>
       <select
         id={id}
-        className="gs-input text-sm"
+        className={cn('gs-input text-sm', error ? 'border-danger' : null)}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={describedBy(id, hint, error)}
         value={value}
         onChange={(e) => onChange(e.target.value as V)}
         data-testid={testId}

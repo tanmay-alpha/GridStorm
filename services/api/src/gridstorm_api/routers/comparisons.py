@@ -5,6 +5,7 @@ from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, Depends, Query
 from fastapi.responses import JSONResponse, PlainTextResponse, Response
+from sqlalchemy import select
 
 from ..access import audit, can_read, ensure_profile, resolve_visibility
 from ..comparisons import (
@@ -67,10 +68,15 @@ def _completed(job: SimulationJob, label: str) -> None:
     summary="Compare two completed jobs on the same network",
     description="Metric deltas, per-carrier deltas and per-branch max-loading deltas "
     "(scenario − baseline) with a reproducibility manifest. A comparison that involves a private "
-    "job is private.",
+    "job is private. Re-submitting the same pair (same owner and visibility) on the same "
+    "deployment returns the existing comparison with HTTP 200 instead of creating a duplicate.",
 )
 def create_comparison(
-    ctx: Ctx, session: DBSession, principal: CurrentPrincipal, body: ComparisonCreate
+    ctx: Ctx,
+    session: DBSession,
+    principal: CurrentPrincipal,
+    body: ComparisonCreate,
+    response: Response,
 ) -> dict[str, Any]:
     baseline_job = get_visible_job(session, principal, body.baseline_job_id)
     scenario_job = get_visible_job(session, principal, body.scenario_job_id)
@@ -90,6 +96,26 @@ def create_comparison(
                 code="visibility_conflict",
             )
         visibility = "private"
+    # Same pair, owner and visibility, built by this deployment: the report is a deterministic
+    # function of two immutable results and the code, so return it (200) instead of a duplicate.
+    owner = (
+        ComparisonReport.owner_id.is_(None)
+        if principal.user_id is None
+        else ComparisonReport.owner_id == principal.user_id
+    )
+    for existing in session.scalars(
+        select(ComparisonReport)
+        .where(
+            ComparisonReport.baseline_job_id == baseline_job.id,
+            ComparisonReport.scenario_job_id == scenario_job.id,
+            ComparisonReport.visibility == visibility,
+            owner,
+        )
+        .order_by(ComparisonReport.created_at.desc())
+    ):
+        if (existing.report.get("reproducibility") or {}).get("git_sha") == ctx.settings.git_sha:
+            response.status_code = 200
+            return comparison_to_dict(existing)
     baseline = load_result(ctx, session, baseline_job)
     scenario = load_result(ctx, session, scenario_job)
     report = build_comparison_report(
@@ -174,7 +200,12 @@ def get_report(
                 media_type="text/markdown; charset=utf-8",
                 headers={"X-GridStorm-Report-SHA256": sha},
             )
-        return JSONResponse(report, headers={"X-GridStorm-Report-SHA256": sha})
+        # Exactly the bytes the sha256 header covers, so a saved download verifies against it.
+        return Response(
+            canonical_bytes(report),
+            media_type="application/json",
+            headers={"X-GridStorm-Report-SHA256": sha},
+        )
     job = session.get(SimulationJob, uid)
     if job is None or not can_read(job, principal):
         raise NotFound(f"report {report_id!r} not found", code="report_not_found")

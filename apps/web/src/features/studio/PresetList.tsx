@@ -2,7 +2,7 @@ import type { NetworkSummary, ScenarioRecord } from '../../api/types'
 import { Badge, ExecutionBadge, KeyValue, ScenarioCard } from '../../components/ui'
 import { formatTimestamp } from '../../lib/format'
 import { availability, recordNetwork, type ExecutionPolicy } from './flow'
-import { investigationQuestion, scenarioCategory, shortDescription } from './presentation'
+import { investigationQuestion, plural, scenarioCategory, shortDescription } from './presentation'
 
 /** Preset / saved scenario cards: compact summary, long text and technical ids behind "Details". */
 export function PresetList({
@@ -69,7 +69,7 @@ export function PresetList({
                           'none'
                         ),
                       ],
-                      ['Horizon', `${r.spec.horizon.snapshots} snapshot(s) from #${r.spec.horizon.start ?? 0}`],
+                      ['Horizon', `${plural(r.spec.horizon.snapshots, 'snapshot')} from #${r.spec.horizon.start ?? 0}`],
                       ['Kind', r.preset ? 'curated preset' : `saved scenario${r.created_at ? ` · ${formatTimestamp(r.created_at)}` : ''}`],
                     ]}
                   />
