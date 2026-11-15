@@ -26,10 +26,10 @@ UPSTREAM = {
 
 SCHEMA_VERSION = "gridstorm-analytics/1.0"
 
-# Monetary values: PyPSA stores no currency; GridStorm networks use EUR cost data.
+# Unknown monetary provenance must never silently acquire a currency.
 CURRENCY_ASSUMPTION = (
-    "Monetary values are in the cost currency of the network data; PyPSA stores no currency "
-    "unit, GridStorm assumes EUR (example-network costs are illustrative, not market data)."
+    "Monetary values use the declared dataset cost basis; legacy *_eur names do not imply EUR. "
+    "No currency conversion is performed."
 )
 
 # PyPSA's statistics module rounds to `params.statistics.round` decimals when `round` is None.

@@ -1,5 +1,20 @@
 {
   "schema_version": "dataset-manifest/1.0",
+  "cost_basis": {
+    "schema_version": "gridstorm-cost-basis/1.0",
+    "currency": null,
+    "currency_year": null,
+    "kind": "illustrative",
+    "money_unit": "illustrative cost units",
+    "price_unit": "illustrative cost units/MWh",
+    "comparability_key": "pypsa-v1.4.0:ac-dc-meshed:illustrative-v1",
+    "provenance": "PyPSA v1.4.0 ac-dc-meshed toy network contains illustrative generator marginal costs and generator, line and link capital-cost coefficients.",
+    "assumptions": [
+      "Example costs are placeholders, not market prices or a verified currency basis.",
+      "Only runs on this same example cost basis are monetarily comparable.",
+      "VOLL is a scenario penalty in illustrative cost units/MWh, not an economic outage-damage estimate."
+    ]
+  },
   "network_id": "ac-dc-meshed",
   "name": "AC-DC meshed (PyPSA example)",
   "description": "Small synthetic 9-bus meshed AC/DC test network (UK, Germany, Norway nodes) shipped with PyPSA: 7 AC lines, 4 DC links, 6 generators (gas/wind, extendable), 10 hourly snapshots starting 2015-01-01. Illustrative only; not a real grid.",
@@ -51,7 +66,7 @@
     "links.p_nom_mw": "MW",
     "links.efficiency": "dimensionless (0,1]",
     "generators.p_nom_mw": "MW",
-    "generators.marginal_cost_eur_per_mwh": "EUR/MWh",
+    "generators.marginal_cost_eur_per_mwh": "illustrative cost units/MWh",
     "loads.p_peak_mw": "MW",
     "loads.p_mean_mw": "MW",
     "loads.energy_mwh": "MWh",

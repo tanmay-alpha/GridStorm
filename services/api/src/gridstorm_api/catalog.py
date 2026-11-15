@@ -96,6 +96,7 @@ class NetworkEntry:
             "network_sha256": self.network_sha256,
             "has_network_file": self.network_nc.is_file(),
             "source": m.get("source"),
+            "cost_basis": m.get("cost_basis"),
         }
 
 

@@ -18,6 +18,7 @@ from canonical_grid import (
     load_manifest,
 )
 
+from network_import.cost_basis import dataset_cost_basis
 from network_import.paths import networks_dir, sha256_file, write_text
 
 MAX_NETCDF_BYTES = 10 * 1024 * 1024
@@ -36,7 +37,7 @@ BASE_UNITS: dict[str, str] = {
     "links.p_nom_mw": "MW",
     "links.efficiency": "dimensionless (0,1]",
     "generators.p_nom_mw": "MW",
-    "generators.marginal_cost_eur_per_mwh": "EUR/MWh",
+    "generators.marginal_cost_eur_per_mwh": "cost units (basis unknown)/MWh",
     "loads.p_peak_mw": "MW",
     "loads.p_mean_mw": "MW",
     "loads.energy_mwh": "MWh",
@@ -128,6 +129,9 @@ def write_manifest(
     nc = dataset_dir / "network.nc"
     if nc.exists() and nc.stat().st_size > MAX_NETCDF_BYTES:
         raise RuntimeError(f"{nc} is {nc.stat().st_size} bytes > 10 MB; must not be committed")
+    basis = dataset_cost_basis(network_id)
+    declared_units = dict(units if units is not None else BASE_UNITS)
+    declared_units["generators.marginal_cost_eur_per_mwh"] = basis["price_unit"]
     manifest = DatasetManifest.model_validate(
         {
             "network_id": network_id,
@@ -138,8 +142,9 @@ def write_manifest(
             "files": file_entries(dataset_dir),
             "license": dict(license),
             "coverage": dict(coverage),
-            "units": dict(units if units is not None else BASE_UNITS),
             "missing_value_policy": missing_value_policy,
+            "units": declared_units,
+            "cost_basis": basis,
             "quality_flags": list(quality_flags),
             "transformations": [dict(t) for t in transformations],
             "engines": list(engines),

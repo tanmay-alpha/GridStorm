@@ -278,6 +278,31 @@ class Transformation(_Model):
     description: str = Field(min_length=1)
 
 
+class CostBasis(_Model):
+    """Money provenance; legacy ``*_eur`` fields are denominated in ``money_unit``."""
+
+    schema_version: Literal["gridstorm-cost-basis/1.0"] = "gridstorm-cost-basis/1.0"
+    kind: Literal["currency_verified", "benchmark_nominal", "illustrative"]
+    currency: str | None
+    currency_year: int | None = Field(ge=1900, le=2200)
+    money_unit: str = Field(min_length=1)
+    price_unit: str = Field(min_length=1)
+    comparability_key: str = Field(min_length=1)
+    provenance: str = Field(min_length=1)
+    assumptions: list[str]
+
+    @model_validator(mode="after")
+    def _coherent_units(self) -> CostBasis:
+        if self.price_unit != f"{self.money_unit}/MWh":
+            raise ValueError("price_unit must equal money_unit/MWh")
+        if self.kind == "currency_verified":
+            if not self.currency or self.money_unit != self.currency:
+                raise ValueError("verified currency must match money_unit")
+        elif self.currency is not None:
+            raise ValueError("unverified bases must not declare a currency")
+        return self
+
+
 class DatasetManifest(_Model):
     schema_version: Literal["dataset-manifest/1.0"] = MANIFEST_SCHEMA_VERSION
     network_id: str = Field(pattern=_NETWORK_ID)
@@ -289,6 +314,7 @@ class DatasetManifest(_Model):
     license: License
     coverage: Coverage
     units: dict[str, str]
+    cost_basis: CostBasis | None = None
     missing_value_policy: str = Field(min_length=1)
     quality_flags: list[str]
     transformations: list[Transformation]

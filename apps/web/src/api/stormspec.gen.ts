@@ -86,7 +86,7 @@ export type Id = string
 export type Curtailment = boolean
 export type Enabled = boolean
 /**
- * Value of lost load used as marginal cost of the load-shedding generators.
+ * Load-shedding penalty in the dataset cost_basis.money_unit/MWh. Legacy field name; not necessarily EUR and not an economic outage-damage estimate.
  */
 export type VollEurPerMwh = number
 /**

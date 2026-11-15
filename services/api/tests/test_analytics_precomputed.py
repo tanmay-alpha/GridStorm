@@ -39,10 +39,12 @@ def _served(entry, kind, carriers=None, countries=None) -> dict[str, Any]:
     return {k: v for k, v in result.items() if k not in SERVED_ONLY}
 
 
-def _live(n, kind, carriers=None, countries=None) -> dict[str, Any]:
+def _live(n, kind, carriers=None, countries=None, cost_basis=None) -> dict[str, Any]:
     import gridstorm_analytics
 
-    result = gridstorm_analytics.compute(kind, n, carriers=carriers, countries=countries)
+    result = gridstorm_analytics.compute(
+        kind, n, carriers=carriers, countries=countries, cost_basis=cost_basis
+    )
     return json.loads(json.dumps(result))
 
 
@@ -84,12 +86,15 @@ def test_precomputed_analytics_match_gridstorm_analytics(catalog, network_id):
     summary = _served(entry, "summary")
     for kind in index["kinds"]:
         # unfiltered: the committed file is exactly what compute() returns today
-        assert _served(entry, kind) == _live(n, kind), f"{network_id}/{kind}: rerun precompute"
+        assert _served(entry, kind) == _live(
+            n, kind, cost_basis=entry.manifest.get("cost_basis")
+        ), f"{network_id}/{kind}: rerun precompute"
         if kind == "summary":
             continue
         for carriers, countries in _filter_combos(summary):
             _assert_close(
-                _served(entry, kind, carriers, countries), _live(n, kind, carriers, countries)
+                _served(entry, kind, carriers, countries),
+                _live(n, kind, carriers, countries, entry.manifest.get("cost_basis")),
             )
 
     invalid = (("capacity", ["no-such-carrier"], None), ("capacity", None, ["XX"]))

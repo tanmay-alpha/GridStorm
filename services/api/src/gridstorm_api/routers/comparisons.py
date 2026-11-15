@@ -12,6 +12,7 @@ from ..comparisons import (
     build_job_report,
     comparison_markdown,
     job_markdown,
+    legacy_report_cost_basis,
 )
 from ..db.models import ComparisonReport, SimulationJob
 from ..deps import Ctx, CurrentPrincipal, DBSession, parse_uuid, rate_limit_post
@@ -26,7 +27,15 @@ router = APIRouter(tags=["comparisons"])
 _404 = {404: {"model": ErrorResponse}}
 
 
-def comparison_to_dict(row: ComparisonReport) -> dict[str, Any]:
+def comparison_to_dict(
+    row: ComparisonReport, cost_basis: dict[str, Any] | None = None
+) -> dict[str, Any]:
+    report = legacy_report_cost_basis(row.report, cost_basis)
+    sha = (
+        row.report_sha256
+        if report is row.report
+        else hashlib.sha256(canonical_bytes(report)).hexdigest()
+    )
     return {
         "id": str(row.id),
         "baseline_job_id": str(row.baseline_job_id),
@@ -35,8 +44,8 @@ def comparison_to_dict(row: ComparisonReport) -> dict[str, Any]:
         "owner_id": str(row.owner_id) if row.owner_id else None,
         "visibility": row.visibility,
         "created_at": iso(row.created_at),
-        "report_sha256": row.report_sha256,
-        "report": row.report,
+        "report_sha256": sha,
+        "report": report,
     }
 
 
@@ -124,9 +133,10 @@ def _visible_comparison(session: Any, principal: Any, comparison_id: str) -> Com
     summary="One comparison",
 )
 def get_comparison(
-    session: DBSession, principal: CurrentPrincipal, comparison_id: str
+    ctx: Ctx, session: DBSession, principal: CurrentPrincipal, comparison_id: str
 ) -> dict[str, Any]:
-    return comparison_to_dict(_visible_comparison(session, principal, comparison_id))
+    row = _visible_comparison(session, principal, comparison_id)
+    return comparison_to_dict(row, ctx.catalog.get(row.network_id).manifest.get("cost_basis"))
 
 
 @router.get(
@@ -154,7 +164,10 @@ def get_report(
     uid = parse_uuid(report_id, "report")
     comparison = session.get(ComparisonReport, uid)
     if comparison is not None and can_read(comparison, principal):
-        report, sha = comparison.report, comparison.report_sha256
+        document = comparison_to_dict(
+            comparison, ctx.catalog.get(comparison.network_id).manifest.get("cost_basis")
+        )
+        report, sha = document["report"], document["report_sha256"]
         if format == "md":
             return PlainTextResponse(
                 comparison_markdown(report, str(comparison.id)),

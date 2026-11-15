@@ -122,7 +122,34 @@ def load_result_bytes(ctx: AppContext, session: Session, job: SimulationJob) -> 
 
 
 def load_result(ctx: AppContext, session: Session, job: SimulationJob) -> dict[str, Any]:
-    return json.loads(load_result_bytes(ctx, session, job))
+    result = json.loads(load_result_bytes(ctx, session, job))
+    if not result.get("cost_basis"):
+        basis = ctx.catalog.get(job.network_id).manifest.get("cost_basis")
+        if basis:
+            basis = dict(basis)
+            shedding = ((job.spec or {}).get("mitigation") or {}).get("load_shedding") or {}
+            basis["penalties"] = (
+                [
+                    {
+                        "term": "load_shedding",
+                        "value_per_mwh": shedding.get("voll_eur_per_mwh", 10000),
+                        "unit": basis["price_unit"],
+                        "nature": "penalty",
+                        "description": "Legacy scenario VOLL interpreted in the dataset "
+                        "money unit.",
+                    }
+                ]
+                if shedding.get("enabled", True)
+                else []
+            )
+            result["cost_basis"] = basis
+            for field in ("assumptions", "warnings"):
+                if field in result:
+                    result[field] = [
+                        text.replace(" EUR/MWh", f" {basis['price_unit']}")
+                        for text in result[field]
+                    ]
+    return result
 
 
 def recompute_path(job: SimulationJob) -> str:

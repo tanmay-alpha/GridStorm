@@ -1,5 +1,20 @@
 {
   "schema_version": "dataset-manifest/1.0",
+  "cost_basis": {
+    "schema_version": "gridstorm-cost-basis/1.0",
+    "currency": null,
+    "currency_year": null,
+    "kind": "benchmark_nominal",
+    "money_unit": "PGLib cost units",
+    "price_unit": "PGLib cost units/MWh",
+    "comparability_key": "pglib-opf-v23.07:nominal-cost:secant-v1",
+    "provenance": "PGLib-OPF v23.07 source mpc.gencost uses MATPOWER nominal $/h polynomial costs; network_import.pglib uses c1 + c2*Pmax, dropping c0.",
+    "assumptions": [
+      "Benchmark coefficients have no verified currency year or exchange-rate provenance; they are not EUR or inflation-adjusted USD.",
+      "Secant linearisation is exact for linear costs, approximate for quadratic costs; startup, shutdown and fixed c0 costs are omitted.",
+      "VOLL is a scenario penalty in PGLib cost units/MWh, not a monetary estimate of outage damage."
+    ]
+  },
   "network_id": "pglib-case14-ieee",
   "name": "IEEE 14-bus (PGLib-OPF v23.07)",
   "description": "IEEE 14-bus test case (1962 AEP system) as curated in PGLib-OPF v23.07 'typical operations' benchmark: 14 buses, 20 branches, 5 generators, single operating point.",
@@ -66,7 +81,7 @@
     "links.p_nom_mw": "MW",
     "links.efficiency": "dimensionless (0,1]",
     "generators.p_nom_mw": "MW",
-    "generators.marginal_cost_eur_per_mwh": "currency units/MWh as in MATPOWER gencost ($/h polynomial; PGLib uses a nominal $); not converted to EUR",
+    "generators.marginal_cost_eur_per_mwh": "PGLib cost units/MWh",
     "loads.p_peak_mw": "MW",
     "loads.p_mean_mw": "MW",
     "loads.energy_mwh": "MWh",

@@ -1,5 +1,20 @@
 {
   "schema_version": "dataset-manifest/1.0",
+  "cost_basis": {
+    "schema_version": "gridstorm-cost-basis/1.0",
+    "currency": null,
+    "currency_year": null,
+    "kind": "illustrative",
+    "money_unit": "illustrative cost units",
+    "price_unit": "illustrative cost units/MWh",
+    "comparability_key": "pypsa-v1.4.0:scigrid-de:illustrative-v1",
+    "provenance": "PyPSA v1.4.0 scigrid-de example uses illustrative per-carrier marginal costs; the upstream scigrid-lopf-then-pf notebook says these are not accurate.",
+    "assumptions": [
+      "Example costs are placeholders, not market prices or a verified currency basis.",
+      "Only runs on this same example cost basis are monetarily comparable.",
+      "VOLL is a scenario penalty in illustrative cost units/MWh, not an economic outage-damage estimate."
+    ]
+  },
   "network_id": "scigrid-de",
   "name": "SciGRID Germany (PyPSA example)",
   "description": "German 220/380 kV transmission grid from SciGRID v0.2 (derived from OpenStreetMap), with power plants, load and renewable availability for 24 hourly snapshots of 2011-01-01, as packaged by the PyPSA project (pypsa.examples.scigrid_de).",
@@ -51,7 +66,7 @@
     "links.p_nom_mw": "MW",
     "links.efficiency": "dimensionless (0,1]",
     "generators.p_nom_mw": "MW",
-    "generators.marginal_cost_eur_per_mwh": "EUR/MWh",
+    "generators.marginal_cost_eur_per_mwh": "illustrative cost units/MWh",
     "loads.p_peak_mw": "MW",
     "loads.p_mean_mw": "MW",
     "loads.energy_mwh": "MWh",

@@ -5,6 +5,8 @@ exactly; changes go through the integration owner and are recorded in `docs/deci
 
 All JSON uses `snake_case`. Physical quantities carry the unit in the field name
 (`_mw`, `_mwh`, `_mva`, `_kv`, `_pct`, `_eur`, `_eur_per_mwh`, `_h`, `_s`, `_t`).
+Monetary suffixes `_eur`, `_eur_per_mwh` (and `_eur_per_h` in legacy research artifacts) are
+backward-compatible names, **not currency guarantees**: use `cost_basis` for the actual money unit.
 Every payload that holds numbers derived from data carries a `provenance` class from:
 `observed | estimated | synthetic | modeled | calculated`.
 
@@ -64,7 +66,8 @@ selectors, results, the API, and the map. Never re-key.
   "assumptions": ["..."]
 }
 ```
-Missing values are `null`, never invented. Units: kV, MW, MVA, MWh, ohm, km, EUR/MWh, t/MWh.
+Missing values are `null`, never invented. Units: kV, MW, MVA, MWh, ohm, km,
+`cost_basis.price_unit`, t/MWh.
 
 ### dataset-manifest/1.0
 
@@ -82,6 +85,41 @@ Missing values are `null`, never invented. Units: kV, MW, MVA, MWh, ohm, km, EUR
   "provenance_class": "observed|estimated|synthetic|modeled"
 }
 ```
+
+### Cost basis — `gridstorm-cost-basis/1.0`
+
+Optional on historical manifests/results for backward compatibility; declared by all five bundled
+datasets and embedded by new PyPSA results. Network summary/detail expose the manifest basis.
+
+```jsonc
+{
+  "schema_version": "gridstorm-cost-basis/1.0",
+  "kind": "currency_verified|benchmark_nominal|illustrative",
+  "currency": "EUR",                 // null unless currency_verified
+  "currency_year": 2025,             // null if not verified; not weather/planning year
+  "money_unit": "EUR",               // or "PGLib cost units", "illustrative cost units"
+  "price_unit": "EUR/MWh",           // exactly money_unit + "/MWh"
+  "comparability_key": "source-and-currency-basis identifier",
+  "provenance": "Coefficient source and transformation evidence.",
+  "assumptions": ["..."],
+  "penalties": [                    // result only; [] if load shedding is disabled
+    {"term": "load_shedding", "value_per_mwh": 10000, "unit": "EUR/MWh",
+     "nature": "penalty", "description": "Scenario VOLL in the dataset money unit."}
+  ]
+}
+```
+
+All monetary objective terms, including VOLL, are in the dataset basis. The legacy scenario
+`voll_eur_per_mwh` is interpreted in that basis, not converted from EUR. Comparison reports expose
+`cost_basis` and `costs_comparable`, and each run reference carries its own basis. Only equal,
+non-empty `comparability_key` values permit monetary deltas; otherwise monetary `delta` and
+`delta_pct` are `null`. Markdown and analytics unit labels use the same basis. Legacy stored
+results used to build reports fall back to the catalog basis without rewriting their hashed
+result bytes. Historical stored comparisons are hydrated on read, with a response hash for the
+hydrated representation. Unknown provenance is labelled "cost units (basis unknown)", never EUR.
+
+See [the coefficient audit](../research/cost-basis-audit.md).
+
 
 ## 3. StormSpec — `packages/stormspec` (Python package `stormspec`, `stormspec/1.0`)
 
@@ -178,7 +216,8 @@ callable `progress(stage: str)`. Stages, in order:
 }
 ```
 Load shedding is modelled as a dispatchable generator per load bus (carrier `load_shedding`,
-marginal cost = VOLL). `E_unserved = Σ_t P_shed,t · Δt` with Δt from snapshot weightings.
+marginal cost = VOLL in `cost_basis.price_unit`).
+`E_unserved = Σ_t P_shed,t · Δt` with Δt from snapshot weightings.
 Infeasible scenarios return `outcome: infeasible` with empty series — never fabricated numbers.
 
 ## 5. Precomputed engine artifacts — `data/artifacts/<engine>/<artifact_id>.json`
