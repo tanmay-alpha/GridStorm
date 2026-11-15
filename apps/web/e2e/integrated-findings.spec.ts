@@ -86,10 +86,34 @@ for (const [viewport, width, height] of [['desktop', 1440, 900], ['tablet', 768,
 }
 
 test('F-06: absolute loading change uses pp while relative change uses percent', async ({ page }) => {
-  await page.goto('/compare?comparison=4f5661ec-e6f1-4600-96ed-710709f10c36')
-  const comparison = page.getByTestId('comparison')
-  await expect(comparison).toBeVisible()
-  const row = comparison.getByRole('row').filter({ has: page.locator('[title="max_line_loading_pct"]') })
+  // Hermetic: the audited production comparison (4f5661ec…) does not exist on the CI API, so serve
+  // the same audited numbers (60.656764 % → 8.827726 %) from a fixture via route interception.
+  const job = (id: string, scenarioId: string) => ({
+    id, status: 'completed', outcome: 'feasible', network_id: 'pglib-case14-ieee', scenario_id: scenarioId,
+    execution_mode: 'live', result_available: true, stage: 'done', stage_history: [],
+    created_at: '2026-11-15T00:00:00Z', started_at: '2026-11-15T00:00:01Z', finished_at: '2026-11-15T00:00:05Z',
+  })
+  const jobs = [job('f06-base', 'pglib-case14-ieee-baseline'), job('f06-crisis', 'pglib-case14-ieee-gen-1-outage')]
+  const comparison = {
+    id: 'f06', network_id: 'pglib-case14-ieee', baseline_job_id: 'f06-base', scenario_job_id: 'f06-crisis',
+    created_at: '2026-11-15T00:00:06Z',
+    report: {
+      provenance: 'modeled', baseline: { job_id: 'f06-base', scenario_id: 'pglib-case14-ieee-baseline' },
+      scenario: { job_id: 'f06-crisis', scenario_id: 'pglib-case14-ieee-gen-1-outage' },
+      metrics: [{ metric: 'max_line_loading_pct', unit: '%', delta_unit: 'pp', baseline: 60.656764, scenario: 8.827726, delta: -51.829038, delta_pct: -85.4464 }],
+      carriers: {}, branch_loading: [], warnings: [], assumptions: [],
+    },
+  }
+  await page.route('**/api/v1/comparisons/f06', (route) => route.fulfill({ json: comparison }))
+  await page.route('**/api/v1/simulations?*', (route) =>
+    route.fulfill({ json: { items: jobs, total: jobs.length, limit: 100, offset: 0 } }))
+  for (const j of jobs) {
+    await page.route(`**/api/v1/simulations/${j.id}`, (route) => route.fulfill({ json: j }))
+  }
+  await page.goto('/compare?comparison=f06')
+  const comparisonView = page.getByTestId('comparison')
+  await expect(comparisonView).toBeVisible()
+  const row = comparisonView.getByRole('row').filter({ has: page.locator('[title="max_line_loading_pct"]') })
   await expect(row).toContainText('−51.83 pp')
   await expect(row).toContainText('−85.45 %')
   await capture(page, 'f06-loading-units', { row: await row.innerText() })
