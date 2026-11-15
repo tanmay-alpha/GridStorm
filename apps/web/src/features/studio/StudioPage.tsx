@@ -323,7 +323,11 @@ export default function StudioPage() {
     update((s) => ({ ...s, events: s.events.map((x, j) => (j === i ? e : x)) }))
 
   let content: ReactNode
-  if (step === 'grid') {
+  if (step === 'grid' && scenarios.isPending) {
+    // The suggestion and the recommended grid both depend on the scenario list; rendering the grid
+    // list before it arrives pushed it down by the suggestion panel (CLS 0.05 on every visit).
+    content = <LoadingState label="Loading grids and example crises" rows={6} />
+  } else if (step === 'grid') {
     content = (
       <div className="flex flex-col gap-3">
         {quickStart && recNetwork && (
