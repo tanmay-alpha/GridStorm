@@ -124,7 +124,8 @@
   .gs-panel {
     background: var(--gs-surface);
     border: 1px solid var(--gs-line);
-    border-radius: 6px;
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgb(16 24 40 / 0.035);
   }
   .gs-label {
     font-size: 0.6875rem;
@@ -137,10 +138,10 @@
   .gs-input {
     background: var(--gs-surface);
     border: 1px solid var(--gs-line-strong);
-    border-radius: 4px;
-    padding: 0.3rem 0.5rem;
+    border-radius: 8px;
+    padding: 0.35rem 0.6rem;
     color: var(--gs-fg);
-    min-height: 2rem;
+    min-height: 2.25rem;
   }
   .gs-input:disabled {
     opacity: 0.6;
