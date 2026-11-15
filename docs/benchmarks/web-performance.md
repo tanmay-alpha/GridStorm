@@ -179,3 +179,94 @@ with the live table.
    Whether Cloudflare in front of Render then caches these responses at the edge was not checked.
 
 Not addressed here: the entry-chunk size (recommendation 3) and `Timing-Allow-Origin` (recommendation 5).
+
+## Explorer GeoJSON-first (2026-11-15)
+
+These are **local production builds against the live API**, not deployed Vercel or field measurements.
+The before build is the PR #7 Explorer (nine eager asset tables, 1,000-row pages); the after build is
+the GeoJSON-first Explorer with generation/storage layers initially off. Both use the same live
+`https://gridstorm-api.onrender.com` API, same workstation, Chromium/SwiftShader, 1440×900 viewport,
+no throttling, three fresh browser contexts per network. The live API reported git `7c63cca`.
+
+Reproduce with `apps/web/scripts/measure-explorer.mjs`: serve each Vite production build with
+`GRIDSTORM_API_PROXY=https://gridstorm-api.onrender.com`, then run:
+
+```sh
+node scripts/measure-explorer.mjs --base http://127.0.0.1:4181 --route /explore \
+  --api https://gridstorm-api.onrender.com --reps 3 --out after.json
+```
+
+The before build was served on port 4180 with `--route /`; the after build on port 4181.
+First map paint is navigation → a real target-network bus appears in
+`queryRenderedFeatures(['gs-buses'])`, sampled on animation frames. Switch timing starts immediately
+before changing the network select and ends when a bus unique to the new network is rendered.
+Request totals settle at `networkidle`. API wire bytes are Playwright `request.sizes()` response body
+plus headers; decoded bytes are response body lengths. All-request totals also include JS, styles,
+map styles/sprites/glyphs/tiles and workers. Tables show medians; timing samples are retained below.
+
+### Cold load
+
+| Network | First map paint before → after | All requests before → after | API requests before → after | API wire before → after | API decoded before → after |
+|---|---:|---:|---:|---:|---:|
+| ac-dc-meshed | 2,591 → 1,931 ms | 35 → 27 | 12 → 4 | 15,544 → 9,210 B | 23,308 → 22,530 B |
+| pglib-case118-ieee | 1,642 → 1,138 ms | 21 → 13 | 12 → 4 | 22,547 → 15,301 B | 81,408 → 106,784 B |
+| scigrid-de | 2,296 → 2,178 ms | 39 → 32 | 13 → 4 | 85,349 → 53,352 B | 527,086 → 483,415 B |
+
+First-paint samples before / after (ms):
+
+- ac-dc-meshed: 2,591 / 5,471 / 2,025 → 2,849 / 1,678 / 1,931.
+- pglib-case118-ieee: 2,129 / 1,382 / 1,642 → 1,149 / 1,138 / 1,126.
+- scigrid-de: 2,178 / 2,537 / 2,296 → 2,460 / 2,178 / 2,171.
+
+API request reduction is structural: after first paint there are health, catalog, network manifest and
+one GeoJSON request, with **no asset-table requests**. Asset selection fetches its canonical table;
+generation/storage layer toggles and expanded search fetch only their requested tables. GeoJSON's
+geometry/properties are more verbose than canonical rows for IEEE118, so its decoded bytes increase
+despite fewer requests and lower compressed wire bytes. No claim is made that every byte metric improves.
+
+### Network switching
+
+The same page switches ac-dc-meshed → IEEE118 → SciGRID → ac-dc-meshed:
+
+| Target | Switch before → after | API requests before → after | API wire before → after |
+|---|---:|---:|---:|
+| pglib-case118-ieee | 769 → 451 ms | 10 → 2 | 17,942 → 10,696 B |
+| scigrid-de | 1,750 → 1,454 ms | 11 → 2 | 80,744 → 48,747 B |
+| ac-dc-meshed (cached) | 117 → 273 ms | 0 → 0 | 0 → 0 B |
+
+Switch samples before / after (ms): IEEE118 769 / 732 / 843 → 463 / 451 / 441;
+SciGRID 1,750 / 1,784 / 1,565 → 1,581 / 1,255 / 1,454;
+cached ac-dc-meshed 138 / 117 / 80 → 273 / 273 / 273.
+The cached return is slower in this sample despite zero requests; the change does not improve every
+timing. Three unthrottled runs do not establish a field latency distribution.
+
+After every switch cycle there was exactly **one map container and one WebGL canvas**, with no page
+errors. Post-GC heap samples before were 26.0 / 23.1 / 23.1 MB; after 23.1 / 23.1 / 23.1 MB.
+This shows no map/canvas accumulation in the sampled cycles, not proof of all possible memory leaks.
+Map teardown removes the MapLibre instance and disconnects its ResizeObserver.
+
+### Cache, rendering and regression evidence
+
+- Session queries are keyed by network id + dataset content hash. Browser HTTP caching uses the
+  API's ETag; a live SciGRID GeoJSON response returned `Cache-Control: public, max-age=3600`,
+  a weak ETag and `cf-cache-status: DYNAMIC`. No Cloudflare edge-cache hit is claimed.
+- A real rendering regression was caught during screenshot review: the unlayered MapLibre
+  `position: relative` rule overrode Tailwind's `absolute`, leaving the new inner container at 0 px
+  height. MapLibre could report loaded/rendered features while its canvas was clipped. The fix is an
+  explicitly full-height/full-width container, not a screenshot-only WebGL workaround.
+  `landing-explorer.spec.ts` failed before on `network-map` visibility (0-height container), then passed
+  after with a visible map and projected network extent >65% of the canvas dimension.
+- The overview regression failed against the before build because `/` still headed “Grid Explorer”.
+  After: the real IEEE14 outage CTA reaches Studio, preserves its scenario identity, passes backend
+  validation and enables Run. The legacy `/?network=` redirect, no eager asset calls, on-demand bus
+  details and single-map cleanup passed against the live API.
+- Seven targeted Vitest files passed (19 tests), including navigation grouping, landing CTA/redirect,
+  fit planning, GeoJSON query caching/on-demand loading, map lifecycle and both-theme contrast.
+  Targeted ESLint reported zero errors. Full-project release gates remain the integration owner's check.
+- Late live-audit regressions also have fail-before/pass-after evidence: clearing a required numeric
+  field produced React's “Too many re-renders” in three unit cases; `NumberField` now uses `Object.is`
+  and blank non-finite text. The selected-asset card previously ignored Escape; it now dismisses and
+  cleans up its listener. The two additional test files passed all six tests, with changed-file ESLint clean.
+- Twelve genuine landing/Explorer screenshots (desktop 1440×900, tablet 768×1024, mobile 390×844,
+  light and dark) are under `docs/audit/screenshots/2026-11-15-after/`. Final captures contain real
+  rendered grid geometry; they are not empty-canvas captures or mocked network responses.

@@ -55,6 +55,13 @@ const jobColumns: Column<Job>[] = [
   { key: 'outcome', header: 'Outcome', sortValue: (j) => j.outcome, render: (j) => <OutcomeBadge outcome={j.outcome} /> },
   { key: 'mode', header: 'Mode', sortValue: (j) => j.execution_mode, render: (j) => <ExecutionModeBadge mode={j.execution_mode} /> },
   {
+    key: 'result',
+    header: 'Result',
+    render: (j) => j.status === 'completed' && j.result_available === false
+      ? <Link to={`/runs/${encodeURIComponent(j.id)}`} className="text-warn underline">Unavailable · re-run</Link>
+      : j.status === 'completed' ? 'Available' : NO_VALUE,
+  },
+  {
     key: 'wall',
     header: 'Wall time',
     align: 'right',

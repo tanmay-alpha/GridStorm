@@ -43,6 +43,8 @@ beforeEach(() => {
         const body: unknown = JSON.parse(String(init.body))
         posts.push({ path: p, body })
         if (p === '/api/v1/scenarios/validate') {
+          if (/"(?:voll_eur_per_mwh|time_limit_s)":null/.test(String(init.body)))
+            return json(200, { ...validateBaseline, valid: false, errors: [{ code: 'schema_error', path: 'scenario', message: 'A required numeric value is missing.' }] })
           const edited = String(init.body).includes('"time_limit_s":120')
           return json(200, edited ? validateEdited : validateBaseline)
         }
@@ -87,28 +89,50 @@ describe('Crisis Studio on a network without live execution', () => {
     // Live networks come from GET /networks (live_execution=true), not from a hard-coded list.
     expect(notice).toHaveTextContent('ac-dc-meshed, pglib-case118-ieee, pglib-case14-ieee')
     // All six scigrid-de presets have a precomputed pypsa artifact with the same scenario_hash.
-    await waitFor(() => expect(notice).toHaveTextContent('6 of 6 presets for this network have a precomputed result'))
+    await waitFor(() => expect(notice).toHaveTextContent('6 of 6 presets for this grid have a precomputed result'))
+    fireEvent.click(screen.getByTestId('step-crisis'))
     const badges = screen.getAllByTestId('preset-execution')
     expect(badges).toHaveLength(6)
-    for (const b of badges) expect(b).toHaveTextContent('precomputed result')
-    await waitFor(() => expect(screen.getByTestId('execution-forecast')).toHaveTextContent('matches a precomputed result'))
+    for (const b of badges) expect(b).toHaveTextContent('verified precomputed result')
+    fireEvent.click(screen.getByTestId('step-run'))
+    await waitFor(() => expect(screen.getByTestId('execution-forecast')).toHaveAttribute('data-availability', 'precomputed'))
   })
 
   it('prevents submitting an edited scenario when no verified result exists', async () => {
     renderStudio('/studio?preset=scigrid-de-baseline')
+    fireEvent.click(await screen.findByText('Advanced: solver & execution'))
     const limit = await screen.findByTestId('time-limit')
     fireEvent.change(limit, { target: { value: '120' } })
+    fireEvent.click(screen.getByTestId('step-run'))
     await waitFor(() => expect(screen.getByTestId('execution-forecast')).toHaveTextContent('cannot run here'), {
       timeout: 3000,
     })
     expect(screen.getByTestId('run-scenario')).toBeDisabled()
     const guidance = screen.getByTestId('unavailable-guidance')
     expect(guidance).toHaveTextContent('not available for execution')
-    expect(within(guidance).getByRole('link', { name: 'Try the runnable IEEE 14-bus example' })).toHaveAttribute(
-      'href',
-      '/studio?preset=pglib-case14-ieee-baseline',
+    expect(within(guidance).getByRole('link', { name: /Open the verified result of preset/ })).toHaveAttribute(
+      'href', '/studio?network=scigrid-de&preset=scigrid-de-baseline',
     )
     expect(posts.find((p) => p.path === '/api/v1/simulations')).toBeUndefined()
+  })
+
+  it.each(['voll', 'time-limit'])('keeps the editor usable when required %s is cleared', async (field) => {
+    renderStudio('/studio?preset=scigrid-de-baseline')
+    if (field === 'time-limit') fireEvent.click(await screen.findByText('Advanced: solver & execution'))
+    const input = await screen.findByTestId(field)
+    const original = (input as HTMLInputElement).value
+    fireEvent.change(input, { target: { value: '' } })
+    expect(input).toHaveValue(null)
+    fireEvent.click(screen.getByTestId('step-run'))
+    await waitFor(() => expect(screen.getByTestId('validation-status')).toHaveAttribute('data-valid', 'false'))
+    expect(screen.getByTestId('run-scenario')).toBeDisabled()
+    expect(posts.find((p) => p.path === '/api/v1/simulations')).toBeUndefined()
+    fireEvent.click(screen.getByTestId('step-review'))
+    if (field === 'time-limit') fireEvent.click(screen.getByText('Advanced: solver & execution'))
+    fireEvent.change(screen.getByTestId(field), { target: { value: original } })
+    fireEvent.click(screen.getByTestId('step-run'))
+    await waitFor(() => expect(screen.getByTestId('validation-status')).toHaveAttribute('data-valid', 'true'))
+    expect(screen.getByTestId('run-scenario')).toBeEnabled()
   })
 })
 
@@ -121,7 +145,9 @@ describe('Unlisted (anonymous) saved scenarios', () => {
 
   it('tells the user a save is unlisted and links to it', async () => {
     renderStudio('/studio?preset=scigrid-de-baseline')
-    fireEvent.click(await screen.findByTestId('save-scenario'))
+    fireEvent.click(await screen.findByTestId('step-run'))
+    await waitFor(() => expect(screen.getByTestId('validation-status')).toHaveAttribute('data-valid', 'true'))
+    fireEvent.click(screen.getByTestId('save-scenario'))
     const status = await screen.findByTestId('save-status')
     expect(status).toHaveTextContent('Unlisted')
     expect(within(status).getByTestId('saved-link')).toHaveAttribute('href', `/studio?preset=${unlisted.id}`)

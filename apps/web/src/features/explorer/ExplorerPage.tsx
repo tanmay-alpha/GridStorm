@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import { ArrowUpRight, SlidersHorizontal } from 'lucide-react'
-import { useNetwork, useNetworkAssets } from '../../api/hooks'
+import { useAssetTable, useNetwork, useNetworkGeojson } from '../../api/hooks'
 import { buildFeatures, NO_FILTERS, type AssetRef, type FeatureFilters } from '../../components/map/features'
 import { BranchLegend } from '../../components/map/MapLegend'
 import { DEFAULT_LAYERS, NetworkMap, type LayerVisibility } from '../../components/map/NetworkMap'
@@ -16,28 +16,45 @@ import { AssetSearch } from './AssetSearch'
 import { DatasetInfo } from './DatasetInfo'
 import { FilterControls, LayerControls } from './LayerControls'
 import { SchematicBadge } from '../../components/map/SchematicBadge'
+import { assetsFromGeojson } from '../../components/map/geojson'
+import { groupCarriers } from '../../components/map/carriers'
+
+const EMPTY: never[] = []
 
 export default function ExplorerPage() {
   const sel = useSelectedNetwork()
   const detail = useNetwork(sel.id)
-  const assets = useNetworkAssets(sel.id)
-  const [layers, setLayers] = useState<LayerVisibility>(DEFAULT_LAYERS)
+  const geojson = useNetworkGeojson(sel.id, sel.summary?.network_sha256)
+  const [layers, setLayers] = useState<LayerVisibility>({ ...DEFAULT_LAYERS, generators: false, storage: false })
   const [filters, setFilters] = useState<FeatureFilters>(NO_FILTERS)
   const [selected, setSelected] = useState<AssetRef | null>(null)
   const [panelOpen, setPanelOpen] = useState(true)
-
+  const [searchAll, setSearchAll] = useState(false)
+  const generators = useAssetTable(sel.id, 'generators', layers.generators || searchAll)
+  const storage = useAssetTable(sel.id, 'storage_units', layers.storage || searchAll)
+  const loads = useAssetTable(sel.id, 'loads', searchAll)
+  const carriers = useAssetTable(sel.id, 'carriers', layers.generators || layers.storage || searchAll)
   const kind = sel.summary?.coordinate_kind ?? 'schematic'
-  const data = assets.data
+  const data = useMemo(() => {
+    if (!geojson.data) return undefined
+    return { ...assetsFromGeojson(geojson.data), generators: generators.data ?? EMPTY, storage_units: storage.data ?? EMPTY, loads: loads.data ?? EMPTY }
+  }, [geojson.data, generators.data, storage.data, loads.data])
 
   const carrierColors = useMemo(() => {
     const out: Record<string, string> = {}
     if (!data) return out
-    const ds = Object.fromEntries(data.carriers.map((c) => [c.id, c.color]))
+    const ds = Object.fromEntries((carriers.data ?? EMPTY).map((c) => [c.id, c.color]))
     for (const g of data.generators) if (g.carrier) out[g.carrier] = carrierColor(g.carrier, ds)
     for (const s of data.storage_units) if (s.carrier) out[s.carrier] = carrierColor(s.carrier, ds)
     return out
-  }, [data])
-  const features = useMemo(() => (data ? buildFeatures(kind, data, filters) : null), [data, kind, filters])
+  }, [data, carriers.data])
+  const features = useMemo(() => {
+    if (!data) return null
+    const f = buildFeatures(kind, data, filters)
+    f.skipped.buses += data.skipped.buses
+    f.skipped.branches += data.skipped.branches
+    return f
+  }, [data, kind, filters])
   const searchIndex = useMemo(() => (data ? buildSearchIndex(data) : []), [data])
   const countries = useMemo(
     () => (data ? [...new Set(data.buses.map((b) => b.country).filter((c): c is string => !!c))].sort() : []),
@@ -68,8 +85,8 @@ export default function ExplorerPage() {
     buses: features?.buses.features.length ?? 0,
     lines: features?.branches.features.filter((f) => f.properties.asset_type !== 'link').length ?? 0,
     links: features?.branches.features.filter((f) => f.properties.asset_type === 'link').length ?? 0,
-    generators: features?.generators.features.length ?? 0,
-    storage: features?.storage.features.length ?? 0,
+    generators: generators.data ? features?.generators.features.length ?? 0 : null,
+    storage: storage.data ? features?.storage.features.length ?? 0 : null,
   }
 
   return (
@@ -87,7 +104,7 @@ export default function ExplorerPage() {
           <span className="text-xs font-semibold">Controls</span>
           <button
             type="button"
-            className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-fg-muted hover:bg-surface-2"
+            className="inline-flex min-h-11 items-center gap-2 rounded px-3 text-xs text-fg-muted hover:bg-surface-2"
             aria-expanded={panelOpen}
             aria-controls="explorer-controls"
             onClick={() => setPanelOpen((o) => !o)}
@@ -99,7 +116,7 @@ export default function ExplorerPage() {
         <div id="explorer-controls" className={cn('min-h-0 flex-col gap-4 overflow-y-auto p-3', panelOpen ? 'flex' : 'hidden md:flex')}>
           <NetworkSelect networks={sel.list} value={sel.id} onChange={selectNetwork} disabled={sel.networks.isPending} />
           <Link
-            to="/studio?preset=pglib-case14-ieee-gen-1-outage"
+            to="/studio?network=pglib-case14-ieee&preset=pglib-case14-ieee-gen-1-outage"
             className="group flex items-center justify-between gap-3 rounded-lg border border-accent/30 bg-accent-soft px-3 py-2.5 text-accent transition-colors hover:border-accent hover:bg-accent/10 focus-visible:outline-offset-2"
             data-testid="try-sample-crisis"
           >
@@ -115,7 +132,9 @@ export default function ExplorerPage() {
             </p>
           )}
           <AssetSearch index={searchIndex} onPick={setSelected} disabled={!data} />
-          {assets.isPending && sel.id && <SkeletonBlock rows={5} label="Loading network assets" />}
+          <label className="flex min-h-11 items-center gap-2 text-xs text-fg-muted"><input type="checkbox" checked={searchAll} onChange={(e) => setSearchAll(e.target.checked)} />Include generation, storage and loads in search</label>
+          {(generators.isFetching || storage.isFetching || loads.isFetching) && <p role="status" className="text-xs text-fg-muted">Loading requested asset tables…</p>}
+          {(generators.error || storage.error || loads.error || carriers.error) && <ErrorState error={generators.error ?? storage.error ?? loads.error ?? carriers.error} title="Requested asset table unavailable" />}
           {data && (
             <>
               <LayerControls layers={layers} onLayers={setLayers} counts={counts} />
@@ -141,9 +160,9 @@ export default function ExplorerPage() {
       </aside>
 
       <div className="relative order-1 min-h-[50vh] flex-1 md:order-2 md:min-h-0">
-        {assets.error ? (
+        {geojson.error ? (
           <div className="p-4">
-            <ErrorState error={assets.error} title="Could not load network assets" onRetry={assets.refetch} />
+            <ErrorState error={geojson.error} title="Could not load network map" onRetry={() => void geojson.refetch()} />
           </div>
         ) : features && sel.summary ? (
           <>
@@ -157,22 +176,17 @@ export default function ExplorerPage() {
               ariaLabel={`Map of ${sel.summary.name}. Use the asset search (Ctrl+K) for keyboard access to assets.`}
             />
             {kind === 'schematic' && <SchematicBadge />}
-            <div className="gs-panel absolute bottom-2 left-2 z-10 hidden max-w-60 p-2 shadow-sm sm:block" data-testid="map-legend">
+            <details className="gs-panel absolute bottom-7 left-2 z-10 max-h-[40%] max-w-60 overflow-y-auto p-2 shadow-sm" data-testid="map-legend" open>
+              <summary className="flex min-h-11 cursor-pointer items-center text-xs font-semibold">Map legend</summary>
               <BranchLegend mode="voltage" />
-              {Object.keys(carrierColors).length > 0 && layers.generators && (
-                <Legend
-                  className="mt-2"
-                  title="Generator carrier (size ∝ √p_nom)"
-                  items={Object.entries(carrierColors).map(([label, color]) => ({ label, color }))}
-                />
-              )}
+              {groupCarriers(Object.keys(carrierColors)).map(({ group, carriers: names }) => <details key={group} className="mt-2"><summary className="cursor-pointer text-xs text-fg-muted">{group} ({names.length})</summary><Legend className="mt-2" title="Carrier (size ∝ √p_nom)" items={names.map((label) => ({ label, color: carrierColors[label]! }))} /></details>)}
               {(features.skipped.buses > 0 || features.skipped.branches > 0) && (
                 <p className="mt-2 text-2xs text-warn">
                   Not drawn (no coordinates): {features.skipped.buses} buses, {features.skipped.branches} branches
                 </p>
               )}
-            </div>
-            <div className="absolute right-12 top-2 z-10 flex gap-1">
+            </details>
+            <div className="absolute bottom-8 right-2 z-10 flex gap-1">
               {sel.summary.provenance_class && <Badge tone="neutral">data: {sel.summary.provenance_class}</Badge>}
             </div>
           </>
@@ -190,6 +204,7 @@ export default function ExplorerPage() {
             )}
           >
             <AssetDetails
+              networkId={sel.id!}
               assets={data}
               selected={selected}
               fieldProvenance={detail.data?.field_provenance}

@@ -10,7 +10,7 @@ import { test, expect } from '@playwright/test'
 test('run page survives the map being re-created when coordinate_kind arrives late', async ({ page, request }) => {
   const errors: string[] = []
   page.on('pageerror', (e) => errors.push(e.message))
-  const submitted = await request.post('/api/v1/simulations', { data: { scenario_id: 'ac-dc-meshed-baseline' } })
+  const submitted = await request.post('/api/v1/simulations', { data: { scenario_id: 'scigrid-de-baseline', reuse: true } })
   expect(submitted.ok()).toBe(true)
   const job: { id: string } = await submitted.json()
   await expect
@@ -37,7 +37,7 @@ test('run page survives the map being re-created when coordinate_kind arrives la
   const networks = page.waitForResponse((r) => new URL(r.url()).pathname === '/api/v1/networks')
   releaseNetworks()
   await networks
-  // ac-dc-meshed is geographic: the map is replaced and must wait for the new style instead of crashing.
+  // scigrid-de is geographic: the map is replaced and must wait for the new style instead of crashing.
   await expect(map).toHaveAttribute('data-map-ready', 'false')
   await page.waitForTimeout(1_000)
   await expect(page.getByRole('heading', { name: 'Something went wrong' })).toHaveCount(0)

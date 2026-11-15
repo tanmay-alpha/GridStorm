@@ -33,6 +33,8 @@ const fake = vi.hoisted(() => {
       if (!this.styleLoaded) throw new Error('Style is not done loading.')
     }
     addControl() {}
+    getContainer() { return { clientWidth: 1000, clientHeight: 700 } }
+    resize() {}
     addSource() {
       this.check()
     }
@@ -97,10 +99,12 @@ function ui(kind: 'schematic' | 'geographic') {
 
 afterEach(() => {
   fake.FakeMap.instances = []
+  vi.unstubAllGlobals()
 })
 
 describe('NetworkMap', () => {
   it('does not touch a re-created map before its style has loaded (run page crash)', () => {
+    vi.stubGlobal('ResizeObserver', class { observe() {} disconnect() {} })
     // Run page: the map is first created as schematic (networks list still loading), its inline
     // style loads within ms, then coordinate_kind arrives as geographic and the map is replaced.
     const { rerender } = render(ui('schematic'))

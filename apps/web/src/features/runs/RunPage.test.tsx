@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -13,12 +13,14 @@ afterEach(() => {
 })
 
 describe('RunPage', () => {
-  it('explains when a completed job lost its result artifact', async () => {
+  it.each([undefined, false])('explains missing results (result_available=%s) and recomputes the exact scenario', async (available) => {
+    const recompute = vi.fn()
     const completed = {
       id: MISSING,
       scenario_id: 'case14-baseline',
       network_id: 'pglib-case14-ieee',
       status: 'completed',
+      result_available: available,
       stage: 'done',
       stage_history: [],
       execution_mode: 'live',
@@ -30,15 +32,19 @@ describe('RunPage', () => {
       created_at: '2026-11-15T00:00:00Z',
       finished_at: '2026-11-15T00:01:00Z',
     }
-    vi.stubGlobal('fetch', vi.fn(async (input: string) => {
+    vi.stubGlobal('fetch', vi.fn(async (input: string, init?: RequestInit) => {
       const path = new URL(input, 'http://localhost').pathname
+      if (path === `/api/v1/simulations/${MISSING}/recompute`) {
+        recompute(init?.method)
+        return new Response(JSON.stringify({ id: 'new-run', recomputed_from_job_id: MISSING }), { status: 202 })
+      }
       if (path === `/api/v1/simulations/${MISSING}`) {
         return new Response(JSON.stringify(completed), { status: 200 })
       }
       if (path === `/api/v1/simulations/${MISSING}/result`) {
         return new Response(JSON.stringify({
-          error: { code: 'artifact_missing', message: 'stored artifact is missing', details: {} },
-        }), { status: 500 })
+          error: { code: 'artifact_unavailable', message: 'stored artifact is missing', details: {} },
+        }), { status: 410 })
       }
       return new Response(JSON.stringify({ items: [], total: 0 }), { status: 200 })
     }))
@@ -48,6 +54,7 @@ describe('RunPage', () => {
           <MemoryRouter initialEntries={[`/runs/${MISSING}`]}>
             <Routes>
               <Route path="/runs/:id" element={<RunPage />} />
+              <Route path="/runs/new-run" element={<p>Recomputed run</p>} />
             </Routes>
           </MemoryRouter>
         </ThemeProvider>
@@ -55,13 +62,13 @@ describe('RunPage', () => {
     )
 
     expect(await screen.findByTestId('result-artifact-missing', undefined, { timeout: 7_000 })).toHaveTextContent(
-      'its detailed result file is no longer stored on this server',
+      'its detailed result file is no longer available',
     )
-    expect(screen.getByRole('link', { name: 'Open Crisis Studio to run the scenario again' })).toHaveAttribute(
-      'href',
-      '/studio',
-    )
+    expect(screen.getByRole('button', { name: 'Re-run this scenario' })).toBeEnabled()
     expect(screen.queryByRole('link', { name: 'Compare' })).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Re-run this scenario' }))
+    await waitFor(() => expect(recompute).toHaveBeenCalledWith('POST'))
+    expect(await screen.findByText('Recomputed run')).toBeInTheDocument()
   })
 
   it('shows "Job not found" for a 404 job id and stays there (no polling back to a skeleton)', async () => {

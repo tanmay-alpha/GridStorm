@@ -16,7 +16,7 @@ export function RouteError() {
         <h1 className="text-lg font-semibold text-danger">Something went wrong</h1>
         <p className="mt-2 font-mono text-xs text-fg">{message}</p>
       </div>
-      <Link to="/" className="mt-4 inline-block text-sm text-accent underline">
+      <Link to="/explore" className="mt-4 inline-block text-sm text-accent underline">
         Back to Grid Explorer
       </Link>
     </main>

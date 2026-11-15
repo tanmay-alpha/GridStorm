@@ -18,7 +18,7 @@ function Check({
   // The whole row is the label, at least 24 px tall: the hit area meets WCAG 2.5.8 (target size)
   // around the compact 14 px box, and neighbouring checkboxes are ≥ 24 px apart.
   return (
-    <label className="-mx-1 flex min-h-6 cursor-pointer items-center gap-2 rounded px-1 text-xs text-fg hover:bg-surface-2">
+    <label className="-mx-1 flex min-h-6 cursor-pointer items-center gap-2 rounded px-1 text-xs text-fg hover:bg-surface-2 pointer-coarse:min-h-11">
       <input
         type="checkbox"
         className="size-3.5 shrink-0 accent-[var(--gs-accent)]"
@@ -39,7 +39,7 @@ export function LayerControls({
 }: {
   layers: LayerVisibility
   onLayers: (l: LayerVisibility) => void
-  counts: Record<keyof LayerVisibility, number>
+  counts: Record<keyof LayerVisibility, number | null>
 }) {
   const rows: [keyof LayerVisibility, string][] = [
     ['buses', 'Buses'],
@@ -54,7 +54,7 @@ export function LayerControls({
       {rows.map(([k, label]) => (
         <Check
           key={k}
-          label={`${label} · ${counts[k].toLocaleString('en-US')}`}
+          label={`${label} · ${counts[k]?.toLocaleString('en-US') ?? 'load on demand'}`}
           checked={layers[k]}
           onChange={(v) => onLayers({ ...layers, [k]: v })}
           testId={`layer-${k}`}

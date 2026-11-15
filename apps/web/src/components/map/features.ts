@@ -1,5 +1,12 @@
-import type { NetworkAssets } from '../../api/hooks'
-import type { CoordinateKind } from '../../api/types'
+import type {
+  CanonicalBus,
+  CanonicalGenerator,
+  CanonicalLine,
+  CanonicalLink,
+  CanonicalStorageUnit,
+  CanonicalTransformer,
+  CoordinateKind,
+} from '../../api/types'
 
 /** Map-level asset kinds (singular), used in feature properties and selection. */
 export type MapAssetKind = 'bus' | 'line' | 'transformer' | 'link' | 'generator' | 'storage_unit'
@@ -92,9 +99,22 @@ function voltagePasses(kv: number | null | undefined, f: FeatureFilters): boolea
   return true
 }
 
+/**
+ * The columns buildFeatures reads. Full canonical tables (NetworkAssets) satisfy it, and so do
+ * the rows reconstructed from the network GeoJSON (geojson.ts) plus optional generator/storage tables.
+ */
+export interface MapAssets {
+  buses: Pick<CanonicalBus, 'id' | 'name' | 'x' | 'y' | 'v_nom_kv' | 'carrier' | 'country'>[]
+  lines: Pick<CanonicalLine, 'id' | 'bus0' | 'bus1' | 'v_nom_kv' | 'carrier'>[]
+  transformers: Pick<CanonicalTransformer, 'id' | 'bus0' | 'bus1'>[]
+  links: Pick<CanonicalLink, 'id' | 'bus0' | 'bus1' | 'carrier'>[]
+  generators: Pick<CanonicalGenerator, 'id' | 'bus' | 'carrier' | 'p_nom_mw'>[]
+  storage_units: Pick<CanonicalStorageUnit, 'id' | 'bus' | 'carrier' | 'p_nom_mw'>[]
+}
+
 export function buildFeatures(
   kind: CoordinateKind,
-  a: NetworkAssets,
+  a: MapAssets,
   filters: FeatureFilters = NO_FILTERS,
   /** Branch values keyed by assetKey(kind, id), e.g. "line:12" → loading %. */
   lineValues?: Record<string, number | null>,

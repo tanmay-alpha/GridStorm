@@ -10,10 +10,10 @@ declare global {
 test('real API: explorer, validation, live simulations, comparison, replay and exports', async ({ page }) => {
   const errors: string[] = []
   page.on('pageerror', (error) => errors.push(error.message))
-  await page.goto('/?network=pglib-case14-ieee')
+  await page.goto('/explore?network=pglib-case14-ieee')
   await expect(page.getByTestId('backend-status')).toHaveAttribute('data-state', 'up')
   await expect(page.getByTestId('network-select')).toHaveValue('pglib-case14-ieee')
-  await expect(page.getByTestId('try-sample-crisis')).toHaveAttribute('href', '/studio?preset=pglib-case14-ieee-gen-1-outage')
+  await expect(page.getByTestId('try-sample-crisis')).toHaveAttribute('href', '/studio?network=pglib-case14-ieee&preset=pglib-case14-ieee-gen-1-outage')
   await expect(page.locator('.maplibregl-canvas')).toBeVisible()
   await page.waitForFunction(() => window.__gridstormMap?.loaded())
   const point = await page.evaluate(() => {
@@ -29,22 +29,31 @@ test('real API: explorer, validation, live simulations, comparison, replay and e
   await page.waitForFunction(() => window.__gridstormMap?.loaded())
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
 
-  for (const route of ['/library', '/contingency', '/operations', '/benchmarks', '/methods', '/compare', '/studio']) {
-    await page.getByRole('navigation', { name: 'Main', exact: true }).getByRole('link', { name: ({ '/library': 'Library', '/contingency': 'Contingency', '/operations': 'Operations', '/benchmarks': 'Benchmarks', '/methods': 'Methods', '/compare': 'Compare & Replay', '/studio': 'Crisis Studio' })[route], exact: true }).click()
+  for (const [route, label] of [['/library', 'Library'], ['/contingency', 'Contingency'], ['/operations', 'Operations'], ['/benchmarks', 'Benchmarks'], ['/methods', 'Methods'], ['/compare', 'Compare'], ['/studio', 'Simulate']]) {
+    const nav = page.getByRole('navigation', { name: 'Main', exact: true })
+    const link = nav.getByRole('link', { name: label, exact: true })
+    if (!(await link.isVisible())) await nav.locator('summary').click()
+    await link.click()
     await expect(page).toHaveURL(new RegExp(`${route}$`))
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
   }
 
-  await page.getByTestId('network-select').selectOption('pglib-case14-ieee')
+  await expect(page.getByTestId('step-review')).toBeDisabled()
+  await page.locator('[data-network-id="pglib-case14-ieee"]').click()
   await expect(page.locator('[data-preset-id="scigrid-de-baseline"]')).toHaveCount(0)
   await page.getByTestId('show-all-presets').click()
   await expect(page.locator('[data-preset-id="scigrid-de-baseline"]')).toBeVisible()
   await page.getByTestId('show-all-presets').click()
   await expect(page.locator('[data-preset-id="scigrid-de-baseline"]')).toHaveCount(0)
+  await page.locator('[data-preset-id="pglib-case14-ieee-baseline"]').click()
+  await page.getByTestId('step-review').click()
   await page.getByTestId('scenario-name').fill('')
+  await page.getByTestId('step-run').click()
   await expect(page.getByTestId('validation-error').first()).toBeVisible()
   await expect(page.getByTestId('run-scenario')).toBeDisabled()
+  await page.getByTestId('step-review').click()
   await page.getByTestId('scenario-name').fill('Browser-created IEEE14 baseline')
+  await page.getByTestId('step-run').click()
   await expect(page.getByTestId('validation-status')).toHaveAttribute('data-valid', 'true')
   await page.getByTestId('save-scenario').click()
   await expect(page.getByTestId('save-status')).toBeVisible()
@@ -52,6 +61,7 @@ test('real API: explorer, validation, live simulations, comparison, replay and e
   const runs: string[] = []
   for (const preset of ['pglib-case14-ieee-baseline', 'pglib-case14-ieee-gen-1-outage']) {
     await page.goto(`/studio?preset=${preset}`)
+    await page.getByTestId('step-run').click()
     await expect(page.getByTestId('validation-status')).toHaveAttribute('data-valid', 'true')
     await page.getByTestId('run-scenario').focus()
     await page.keyboard.press('Tab')
@@ -68,7 +78,7 @@ test('real API: explorer, validation, live simulations, comparison, replay and e
     await page.getByTestId('download-result').click()
     expect((await download).suggestedFilename()).toContain('result')
   }
-  await page.goto(`/compare?baseline=${runs[0]}&scenario=${runs[1]}`)
+  await page.goto(`/compare?a=${runs[0]}&b=${runs[1]}`)
   await page.getByTestId('create-comparison').click()
   await expect(page.getByTestId('comparison')).toBeVisible()
   await page.getByTestId('map-view').selectOption('delta_t')
@@ -81,7 +91,7 @@ test('real API: explorer, validation, live simulations, comparison, replay and e
 
 test('mobile layout, navigation and both themes', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
-  await page.goto('/?network=pglib-case14-ieee')
+  await page.goto('/explore?network=pglib-case14-ieee')
   await expect(page.locator('.maplibregl-canvas')).toBeVisible()
   await page.waitForFunction(() => window.__gridstormMap?.loaded())
   await expect(page.getByRole('complementary', { name: 'Explorer controls' })).toBeVisible()
@@ -89,7 +99,7 @@ test('mobile layout, navigation and both themes', async ({ page }) => {
   await page.waitForFunction(() => window.__gridstormMap?.loaded())
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
   await page.getByRole('button', { name: 'Open navigation menu' }).click()
-  await page.getByRole('navigation', { name: 'Mobile' }).getByRole('link', { name: 'Crisis Studio' }).click()
+  await page.getByRole('navigation', { name: 'Mobile' }).getByRole('link', { name: 'Simulate', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Crisis Studio', exact: true })).toBeVisible()
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
 })
