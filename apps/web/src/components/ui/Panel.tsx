@@ -22,10 +22,10 @@ export function Panel({
   return (
     <section className={cn('gs-panel flex min-w-0 flex-col', className)} aria-labelledby={headingId} id={id}>
       {(title || actions) && (
-        <header className="flex items-center justify-between gap-2 border-b border-line px-3 py-2">
+        <header className="flex items-center justify-between gap-2 border-b border-line/80 px-4 py-3">
           <div className="min-w-0">
             {title && (
-              <h2 id={headingId} className="truncate text-sm font-semibold text-fg">
+              <h2 id={headingId} className="truncate text-sm font-semibold tracking-tight text-fg">
                 {title}
               </h2>
             )}
@@ -34,7 +34,7 @@ export function Panel({
           {actions && <div className="flex shrink-0 items-center gap-1.5">{actions}</div>}
         </header>
       )}
-      <div className={cn('min-w-0 p-3', bodyClassName)}>{children}</div>
+      <div className={cn('min-w-0 p-4', bodyClassName)}>{children}</div>
     </section>
   )
 }
@@ -54,7 +54,7 @@ export function PageHeader({
     <div className="flex flex-wrap items-start justify-between gap-3 pb-3">
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-2">
-          <h1 className="text-lg font-semibold text-fg">{title}</h1>
+          <h1 className="text-xl font-semibold tracking-tight text-fg">{title}</h1>
           {badges}
         </div>
         {subtitle && <p className="mt-0.5 max-w-3xl text-sm text-fg-muted">{subtitle}</p>}
