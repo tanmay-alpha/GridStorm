@@ -114,6 +114,13 @@ def test_comparison_endpoint_and_reports(client):
     )
     js = client.get(f"/api/v1/reports/{comp['id']}?format=json")
     assert js.status_code == 200 and js.json()["schema_version"] == "gridstorm-comparison/1.0"
+    # The saved download verifies against the advertised checksum (LA-02).
+    assert hashlib.sha256(js.content).hexdigest() == js.headers["x-gridstorm-report-sha256"]
+    assert js.headers["x-gridstorm-report-sha256"] == comp["report_sha256"]
+    again = client.post(
+        "/api/v1/comparisons", json={"baseline_job_id": base["id"], "scenario_job_id": stress["id"]}
+    )
+    assert again.status_code == 200 and again.json()["id"] == comp["id"]  # no duplicate row
     md = client.get(f"/api/v1/reports/{comp['id']}?format=md")
     assert md.status_code == 200 and md.headers["content-type"].startswith("text/markdown")
     assert "# GridStorm comparison" in md.text and base["scenario_hash"] in md.text
@@ -126,6 +133,41 @@ def test_comparison_endpoint_and_reports(client):
     assert client.get(f"/api/v1/reports/{base['id']}?format=pdf").status_code == 422
     assert client.get(f"/api/v1/reports/{uuid.uuid4()}").status_code == 404
     assert client.get(f"/api/v1/comparisons/{uuid.uuid4()}").status_code == 404
+
+
+def test_legacy_stored_report_exports_markdown_and_500s_keep_cors(client, monkeypatch):
+    from gridstorm_api.db.models import ComparisonReport
+    from gridstorm_api.routers import comparisons as router
+
+    base = run_job(client, scenario("legacy-base"))
+    stress = run_job(client, scenario("legacy-stress", demand=1.5))
+    body = {"baseline_job_id": base["id"], "scenario_job_id": stress["id"]}
+    comp = client.post("/api/v1/comparisons", json=body).json()
+    # Rewrite the stored document as a pre-cost-basis, pre-percentage-point report.
+    with client.app.state.ctx.db.session() as session:
+        row = session.get(ComparisonReport, uuid.UUID(comp["id"]))
+        legacy = json.loads(json.dumps(row.report))
+        legacy.pop("cost_basis"), legacy.pop("costs_comparable")
+        for metric in legacy["metrics"]:
+            metric.pop("delta_unit")
+        row.report = legacy
+        session.commit()
+    md = client.get(f"/api/v1/reports/{comp['id']}?format=md")
+    assert md.status_code == 200, md.text
+    hydrated = client.get(f"/api/v1/comparisons/{comp['id']}").json()["report"]
+    for metric in hydrated["metrics"]:
+        assert metric["delta_unit"] == ("pp" if metric["unit"] == "%" else metric["unit"])
+
+    def explode(*_args, **_kwargs):
+        raise RuntimeError("boom")
+
+    monkeypatch.setattr(router, "comparison_markdown", explode)
+    origin = {"Origin": "http://localhost:5173"}
+    r = client.get(f"/api/v1/reports/{comp['id']}?format=md", headers=origin)
+    assert r.status_code == 500 and r.json()["error"]["code"] == "internal_error"
+    # Browsers must see the 500, not a CORS failure presented as "backend unreachable".
+    assert r.headers["access-control-allow-origin"] == "http://localhost:5173"
+    assert r.headers["x-content-type-options"] == "nosniff"
 
 
 def test_comparison_requires_completed_jobs(client):

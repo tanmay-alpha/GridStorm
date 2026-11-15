@@ -111,6 +111,8 @@ def legacy_report_cost_basis(
             metric["delta_unit"] = metric["unit"]
             if not resolved["costs_comparable"]:
                 metric.update(delta=None, delta_pct=None)
+        # Reports stored before percentage points existed (POST-11) have no delta_unit.
+        metric.setdefault("delta_unit", "pp" if metric.get("unit") == "%" else metric.get("unit"))
     for field in ("assumptions", "warnings"):
         resolved[field] = [
             text.replace(" EUR/MWh", f" {unit_of('price_eur_per_mwh', basis)}")
