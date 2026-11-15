@@ -137,6 +137,9 @@ jobs:
         with:
           enable-cache: true
           cache-dependency-glob: services/api/uv.lock
+          # The background uvicorn server still holds cache files when the post step runs;
+          # pruning then exits 2 even though every test step passed.
+          prune-cache: false
       - if: steps.specs.outputs.present == 'true'
         uses: actions/setup-node@v4
         with:
