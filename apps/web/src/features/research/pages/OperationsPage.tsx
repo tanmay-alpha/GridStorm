@@ -6,9 +6,9 @@ import { loadingColor, LOADING_SCALE, OUTAGED_COLOR } from '../../../lib/scales'
 import { ArtifactLoader } from '../components/ArtifactPanel'
 import { Disclaimer } from '../components/Disclaimer'
 import { GridSchematic, type SchematicEdge, type SchematicNode } from '../components/GridSchematic'
-import { useArtifactIndex, useArtifacts } from '../hooks'
+import { useArtifactCatalog, useArtifactSummaries } from '../hooks'
 import { parseEpisode, rhoStats, type Episode, type EpisodeKpis } from '../lib/episode'
-import { groupEpisodes, itemAgent } from '../lib/indexing'
+import { groupEpisodes, itemAgent, selectArtifacts } from '../lib/indexing'
 
 const PLAY_INTERVAL_MS = 300
 
@@ -37,8 +37,9 @@ const kpiColumns: Column<KpiRow>[] = [
   { key: 'reward', header: 'Cumulative reward', align: 'right', sortValue: (r) => r.kpis?.cumulative_reward, render: (r) => formatNumber(r.kpis?.cumulative_reward) },
 ]
 
+/** KPIs from the episode summary view (`steps` dropped): a few KB per agent instead of the full trace. */
 function KpiTable({ items }: { items: { agent: string; artifactId: string }[] }) {
-  const results = useArtifacts(
+  const results = useArtifactSummaries(
     'grid2op',
     items.map((i) => i.artifactId),
   )
@@ -260,8 +261,8 @@ export function EpisodeReplay({ episode }: { episode: Episode }) {
 }
 
 export function OperationsPage() {
-  const index = useArtifactIndex({ engine: 'grid2op', kind: 'episode' })
-  const groups = useMemo(() => groupEpisodes(index.data ?? []), [index.data])
+  const index = useArtifactCatalog()
+  const groups = useMemo(() => groupEpisodes(selectArtifacts(index.data, 'grid2op', 'episode')), [index.data])
   const [groupKey, setGroupKey] = useState<string | null>(null)
   const [artifactId, setArtifactId] = useState<string | null>(null)
   const groupSelect = useId()

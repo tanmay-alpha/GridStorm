@@ -23,7 +23,8 @@ export interface StateSummary {
   maxVm: number | null
   slackPMw: number | null
   lossesMw: number | null
-  generationCostEurPerH: number | null
+  /** Legacy `generation_cost_eur_per_h`: money in the network's cost basis per hour (PGLib: cost units/h). */
+  generationCostPerH: number | null
   suppliedLoadMw: number | null
   islandedLoadMw: number | null
   islandedBuses: string[]
@@ -31,14 +32,15 @@ export interface StateSummary {
   violations: Violation[]
 }
 
+/** Legacy `*_eur` fields: money in the network's cost basis (`cost_basis.money_unit`), not EUR. */
 export interface Objective {
-  generationCostEur: number | null
-  generationCostDeltaEur: number | null
+  generationCost: number | null
+  generationCostDelta: number | null
   loadShedMw: number | null
-  loadShedCostEur: number | null
+  loadShedCost: number | null
   switchingActions: number | null
-  switchingPenaltyEur: number | null
-  objectiveEur: number | null
+  switchingPenalty: number | null
+  objective: number | null
 }
 
 export interface Candidate {
@@ -62,7 +64,7 @@ export interface ComparisonRow {
   maxBranchLoadingPct: number | null
   minVm: number | null
   loadShedMw: number | null
-  objectiveEur: number | null
+  objective: number | null
 }
 
 export interface AdvisorRun {
@@ -80,8 +82,9 @@ export interface AdvisorRun {
   objective: {
     definition: string | null
     ranking: string | null
-    vollEurPerMwh: number | null
-    switchingPenaltyEur: number | null
+    /** Penalty per MWh in the network's money unit (legacy `voll_eur_per_mwh`). */
+    vollPerMwh: number | null
+    switchingPenalty: number | null
     assumedDurationH: number | null
     notes: string | null
   }
@@ -139,7 +142,7 @@ function summary(x: unknown): StateSummary | null {
     maxVm: num(s.max_vm_pu),
     slackPMw: num(s.slack_p_mw),
     lossesMw: num(s.losses_mw),
-    generationCostEurPerH: num(s.generation_cost_eur_per_h),
+    generationCostPerH: num(s.generation_cost_eur_per_h),
     suppliedLoadMw: num(s.supplied_load_mw),
     islandedLoadMw: num(s.islanded_load_mw),
     islandedBuses: strArr(s.islanded_buses),
@@ -152,13 +155,13 @@ function objective(x: unknown): Objective | null {
   const o = rec(x)
   if (!o) return null
   return {
-    generationCostEur: num(o.generation_cost_eur),
-    generationCostDeltaEur: num(o.generation_cost_delta_eur),
+    generationCost: num(o.generation_cost_eur),
+    generationCostDelta: num(o.generation_cost_delta_eur),
     loadShedMw: num(o.load_shed_mw),
-    loadShedCostEur: num(o.load_shed_cost_eur),
+    loadShedCost: num(o.load_shed_cost_eur),
     switchingActions: num(o.switching_actions),
-    switchingPenaltyEur: num(o.switching_penalty_eur),
-    objectiveEur: num(o.objective_eur),
+    switchingPenalty: num(o.switching_penalty_eur),
+    objective: num(o.objective_eur),
   }
 }
 
@@ -198,8 +201,8 @@ export function parseAdvisor(payload: Rec): AdvisorRun {
     objective: {
       definition: str(o.definition),
       ranking: str(o.ranking),
-      vollEurPerMwh: num(o.voll_eur_per_mwh),
-      switchingPenaltyEur: num(o.switching_penalty_eur),
+      vollPerMwh: num(o.voll_eur_per_mwh),
+      switchingPenalty: num(o.switching_penalty_eur),
       assumedDurationH: num(o.assumed_duration_h),
       notes: str(o.notes),
     },
@@ -231,7 +234,7 @@ export function parseAdvisor(payload: Rec): AdvisorRun {
         maxBranchLoadingPct: num(r.max_branch_loading_pct),
         minVm: num(r.min_vm_pu),
         loadShedMw: num(r.load_shed_mw),
-        objectiveEur: num(r.objective_eur),
+        objective: num(r.objective_eur),
       })),
     counts: numRecord(payload.counts),
     securityStatement: str(payload.security_statement),

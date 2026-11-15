@@ -1,5 +1,26 @@
 import type { ArtifactIndexItem } from '../../../api/types'
-import { num, str } from './parse'
+import { num, parseArtifact, str, type ParsedArtifact } from './parse'
+
+/** Available catalog rows of one engine (and kind), in index order. */
+export function selectArtifacts(items: readonly ArtifactIndexItem[] | undefined, engine: string, kind?: string): ArtifactIndexItem[] {
+  return (items ?? []).filter((i) => i.available !== false && i.engine === engine && (kind === undefined || i.kind === kind))
+}
+
+/**
+ * The file header carried by a catalog row (`include=header`) as a ParsedArtifact with an empty
+ * payload, or null when the row has none or it is malformed. Only header fields may be read.
+ */
+export function catalogHeader(item: ArtifactIndexItem): ParsedArtifact | null {
+  if (!item.header) return null
+  try {
+    return parseArtifact({ artifact: item.header, payload: {} })
+  } catch {
+    return null
+  }
+}
+
+/** Shown instead of header fields when the catalog row carries none (APIs before 3.0 ignore `include=header`). */
+export const HEADER_MISSING = 'header not served (needs API ≥ 3.0)'
 
 export interface EpisodeGroup {
   key: string

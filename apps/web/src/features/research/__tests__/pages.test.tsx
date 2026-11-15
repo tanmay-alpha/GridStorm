@@ -38,9 +38,15 @@ function stubBackend(engines: Docs) {
         const summary = Object.fromEntries(Object.entries(doc.payload).filter(([k]) => k !== 'assets' && k !== 'series'))
         return json({ artifact: doc.artifact, summary })
       }
-      const engine = url.searchParams.get('engine') ?? ''
-      const items = engines[engine]?.index ?? []
-      return json({ items, total: items.length, limit: 100, offset: 0 })
+      // GET /artifacts?include=header: every engine's rows with engine + file header (services/api artifacts.py).
+      const items = Object.entries(engines).flatMap(([engine, e]) =>
+        e.index.map((row) => {
+          const r = row as { artifact_id: string }
+          const doc = e.docs[r.artifact_id] as { artifact: unknown } | undefined
+          return { engine, ...r, ...(url.searchParams.get('include') === 'header' ? { header: doc?.artifact ?? null } : {}) }
+        }),
+      )
+      return json({ items, total: items.length, limit: 500, offset: 0 })
     }),
   )
 }
@@ -93,7 +99,7 @@ describe('BenchmarksPage', () => {
     expect(await screen.findByText('No PyPSA preset artifacts published')).toBeInTheDocument()
   })
 
-  it('loads only the summary view of PyPSA simulations and keeps provenance and sha visible', async () => {
+  it('builds the PyPSA table from index rows and loads summaries only when the metadata is opened', async () => {
     const sim = {
       artifact: {
         schema_version: 'gridstorm-artifact/1.0',
@@ -108,6 +114,7 @@ describe('BenchmarksPage', () => {
         platform: 'Windows-10-10.0.26300-SP0',
         execution_mode: 'precomputed',
         payload_sha256: '81419b60ceda85783b9ab47c5b82ecff629a2eecd6a976d0a494edb324105ecc',
+        measurements: { peak_rss_mb: 541.1 },
       },
       payload: {
         network_id: 'scigrid-de',
@@ -119,14 +126,24 @@ describe('BenchmarksPage', () => {
         series: { load_mw: [1, 2] },
       },
     }
-    stubBackend({ pypsa: { index: [indexRow(sim)], docs: { [sim.artifact.artifact_id]: sim } } })
+    const row = indexRow(sim, { outcome: 'feasible', objective_eur: 128678.5, unserved_energy_mwh: 0, measurements: { solver_wall_time_s: 0.176 } })
+    stubBackend({ pypsa: { index: [row], docs: { [sim.artifact.artifact_id]: sim } } })
     wrap(<BenchmarksPage />)
 
     const table = await screen.findByRole('table', { name: 'Precomputed PyPSA preset runs' })
     expect(within(table).getByText('feasible')).toBeInTheDocument()
-    const pypsaUrls = vi.mocked(fetch).mock.calls.map(([u]) => String(u)).filter((u) => u.includes('/artifacts/pypsa/'))
-    expect(pypsaUrls).toEqual(['/api/v1/artifacts/pypsa/scigrid-de-baseline?view=summary'])
-    const meta = within(screen.getByRole('region', { name: 'PyPSA preset runs' })).getByTestId('artifact-meta')
+    // No network cost basis declared: never EUR.
+    expect(within(table).getByTestId('preset-objective')).toHaveTextContent('cost units (basis unknown)')
+    expect(within(table).getByText('measurements.peak_rss_mb: 541.1')).toBeInTheDocument()
+    const pypsaUrls = () => vi.mocked(fetch).mock.calls.map(([u]) => String(u)).filter((u) => u.includes('/artifacts/pypsa/'))
+    expect(pypsaUrls()).toEqual([])
+
+    const region = screen.getByRole('region', { name: 'PyPSA preset runs' })
+    const details = region.querySelector('details')!
+    details.open = true
+    fireEvent(details, new Event('toggle'))
+    const meta = await within(region).findByTestId('artifact-meta')
+    expect(pypsaUrls()).toEqual(['/api/v1/artifacts/pypsa/scigrid-de-baseline?view=summary'])
     expect(meta).toHaveTextContent('sha256 81419b60ceda')
     expect(meta).toHaveTextContent(/modeled/i)
   })
@@ -202,6 +219,10 @@ describe('Crisis Advisor artifact', () => {
     expect(screen.getByText(advisor.payload.objective.definition)).toBeInTheDocument()
     expect(screen.getByTestId('security-statement').textContent).toBe(advisor.payload.security_statement)
     expect(screen.getByRole('table', { name: 'Crisis state versus state after the recommended candidate' })).toBeInTheDocument()
+    // The artifact's free text says "EUR" (legacy convention); PGLib costs are never shown as EUR.
+    expect(JSON.stringify(advisor.payload)).toMatch(/\bEUR\b/)
+    expect(document.body.textContent).not.toMatch(/\bEUR\b/)
+    expect(screen.getByText(/cost units \(basis unknown\)\/h/, { selector: 'li' })).toBeInTheDocument()
   })
 })
 

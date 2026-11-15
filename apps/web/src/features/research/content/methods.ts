@@ -103,7 +103,7 @@ export const ASSUMPTIONS: Statement[] = [
     source: 'docs/architecture/contracts.md',
   },
   {
-    text: 'Load shedding is modelled as a dispatchable generator per load bus with marginal cost equal to VOLL (e.g. 10 000 EUR/MWh). VOLL is a modelling assumption, not an observed value.',
+    text: 'Load shedding is modelled as a dispatchable generator per load bus with marginal cost equal to VOLL (default 10 000 per MWh). VOLL is a penalty parameter in the dataset\u2019s money unit (its cost basis: EUR only for currency-verified datasets, otherwise PGLib or illustrative cost units), not an observed value.',
     source: 'docs/glossary.md',
   },
   {

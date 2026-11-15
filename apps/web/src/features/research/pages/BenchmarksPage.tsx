@@ -1,11 +1,15 @@
 import { useMemo, type ReactNode } from 'react'
-import type { ArtifactIndexItem } from '../../../api/types'
+import type { ArtifactIndexItem, CostBasis } from '../../../api/types'
 import { Badge, Chart, DataTable, EmptyState, ErrorState, KeyValue, MetricCard, PageHeader, Panel, SkeletonBlock, type ChartOption, type Column, type Tone } from '../../../components/ui'
 import { formatNumber, formatQuantity, labelFromFieldName, NO_VALUE } from '../../../lib/format'
+import { formatMoney, resolveCostBasis } from '../../../lib/money'
 import { ArtifactSection } from '../components/ArtifactPanel'
 import { ArtifactMeta } from '../components/ArtifactMeta'
 import { Disclaimer } from '../components/Disclaimer'
-import { useArtifactIndex, useArtifacts, useArtifactSummaries } from '../hooks'
+import { LazyDetails } from '../components/LazyDetails'
+import { useArtifactCatalog, useArtifacts, useArtifactSummaries, useNetworks } from '../hooks'
+import { catalogHeader, selectArtifacts } from '../lib/indexing'
+import { RESERVE_WHILE_LOADING } from '../lib/layout'
 import {
   parseAcReference,
   parseCrossEngine,
@@ -128,7 +132,7 @@ export function StormBenchView({ cases, platform, thresholdPct }: { cases: Storm
 function StormBenchSection({ items }: { items: ArtifactIndexItem[] }) {
   const summary = items.find((i) => i.artifact_id === 'stormbench-summary')
   const ids = summary ? [summary.artifact_id] : items.map((i) => i.artifact_id)
-  const results = useArtifacts('stormbench', ids)
+  const results = useArtifactSummaries('stormbench', ids)
   if (ids.length === 0) return <EmptyState title="No StormBench artifacts published">data/artifacts/stormbench is empty or missing.</EmptyState>
   const failed = results.find((r) => r.isError)
   if (failed) return <ErrorState error={failed.error} onRetry={() => void failed.refetch()} />
@@ -316,6 +320,7 @@ interface PresetRow {
   id: string
   title: string
   network: string | null
+  basis: CostBasis | null
   outcome: string | null
   objective: number | null
   wall: number | null
@@ -333,32 +338,28 @@ function resourceFields(h: Record<string, unknown>, prefix = ''): [string, numbe
   })
 }
 
+/**
+ * Preset KPIs come from the pypsa index rows written by `precompute_presets.py` together with each
+ * document (services/api tests pin them equal to the payloads); resources come from the file
+ * header. Per-artifact summaries load only when their metadata disclosure is opened.
+ */
 function PypsaSection({ items }: { items: ArtifactIndexItem[] }) {
-  const results = useArtifactSummaries(
-    'pypsa',
-    items.map((i) => i.artifact_id),
-  )
-  const rows: PresetRow[] = items.flatMap((it, i) => {
-    const a = results[i]?.data
-    if (!a) return []
-    const solver = rec(a.payload.solver) ?? {}
-    return [
-      {
-        id: it.artifact_id,
-        title: it.title || it.artifact_id,
-        network: a.header.network_id,
-        outcome: str(a.payload.outcome),
-        objective: num(solver.objective_eur),
-        wall: num(solver.wall_time_s),
-        unserved: num(rec(a.payload.metrics)?.unserved_energy_mwh),
-        extras: resourceFields(a.headerRaw),
-      },
-    ]
+  const networks = useNetworks()
+  const rows: PresetRow[] = items.map((it) => {
+    const header = catalogHeader(it)
+    return {
+      id: it.artifact_id,
+      title: it.title || it.artifact_id,
+      network: it.network_id,
+      basis: resolveCostBasis(networks.data?.find((n) => n.id === it.network_id)),
+      outcome: str(it.outcome),
+      objective: num(it.objective_eur),
+      wall: num(rec(it.measurements)?.solver_wall_time_s),
+      unserved: num(it.unserved_energy_mwh),
+      extras: header ? resourceFields(header.headerRaw) : [],
+    }
   })
   if (items.length === 0) return <EmptyState title="No PyPSA preset artifacts published">data/artifacts/pypsa is empty or missing.</EmptyState>
-  const failed = results.find((r) => r.isError)
-  if (failed) return <ErrorState error={failed.error} onRetry={() => void failed.refetch()} />
-  if (results.some((r) => !r.data)) return <SkeletonBlock rows={4} label="Loading PyPSA preset artifacts" />
   return (
     <div className="flex flex-col gap-3">
       <DataTable
@@ -369,7 +370,13 @@ function PypsaSection({ items }: { items: ArtifactIndexItem[] }) {
           { key: 'title', header: 'Preset', render: (r) => r.title },
           { key: 'net', header: 'Network', render: (r) => <span className="font-mono">{r.network ?? NO_VALUE}</span> },
           { key: 'out', header: 'Outcome', render: (r) => r.outcome ?? NO_VALUE },
-          { key: 'obj', header: 'Objective', align: 'right', sortValue: (r) => r.objective, render: (r) => formatQuantity(r.objective, 'EUR', { scale: true }) },
+          {
+            key: 'obj',
+            header: 'Objective (dataset cost basis)',
+            align: 'right',
+            sortValue: (r) => r.objective,
+            render: (r) => <span data-testid="preset-objective">{formatMoney(r.objective, r.basis, { scale: true })}</span>,
+          },
           { key: 'ens', header: 'Unserved energy', align: 'right', sortValue: (r) => r.unserved, render: (r) => formatQuantity(r.unserved, 'MWh') },
           { key: 'wall', header: 'Solver wall time', align: 'right', sortValue: (r) => r.wall, render: (r) => formatQuantity(r.wall, 's') },
           {
@@ -390,12 +397,26 @@ function PypsaSection({ items }: { items: ArtifactIndexItem[] }) {
           },
         ]}
       />
-      <details>
-        <summary className="cursor-pointer text-xs font-semibold">Artifact metadata ({results.length})</summary>
-        <div className="mt-2 flex flex-col gap-2">
-          {results.map((r) => r.data && <ArtifactMeta key={r.data.header.artifact_id} artifact={r.data} />)}
-        </div>
-      </details>
+      <p className="text-xs text-fg-muted">
+        Objectives are in each dataset&apos;s money unit (see the network&apos;s cost basis) and include the load-shedding penalty; they are not
+        comparable across networks.
+      </p>
+      <LazyDetails summary={`Artifact metadata (${items.length})`}>{() => <PresetMeta items={items} />}</LazyDetails>
+    </div>
+  )
+}
+
+function PresetMeta({ items }: { items: ArtifactIndexItem[] }) {
+  const results = useArtifactSummaries(
+    'pypsa',
+    items.map((i) => i.artifact_id),
+  )
+  const failed = results.find((r) => r.isError)
+  if (failed) return <ErrorState error={failed.error} onRetry={() => void failed.refetch()} />
+  if (results.some((r) => !r.data)) return <SkeletonBlock rows={4} label="Loading PyPSA preset artifacts" />
+  return (
+    <div className="mt-2 flex flex-col gap-2">
+      {results.map((r) => r.data && <ArtifactMeta key={r.data.header.artifact_id} artifact={r.data} />)}
     </div>
   )
 }
@@ -442,21 +463,14 @@ function AcReferenceView({ v }: { v: AcReferenceValidation }) {
   )
 }
 
+/** Rows of one engine (and kind) from the shared artifact catalog: one request for the whole page. */
 function IndexGate({ engine, kind, children }: { engine: string; kind?: string; children: (items: ArtifactIndexItem[]) => ReactNode }) {
-  const q = useArtifactIndex({ engine, kind })
-  const items = useMemo(() => (q.data ?? []).filter((i) => i.available !== false), [q.data])
+  const q = useArtifactCatalog()
+  const items = useMemo(() => selectArtifacts(q.data, engine, kind), [q.data, engine, kind])
   if (q.isError) return <ErrorState error={q.error} onRetry={() => void q.refetch()} />
   if (q.isPending) return <SkeletonBlock rows={4} label={`Loading ${engine} artifact index`} />
   return <>{children(items)}</>
 }
-
-/**
- * Layout-shift guard (CLS was 0.33–0.52 live): while a panel shows a loading skeleton
- * (`aria-busy`), its body reserves one viewport height. Loaded panels here are 650–9,100 px tall
- * depending on width, so the panels below start off-screen and their growth as artifacts arrive is
- * not a visible shift; the reservation drops as soon as the panel's content is in.
- */
-const RESERVE_WHILE_LOADING = 'has-[[aria-busy=true]]:min-h-svh'
 
 export function BenchmarksPage() {
   return (
@@ -486,6 +500,7 @@ export function BenchmarksPage() {
               emptyText="data/artifacts/stormrisk is empty or missing."
               emptyTitle="No StormRisk studies published"
               render={(a) => <RiskView study={parseRisk(a.payload)} />}
+              view="summary"
             />
           )}
         </IndexGate>

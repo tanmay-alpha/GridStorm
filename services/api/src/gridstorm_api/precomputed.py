@@ -22,6 +22,8 @@ from .schemas import ArtifactKind
 log = logging.getLogger("gridstorm_api.precomputed")
 
 _SAFE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,199}$")
+_HEADER_START = re.compile(r'\s*\{\s*"artifact"\s*:\s*')
+_HEADER_PREFIX_BYTES = 64 * 1024
 ARTIFACT_KINDS: tuple[str, ...] = get_args(ArtifactKind)
 
 
@@ -39,12 +41,14 @@ class PrecomputedArtifacts:
         self._index: list[dict[str, Any]] | None = None
         self._verified: dict[tuple[str, str], bool | None] = {}
         self._by_hash: dict[str, tuple[str, str]] | None = None
+        self._headers: dict[tuple[str, str], dict[str, Any] | None] = {}
 
     def reload(self) -> None:
         with self._lock:
             self._index = None
             self._by_hash = None
             self._verified.clear()
+            self._headers.clear()
 
     def index(self) -> list[dict[str, Any]]:
         with self._lock:
@@ -123,6 +127,39 @@ class PrecomputedArtifacts:
             else:
                 self._verified[key] = canonical_sha256(doc["payload"]) == declared
         return raw, doc, self._verified[key]
+
+    def header(self, engine: str, artifact_id: str) -> dict[str, Any] | None:
+        """The document's ``artifact`` header (cached), or None when the file is missing/invalid.
+
+        Documents start with ``{"artifact": {...}, "payload": ...}``; the header is decoded from
+        the first 64 KiB without parsing the (up to MB-sized) payload. Files laid out differently
+        fall back to a full parse.
+        """
+        key = (engine, artifact_id)
+        if key in self._headers:
+            return self._headers[key]
+        try:
+            path = self._path(engine, artifact_id)
+        except NotFound:
+            return None
+        with path.open("rb") as fh:
+            head = fh.read(_HEADER_PREFIX_BYTES).decode("utf-8", errors="ignore")
+        found: Any = None
+        m = _HEADER_START.match(head)
+        if m:
+            try:
+                found, _ = json.JSONDecoder().raw_decode(head, m.end())
+            except ValueError:
+                found = None
+        if not isinstance(found, dict):
+            try:
+                found = json.loads(path.read_bytes()).get("artifact")
+            except (ValueError, AttributeError) as exc:
+                log.error("unreadable artifact %s/%s: %s", engine, artifact_id, exc)
+                found = None
+        result = found if isinstance(found, dict) else None
+        self._headers[key] = result
+        return result
 
     def find_simulation(self, scenario_hash: str) -> tuple[str, str] | None:
         """Locate a precomputed ``kind=simulation`` artifact whose result matches the hash."""
