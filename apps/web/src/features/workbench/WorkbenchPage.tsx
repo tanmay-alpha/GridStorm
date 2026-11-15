@@ -242,11 +242,22 @@ function StudyDetail({
           <p className="text-xs text-fg-muted">
             From <span className="font-mono">{s.reproduction.cwd}</span> (documented in <Cite path={s.reproduction.doc} />):
           </p>
-          <pre className="mt-1 overflow-x-auto rounded border border-line bg-surface-2 p-2 text-2xs" data-testid="reproduction-commands">
+          <pre
+            tabIndex={0}
+            aria-label="Reproduction commands"
+            className="mt-1 overflow-x-auto rounded border border-line bg-surface-2 p-2 text-2xs"
+            data-testid="reproduction-commands"
+          >
             {s.reproduction.commands.join('\n')}
           </pre>
           <p className="mt-2 text-xs text-fg-muted">Command recorded in this artifact&apos;s header:</p>
-          <pre className="mt-1 overflow-x-auto rounded border border-line bg-surface-2 p-2 text-2xs">{header?.header.command || NO_VALUE}</pre>
+          <pre
+            tabIndex={0}
+            aria-label="Command recorded in the artifact header"
+            className="mt-1 overflow-x-auto rounded border border-line bg-surface-2 p-2 text-2xs"
+          >
+            {header?.header.command || NO_VALUE}
+          </pre>
           <ul className="mt-2 flex flex-col gap-1 text-xs">
             {s.docs.map((d) => (
               <li key={`${d.path}#${d.anchor ?? ''}`}>

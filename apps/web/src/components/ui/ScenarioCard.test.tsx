@@ -69,7 +69,8 @@ describe('CostBasisBadge', () => {
     expect(screen.getByTestId('cb')).toHaveTextContent('PGLib cost units · benchmark')
     // Units keep their real case (no CSS upper-casing): "PGLib cost units", not "PGLIB COST UNITS".
     expect(screen.getByText(/PGLib cost units · benchmark/)).not.toHaveClass('uppercase')
-    fireEvent.click(screen.getByRole('button', { name: /Cost basis: PGLib cost units/ }))
+    // Accessible name starts with the visible "unit · kind" text (WCAG 2.5.3 label-in-name).
+    fireEvent.click(screen.getByRole('button', { name: /^PGLib cost units · benchmark — cost basis:/ }))
     expect(screen.getByText('MATPOWER gencost coefficients.')).toBeInTheDocument()
     expect(screen.getByText('none — not a currency')).toBeInTheDocument()
   })

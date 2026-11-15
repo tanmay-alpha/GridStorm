@@ -28,7 +28,7 @@ export function CostBasisBadge({ basis, testId }: { basis: CostBasis | null | un
   return (
     <span data-testid={testId} data-cost-kind={basis?.kind ?? 'unknown'} className="inline-flex">
       <InfoPopover
-        label={`Cost basis: ${unit} (${costBasisKindLabel(basis)}). Show details`}
+        label={`${unit} · ${kind} — cost basis: ${costBasisKindLabel(basis)}. Show details`}
         testId={testId ? `${testId}-trigger` : undefined}
         trigger={
           <Badge tone={basis ? KIND_TONE[basis.kind] : 'neutral'} caps={false}>

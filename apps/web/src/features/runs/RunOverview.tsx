@@ -50,7 +50,7 @@ export function KeyAssumptions({ result, basis }: { result: GridstormResult; bas
     <p className="text-xs text-fg-muted" data-testid="key-assumptions">
       <span className="gs-label mr-1">Key assumptions</span>
       {items.join(' · ')} ·{' '}
-      <a href="#assumptions" className="text-accent underline-offset-2 hover:underline">
+      <a href="#assumptions" className="text-accent underline underline-offset-2">
         all {formatNumber(result.assumptions.length)} assumptions
       </a>
     </p>
