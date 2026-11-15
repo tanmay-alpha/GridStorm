@@ -9,7 +9,8 @@ Target: `main` commit `1c05c2391d32e5248c7039626ec030ce1f0277c1`.
 - **Live backend telemetry:** Render service `gridstorm-api` on free Frankfurt instance; logs show `GET /health` returning 200, network assets returning 200, and `job ... finished: completed` after the previously reported IEEE 14-bus simulation. Historic build failures occurred earlier and must not be confused with current deployment failure.
 - **CI:** commit `1c05c23` GitHub workflow passed, with Playwright against a local API and Vite preview. This does **not** establish live Vercel-to-Render behavior on every route.
 - **Source:** frontend routes, Studio, Explorer, Run, Compare, data hooks, API routers, storage adapter, configuration, Render blueprint, and existing tests.
-- **Not directly verified in this audit:** production Supabase SQL/RLS policies (connected Supabase account did not expose the GridStorm project), a fresh live POST simulation, browser console/network waterfalls, visual screenshots, mobile touch behavior, or post-restart artifact retrieval. These must not be called passed.
+- **Confirmed production failure:** read-only GitHub Actions probe ([run 43655908490](https://github.com/tanmay-alpha/GridStorm/actions/runs/43655908490)) verified /health, /ready (Postgres, solver and storage writable), CORS, five networks, 12 scenarios, 55 precomputed artifacts and transport for four frontend routes. However it reproduced `HTTP 500 artifact_missing` on completed IEEE 14-bus job `2d47898b-8546-420e-a382-acc29f14d3d4`, with missing `sha256/f6a74d7c232e74ebfa937a6834d3b8ff0ce98a9f282bfcf5195d417b8ba4a26c.json`. See [P0 issue #8](https://github.com/tanmay-alpha/GridStorm/issues/8). The failure is real; the storage adapter confirms missing on-disk artifact handling. Writability in /ready is **not durability**.
+- **Not directly verified in this audit:** production Supabase SQL/RLS policies (connected Supabase account did not expose the GridStorm project), a fresh live POST simulation, browser console/network waterfalls, visual screenshots, mobile touch behavior, or successful post-restart full artifact retrieval. These must not be called passed.
 
 ## P0 / P1 findings
 
@@ -57,4 +58,4 @@ A map-first research workbench, not an overloaded admin panel: **Understand the 
 
 ## Change control
 
-PR #7 is intentionally a **draft** and frontend-only. Keep production `main` unchanged pending tests. No numerical algorithms, PostgreSQL migrations, or deployment environment variables were modified here.
+PR #7 is intentionally a **draft**, with frontend changes plus a read-only public production probe. Keep production `main` unchanged pending tests. No numerical algorithms, PostgreSQL migrations, or deployment environment variables were modified here.
