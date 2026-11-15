@@ -3,8 +3,8 @@
 
 from __future__ import annotations
 
-import json
 import hashlib
+import json
 import os
 import sys
 import time
@@ -15,7 +15,9 @@ API = "https://gridstorm-api.onrender.com"
 WEB = "https://gridstorm.vercel.app"
 
 
-def fetch(url: str, *, origin: str | None = None, retries: int = 1, accepted_errors: tuple[int, ...] = ()):
+def fetch(
+    url: str, *, origin: str | None = None, retries: int = 1, accepted_errors: tuple[int, ...] = ()
+):
     headers = {"User-Agent": "GridStorm-Public-Smoke/1", "Accept": "application/json"}
     if origin:
         headers["Origin"] = origin
@@ -60,7 +62,13 @@ def run():
     networks, headers = api_json("/api/v1/networks?limit=200", origin=WEB)
     assert headers.get("access-control-allow-origin") == WEB, "production CORS origin missing"
     ids = {n.get("id") for n in networks.get("items") or []}
-    assert {"ac-dc-meshed", "pglib-case118-ieee", "pglib-case14-ieee", "scigrid-de", "pypsa-eur-be"} <= ids, ids
+    assert {
+        "ac-dc-meshed",
+        "pglib-case118-ieee",
+        "pglib-case14-ieee",
+        "scigrid-de",
+        "pypsa-eur-be",
+    } <= ids, ids
     print("PASS networks, CORS", len(ids))
 
     scenarios, _ = api_json("/api/v1/scenarios?limit=200")
@@ -92,13 +100,17 @@ def run():
     for job_id in job_ids:
         job, _ = api_json(f"/api/v1/simulations/{job_id}")
         assert job["status"] == "completed", f"Job {job_id} is not completed"
-        assert isinstance(job.get("result_available"), bool), "Missing artifact availability metadata"
+        assert isinstance(job.get("result_available"), bool), (
+            "Missing artifact availability metadata"
+        )
         if job_id == durable_id:
             assert job["result_available"], "Post-deploy acceptance job did not survive restart"
         if job.get("recomputed_from_job_id"):
             assert job["stage_history"][0]["recomputed_from"] == job["recomputed_from_job_id"]
         if not job["result_available"]:
-            code, _, raw = fetch(API + f"/api/v1/simulations/{job_id}/result", accepted_errors=(410,))
+            code, _, raw = fetch(
+                API + f"/api/v1/simulations/{job_id}/result", accepted_errors=(410,)
+            )
             assert code == 410, "Missing result must be explicitly HTTP 410"
             error = json.loads(raw)["error"]
             assert error["code"] == "artifact_unavailable"
@@ -110,7 +122,9 @@ def run():
             assert code == 200
             digest = hashlib.sha256(raw).hexdigest()
             assert digest == job["result_sha256"], "result bytes differ from recorded sha256"
-            assert headers.get("x-gridstorm-result-sha256") == digest, "result sha256 header differs"
+            assert headers.get("x-gridstorm-result-sha256") == digest, (
+                "result sha256 header differs"
+            )
             result = json.loads(raw)
             assert result.get("schema_version") == "gridstorm-result/1.0"
             print("PASS completed result retrievable and sha256 verified", job_id[:8])
