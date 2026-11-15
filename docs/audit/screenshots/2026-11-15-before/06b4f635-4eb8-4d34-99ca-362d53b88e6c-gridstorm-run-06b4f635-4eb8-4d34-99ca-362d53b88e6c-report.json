@@ -1,0 +1,239 @@
+{
+  "schema_version": "gridstorm-run-report/1.0",
+  "provenance": "modeled",
+  "network_id": "pglib-case14-ieee",
+  "run": {
+    "job_id": "06b4f635-4eb8-4d34-99ca-362d53b88e6c",
+    "scenario_id": "pglib-case14-ieee-gen-1-outage",
+    "scenario_name": "PGLib IEEE 14-bus — loss of the main unit gen-1 (deliberate load shedding)",
+    "scenario_hash": "ba25e910a97c0caed16c841af59913905fc7d8b93f920015c8fd90c4de22d8e9",
+    "outcome": "feasible"
+  },
+  "metrics": [
+    {
+      "metric": "balance_residual_max_mw",
+      "unit": "MW",
+      "value": 0
+    },
+    {
+      "metric": "co2_emissions_t",
+      "unit": "t",
+      "value": null
+    },
+    {
+      "metric": "congested_line_count",
+      "unit": "count",
+      "value": 0
+    },
+    {
+      "metric": "curtailment_mwh",
+      "unit": "MWh",
+      "value": 0
+    },
+    {
+      "metric": "generation_cost_eur",
+      "unit": "EUR",
+      "value": 1372.900146
+    },
+    {
+      "metric": "load_shed_hours",
+      "unit": "h",
+      "value": 1
+    },
+    {
+      "metric": "load_shedding_cost_eur",
+      "unit": "EUR",
+      "value": 2000000
+    },
+    {
+      "metric": "max_line_loading_pct",
+      "unit": "%",
+      "value": 8.827726
+    },
+    {
+      "metric": "mean_line_loading_pct",
+      "unit": "%",
+      "value": 1.844573
+    },
+    {
+      "metric": "peak_load_shed_mw",
+      "unit": "MW",
+      "value": 200
+    },
+    {
+      "metric": "served_load_mwh",
+      "unit": "MWh",
+      "value": 59
+    },
+    {
+      "metric": "storage_charge_mwh",
+      "unit": "MWh",
+      "value": 0
+    },
+    {
+      "metric": "storage_discharge_mwh",
+      "unit": "MWh",
+      "value": 0
+    },
+    {
+      "metric": "total_load_mwh",
+      "unit": "MWh",
+      "value": 259
+    },
+    {
+      "metric": "total_system_cost_eur",
+      "unit": "EUR",
+      "value": 2001372.900146
+    },
+    {
+      "metric": "unserved_energy_mwh",
+      "unit": "MWh",
+      "value": 200
+    }
+  ],
+  "carriers": {
+    "generation_by_carrier_mwh": {
+      "NG": 59,
+      "SYNC": 0
+    },
+    "curtailment_by_carrier_mwh": {}
+  },
+  "warnings": [
+    "Dataset carriers carry no CO2 intensities (all zero/missing): co2_emissions_t is null (data gap, not a zero-emission finding)"
+  ],
+  "assumptions": [
+    "DC linearised power flow (LOPF) — no reactive power, voltage magnitudes or losses",
+    "Kirchhoff's voltage law imposed on a cycle basis with series reactances (x_pu_eff); branch active-power flow limited to s_nom x s_max_pu",
+    "Perfect foresight: all snapshots of the horizon are optimised jointly in one LP",
+    "Costs are short-run marginal costs from the dataset; nodal prices are LP duals of the nodal balance constraints",
+    "Modeled results for scenario analysis — not a validated blackout predictor or operational forecast",
+    "Dataset dispatch set-points (p_set) released so the LOPF optimises dispatch: 5 generators",
+    "Load shedding modelled as one dispatchable generator per load bus (11 buses), marginal cost = VOLL 10000 EUR/MWh, bounded by the bus demand at every snapshot",
+    "Synchronous condensers (carrier SYNC) have zero active-power capacity in the dataset"
+  ],
+  "reproducibility": {
+    "generated_at": "2026-11-15T00:32:52.969024Z",
+    "api_version": "0.1.0",
+    "git_sha": "7c63ccaec57eddf292a287b267199132c42b7032",
+    "run": {
+      "job_id": "06b4f635-4eb8-4d34-99ca-362d53b88e6c",
+      "scenario_id": "pglib-case14-ieee-gen-1-outage",
+      "scenario_hash": "ba25e910a97c0caed16c841af59913905fc7d8b93f920015c8fd90c4de22d8e9",
+      "scenario_spec": {
+        "id": "pglib-case14-ieee-gen-1-outage",
+        "name": "PGLib IEEE 14-bus — loss of the main unit gen-1 (deliberate load shedding)",
+        "events": [
+          {
+            "type": "generator_outage",
+            "window": null,
+            "asset_id": "gen-1"
+          }
+        ],
+        "dataset": {
+          "sha256": "52424e30e5375a7d8b57d66704b2c0b258c21cad65d47c223e02bad0cb056a42",
+          "network_id": "pglib-case14-ieee"
+        },
+        "horizon": {
+          "start": 0,
+          "snapshots": 1
+        },
+        "execution": {
+          "seed": 0,
+          "engine": "pypsa",
+          "solver": "highs",
+          "formulation": "lopf",
+          "deterministic": true,
+          "solver_options": {
+            "threads": 1,
+            "time_limit_s": 300
+          }
+        },
+        "mitigation": {
+          "curtailment": true,
+          "load_shedding": {
+            "enabled": true,
+            "voll_eur_per_mwh": 10000
+          },
+          "storage_dispatch": true
+        },
+        "assumptions": [
+          "Synchronous condensers (carrier SYNC) have zero active-power capacity in the dataset"
+        ],
+        "description": "Generator gen-1 (bus-1, 340 MW, the cheapest and largest unit) is forced out. The remaining dispatchable capacity (gen-2, 59 MW) cannot cover the 259 MW load, so the run deliberately demonstrates load shedding at VOLL (expected unserved energy = 259 - 59 = 200 MWh).",
+        "schema_version": "stormspec/1.0"
+      },
+      "execution_mode": "live",
+      "reused": false,
+      "reused_from_job_id": null,
+      "result_sha256": "63a3817850eee0eca34e5fbee709b8a5c858c316af45dda987888bba011d57ab",
+      "dataset": {
+        "network_id": "pglib-case14-ieee",
+        "network_sha256": "52424e30e5375a7d8b57d66704b2c0b258c21cad65d47c223e02bad0cb056a42",
+        "canonical_sha256": "ea1f3ef81898f9e1ce22279e862e578fd9befb5f7ff32b58aa61195799e31b78",
+        "manifest_sha256": "eadaa8be34f9f27e6e580f2ddb0be875aa843123cbabd48fc9077c069b600316",
+        "source": {
+          "url": "https://raw.githubusercontent.com/power-grid-lib/pglib-opf/dc6be4b2f85ca0e776952ec22cbd4c22396ea5a3/pglib_opf_case14_ieee.m",
+          "version": "PGLib-OPF v23.07",
+          "upstream_commit": "dc6be4b2f85ca0e776952ec22cbd4c22396ea5a3",
+          "publication_date": "2023-07-23"
+        },
+        "license": {
+          "url": "https://github.com/power-grid-lib/pglib-opf/blob/dc6be4b2f85ca0e776952ec22cbd4c22396ea5a3/LICENSE",
+          "spdx": "CC-BY-4.0",
+          "attribution": "PGLib-OPF v23.07 (c) IEEE PES Task Force on Benchmarks for Validation of Emerging Power System Algorithms, CC-BY-4.0, https://github.com/power-grid-lib/pglib-opf; IEEE 14-bus data (c) 1999 Richard D. Christie, University of Washington (CC-BY-4.0).",
+          "redistribution": "permitted"
+        }
+      },
+      "engine": {
+        "name": "pypsa",
+        "version": "1.4.0",
+        "formulation": "lopf"
+      },
+      "solver": {
+        "name": "highs",
+        "version": "1.16.0",
+        "status": "ok",
+        "termination_condition": "optimal",
+        "objective_eur": 2001372.900146,
+        "wall_time_s": 1.392,
+        "options": {
+          "threads": 1,
+          "time_limit_s": 300
+        }
+      },
+      "execution_manifest": {
+        "schema_version": "execution-manifest/1.0",
+        "scenario_hash": "ba25e910a97c0caed16c841af59913905fc7d8b93f920015c8fd90c4de22d8e9",
+        "dataset_sha256": "52424e30e5375a7d8b57d66704b2c0b258c21cad65d47c223e02bad0cb056a42",
+        "engine_name": "pypsa",
+        "engine_version": "1.4.0",
+        "solver_name": "highs",
+        "solver_version": "1.16.0",
+        "solver_options": {
+          "time_limit": 300,
+          "threads": 1,
+          "random_seed": 0,
+          "output_flag": false,
+          "parallel": "off"
+        },
+        "package_versions": {
+          "pypsa": "1.4.0",
+          "linopy": "0.10.1",
+          "highspy": "1.16.0",
+          "numpy": "2.4.6",
+          "pandas": "3.1.1",
+          "xarray": "2026.9.0",
+          "stormspec": "1.0.0"
+        },
+        "python_version": "3.11.18",
+        "platform": "Linux-7.0.0-1009-aws-x86_64",
+        "started_at": "2026-11-15T00:31:39.619Z",
+        "finished_at": "2026-11-15T00:31:53.107Z",
+        "result_sha256": "8d228066c4cfe53d8f5e33b35c07dc1fe8cc306e21a2d52decaee0977d8c0023",
+        "git_sha": null,
+        "command": null
+      },
+      "finished_at": "2026-11-15T00:31:56.513863Z"
+    }
+  }
+}

@@ -3,6 +3,11 @@ name: Production smoke (read-only)
 on:
   pull_request:
   workflow_dispatch:
+    inputs:
+      durable_job_id:
+        description: Post-deploy completed job to verify after a controlled API restart
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -18,4 +23,6 @@ jobs:
         with:
           python-version: '3.11'
       - name: Probe public endpoints without writes
+        env:
+          GRIDSTORM_DURABLE_JOB_ID: ${{ inputs.durable_job_id }}
         run: python scripts/probe_production.py

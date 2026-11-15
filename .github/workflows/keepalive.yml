@@ -1,0 +1,35 @@
+name: Production readiness keepalive (read-only)
+
+on:
+  schedule:
+    - cron: '17 8 */3 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-readiness-keepalive
+  cancel-in-progress: false
+
+jobs:
+  readiness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Read API readiness and exercise its database connection
+        shell: bash
+        run: |
+          curl --fail-with-body --silent --show-error \
+            --connect-timeout 30 --max-time 240 \
+            https://gridstorm-api.onrender.com/ready \
+            --output readiness.json
+          python3 - <<'PY'
+          import json
+          with open('readiness.json', encoding='utf-8') as response:
+              ready = json.load(response)
+          assert ready.get('status') == 'ready', 'API is not ready'
+          database = (ready.get('checks') or {}).get('database') or {}
+          assert database.get('kind') == 'postgres', 'Production database is not Postgres'
+          print('PASS production readiness and Postgres connection')
+          PY

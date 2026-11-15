@@ -69,6 +69,10 @@ Local reproducibility uses relative `1e-7`, absolute `1e-5` for objective and ev
 
 Public [simulation inventory](https://gridstorm-api.onrender.com/api/v1/simulations?limit=100): one listed job, one total, one completed. The completed job `2d47898b-8546-420e-a382-acc29f14d3d4` is IEEE-14 baseline. Its [result endpoint](https://gridstorm-api.onrender.com/api/v1/simulations/2d47898b-8546-420e-a382-acc29f14d3d4/result) returned **HTTP 500**, error code **`artifact_missing`**. No live physics, objective or provenance was claimed verified. The network-marked test skipped after recording that job and response, as required for unavailable 410/500 results. This reproduces [production issue #8](https://github.com/tanmay-alpha/GridStorm/issues/8); Storage and Main were notified. A fresh durable-storage result must be audited after deployment; that acceptance remains open.
 
+### Comparison presentation finding
+
+LiveAudit2 subsequently reported live comparison `4f5661ec-e6f1-4600-96ed-710709f10c36`: maximum loading changed from `60.656764%` to `8.827726%`; its absolute delta `−51.829038` was displayed as `−51.83 %`. That absolute difference must be labeled **percentage points (pp)**, while its separately reported relative change `−85.45%` remains a percent. The export reportedly stores unit `%` and a separate `delta_pct`; consumers must preserve this distinction. This is attributed browser/export evidence from LiveAudit2, not a fresh scientific-harness observation. Reported to UXWorkflow and Main for the Compare fix; no result physics violation is implied.
+
 ## Repeatable commands
 
 ```sh

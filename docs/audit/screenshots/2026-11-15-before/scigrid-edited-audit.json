@@ -1,0 +1,6 @@
+{
+  "valid": "true",
+  "enabled": true,
+  "forecast": "No precomputed result matches this scenario hash; the server is expected to refuse it (live solves disabled for this network).",
+  "attemptedPosts": 1
+}

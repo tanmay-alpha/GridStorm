@@ -1,0 +1,601 @@
+{
+  "metrics": [
+    {
+      "unit": "MW",
+      "delta": 0,
+      "metric": "balance_residual_max_mw",
+      "baseline": 0,
+      "scenario": 0,
+      "delta_pct": null
+    },
+    {
+      "unit": "t",
+      "delta": null,
+      "metric": "co2_emissions_t",
+      "baseline": null,
+      "scenario": null,
+      "delta_pct": null
+    },
+    {
+      "unit": "count",
+      "delta": 0,
+      "metric": "congested_line_count",
+      "baseline": 0,
+      "scenario": 0,
+      "delta_pct": null
+    },
+    {
+      "unit": "MWh",
+      "delta": 0,
+      "metric": "curtailment_mwh",
+      "baseline": 0,
+      "scenario": 0,
+      "delta_pct": null
+    },
+    {
+      "unit": "EUR",
+      "delta": -678.6261629999999,
+      "metric": "generation_cost_eur",
+      "baseline": 2051.526309,
+      "scenario": 1372.900146,
+      "delta_pct": -33.079086532933175
+    },
+    {
+      "unit": "h",
+      "delta": 1,
+      "metric": "load_shed_hours",
+      "baseline": 0,
+      "scenario": 1,
+      "delta_pct": null
+    },
+    {
+      "unit": "EUR",
+      "delta": 2000000,
+      "metric": "load_shedding_cost_eur",
+      "baseline": 0,
+      "scenario": 2000000,
+      "delta_pct": null
+    },
+    {
+      "unit": "%",
+      "delta": -51.829038000000004,
+      "metric": "max_line_loading_pct",
+      "baseline": 60.656764,
+      "scenario": 8.827726,
+      "delta_pct": -85.44642770590268
+    },
+    {
+      "unit": "%",
+      "delta": -16.70499,
+      "metric": "mean_line_loading_pct",
+      "baseline": 18.549563,
+      "scenario": 1.844573,
+      "delta_pct": -90.05597598175224
+    },
+    {
+      "unit": "MW",
+      "delta": 200,
+      "metric": "peak_load_shed_mw",
+      "baseline": 0,
+      "scenario": 200,
+      "delta_pct": null
+    },
+    {
+      "unit": "MWh",
+      "delta": -200,
+      "metric": "served_load_mwh",
+      "baseline": 259,
+      "scenario": 59,
+      "delta_pct": -77.22007722007721
+    },
+    {
+      "unit": "MWh",
+      "delta": 0,
+      "metric": "storage_charge_mwh",
+      "baseline": 0,
+      "scenario": 0,
+      "delta_pct": null
+    },
+    {
+      "unit": "MWh",
+      "delta": 0,
+      "metric": "storage_discharge_mwh",
+      "baseline": 0,
+      "scenario": 0,
+      "delta_pct": null
+    },
+    {
+      "unit": "MWh",
+      "delta": 0,
+      "metric": "total_load_mwh",
+      "baseline": 259,
+      "scenario": 259,
+      "delta_pct": 0
+    },
+    {
+      "unit": "EUR",
+      "delta": 1999321.373837,
+      "metric": "total_system_cost_eur",
+      "baseline": 2051.526309,
+      "scenario": 2001372.900146,
+      "delta_pct": 97455.31242109944
+    },
+    {
+      "unit": "MWh",
+      "delta": 200,
+      "metric": "unserved_energy_mwh",
+      "baseline": 0,
+      "scenario": 200,
+      "delta_pct": null
+    }
+  ],
+  "baseline": {
+    "job_id": "0137980b-a106-49ed-a292-7fa1bacf7813",
+    "outcome": "feasible",
+    "scenario_id": "pglib-case14-ieee-baseline",
+    "scenario_hash": "c78bee9b3540b8a39fecb7acaec9d2459544384ecc00aac1e968ee6c0c791d77",
+    "scenario_name": "PGLib IEEE 14-bus — baseline DC OPF"
+  },
+  "carriers": {
+    "generation_by_carrier_mwh": [
+      {
+        "delta": -200,
+        "carrier": "NG",
+        "baseline": 259,
+        "scenario": 59,
+        "delta_pct": -77.22007722007721
+      },
+      {
+        "delta": 0,
+        "carrier": "SYNC",
+        "baseline": 0,
+        "scenario": 0,
+        "delta_pct": null
+      }
+    ],
+    "curtailment_by_carrier_mwh": []
+  },
+  "scenario": {
+    "job_id": "06b4f635-4eb8-4d34-99ca-362d53b88e6c",
+    "outcome": "feasible",
+    "scenario_id": "pglib-case14-ieee-gen-1-outage",
+    "scenario_hash": "ba25e910a97c0caed16c841af59913905fc7d8b93f920015c8fd90c4de22d8e9",
+    "scenario_name": "PGLib IEEE 14-bus — loss of the main unit gen-1 (deliberate load shedding)"
+  },
+  "warnings": [],
+  "network_id": "pglib-case14-ieee",
+  "provenance": "calculated",
+  "assumptions": [
+    "Deltas are scenario minus baseline, computed from the stored gridstorm-result documents.",
+    "Both runs use the same network dataset; differences reflect the scenario specification only within the stated model assumptions of each run.",
+    "Results are model outputs (provenance: modeled); deltas are provenance: calculated. They are not observations or predictions of real grid behaviour.",
+    "DC linearised power flow (LOPF) — no reactive power, voltage magnitudes or losses",
+    "Kirchhoff's voltage law imposed on a cycle basis with series reactances (x_pu_eff); branch active-power flow limited to s_nom x s_max_pu",
+    "Perfect foresight: all snapshots of the horizon are optimised jointly in one LP",
+    "Costs are short-run marginal costs from the dataset; nodal prices are LP duals of the nodal balance constraints",
+    "Modeled results for scenario analysis — not a validated blackout predictor or operational forecast",
+    "Dataset dispatch set-points (p_set) released so the LOPF optimises dispatch: 5 generators",
+    "Load shedding modelled as one dispatchable generator per load bus (11 buses), marginal cost = VOLL 10000 EUR/MWh, bounded by the bus demand at every snapshot",
+    "Synchronous condensers (carrier SYNC) have zero active-power capacity in the dataset"
+  ],
+  "branch_loading": [
+    {
+      "id": "branch-2",
+      "component": "line",
+      "baseline_outaged": false,
+      "delta_pct_points": -55.686499999999995,
+      "scenario_outaged": false,
+      "baseline_max_loading_pct": 60.6568,
+      "scenario_max_loading_pct": 4.9703
+    },
+    {
+      "id": "branch-3",
+      "component": "line",
+      "baseline_outaged": false,
+      "delta_pct_points": -42.9351,
+      "scenario_outaged": false,
+      "baseline_max_loading_pct": 47.5315,
+      "scenario_max_loading_pct": 4.5964
+    },
+    {
+      "id": "branch-1",
+      "component": "line",
+      "baseline_outaged": false,
+      "delta_pct_points": -37.0757,
+      "scenario_outaged": false,
+      "baseline_max_loading_pct": 38.4236,
+      "scenario_max_loading_pct": 1.3479
+    },
+    {
+      "id": "branch-10",
+      "component": "transformer",
+      "baseline_outaged": false,
+      "delta_pct_points": -35.9416,
+      "scenario_outaged": false,
+      "baseline_max_loading_pct": 36.7299,
+      "scenario_max_loading_pct": 0.7883
+    },
+    {
+      "id": "branch-9",
+      "component": "transformer",
+      "baseline_outaged": false,
+      "delta_pct_points": -30.458499999999997,
+      "scenario_outaged": false,
+      "baseline_max_loading_pct": 31.0998,
+      "scenario_max_loading_pct": 0.6413
+    },
+    {
+      "id": "branch-4",
+      "component": "line",
+      "baseline_outaged": false,
+      "delta_pct_points": -24.6295,
+      "scenario_outaged": false,
+      "baseline_max_loading_pct": 33.4572,
+      "scenario_max_loading_pct": 8.8277
+    },
+    {
+      "id": "branch-8",
+      "component": "transformer",
+      "baseline_outaged": false,
+      "delta_pct_points": -19.6175,
+      "scenario_outaged": false,
+      "baseline_max_loading_pct": 20.0305,
+      "scenario_max_loading_pct": 0.413
+    },
+    {
+      "id": "branch-5",
+      "component": "line",
+      "baseline_outaged": false,
+      "delta_pct_points": -17.1123,
+      "scenario_outaged": false,
+      "baseline_max_loading_pct": 23.5257,
+      "scenario_max_loading_pct": 6.4134
+    },
+    {
+      "id": "branch-6",
+      "component": "line",
+      "baseline_outaged": false,
+      "delta_pct_points": -11.6342,
+      "scenario_outaged": false,
+      "baseline_max_loading_pct": 15.7996,
+      "scenario_max_loading_pct": 4.1654
+    },
+    {
+      "id": "branch-15",
+      "component": "line",
+      "baseline_outaged": false,
+      "delta_pct_points": -10.3598,
+      "scenario_outaged": false,
+      "baseline_max_loading_pct": 10.5779,
+      "scenario_max_loading_pct": 0.2181
+    },
+    {
+      "id": "branch-17",
+      "component": "line",
+      "baseline_outaged": false,
+      "delta_pct_points": -9.293000000000001,
+      "scenario_outaged": false,
+      "baseline_max_loading_pct": 9.6636,
+      "scenario_max_loading_pct": 0.3706
+    },
+    {
+      "id": "branch-13",
+      "component": "line",
+      "baseline_outaged": false,
+      "delta_pct_points": -8.4695,
+      "scenario_outaged": false,
+      "baseline_max_loading_pct": 8.6115,
+      "scenario_max_loading_pct": 0.142
+    },
+    {
+      "id": "branch-7",
+      "component": "line",
+      "baseline_outaged": false,
+      "delta_pct_points": -7.4063,
+      "scenario_outaged": false,
+      "baseline_max_loading_pct": 9.7806,
+      "scenario_max_loading_pct": 2.3743
+    },
+    {
+      "id": "branch-12",
+      "component": "line",
+      "baseline_outaged": false,
+      "delta_pct_points": -7.2523,
+      "scenario_outaged": false,
+      "baseline_max_loading_pct": 7.3307,
+      "scenario_max_loading_pct": 0.0784
+    },
+    {
+      "id": "branch-20",
+      "component": "line",
+      "baseline_outaged": false,
+      "delta_pct_points": -6.5344,
+      "scenario_outaged": false,
+      "baseline_max_loading_pct": 7.0172,
+      "scenario_max_loading_pct": 0.4828
+    },
+    {
+      "id": "branch-11",
+      "component": "line",
+      "baseline_outaged": false,
+      "delta_pct_points": -4.6907,
+      "scenario_outaged": false,
+      "baseline_max_loading_pct": 5.1052,
+      "scenario_max_loading_pct": 0.4145
+    },
+    {
+      "id": "branch-18",
+      "component": "line",
+      "baseline_outaged": false,
+      "delta_pct_points": -1.9756,
+      "scenario_outaged": false,
+      "baseline_max_loading_pct": 2.3695,
+      "scenario_max_loading_pct": 0.3939
+    },
+    {
+      "id": "branch-16",
+      "component": "line",
+      "baseline_outaged": false,
+      "delta_pct_points": -1.5703,
+      "scenario_outaged": false,
+      "baseline_max_loading_pct": 1.7412,
+      "scenario_max_loading_pct": 0.1709
+    },
+    {
+      "id": "branch-19",
+      "component": "line",
+      "baseline_outaged": false,
+      "delta_pct_points": -1.4568999999999999,
+      "scenario_outaged": false,
+      "baseline_max_loading_pct": 1.5393,
+      "scenario_max_loading_pct": 0.0824
+    },
+    {
+      "id": "branch-14",
+      "component": "line",
+      "baseline_outaged": false,
+      "delta_pct_points": 0,
+      "scenario_outaged": false,
+      "baseline_max_loading_pct": 0,
+      "scenario_max_loading_pct": 0
+    }
+  ],
+  "schema_version": "gridstorm-comparison/1.0",
+  "reproducibility": {
+    "git_sha": "7c63ccaec57eddf292a287b267199132c42b7032",
+    "baseline": {
+      "engine": {
+        "name": "pypsa",
+        "version": "1.4.0",
+        "formulation": "lopf"
+      },
+      "job_id": "0137980b-a106-49ed-a292-7fa1bacf7813",
+      "reused": false,
+      "solver": {
+        "name": "highs",
+        "status": "ok",
+        "options": {
+          "threads": 1,
+          "time_limit_s": 300
+        },
+        "version": "1.16.0",
+        "wall_time_s": 1.216,
+        "objective_eur": 2051.526309,
+        "termination_condition": "optimal"
+      },
+      "dataset": {
+        "source": {
+          "url": "https://raw.githubusercontent.com/power-grid-lib/pglib-opf/dc6be4b2f85ca0e776952ec22cbd4c22396ea5a3/pglib_opf_case14_ieee.m",
+          "version": "PGLib-OPF v23.07",
+          "upstream_commit": "dc6be4b2f85ca0e776952ec22cbd4c22396ea5a3",
+          "publication_date": "2023-07-23"
+        },
+        "license": {
+          "url": "https://github.com/power-grid-lib/pglib-opf/blob/dc6be4b2f85ca0e776952ec22cbd4c22396ea5a3/LICENSE",
+          "spdx": "CC-BY-4.0",
+          "attribution": "PGLib-OPF v23.07 (c) IEEE PES Task Force on Benchmarks for Validation of Emerging Power System Algorithms, CC-BY-4.0, https://github.com/power-grid-lib/pglib-opf; IEEE 14-bus data (c) 1999 Richard D. Christie, University of Washington (CC-BY-4.0).",
+          "redistribution": "permitted"
+        },
+        "network_id": "pglib-case14-ieee",
+        "network_sha256": "52424e30e5375a7d8b57d66704b2c0b258c21cad65d47c223e02bad0cb056a42",
+        "manifest_sha256": "eadaa8be34f9f27e6e580f2ddb0be875aa843123cbabd48fc9077c069b600316",
+        "canonical_sha256": "ea1f3ef81898f9e1ce22279e862e578fd9befb5f7ff32b58aa61195799e31b78"
+      },
+      "finished_at": "2026-11-15T00:31:15.209941Z",
+      "scenario_id": "pglib-case14-ieee-baseline",
+      "result_sha256": "87386d4782ff81d62ad86460820f21c8f5cfd0a8b7d327839f742376622cd831",
+      "scenario_hash": "c78bee9b3540b8a39fecb7acaec9d2459544384ecc00aac1e968ee6c0c791d77",
+      "scenario_spec": {
+        "id": "pglib-case14-ieee-baseline",
+        "name": "PGLib IEEE 14-bus — baseline DC OPF",
+        "events": [],
+        "dataset": {
+          "sha256": "52424e30e5375a7d8b57d66704b2c0b258c21cad65d47c223e02bad0cb056a42",
+          "network_id": "pglib-case14-ieee"
+        },
+        "horizon": {
+          "start": 0,
+          "snapshots": 1
+        },
+        "execution": {
+          "seed": 0,
+          "engine": "pypsa",
+          "solver": "highs",
+          "formulation": "lopf",
+          "deterministic": true,
+          "solver_options": {
+            "threads": 1,
+            "time_limit_s": 300
+          }
+        },
+        "mitigation": {
+          "curtailment": true,
+          "load_shedding": {
+            "enabled": true,
+            "voll_eur_per_mwh": 10000
+          },
+          "storage_dispatch": true
+        },
+        "assumptions": [],
+        "description": "Single-snapshot DC optimal power flow of PGLib-OPF pglib_opf_case14_ieee (259 MW load, two dispatchable units, three synchronous condensers). MATPOWER Pg set-points are released so the dispatch is optimised.",
+        "schema_version": "stormspec/1.0"
+      },
+      "execution_mode": "live",
+      "execution_manifest": {
+        "command": null,
+        "git_sha": null,
+        "platform": "Linux-7.0.0-1009-aws-x86_64",
+        "started_at": "2026-11-15T00:30:58.510Z",
+        "engine_name": "pypsa",
+        "finished_at": "2026-11-15T00:31:11.824Z",
+        "solver_name": "highs",
+        "result_sha256": "0da899bf7948c130fdc17793eca3dd9c043a39d340552358abe5a57ce463a875",
+        "scenario_hash": "c78bee9b3540b8a39fecb7acaec9d2459544384ecc00aac1e968ee6c0c791d77",
+        "dataset_sha256": "52424e30e5375a7d8b57d66704b2c0b258c21cad65d47c223e02bad0cb056a42",
+        "engine_version": "1.4.0",
+        "python_version": "3.11.18",
+        "schema_version": "execution-manifest/1.0",
+        "solver_options": {
+          "threads": 1,
+          "parallel": "off",
+          "time_limit": 300,
+          "output_flag": false,
+          "random_seed": 0
+        },
+        "solver_version": "1.16.0",
+        "package_versions": {
+          "numpy": "2.4.6",
+          "pypsa": "1.4.0",
+          "linopy": "0.10.1",
+          "pandas": "3.1.1",
+          "xarray": "2026.9.0",
+          "highspy": "1.16.0",
+          "stormspec": "1.0.0"
+        }
+      },
+      "reused_from_job_id": null
+    },
+    "scenario": {
+      "engine": {
+        "name": "pypsa",
+        "version": "1.4.0",
+        "formulation": "lopf"
+      },
+      "job_id": "06b4f635-4eb8-4d34-99ca-362d53b88e6c",
+      "reused": false,
+      "solver": {
+        "name": "highs",
+        "status": "ok",
+        "options": {
+          "threads": 1,
+          "time_limit_s": 300
+        },
+        "version": "1.16.0",
+        "wall_time_s": 1.392,
+        "objective_eur": 2001372.900146,
+        "termination_condition": "optimal"
+      },
+      "dataset": {
+        "source": {
+          "url": "https://raw.githubusercontent.com/power-grid-lib/pglib-opf/dc6be4b2f85ca0e776952ec22cbd4c22396ea5a3/pglib_opf_case14_ieee.m",
+          "version": "PGLib-OPF v23.07",
+          "upstream_commit": "dc6be4b2f85ca0e776952ec22cbd4c22396ea5a3",
+          "publication_date": "2023-07-23"
+        },
+        "license": {
+          "url": "https://github.com/power-grid-lib/pglib-opf/blob/dc6be4b2f85ca0e776952ec22cbd4c22396ea5a3/LICENSE",
+          "spdx": "CC-BY-4.0",
+          "attribution": "PGLib-OPF v23.07 (c) IEEE PES Task Force on Benchmarks for Validation of Emerging Power System Algorithms, CC-BY-4.0, https://github.com/power-grid-lib/pglib-opf; IEEE 14-bus data (c) 1999 Richard D. Christie, University of Washington (CC-BY-4.0).",
+          "redistribution": "permitted"
+        },
+        "network_id": "pglib-case14-ieee",
+        "network_sha256": "52424e30e5375a7d8b57d66704b2c0b258c21cad65d47c223e02bad0cb056a42",
+        "manifest_sha256": "eadaa8be34f9f27e6e580f2ddb0be875aa843123cbabd48fc9077c069b600316",
+        "canonical_sha256": "ea1f3ef81898f9e1ce22279e862e578fd9befb5f7ff32b58aa61195799e31b78"
+      },
+      "finished_at": "2026-11-15T00:31:56.513863Z",
+      "scenario_id": "pglib-case14-ieee-gen-1-outage",
+      "result_sha256": "63a3817850eee0eca34e5fbee709b8a5c858c316af45dda987888bba011d57ab",
+      "scenario_hash": "ba25e910a97c0caed16c841af59913905fc7d8b93f920015c8fd90c4de22d8e9",
+      "scenario_spec": {
+        "id": "pglib-case14-ieee-gen-1-outage",
+        "name": "PGLib IEEE 14-bus — loss of the main unit gen-1 (deliberate load shedding)",
+        "events": [
+          {
+            "type": "generator_outage",
+            "window": null,
+            "asset_id": "gen-1"
+          }
+        ],
+        "dataset": {
+          "sha256": "52424e30e5375a7d8b57d66704b2c0b258c21cad65d47c223e02bad0cb056a42",
+          "network_id": "pglib-case14-ieee"
+        },
+        "horizon": {
+          "start": 0,
+          "snapshots": 1
+        },
+        "execution": {
+          "seed": 0,
+          "engine": "pypsa",
+          "solver": "highs",
+          "formulation": "lopf",
+          "deterministic": true,
+          "solver_options": {
+            "threads": 1,
+            "time_limit_s": 300
+          }
+        },
+        "mitigation": {
+          "curtailment": true,
+          "load_shedding": {
+            "enabled": true,
+            "voll_eur_per_mwh": 10000
+          },
+          "storage_dispatch": true
+        },
+        "assumptions": [
+          "Synchronous condensers (carrier SYNC) have zero active-power capacity in the dataset"
+        ],
+        "description": "Generator gen-1 (bus-1, 340 MW, the cheapest and largest unit) is forced out. The remaining dispatchable capacity (gen-2, 59 MW) cannot cover the 259 MW load, so the run deliberately demonstrates load shedding at VOLL (expected unserved energy = 259 - 59 = 200 MWh).",
+        "schema_version": "stormspec/1.0"
+      },
+      "execution_mode": "live",
+      "execution_manifest": {
+        "command": null,
+        "git_sha": null,
+        "platform": "Linux-7.0.0-1009-aws-x86_64",
+        "started_at": "2026-11-15T00:31:39.619Z",
+        "engine_name": "pypsa",
+        "finished_at": "2026-11-15T00:31:53.107Z",
+        "solver_name": "highs",
+        "result_sha256": "8d228066c4cfe53d8f5e33b35c07dc1fe8cc306e21a2d52decaee0977d8c0023",
+        "scenario_hash": "ba25e910a97c0caed16c841af59913905fc7d8b93f920015c8fd90c4de22d8e9",
+        "dataset_sha256": "52424e30e5375a7d8b57d66704b2c0b258c21cad65d47c223e02bad0cb056a42",
+        "engine_version": "1.4.0",
+        "python_version": "3.11.18",
+        "schema_version": "execution-manifest/1.0",
+        "solver_options": {
+          "threads": 1,
+          "parallel": "off",
+          "time_limit": 300,
+          "output_flag": false,
+          "random_seed": 0
+        },
+        "solver_version": "1.16.0",
+        "package_versions": {
+          "numpy": "2.4.6",
+          "pypsa": "1.4.0",
+          "linopy": "0.10.1",
+          "pandas": "3.1.1",
+          "xarray": "2026.9.0",
+          "highspy": "1.16.0",
+          "stormspec": "1.0.0"
+        }
+      },
+      "reused_from_job_id": null
+    },
+    "api_version": "0.1.0",
+    "generated_at": "2026-11-15T00:33:43.950459Z"
+  }
+}

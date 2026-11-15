@@ -1,0 +1,230 @@
+{
+  "schema_version": "gridstorm-run-report/1.0",
+  "provenance": "modeled",
+  "network_id": "pglib-case14-ieee",
+  "run": {
+    "job_id": "0137980b-a106-49ed-a292-7fa1bacf7813",
+    "scenario_id": "pglib-case14-ieee-baseline",
+    "scenario_name": "PGLib IEEE 14-bus — baseline DC OPF",
+    "scenario_hash": "c78bee9b3540b8a39fecb7acaec9d2459544384ecc00aac1e968ee6c0c791d77",
+    "outcome": "feasible"
+  },
+  "metrics": [
+    {
+      "metric": "balance_residual_max_mw",
+      "unit": "MW",
+      "value": 0
+    },
+    {
+      "metric": "co2_emissions_t",
+      "unit": "t",
+      "value": null
+    },
+    {
+      "metric": "congested_line_count",
+      "unit": "count",
+      "value": 0
+    },
+    {
+      "metric": "curtailment_mwh",
+      "unit": "MWh",
+      "value": 0
+    },
+    {
+      "metric": "generation_cost_eur",
+      "unit": "EUR",
+      "value": 2051.526309
+    },
+    {
+      "metric": "load_shed_hours",
+      "unit": "h",
+      "value": 0
+    },
+    {
+      "metric": "load_shedding_cost_eur",
+      "unit": "EUR",
+      "value": 0
+    },
+    {
+      "metric": "max_line_loading_pct",
+      "unit": "%",
+      "value": 60.656764
+    },
+    {
+      "metric": "mean_line_loading_pct",
+      "unit": "%",
+      "value": 18.549563
+    },
+    {
+      "metric": "peak_load_shed_mw",
+      "unit": "MW",
+      "value": 0
+    },
+    {
+      "metric": "served_load_mwh",
+      "unit": "MWh",
+      "value": 259
+    },
+    {
+      "metric": "storage_charge_mwh",
+      "unit": "MWh",
+      "value": 0
+    },
+    {
+      "metric": "storage_discharge_mwh",
+      "unit": "MWh",
+      "value": 0
+    },
+    {
+      "metric": "total_load_mwh",
+      "unit": "MWh",
+      "value": 259
+    },
+    {
+      "metric": "total_system_cost_eur",
+      "unit": "EUR",
+      "value": 2051.526309
+    },
+    {
+      "metric": "unserved_energy_mwh",
+      "unit": "MWh",
+      "value": 0
+    }
+  ],
+  "carriers": {
+    "generation_by_carrier_mwh": {
+      "NG": 259,
+      "SYNC": 0
+    },
+    "curtailment_by_carrier_mwh": {}
+  },
+  "warnings": [
+    "Dataset carriers carry no CO2 intensities (all zero/missing): co2_emissions_t is null (data gap, not a zero-emission finding)"
+  ],
+  "assumptions": [
+    "DC linearised power flow (LOPF) — no reactive power, voltage magnitudes or losses",
+    "Kirchhoff's voltage law imposed on a cycle basis with series reactances (x_pu_eff); branch active-power flow limited to s_nom x s_max_pu",
+    "Perfect foresight: all snapshots of the horizon are optimised jointly in one LP",
+    "Costs are short-run marginal costs from the dataset; nodal prices are LP duals of the nodal balance constraints",
+    "Modeled results for scenario analysis — not a validated blackout predictor or operational forecast",
+    "Dataset dispatch set-points (p_set) released so the LOPF optimises dispatch: 5 generators",
+    "Load shedding modelled as one dispatchable generator per load bus (11 buses), marginal cost = VOLL 10000 EUR/MWh, bounded by the bus demand at every snapshot"
+  ],
+  "reproducibility": {
+    "generated_at": "2026-11-15T00:32:50.195551Z",
+    "api_version": "0.1.0",
+    "git_sha": "7c63ccaec57eddf292a287b267199132c42b7032",
+    "run": {
+      "job_id": "0137980b-a106-49ed-a292-7fa1bacf7813",
+      "scenario_id": "pglib-case14-ieee-baseline",
+      "scenario_hash": "c78bee9b3540b8a39fecb7acaec9d2459544384ecc00aac1e968ee6c0c791d77",
+      "scenario_spec": {
+        "id": "pglib-case14-ieee-baseline",
+        "name": "PGLib IEEE 14-bus — baseline DC OPF",
+        "events": [],
+        "dataset": {
+          "sha256": "52424e30e5375a7d8b57d66704b2c0b258c21cad65d47c223e02bad0cb056a42",
+          "network_id": "pglib-case14-ieee"
+        },
+        "horizon": {
+          "start": 0,
+          "snapshots": 1
+        },
+        "execution": {
+          "seed": 0,
+          "engine": "pypsa",
+          "solver": "highs",
+          "formulation": "lopf",
+          "deterministic": true,
+          "solver_options": {
+            "threads": 1,
+            "time_limit_s": 300
+          }
+        },
+        "mitigation": {
+          "curtailment": true,
+          "load_shedding": {
+            "enabled": true,
+            "voll_eur_per_mwh": 10000
+          },
+          "storage_dispatch": true
+        },
+        "assumptions": [],
+        "description": "Single-snapshot DC optimal power flow of PGLib-OPF pglib_opf_case14_ieee (259 MW load, two dispatchable units, three synchronous condensers). MATPOWER Pg set-points are released so the dispatch is optimised.",
+        "schema_version": "stormspec/1.0"
+      },
+      "execution_mode": "live",
+      "reused": false,
+      "reused_from_job_id": null,
+      "result_sha256": "87386d4782ff81d62ad86460820f21c8f5cfd0a8b7d327839f742376622cd831",
+      "dataset": {
+        "network_id": "pglib-case14-ieee",
+        "network_sha256": "52424e30e5375a7d8b57d66704b2c0b258c21cad65d47c223e02bad0cb056a42",
+        "canonical_sha256": "ea1f3ef81898f9e1ce22279e862e578fd9befb5f7ff32b58aa61195799e31b78",
+        "manifest_sha256": "eadaa8be34f9f27e6e580f2ddb0be875aa843123cbabd48fc9077c069b600316",
+        "source": {
+          "url": "https://raw.githubusercontent.com/power-grid-lib/pglib-opf/dc6be4b2f85ca0e776952ec22cbd4c22396ea5a3/pglib_opf_case14_ieee.m",
+          "version": "PGLib-OPF v23.07",
+          "upstream_commit": "dc6be4b2f85ca0e776952ec22cbd4c22396ea5a3",
+          "publication_date": "2023-07-23"
+        },
+        "license": {
+          "url": "https://github.com/power-grid-lib/pglib-opf/blob/dc6be4b2f85ca0e776952ec22cbd4c22396ea5a3/LICENSE",
+          "spdx": "CC-BY-4.0",
+          "attribution": "PGLib-OPF v23.07 (c) IEEE PES Task Force on Benchmarks for Validation of Emerging Power System Algorithms, CC-BY-4.0, https://github.com/power-grid-lib/pglib-opf; IEEE 14-bus data (c) 1999 Richard D. Christie, University of Washington (CC-BY-4.0).",
+          "redistribution": "permitted"
+        }
+      },
+      "engine": {
+        "name": "pypsa",
+        "version": "1.4.0",
+        "formulation": "lopf"
+      },
+      "solver": {
+        "name": "highs",
+        "version": "1.16.0",
+        "status": "ok",
+        "termination_condition": "optimal",
+        "objective_eur": 2051.526309,
+        "wall_time_s": 1.216,
+        "options": {
+          "threads": 1,
+          "time_limit_s": 300
+        }
+      },
+      "execution_manifest": {
+        "schema_version": "execution-manifest/1.0",
+        "scenario_hash": "c78bee9b3540b8a39fecb7acaec9d2459544384ecc00aac1e968ee6c0c791d77",
+        "dataset_sha256": "52424e30e5375a7d8b57d66704b2c0b258c21cad65d47c223e02bad0cb056a42",
+        "engine_name": "pypsa",
+        "engine_version": "1.4.0",
+        "solver_name": "highs",
+        "solver_version": "1.16.0",
+        "solver_options": {
+          "time_limit": 300,
+          "threads": 1,
+          "random_seed": 0,
+          "output_flag": false,
+          "parallel": "off"
+        },
+        "package_versions": {
+          "pypsa": "1.4.0",
+          "linopy": "0.10.1",
+          "highspy": "1.16.0",
+          "numpy": "2.4.6",
+          "pandas": "3.1.1",
+          "xarray": "2026.9.0",
+          "stormspec": "1.0.0"
+        },
+        "python_version": "3.11.18",
+        "platform": "Linux-7.0.0-1009-aws-x86_64",
+        "started_at": "2026-11-15T00:30:58.510Z",
+        "finished_at": "2026-11-15T00:31:11.824Z",
+        "result_sha256": "0da899bf7948c130fdc17793eca3dd9c043a39d340552358abe5a57ce463a875",
+        "git_sha": null,
+        "command": null
+      },
+      "finished_at": "2026-11-15T00:31:15.209941Z"
+    }
+  }
+}

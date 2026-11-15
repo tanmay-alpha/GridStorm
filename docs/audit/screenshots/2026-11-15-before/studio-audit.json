@@ -1,0 +1,304 @@
+{
+ "presets": {
+  "ac-dc-meshed": {
+   "items": [
+    "scigrid-de-wind-lull: precomputed result",
+    "scigrid-de-line-448-outage: precomputed result",
+    "scigrid-de-high-demand: precomputed result",
+    "scigrid-de-dunkelflaute-storage-on: precomputed result",
+    "scigrid-de-dunkelflaute-storage-off: precomputed result",
+    "scigrid-de-baseline: precomputed result",
+    "pypsa-eur-be-baseline: -",
+    "pglib-case14-ieee-gen-1-outage: -",
+    "pglib-case14-ieee-baseline: -",
+    "pglib-case118-ieee-baseline: -",
+    "ac-dc-meshed-dc-link-outage: -",
+    "ac-dc-meshed-baseline: -"
+   ],
+   "notice": ""
+  },
+  "pglib-case14-ieee": {
+   "items": [
+    "scigrid-de-wind-lull: precomputed result",
+    "scigrid-de-line-448-outage: precomputed result",
+    "scigrid-de-high-demand: precomputed result",
+    "scigrid-de-dunkelflaute-storage-on: precomputed result",
+    "scigrid-de-dunkelflaute-storage-off: precomputed result",
+    "scigrid-de-baseline: precomputed result",
+    "pypsa-eur-be-baseline: -",
+    "pglib-case14-ieee-gen-1-outage: -",
+    "pglib-case14-ieee-baseline: -",
+    "pglib-case118-ieee-baseline: -",
+    "ac-dc-meshed-dc-link-outage: -",
+    "ac-dc-meshed-baseline: -"
+   ],
+   "notice": ""
+  },
+  "pglib-case118-ieee": {
+   "items": [
+    "scigrid-de-wind-lull: precomputed result",
+    "scigrid-de-line-448-outage: precomputed result",
+    "scigrid-de-high-demand: precomputed result",
+    "scigrid-de-dunkelflaute-storage-on: precomputed result",
+    "scigrid-de-dunkelflaute-storage-off: precomputed result",
+    "scigrid-de-baseline: precomputed result",
+    "pypsa-eur-be-baseline: -",
+    "pglib-case14-ieee-gen-1-outage: -",
+    "pglib-case14-ieee-baseline: -",
+    "pglib-case118-ieee-baseline: -",
+    "ac-dc-meshed-dc-link-outage: -",
+    "ac-dc-meshed-baseline: -"
+   ],
+   "notice": ""
+  },
+  "pypsa-eur-be": {
+   "items": [
+    "scigrid-de-wind-lull: precomputed result",
+    "scigrid-de-line-448-outage: precomputed result",
+    "scigrid-de-high-demand: precomputed result",
+    "scigrid-de-dunkelflaute-storage-on: precomputed result",
+    "scigrid-de-dunkelflaute-storage-off: precomputed result",
+    "scigrid-de-baseline: precomputed result",
+    "pypsa-eur-be-baseline: -",
+    "pglib-case14-ieee-gen-1-outage: -",
+    "pglib-case14-ieee-baseline: -",
+    "pglib-case118-ieee-baseline: -",
+    "ac-dc-meshed-dc-link-outage: -",
+    "ac-dc-meshed-baseline: -"
+   ],
+   "notice": ""
+  },
+  "scigrid-de": {
+   "items": [
+    "scigrid-de-wind-lull: precomputed result",
+    "scigrid-de-line-448-outage: precomputed result",
+    "scigrid-de-high-demand: precomputed result",
+    "scigrid-de-dunkelflaute-storage-on: precomputed result",
+    "scigrid-de-dunkelflaute-storage-off: precomputed result",
+    "scigrid-de-baseline: precomputed result",
+    "pypsa-eur-be-baseline: -",
+    "pglib-case14-ieee-gen-1-outage: -",
+    "pglib-case14-ieee-baseline: -",
+    "pglib-case118-ieee-baseline: -",
+    "ac-dc-meshed-dc-link-outage: -",
+    "ac-dc-meshed-baseline: -"
+   ],
+   "notice": "Live solves disabled for scigrid-de on this deployment  This backend runs live solves only for networks within its memory budget (ac-dc-meshed, pglib-case118-ieee, pglib-case14-ieee, pypsa-eur-be). For this network a run is served only when a verified precomputed result exists for the exact scenario"
+  }
+ },
+ "defaultNetwork": "ac-dc-meshed",
+ "presetState": {
+  "ac-dc-meshed-baseline": {
+   "valid": "true",
+   "runEnabled": true,
+   "errors": "Valid",
+   "forecast": ""
+  },
+  "ac-dc-meshed-dc-link-outage": {
+   "valid": "true",
+   "runEnabled": true,
+   "errors": "Valid",
+   "forecast": ""
+  },
+  "pglib-case14-ieee-baseline": {
+   "valid": "true",
+   "runEnabled": true,
+   "errors": "Valid",
+   "forecast": ""
+  },
+  "pglib-case14-ieee-gen-1-outage": {
+   "valid": "true",
+   "runEnabled": true,
+   "errors": "Valid",
+   "forecast": ""
+  },
+  "pglib-case118-ieee-baseline": {
+   "valid": "true",
+   "runEnabled": true,
+   "errors": "Valid",
+   "forecast": ""
+  },
+  "pypsa-eur-be-baseline": {
+   "valid": "true",
+   "runEnabled": true,
+   "errors": "Valid",
+   "forecast": ""
+  },
+  "scigrid-de-baseline": {
+   "valid": "true",
+   "runEnabled": true,
+   "errors": "Valid",
+   "forecast": "This exact scenario matches a precomputed result; the server will return it (execution mode: precomputed)."
+  },
+  "scigrid-de-line-448-outage": {
+   "valid": "true",
+   "runEnabled": true,
+   "errors": "Valid",
+   "forecast": "This exact scenario matches a precomputed result; the server will return it (execution mode: precomputed)."
+  },
+  "scigrid-de-high-demand": {
+   "valid": "true",
+   "runEnabled": true,
+   "errors": "Valid",
+   "forecast": "This exact scenario matches a precomputed result; the server will return it (execution mode: precomputed)."
+  },
+  "scigrid-de-wind-lull": {
+   "valid": "true",
+   "runEnabled": true,
+   "errors": "Valid",
+   "forecast": "This exact scenario matches a precomputed result; the server will return it (execution mode: precomputed)."
+  },
+  "scigrid-de-dunkelflaute-storage-on": {
+   "valid": "true",
+   "runEnabled": true,
+   "errors": "Valid",
+   "forecast": "This exact scenario matches a precomputed result; the server will return it (execution mode: precomputed)."
+  },
+  "scigrid-de-dunkelflaute-storage-off": {
+   "valid": "true",
+   "runEnabled": true,
+   "errors": "Valid",
+   "forecast": "This exact scenario matches a precomputed result; the server will return it (execution mode: precomputed)."
+  }
+ },
+ "events": {
+  "pglib-case14-ieee-baseline": {
+   "types": [
+    "demand_multiplier",
+    "line_outage",
+    "generator_outage"
+   ],
+   "after": {
+    "demand_multiplier": {
+     "valid": "true",
+     "runEnabled": true,
+     "errors": "Valid"
+    },
+    "line_outage": {
+     "valid": "true",
+     "runEnabled": true,
+     "errors": "Valid"
+    },
+    "generator_outage": {
+     "valid": "true",
+     "runEnabled": true,
+     "errors": "Valid"
+    }
+   },
+   "eventItems": 3
+  },
+  "pypsa-eur-be-baseline": {
+   "types": [
+    "demand_multiplier",
+    "renewable_availability_multiplier",
+    "line_outage",
+    "link_outage",
+    "generator_outage",
+    "storage_state"
+   ],
+   "after": {
+    "demand_multiplier": {
+     "valid": "true",
+     "runEnabled": true,
+     "errors": "Valid"
+    },
+    "renewable_availability_multiplier": {
+     "valid": "true",
+     "runEnabled": true,
+     "errors": "Valid"
+    },
+    "line_outage": {
+     "valid": "true",
+     "runEnabled": true,
+     "errors": "Valid"
+    },
+    "link_outage": {
+     "valid": "true",
+     "runEnabled": true,
+     "errors": "Valid"
+    },
+    "generator_outage": {
+     "valid": "true",
+     "runEnabled": true,
+     "errors": "Valid"
+    },
+    "storage_state": {
+     "valid": "true",
+     "runEnabled": true,
+     "errors": "Valid"
+    }
+   },
+   "eventItems": 6
+  }
+ },
+ "invalid": {
+  "emptyName": {
+   "valid": "false",
+   "runEnabled": false,
+   "errors": "Scenario name is required. |  | 1 error |  | name [schema_error] String should have at least 1 character"
+  },
+  "zeroSnapshots": {
+   "valid": "false",
+   "runEnabled": false,
+   "errors": "1 error |  | horizon.snapshots [schema_error] Input should be greater than or equal to 1"
+  },
+  "negativeVoll": {
+   "valid": "false",
+   "runEnabled": false,
+   "errors": "1 error |  | mitigation.load_shedding.voll_eur_per_mwh [schema_error] Input should be greater than 0"
+  },
+  "emptyVoll": {
+   "valid": null,
+   "runEnabled": null,
+   "errors": ""
+  },
+  "negativeDemand": {
+   "valid": "false",
+   "runEnabled": false,
+   "errors": "1 error |  | events[0].demand_multiplier.value [schema_error] Input should be greater than 0"
+  }
+ },
+ "save": {
+  "status": "Saved as 405881fc-cd0c-4a01-b22a-9b9b2416492b (hash ba25e910a9). Unlisted: it is not shown in the scenario list; reopen it via this link.",
+  "link": "/studio?preset=405881fc-cd0c-4a01-b22a-9b9b2416492b",
+  "reopenedName": "Production functional audit 2026-11-15"
+ },
+ "scigrid": {
+  "preset": {
+   "valid": "true",
+   "runEnabled": true,
+   "errors": "Valid"
+  },
+  "edited": {
+   "valid": "true",
+   "runEnabled": true,
+   "errors": "Valid"
+  },
+  "forecast": "This exact scenario matches a precomputed result; the server will return it (execution mode: precomputed).",
+  "postsAttempted": [
+   "POST https://gridstorm-api.onrender.com/api/v1/simulations"
+  ],
+  "uiAfter": ""
+ },
+ "posts": [
+  {
+   "method": "POST",
+   "url": "https://gridstorm-api.onrender.com/api/v1/scenarios",
+   "body": "{\"scenario\":{\"id\":\"pglib-case14-ieee-gen-1-outage\",\"name\":\"Production functional audit 2026-11-15\",\"events\":[{\"type\":\"generator_outage\",\"window\":null,\"asset_id\":\"gen-1\"}],\"dataset\":{\"sha256\":\"52424e30e5375a7d8b57d66704b2c0b258c21cad65d47c223e02bad0cb056a42\",\"network_id\":\"pglib-case14-ieee\"},\"horizon\":{\"start\":0,\"snapshots\":1},\"execution\":{\"seed\":0,\"engine\":\"pypsa\",\"solver\":\"highs\",\"formulation\":\"l"
+  },
+  {
+   "method": "POST",
+   "url": "https://gridstorm-api.onrender.com/api/v1/simulations",
+   "body": "{\"scenario\":{\"id\":\"scigrid-de-baseline\",\"name\":\"SciGRID edited by LiveAudit\",\"events\":[],\"dataset\":{\"sha256\":\"284850c8e922414f9da69ffda0623431148e0c28a3380ba370e4135ac5236500\",\"network_id\":\"scigrid-de\"},\"horizon\":{\"start\":0,\"snapshots\":24},\"execution\":{\"seed\":0,\"engine\":\"pypsa\",\"solver\":\"highs\",\"formulation\":\"lopf\",\"deterministic\":true,\"solver_options\":{\"time_limit_s\":300,\"threads\":1}},\"mitigation"
+  }
+ ],
+ "log": {
+  "console": [
+   "Error: Minified React error #301; visit https://react.dev/errors/301 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.\n    at as (https://gr",
+   "React Router caught the following error during render Error: Minified React error #301; visit https://react.dev/errors/301 for the full message or use the non-minified dev environment for full errors ",
+   "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector"
+  ],
+  "pageerrors": [],
+  "failed": []
+ }
+}

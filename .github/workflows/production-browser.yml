@@ -3,13 +3,18 @@ name: Public browser smoke (read-only)
 on:
   pull_request:
   workflow_dispatch:
+    inputs:
+      durable_job_id:
+        description: Post-deploy completed job to verify after a controlled API restart
+        required: false
+        type: string
 
 permissions:
   contents: read
 
 jobs:
   public-browser:
-    name: Vercel desktop + mobile Playwright
+    name: Vercel responsive + artifact Playwright
     runs-on: ubuntu-latest
     timeout-minutes: 15
     defaults:
@@ -25,12 +30,14 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - name: Read-only production journeys
+        env:
+          GRIDSTORM_DURABLE_JOB_ID: ${{ inputs.durable_job_id }}
         run: npx playwright test --config playwright.production.config.ts
       - name: Upload screenshot evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: gridstorm-production-browser
-          path: apps/web/test-results/*.png
+          path: apps/web/test-results/
           if-no-files-found: ignore
           retention-days: 7
