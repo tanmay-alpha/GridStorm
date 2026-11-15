@@ -13,6 +13,57 @@ afterEach(() => {
 })
 
 describe('RunPage', () => {
+  it('explains when a completed job lost its result artifact', async () => {
+    const completed = {
+      id: MISSING,
+      scenario_id: 'case14-baseline',
+      network_id: 'pglib-case14-ieee',
+      status: 'completed',
+      stage: 'done',
+      stage_history: [],
+      execution_mode: 'live',
+      outcome: 'feasible',
+      attempts: 1,
+      solver: { name: 'highs', status: 'ok', termination_condition: 'optimal', wall_time_s: 1.3 },
+      error: null,
+      result_sha256: 'f6a74d7c',
+      created_at: '2026-11-15T00:00:00Z',
+      finished_at: '2026-11-15T00:01:00Z',
+    }
+    vi.stubGlobal('fetch', vi.fn(async (input: string) => {
+      const path = new URL(input, 'http://localhost').pathname
+      if (path === `/api/v1/simulations/${MISSING}`) {
+        return new Response(JSON.stringify(completed), { status: 200 })
+      }
+      if (path === `/api/v1/simulations/${MISSING}/result`) {
+        return new Response(JSON.stringify({
+          error: { code: 'artifact_missing', message: 'stored artifact is missing', details: {} },
+        }), { status: 500 })
+      }
+      return new Response(JSON.stringify({ items: [], total: 0 }), { status: 200 })
+    }))
+    render(
+      <QueryClientProvider client={createQueryClient()}>
+        <ThemeProvider>
+          <MemoryRouter initialEntries={[`/runs/${MISSING}`]}>
+            <Routes>
+              <Route path="/runs/:id" element={<RunPage />} />
+            </Routes>
+          </MemoryRouter>
+        </ThemeProvider>
+      </QueryClientProvider>,
+    )
+
+    expect(await screen.findByTestId('result-artifact-missing')).toHaveTextContent(
+      'its detailed result file is no longer stored on this server',
+    )
+    expect(screen.getByRole('link', { name: 'Open Crisis Studio to run the scenario again' })).toHaveAttribute(
+      'href',
+      '/studio',
+    )
+    expect(screen.queryByRole('link', { name: 'Compare' })).not.toBeInTheDocument()
+  })
+
   it('shows "Job not found" for a 404 job id and stays there (no polling back to a skeleton)', async () => {
     const fetchMock = vi.fn(async (input: string) => {
       const url = new URL(input, 'http://localhost')
