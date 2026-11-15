@@ -44,6 +44,7 @@ test('mobile public journey: map and navigation', async ({ page }) => {
   await page.getByRole('button', { name: 'Open navigation menu' }).click()
   await page.getByRole('navigation', { name: 'Mobile' }).getByRole('link', { name: 'Crisis Studio' }).click()
   await expect(page.getByRole('heading', { name: 'Crisis Studio', exact: true })).toBeVisible()
+  await expect(page.getByTestId('preset-item').first()).toBeVisible({ timeout: 60_000 })
   await page.screenshot({ path: 'test-results/production-studio-mobile.png' })
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
   expect(errors).toEqual([])
