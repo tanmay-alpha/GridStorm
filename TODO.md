@@ -21,6 +21,35 @@ Last updated: 2026-11-15
 
 Live: https://gridstorm.vercel.app (web from `main` `67354b0`) · https://gridstorm-api.onrender.com (API `dd185d1`; later commits are web/test/docs only and skipped by the Render build filter) · CI green on `67354b0` (run 43664627266) · production smoke + public browser smoke (11/11) green (runs 43663047984, 43664680740).
 
+## GridStorm 3.0 — science, product and research usability (started 2026-11-15)
+
+Branch `release/gridstorm-3.0` from `main` `ae4ee9a`. Separate count; **not** part of the 58/58 or post-launch tallies.
+Statuses: `BACKLOG → IMPLEMENTING → LOCALLY TESTED → CI VERIFIED → DEPLOYED → PROD TESTED`, or `BLOCKED` / `DEFERRED`.
+Owners: I coordinator · ScienceCost (A) · ExplorerMaps, StudioDesign, ResultsCompare (B) · BackendSecurity (C) · ResearchWorkbench (D) · Verifier (E).
+
+Baseline before changes (2026-11-15, local Windows, `ae4ee9a`): web lint 0 errors / 5 warnings, typecheck clean, vitest 128/128, build OK;
+Python stormspec 30, pypsa 32, api 114 (+1 Linux-only skip), analytics 47, scientific 161, network-import 20, integration 98 (+90 network skips) — all pass.
+Deployed: web Vercel `dpl_fbnkrtGtHYTcVeMir2Psy9QgB3fB` (prebuilt CLI deploy, no git metadata; aliased gridstorm.vercel.app); API Render `/health` git_sha `dd185d1`, `/ready` postgres + supabase durable storage.
+
+**Progress: 13/14 at CI VERIFIED or better (PR #10); 0 deployed yet.** Gemini models were requested but unavailable in this environment; docs and verification ran on GPT 6.1 Sol.
+
+| ID | Task | Pri | Owner | Modules | Deps | Status | Acceptance criteria | Evidence |
+|---|---|---|---|---|---|---|---|---|
+| G3-01 | Cost-basis model; truthful money units on all 5 datasets; VOLL coherent with objective | P0 | ScienceCost | manifests, importers, workers/pypsa, stormspec schema, api catalog/comparisons, scientific tests | — | CI VERIFIED | Every manifest declares a verified `cost_basis`; results embed it; PGLib never labelled EUR; incompatible bases rejected in comparisons; objectives reproduce | `49decd8`; 12 presets regenerated, objectives + 216 metrics identical; scientific 179 + slow 2, pypsa 40, analytics 53, api cost-basis tests; [audit](docs/research/cost-basis-audit.md) |
+| G3-02 | Money display via cost basis across web (results, compare, research) | P0 | ResultsCompare, ResearchWorkbench | `lib/money.ts`, runs, compare, research | G3-01 | CI VERIFIED | No UI path shows PGLib/illustrative costs as EUR; unknown basis labelled explicitly | `cc39b08`, `3ca47d3`, `ee57075`, `5c40876`; advisor free-text relabelled; Explorer asset money fields via basis; unit tests |
+| G3-03 | Single-period replay label (was POST-12) | P3 | ResultsCompare | runs | — | CI VERIFIED | PGLib replay shows "single period (no timestamp)" not `now` | `3ca47d3`; `result.test.ts` |
+| G3-04 | Trusted-proxy client identity for rate limits; security re-verification | P1 | BackendSecurity | `ratelimit.py`, render.yaml, docs/audit | — | CI VERIFIED | Spoofed leading XFF cannot change bucket under Render topology; RLS/secrets/storage rechecked | `4f510e8`; 16 security tests (fail-before spoof + cap tests); RLS 12 tables / 15 policies (rolled-back txn); bundle secret scan clean; [security-3.0](docs/audit/security-3.0.md) |
+| G3-05 | Schematic network view (IEEE 14/118) + map polish; geographic MapLibre preserved | P1 | ExplorerMaps | components/map, network, explorer | — | CI VERIFIED | Legible balanced IEEE-14 at 3 viewports; selection/filter correct; no misleading values | `5c40876`; `explorer-schematic.spec.ts`; screenshots `docs/audit/screenshots/3.0/` |
+| G3-06 | Cached network-switch regression + map performance | P2 | ExplorerMaps | map, explorer | G3-05 | CI VERIFIED (partial) | Before/after measured with same script/conditions | IEEE-14 time-to-map 574→459 ms, 678→416 kB, heap 11.1→6.5 MB; **cached geographic return still 249–285 ms (regression not fixed; basemap tile processing)**; [web-performance-3.0](docs/benchmarks/web-performance-3.0.md) |
+| G3-07 | Studio compact preset cards, progression, drafts, keyboard, mobile | P1 | StudioDesign | studio | — | CI VERIFIED | Compact mobile cards; details expandable; keyboard through 4 steps | `540fc47`; `studio-guided-demo.spec.ts` 6/6 (desktop+mobile, keyboard, no overflow) |
+| G3-08 | Design-system primitives (headers, provenance, execution, cost basis, states) | P2 | StudioDesign | components/ui | — | CI VERIFIED | Primitives documented + reused | `540fc47`; [design-system](docs/architecture/design-system.md) |
+| G3-09 | Guided IEEE-14 generator-outage journey (home → studio → run → compare → brief → download) | P1 | StudioDesign + ResultsCompare | home, studio, runs, compare | G3-07, G3-10 | CI VERIFIED | Journey passes in browser end-to-end on real outputs | guided-demo + `results-compare.spec.ts` against local API |
+| G3-10 | Results hierarchy + deterministic Grid Impact Brief | P1 | ResultsCompare | runs, brief | G3-02 | CI VERIFIED | What happened / why / what changed above the fold; brief statements evidence-linked, no invented causality | `3ca47d3`; `brief.test.ts` (infeasible/null cases) |
+| G3-11 | Compare improvements + baseline→crisis→mitigation workflow | P1 | ResultsCompare | compare, mitigation | G3-10 | CI VERIFIED | ≥1 triple end-to-end on verified outputs; zero-baseline/pp/cost-basis handling tested | SciGRID dunkelflaute storage off→on: unserved 190.2 MWh unchanged, objective −~342 k illustrative units, congested 33→30; `mitigation-studies.spec.ts` |
+| G3-12 | Research Workbench with references, assumptions, execution mode, reproduction manifests | P2 | ResearchWorkbench | research, workbench, api artifacts | — | CI VERIFIED | Every study entry complete and truthful; manifest download works; summaries used | `ee57075`; 10 studies (observed analogues not served as artifacts → not listed); /benchmarks 22→7 requests, /contingency CLS 0.316→0.002 |
+| G3-13 | Docs consistency (README storage claim, deployment, user guide, audits superseded) | P1 | I + DocsWriter | docs, README | all | CI VERIFIED | Docs describe deployed system; superseded findings marked | README, architecture/backend, deployment/backend + vercel, user guide, glossary; 5 historical audits bannered |
+| G3-14 | Independent verification + release (CI, browser, a11y, visual, prod smoke) | P0 | Verifier + I | all | all | IMPLEMENTING | CI green; deployed SHAs recorded; prod smoke passes | PR #10 CI: all Python, web, container, gitleaks pass; prod read-only spec fails until the new UI is deployed (expects schematic view) |
+
 ## Post-launch production audit — 2026-11-15
 
 Evidence: [production audit](docs/audit/production-2026-11-15.md) · [draft UX PR #7](https://github.com/tanmay-alpha/GridStorm/pull/7) · [P0 artifact loss issue #8](https://github.com/tanmay-alpha/GridStorm/issues/8).

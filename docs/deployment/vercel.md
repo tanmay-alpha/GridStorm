@@ -3,8 +3,11 @@
 The frontend (`apps/web`) is a static React + Vite single-page app. It holds no secrets and talks
 to the API (see [render.md](render.md)) over HTTPS.
 
-Status: the Vercel project `gridstorm` exists with Root Directory `apps/web`; a production
-deployment has not yet been made, so no public frontend URL is documented here.
+Status (2026-11-15): production is live at <https://gridstorm.vercel.app> (project `gridstorm`,
+Root Directory `apps/web`). Releases are deployed from the repository root with the Vercel CLI
+after CI passes and the matching API is live: `vercel pull --yes --environment=production`,
+`vercel build --prod`, `vercel deploy --prebuilt --prod`. Prebuilt deployments carry no Git
+metadata, so record the deployed commit in TODO.md. Git auto-deploy is not enabled.
 
 ## Project settings
 
