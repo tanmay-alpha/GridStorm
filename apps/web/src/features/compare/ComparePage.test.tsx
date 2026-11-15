@@ -62,8 +62,8 @@ describe('Compare page', () => {
     expect(within(table).getByText('n/a (baseline 0)')).toHaveAttribute('title', expect.stringMatching(/Baseline is 0/))
     expect(within(table).getByText('+25 MWh')).toBeInTheDocument()
     expect(within(table).getByText('−51.83 pp')).toBeInTheDocument()
-    // A relative change of a percentage is ambiguous: not shown.
-    expect(within(table).queryByText('−85.45 %')).not.toBeInTheDocument()
+    // % metrics: absolute change in pp, relative change in % of the baseline value.
+    expect(within(table).getByText('−85.45 %')).toBeInTheDocument()
     expect(within(table).getByText('Total system cost [PGLib cost units]')).toBeInTheDocument()
     expect(within(table).getByText('+1,999,321 PGLib cost units')).toBeInTheDocument()
     expect(within(table).getByText('+97,455 %')).toBeInTheDocument()

@@ -231,14 +231,8 @@ function ComparisonView({ comparison, guide }: { comparison: Comparison; guide: 
             />
             {view !== 'delta_max' &&
               (series ? (
-                labels.length > 1 ? (
-                  <SnapshotSlider labels={labels} value={tt} onChange={setT} />
-                ) : (
-                  <p className="text-xs text-fg-muted" data-testid="snapshot-label">
-                    <span className="gs-label mr-1">Snapshot</span>
-                    {labels[0] ?? NO_VALUE}
-                  </p>
-                )
+                // Single-period networks get a one-step slider labelled "single period (no timestamp)"; replay is disabled.
+                <SnapshotSlider labels={labels} value={tt} onChange={setT} />
               ) : baseline.error || scenario.error ? (
                 isResultUnavailable(baseline.error) || isResultUnavailable(scenario.error) ? (
                   <p role="alert" className="text-xs text-warn">

@@ -35,8 +35,9 @@ const row = (metric: string, unit: string | null, baseline: number | null, scena
 describe('metric delta display', () => {
   const ok = costComparability({ costs_comparable: true, cost_basis: PGLIB }, PGLIB, PGLIB)
 
-  it('shows % metrics as percentage points and no relative change', () => {
-    expect(formatMetricDelta(row('max_line_loading_pct', '%', 60.656764, 8.827726), ok)).toMatchObject({ absolute: '\u221251.83 pp', relative: '—' })
+  it('shows % metrics as percentage points (absolute) and percent of baseline (relative)', () => {
+    expect(formatMetricDelta(row('max_line_loading_pct', '%', 60.656764, 8.827726), ok)).toMatchObject({ absolute: '\u221251.83 pp', relative: '\u221285.45 %' })
+    expect(formatMetricDelta(row('max_line_loading_pct', '%', 0, 8.8), ok)).toMatchObject({ absolute: '+8.8 pp', relative: 'n/a (baseline 0)' })
   })
   it('shows "n/a (baseline 0)" instead of a relative change for a zero baseline', () => {
     expect(formatMetricDelta(row('unserved_energy_mwh', 'MWh', 0, 200), ok)).toMatchObject({ absolute: '+200 MWh', relative: 'n/a (baseline 0)' })

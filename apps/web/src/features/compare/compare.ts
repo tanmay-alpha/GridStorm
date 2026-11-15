@@ -138,8 +138,8 @@ export interface FormattedDelta {
 
 /**
  * Absolute and relative change of one metric for display. % metrics change in percentage points
- * (a relative change of a percentage is ambiguous and is not shown); money deltas are withheld
- * when the cost bases are not comparable; a zero baseline yields "n/a (baseline 0)".
+ * (absolute) and in percent of the baseline value (relative); money deltas are withheld when the
+ * cost bases are not comparable; a zero baseline yields "n/a (baseline 0)".
  */
 export function formatMetricDelta(row: Pick<MetricDelta, 'metric' | 'unit' | 'baseline' | 'scenario'>, costs: CostComparability): FormattedDelta {
   const kind = metricKind(row.metric, row.unit)
@@ -150,9 +150,9 @@ export function formatMetricDelta(row: Pick<MetricDelta, 'metric' | 'unit' | 'ba
   if (kind === 'percent')
     return {
       absolute: formatPctPoints(cell.delta),
-      relative: NO_VALUE,
+      relative: formatRelativeChange(row.baseline, row.scenario),
       absoluteNote: 'Change of a percentage, in percentage points (pp).',
-      relativeNote: 'A relative change of a percentage is ambiguous and is not shown; see the pp change.',
+      relativeNote: cell.pctNote ?? 'Relative change of the percentage value itself: (scenario − baseline) ÷ |baseline| × 100.',
     }
   const absolute =
     kind === 'money'
