@@ -18,7 +18,7 @@ from ..deps import (
 )
 from ..errors import Conflict, Forbidden, NotFound, Unprocessable
 from ..jobs.results import load_result_bytes
-from ..jobs.service import cancel_job, create_job, iso, job_to_dict
+from ..jobs.service import cancel_job, create_job, iso, job_json, jobs_to_dicts, recompute_job
 from ..schemas import (
     ErrorResponse,
     Job,
@@ -88,11 +88,12 @@ def create_simulation(
         visibility=visibility,
         reuse=body.reuse,
     )
-    return job_to_dict(job)
+    return job_json(ctx, session, job)
 
 
 @router.get("", response_model=Page[Job], summary="Simulation jobs (newest first)")
 def list_simulations(
+    ctx: Ctx,
     session: DBSession,
     principal: CurrentPrincipal,
     page: Paging,
@@ -123,7 +124,7 @@ def list_simulations(
         .offset(page.offset)
     ).all()
     return {
-        "items": [job_to_dict(j) for j in rows],
+        "items": jobs_to_dicts(ctx, session, rows),
         "total": total or 0,
         "limit": page.limit,
         "offset": page.offset,
@@ -131,8 +132,10 @@ def list_simulations(
 
 
 @router.get("/{job_id}", response_model=Job, responses=_404, summary="One simulation job")
-def get_simulation(session: DBSession, principal: CurrentPrincipal, job_id: str) -> dict[str, Any]:
-    return job_to_dict(get_visible_job(session, principal, job_id))
+def get_simulation(
+    ctx: Ctx, session: DBSession, principal: CurrentPrincipal, job_id: str
+) -> dict[str, Any]:
+    return job_json(ctx, session, get_visible_job(session, principal, job_id))
 
 
 @router.post(
@@ -148,7 +151,28 @@ def cancel_simulation(
     job = get_visible_job(session, principal, job_id)
     if not can_modify(job, principal):
         raise Forbidden("only the owner can cancel this job", code="not_owner")
-    return job_to_dict(cancel_job(ctx, session, principal, job))
+    return job_json(ctx, session, cancel_job(ctx, session, principal, job))
+
+
+@router.post(
+    "/{job_id}/recompute",
+    response_model=Job,
+    status_code=202,
+    dependencies=[Depends(rate_limit_post), Depends(rate_limit_simulations)],
+    responses={
+        **_404,
+        409: {"model": ErrorResponse},
+        422: {"model": ErrorResponse},
+        429: {"model": ErrorResponse},
+        503: {"model": ErrorResponse},
+    },
+    summary="Recompute a lost result as a new job with recorded provenance",
+)
+def recompute_simulation(
+    ctx: Ctx, session: DBSession, principal: CurrentPrincipal, job_id: str
+) -> dict[str, Any]:
+    source = get_visible_job(session, principal, job_id)
+    return job_json(ctx, session, recompute_job(ctx, session, principal, source))
 
 
 @router.get(
@@ -187,6 +211,8 @@ def simulation_metrics(
         },
         **_404,
         409: {"model": ErrorResponse},
+        410: {"model": ErrorResponse},
+        500: {"model": ErrorResponse},
     },
     summary="Full gridstorm-result/1.0 document (sha256-verified)",
 )
@@ -194,7 +220,7 @@ def simulation_result(
     ctx: Ctx, session: DBSession, principal: CurrentPrincipal, job_id: str
 ) -> Response:
     job = get_visible_job(session, principal, job_id)
-    data = load_result_bytes(session, ctx.store, job)
+    data = load_result_bytes(ctx, session, job)
     return Response(
         data,
         media_type="application/json",
@@ -210,13 +236,15 @@ def simulation_result(
 @router.get(
     "/{job_id}/artifacts",
     response_model=StoredArtifactList,
-    responses=_404,
+    responses={**_404, 410: {"model": ErrorResponse}, 500: {"model": ErrorResponse}},
     summary="Stored artifacts of a job (content-addressed, with sha256)",
 )
 def simulation_artifacts(
-    session: DBSession, principal: CurrentPrincipal, job_id: str
+    ctx: Ctx, session: DBSession, principal: CurrentPrincipal, job_id: str
 ) -> dict[str, Any]:
     job = get_visible_job(session, principal, job_id)
+    if job.status == "completed":
+        load_result_bytes(ctx, session, job)
     rows = session.scalars(
         select(SimulationArtifact)
         .where(SimulationArtifact.job_id == job.id)

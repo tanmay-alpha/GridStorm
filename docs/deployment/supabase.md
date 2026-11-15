@@ -1,14 +1,12 @@
-# Supabase (Postgres + optional auth)
+# Supabase (Postgres + private artifact storage + optional auth)
 
-GridStorm supports Postgres for metadata, jobs, metrics, scenarios, comparisons and audit events.
-**Live deployment (2026-11-15):** Supabase project `gridstorm-db` (free plan, eu-central-1) was
-provisioned through the Vercel Marketplace; migrations 0001–0002 are applied (12 tables, RLS on all,
-15 policies), 5 network datasets are seeded, and Render's `DATABASE_URL` points at the Supavisor
-**session** pooler (port 5432, `sslmode=require`; the transaction pooler on 6543 is not used because
-psycopg prepares statements). `/ready` reports `kind: "postgres"`. Without `DATABASE_URL`, the API uses SQLite at
+GridStorm uses Postgres for metadata, jobs, metrics, scenarios, comparisons and audit events,
+and Supabase Storage for durable generated payloads. Provisioning instructions below are not
+evidence of a verified live configuration or deployment. A database alone does not preserve
+artifact files. Without `DATABASE_URL`, the API uses SQLite at
 `<GRIDSTORM_STATE_DIR>/gridstorm.db` (default `var/gridstorm.db` from the repository root;
-`/tmp/gridstorm/gridstorm.db` in the Docker image). On Render Free this state is lost on restart,
-redeploy or spin-down. The free plan is a demo option, not a durability or capacity guarantee.
+`/tmp/gridstorm/gridstorm.db` in Docker). Render's local filesystem is ephemeral; neither
+SQLite nor local result files are durable there. Free plans are not a capacity guarantee.
 
 ## 1. Create the project
 
@@ -94,7 +92,7 @@ anon/authenticated keys directly against Supabase's REST endpoint.
 |---|---|
 | `DATABASE_URL` (contains the DB password) | API server only (Render env var) |
 | JWT secret (`SUPABASE_JWT_SECRET`) | API server only |
-| **service-role key** | server side only, if ever needed — never in the browser, never in a `VITE_*` variable, never committed. The current API does not need it. |
+| `SUPABASE_SERVICE_ROLE_KEY` | API server only; required for private artifact storage. Never in the browser, `VITE_*`, engine subprocess environment, or source control. |
 | anon key | public by design (protected by RLS) |
 
 User authentication is optional. Anonymous requests can read public data and run demo jobs. When a
@@ -103,6 +101,53 @@ request carries `Authorization: Bearer <jwt>`, the API verifies it with `SUPABAS
 equal `SUPABASE_JWT_AUDIENCE` (default `authenticated`). Invalid tokens get a 401 response and are
 never treated as anonymous (`services/api/src/gridstorm_api/auth.py`). Setting either
 `SUPABASE_URL` or `SUPABASE_JWT_SECRET` enables auth.
+
+## Private artifact storage
+
+In Supabase dashboard → Storage, create a bucket named **`gridstorm-artifacts`**. Keep it
+**PRIVATE** and do not add public read/write policies. Clients retrieve authorized artifacts
+through the API, not a public bucket URL. Configure the API server with exactly:
+
+```text
+GRIDSTORM_ARTIFACT_STORE=supabase
+GRIDSTORM_SUPABASE_BUCKET=gridstorm-artifacts
+SUPABASE_URL=https://<project-ref>.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=<server-only service-role key>
+GRIDSTORM_STORAGE_CHECK_TTL_S=300
+GRIDSTORM_SUPABASE_STORAGE_TIMEOUT_S=30
+```
+
+`render.yaml` declares `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` with `sync: false`;
+operators must supply them securely. Keep `DATABASE_URL` configured for metadata persistence.
+The default `GRIDSTORM_ARTIFACT_STORE=local` remains useful in development, never as durable
+storage on Render. The key is for the API process only, not the engine subprocess.
+
+After deployment, inspect `/ready`: `checks.storage.backend` identifies the backend, and
+Supabase may report `checks.storage.durable: true` only after a verified write/read/delete
+round trip under `_ready`. Merely setting the environment or creating a bucket is not enough.
+Storage check results are cached for 300 seconds by default; requests time out after 30 seconds.
+These are operator checks to perform, not observed results.
+
+### Artifact loss and recovery
+
+Job metadata is retained if a payload disappears. Job `result_available` is cached rather than
+a fresh object lookup on every response. A missing result/report/artifact blob returns 410
+`artifact_unavailable` with recovery advice; an integrity/checksum failure returns 500
+`artifact_integrity_error`. Neither case permits reuse of the missing/corrupt result, and
+private jobs invisible to the caller must never be reused.
+
+Use `POST /api/v1/simulations/{id}/recompute` (same access checks and submission rate limits)
+or, from `services/api` with the API environment:
+
+```sh
+python -m gridstorm_api.jobs.recover JOB_ID
+python -m gridstorm_api.jobs.recover JOB_ID --force
+```
+
+Recovery reruns the stored specification as a **new** job, retaining the old metadata.
+`--force` explicitly requests recomputation even when a result is available. The new job has
+`recomputed_from_job_id`; its initial stage event includes the old checksum as
+`lost_result_sha256`. Follow the new job and use its completed result to rebuild reports.
 
 ## 6. Free-plan notes
 

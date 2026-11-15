@@ -41,7 +41,7 @@ def comparison_to_dict(row: ComparisonReport) -> dict[str, Any]:
 
 
 def _completed(job: SimulationJob, label: str) -> None:
-    if job.status != "completed" or not job.result_sha256:
+    if job.status != "completed":
         raise Conflict(
             f"{label} job {job.id} is {job.status}; comparisons need two completed jobs",
             code="job_not_completed",
@@ -81,8 +81,8 @@ def create_comparison(
                 code="visibility_conflict",
             )
         visibility = "private"
-    baseline = load_result(session, ctx.store, baseline_job)
-    scenario = load_result(session, ctx.store, scenario_job)
+    baseline = load_result(ctx, session, baseline_job)
+    scenario = load_result(ctx, session, scenario_job)
     report = build_comparison_report(
         session, baseline_job, scenario_job, baseline, scenario, ctx.settings.git_sha
     )
@@ -138,6 +138,8 @@ def get_comparison(
         },
         **_404,
         409: {"model": ErrorResponse},
+        410: {"model": ErrorResponse},
+        500: {"model": ErrorResponse},
     },
     tags=["reports"],
     summary="Reproducible report for a comparison id or a job id (JSON or Markdown)",
@@ -164,9 +166,7 @@ def get_report(
     if job is None or not can_read(job, principal):
         raise NotFound(f"report {report_id!r} not found", code="report_not_found")
     _completed(job, "report")
-    report = build_job_report(
-        session, job, load_result(session, ctx.store, job), ctx.settings.git_sha
-    )
+    report = build_job_report(session, job, load_result(ctx, session, job), ctx.settings.git_sha)
     if format == "md":
         return PlainTextResponse(job_markdown(report), media_type="text/markdown; charset=utf-8")
     return JSONResponse(report)

@@ -38,7 +38,17 @@ services:
         value: https://gridstorm.vercel.app,https://gridstorm-tanmay-alphas-projects.vercel.app
       - key: DATABASE_URL
         sync: false
+      - key: GRIDSTORM_ARTIFACT_STORE
+        value: supabase
+      - key: GRIDSTORM_SUPABASE_BUCKET
+        value: gridstorm-artifacts
+      - key: GRIDSTORM_STORAGE_CHECK_TTL_S
+        value: "300"
+      - key: GRIDSTORM_SUPABASE_STORAGE_TIMEOUT_S
+        value: "30"
       - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
         sync: false
       - key: SUPABASE_JWT_SECRET
         sync: false

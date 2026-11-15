@@ -413,6 +413,7 @@ dependencies = [
     { name = "fastapi" },
     { name = "gridstorm-analytics" },
     { name = "gridstorm-pypsa" },
+    { name = "httpx" },
     { name = "psutil" },
     { name = "psycopg", extra = ["binary"] },
     { name = "pydantic" },
@@ -425,7 +426,6 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
-    { name = "httpx" },
     { name = "pytest" },
     { name = "ruff" },
 ]
@@ -437,6 +437,7 @@ requires-dist = [
     { name = "fastapi", specifier = ">=0.115,<1" },
     { name = "gridstorm-analytics", editable = "../analytics" },
     { name = "gridstorm-pypsa", editable = "../../workers/pypsa" },
+    { name = "httpx", specifier = ">=0.27" },
     { name = "psutil", specifier = ">=5.9" },
     { name = "psycopg", extras = ["binary"], specifier = ">=3.2,<4" },
     { name = "pydantic", specifier = ">=2.7,<3" },
@@ -449,7 +450,6 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "httpx", specifier = ">=0.27" },
     { name = "pytest", specifier = ">=8" },
     { name = "ruff", specifier = ">=0.6" },
 ]

@@ -6,6 +6,7 @@ license = "Apache-2.0"
 requires-python = ">=3.11,<3.12"
 dependencies = [
     "fastapi>=0.115,<1",
+    "httpx>=0.27",
     "uvicorn[standard]>=0.30",
     "pydantic>=2.7,<3",
     "sqlalchemy>=2.0.30,<2.1",
@@ -23,7 +24,6 @@ dependencies = [
 [dependency-groups]
 dev = [
     "pytest>=8",
-    "httpx>=0.27",
     "ruff>=0.6",
 ]
 
@@ -46,6 +46,7 @@ addopts = "-ra"
 markers = [
     "docker: needs Docker to start a postgres:16 container (deselected in fast CI)",
     "slow: runs the real gridstorm_pypsa engine end to end (deselected in fast CI)",
+    "network: opt-in tests against real external services",
 ]
 
 [tool.ruff]

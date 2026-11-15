@@ -4,14 +4,19 @@ from __future__ import annotations
 
 import json
 import math
-from typing import Any
+import uuid
+from collections.abc import Sequence
+from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from ..db.models import SimulationArtifact, SimulationJob, SimulationMetrics
-from ..errors import Conflict, NotFound
-from ..storage import ArtifactStore, StoredBlob
+from ..errors import Conflict
+from ..storage import ArtifactUnavailable, StoredBlob
+
+if TYPE_CHECKING:
+    from ..context import AppContext
 
 RESULT_SCHEMA = "gridstorm-result/1.0"
 
@@ -92,7 +97,7 @@ def solver_summary(result: dict[str, Any]) -> dict[str, Any] | None:
 
 
 def result_artifact(session: Session, job: SimulationJob) -> SimulationArtifact:
-    if job.status != "completed" or not job.result_sha256:
+    if job.status != "completed":
         raise Conflict(
             f"job {job.id} has no result (status {job.status})",
             code="result_not_available",
@@ -104,14 +109,72 @@ def result_artifact(session: Session, job: SimulationJob) -> SimulationArtifact:
         )
     )
     if art is None:
-        raise NotFound("result artifact record missing", code="artifact_not_found")
+        raise ArtifactUnavailable("result artifact record missing")
     return art
 
 
-def load_result_bytes(session: Session, store: ArtifactStore, job: SimulationJob) -> bytes:
-    art = result_artifact(session, job)
-    return store.get(art.storage_key, expected_sha256=art.sha256)
+def load_result_bytes(ctx: AppContext, session: Session, job: SimulationJob) -> bytes:
+    try:
+        art = result_artifact(session, job)
+        return ctx.store.get(art.storage_key, expected_sha256=art.sha256)
+    except ArtifactUnavailable as exc:
+        raise result_unavailable(ctx, job) from exc
 
 
-def load_result(session: Session, store: ArtifactStore, job: SimulationJob) -> dict[str, Any]:
-    return json.loads(load_result_bytes(session, store, job))
+def load_result(ctx: AppContext, session: Session, job: SimulationJob) -> dict[str, Any]:
+    return json.loads(load_result_bytes(ctx, session, job))
+
+
+def recompute_path(job: SimulationJob) -> str:
+    return f"/api/v1/simulations/{job.id}/recompute"
+
+
+def can_recompute(ctx: AppContext, job: SimulationJob) -> bool:
+    """A lost result can be regenerated: live solve allowed here, or a committed precomputed
+    result exists for the exact scenario hash."""
+    if ctx.settings.live_execution(job.network_id):
+        return True
+    return ctx.precomputed.find_simulation(job.scenario_hash) is not None
+
+
+def result_unavailable(ctx: AppContext, job: SimulationJob) -> ArtifactUnavailable:
+    """HTTP 410 for a completed job whose result blob is gone (never exposes storage keys)."""
+    recoverable = can_recompute(ctx, job)
+    hint = (
+        f"Recompute it (POST {recompute_path(job)}) or re-run the scenario."
+        if recoverable
+        else "Live re-computation of this network is unavailable on this deployment."
+    )
+    return ArtifactUnavailable(
+        "The stored result of this simulation is no longer available: it was lost from artifact "
+        f"storage. Its metrics and metadata are kept. {hint}",
+        details={
+            "job_id": str(job.id),
+            "kind": "result",
+            "network_id": job.network_id,
+            "scenario_id": job.scenario_id,
+            "scenario_hash": job.scenario_hash,
+            "scenario_record_id": job.scenario_definition_id,
+            "result_sha256": job.result_sha256,
+            "recoverable": recoverable,
+            "recompute_path": recompute_path(job) if recoverable else None,
+        },
+    )
+
+
+def result_availability(
+    ctx: AppContext, session: Session, jobs: Sequence[SimulationJob]
+) -> dict[uuid.UUID, bool]:
+    """``{job.id: result blob present}`` (existence only, cached; integrity is verified on read)."""
+    ids = [j.id for j in jobs if j.status == "completed" and j.result_sha256]
+    keys: dict[uuid.UUID, str] = {}
+    if ids:
+        keys = dict(
+            session.execute(
+                select(SimulationArtifact.job_id, SimulationArtifact.storage_key).where(
+                    SimulationArtifact.job_id.in_(ids), SimulationArtifact.kind == "result"
+                )
+            ).all()
+        )
+    present = ctx.store.exists_many(keys.values()) if keys else {}
+    return {j.id: bool(j.id in keys and present.get(keys[j.id])) for j in jobs}

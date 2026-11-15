@@ -219,8 +219,9 @@ Pagination: `?limit=&offset=` → `{"items": [...], "total": n, "limit": n, "off
 | GET | `/api/v1/simulations` | job page |
 | GET | `/api/v1/simulations/{id}` | Job |
 | POST | `/api/v1/simulations/{id}/cancel` | |
+| POST | `/api/v1/simulations/{id}/recompute` | re-runs the stored scenario of a completed job whose result blob is gone (live-eligible networks only); writes a NEW artifact with `recomputed_from` provenance; never reuses the lost checksum |
 | GET | `/api/v1/simulations/{id}/metrics` | result.metrics + solver |
-| GET | `/api/v1/simulations/{id}/result` | full gridstorm-result |
+| GET | `/api/v1/simulations/{id}/result` | full gridstorm-result, sha256-verified on read; **410 `artifact_unavailable`** if the durable blob is gone, **500 `artifact_integrity_error`** on checksum mismatch |
 | GET | `/api/v1/simulations/{id}/artifacts` | stored artifact list with sha256 |
 | POST | `/api/v1/comparisons` | `{baseline_job_id, scenario_job_id}` → Comparison |
 | GET | `/api/v1/comparisons/{id}` | |
@@ -237,7 +238,7 @@ Job:
  "outcome": "feasible|infeasible|error|null",                            // scientific outcome
  "solver": {"name", "version", "status", "termination_condition", "objective_eur", "wall_time_s"} | null,
  "error": {"code", "message"} | null,
- "created_at", "started_at", "finished_at", "result_sha256", "owner_id"}
+ "created_at", "started_at", "finished_at", "result_sha256", "result_available", "owner_id"}
 ```
 No percentage progress. Execution runs in a subprocess with timeout and memory limit, bounded
 concurrency (default 1), persisted job table, stale-`running` recovery on startup.

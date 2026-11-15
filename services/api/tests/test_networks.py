@@ -132,6 +132,7 @@ def test_openapi_matches_contract_paths(client):
         ("get", "/api/v1/simulations"),
         ("get", "/api/v1/simulations/{job_id}"),
         ("post", "/api/v1/simulations/{job_id}/cancel"),
+        ("post", "/api/v1/simulations/{job_id}/recompute"),
         ("get", "/api/v1/simulations/{job_id}/metrics"),
         ("get", "/api/v1/simulations/{job_id}/result"),
         ("get", "/api/v1/simulations/{job_id}/artifacts"),
