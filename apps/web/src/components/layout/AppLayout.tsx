@@ -74,8 +74,8 @@ function NavItems({ onNavigate, vertical }: { onNavigate?: () => void; vertical?
             onClick={onNavigate}
             className={({ isActive }) =>
               cn(
-                'block rounded px-2 py-1 text-[13px] font-medium whitespace-nowrap',
-                isActive ? 'bg-accent-soft text-accent' : 'text-fg-muted hover:bg-surface-2 hover:text-fg',
+                'block rounded-lg px-3 py-1.5 text-[13px] font-medium whitespace-nowrap transition-colors',
+                isActive ? 'bg-accent-soft font-semibold text-accent ring-1 ring-accent/15' : 'text-fg-muted hover:bg-surface-2 hover:text-fg',
                 vertical && 'px-3 py-2 text-sm',
               )
             }
@@ -103,10 +103,12 @@ export function AppLayout() {
       >
         Skip to main content
       </a>
-      <header className="flex h-11 shrink-0 items-center gap-3 border-b border-line bg-surface px-3">
-        <NavLink to="/" className="flex items-center gap-1.5 font-semibold text-fg" aria-label="GridStorm home">
-          <Zap aria-hidden className="size-4 text-warn" />
-          GridStorm
+      <header className="relative z-30 flex h-14 shrink-0 items-center gap-3 border-b border-line bg-surface px-4 shadow-sm">
+        <NavLink to="/" className="group flex shrink-0 items-center gap-2.5 font-semibold tracking-tight text-fg" aria-label="GridStorm home">
+          <span className="flex size-8 items-center justify-center rounded-lg border border-accent/20 bg-accent-soft shadow-sm transition-colors group-hover:border-accent/50">
+            <Zap aria-hidden className="size-4 text-accent" />
+          </span>
+          <span className="text-[15px]">GridStorm</span>
         </NavLink>
         <nav aria-label="Main" className="ml-2 hidden min-w-0 flex-1 overflow-x-auto lg:block">
           <NavItems />
@@ -150,7 +152,7 @@ export function AppLayout() {
       {/* Safety disclaimer: one line at every width, every route (VER-012). */}
       <footer
         data-testid="safety-disclaimer"
-        className="shrink-0 border-t border-line bg-surface px-3 py-0.5 text-center text-2xs text-fg-subtle"
+        className="shrink-0 border-t border-line bg-surface px-3 py-1 text-center text-2xs text-fg-subtle"
       >
         Research tool · not a real-time control system
       </footer>
