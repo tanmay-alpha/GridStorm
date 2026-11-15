@@ -30,6 +30,15 @@ def test_reproduce_small_preset(preset):
             assert actual == pytest.approx(expected, rel=1e-7, abs=1e-5), key
     assert fresh["scenario_hash"] == committed["scenario_hash"]
     assert fresh["manifest"]["dataset_sha256"] == committed["manifest"]["dataset_sha256"]
-    print(json.dumps({"preset": preset, "objective_eur": objective,
-                      "reference_eur": reference, "absolute_difference_eur": abs(objective-reference),
-                      "metrics_compared": len(committed["metrics"]), "invariants": "pass"}))
+    print(
+        json.dumps(
+            {
+                "preset": preset,
+                "objective_eur": objective,
+                "reference_eur": reference,
+                "absolute_difference_eur": abs(objective - reference),
+                "metrics_compared": len(committed["metrics"]),
+                "invariants": "pass",
+            }
+        )
+    )

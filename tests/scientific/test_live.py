@@ -36,14 +36,25 @@ def test_public_completed_results():
     checked = []
     unavailable = []
     failures = {}
-    print(json.dumps({"api": base, "listed": len(inventory["items"]),
-                      "total": inventory["total"], "completed": len(completed)}))
+    print(
+        json.dumps(
+            {
+                "api": base,
+                "listed": len(inventory["items"]),
+                "total": inventory["total"],
+                "completed": len(completed),
+            }
+        )
+    )
     for job in completed:
         jid = quote(job["id"], safe="")
         status, result = get_json(base, f"/api/v1/simulations/{jid}/result")
         if status in {410, 500}:
-            row = {"job_id": job["id"], "http_status": status,
-                   "error_code": result.get("error", {}).get("code")}
+            row = {
+                "job_id": job["id"],
+                "http_status": status,
+                "error_code": result.get("error", {}).get("code"),
+            }
             unavailable.append(row)
             print(json.dumps(row))
             continue
@@ -54,22 +65,51 @@ def test_public_completed_results():
         scenario = stormspec.Scenario.model_validate(detail["spec"])
         report = evaluate_result(result, scenario, job["id"])
         expected_hash = stormspec.scenario_hash(scenario)
-        report.require("provenance", all(value == expected_hash for value in (
-            detail["hash"], job["scenario_hash"], result["scenario_hash"],
-            result["manifest"]["scenario_hash"],
-        )), "scenario hash differs between normalized spec/job/result/manifest")
-        report.require("provenance", result["network_id"] == scenario.dataset.network_id,
-                       "result network id differs from scenario")
-        report.require("provenance", result["manifest"]["dataset_sha256"] == stormspec.file_sha256(
-            NETWORKS / scenario.dataset.network_id / "network.nc"
-        ), "result dataset SHA differs from the committed network.nc")
-        report.require("provenance", result["manifest"]["result_sha256"] == stormspec.result_sha256(result),
-                       "result content SHA does not recompute")
+        report.require(
+            "provenance",
+            all(
+                value == expected_hash
+                for value in (
+                    detail["hash"],
+                    job["scenario_hash"],
+                    result["scenario_hash"],
+                    result["manifest"]["scenario_hash"],
+                )
+            ),
+            "scenario hash differs between normalized spec/job/result/manifest",
+        )
+        report.require(
+            "provenance",
+            result["network_id"] == scenario.dataset.network_id,
+            "result network id differs from scenario",
+        )
+        report.require(
+            "provenance",
+            result["manifest"]["dataset_sha256"]
+            == stormspec.file_sha256(NETWORKS / scenario.dataset.network_id / "network.nc"),
+            "result dataset SHA differs from the committed network.nc",
+        )
+        report.require(
+            "provenance",
+            result["manifest"]["result_sha256"] == stormspec.result_sha256(result),
+            "result content SHA does not recompute",
+        )
         checked.append(job["id"])
         if report.failures():
             failures[job["id"]] = report.failures()
-        print(json.dumps({"job_id": job["id"], "http_status": 200,
-                          "failures": report.failures(), "facts": report.facts}))
+        print(
+            json.dumps(
+                {
+                    "job_id": job["id"],
+                    "http_status": 200,
+                    "failures": report.failures(),
+                    "facts": report.facts,
+                }
+            )
+        )
     assert not failures, failures
     if not checked:
-        pytest.skip(f"No retrievable completed results; completed={len(completed)}, unavailable={unavailable}")
+        pytest.skip(
+            "No retrievable completed results; "
+            f"completed={len(completed)}, unavailable={unavailable}"
+        )

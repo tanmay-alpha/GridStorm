@@ -68,7 +68,9 @@ class Report:
         o = self._o(name)
         obs = np.atleast_1d(np.asarray(observed, dtype=float))
         exp = np.atleast_1d(np.asarray(expected, dtype=float))
-        tol = np.broadcast_to(np.asarray(tol, dtype=float), np.broadcast_shapes(obs.shape, exp.shape))
+        tol = np.broadcast_to(
+            np.asarray(tol, dtype=float), np.broadcast_shapes(obs.shape, exp.shape)
+        )
         nan_mismatch = np.isnan(obs) != np.isnan(exp)
         with np.errstate(invalid="ignore"):
             dev = np.where(np.isnan(obs) & np.isnan(exp), 0.0, np.abs(obs - exp))
@@ -140,7 +142,9 @@ def check_outcome_mapping(res: dict, rep: Report) -> None:
         want = "infeasible"
     else:
         want = "error"
-    rep.require(name, res["outcome"] == want, f"outcome {res['outcome']!r} but solver {s} -> {want}")
+    rep.require(
+        name, res["outcome"] == want, f"outcome {res['outcome']!r} but solver {s} -> {want}"
+    )
     rep.require(name, s["status"] in {"ok", "warning", "error"}, f"solver.status {s['status']!r}")
     if res["outcome"] == "feasible":
         rep.require(name, s["objective_eur"] is not None, "feasible result without objective")
@@ -167,7 +171,9 @@ def check_snapshots_weights(res: dict, exp: Expected, rep: Report) -> None:
 
 def check_demand_multipliers(res: dict, exp: Expected, rep: Report) -> None:
     want = exp.load_by_bus.sum(axis=1).to_numpy(float)
-    rep.compare("demand_multipliers", "series.load_mw", a(res["series"]["load_mw"]), want, _tol(want))
+    rep.compare(
+        "demand_multipliers", "series.load_mw", a(res["series"]["load_mw"]), want, _tol(want)
+    )
 
 
 def check_energy_accounting(res: dict, exp: Expected, rep: Report) -> None:
@@ -179,8 +185,16 @@ def check_energy_accounting(res: dict, exp: Expected, rep: Report) -> None:
 
     load = a(s["load_mw"])
     shed = a(s["load_shed_mw"])
-    rep.compare(name, "total_load_mwh=Σ load·w", m["total_load_mwh"], (load * w).sum(), sw * SER + MET)
-    rep.compare(name, "unserved_energy_mwh=Σ shed·w", m["unserved_energy_mwh"], (shed * w).sum(), sw * SER + MET)
+    rep.compare(
+        name, "total_load_mwh=Σ load·w", m["total_load_mwh"], (load * w).sum(), sw * SER + MET
+    )
+    rep.compare(
+        name,
+        "unserved_energy_mwh=Σ shed·w",
+        m["unserved_energy_mwh"],
+        (shed * w).sum(),
+        sw * SER + MET,
+    )
     rep.compare(
         name,
         "served_load_mwh=total-unserved",
@@ -198,7 +212,9 @@ def check_energy_accounting(res: dict, exp: Expected, rep: Report) -> None:
         float(w[~clear].sum()) + MET,
     )
     bus_shed = np.sum([a(b["load_shed_mw"]) for b in assets["buses"]], axis=0)
-    rep.compare(name, "series.load_shed_mw=Σ bus shed", shed, bus_shed, _tol(shed, len(assets["buses"]) + 1))
+    rep.compare(
+        name, "series.load_shed_mw=Σ bus shed", shed, bus_shed, _tol(shed, len(assets["buses"]) + 1)
+    )
 
     by_c: dict[str, list[np.ndarray]] = {}
     for g in assets["generators"]:
@@ -210,7 +226,9 @@ def check_energy_accounting(res: dict, exp: Expected, rep: Report) -> None:
     )
     for c, rows in by_c.items():
         ser = a(s["generation_by_carrier_mw"].get(c, [np.nan] * k))
-        rep.compare(name, f"series gen[{c}]=Σ asset p", ser, np.sum(rows, axis=0), _tol(ser, len(rows) + 1))
+        rep.compare(
+            name, f"series gen[{c}]=Σ asset p", ser, np.sum(rows, axis=0), _tol(ser, len(rows) + 1)
+        )
         rep.compare(
             name,
             f"generation_by_carrier_mwh[{c}]=Σ series·w",
@@ -242,8 +260,16 @@ def check_energy_accounting(res: dict, exp: Expected, rep: Report) -> None:
             (arr * w).sum(),
             2 * nvar * sw * SER + MET,
         )
-    rep.compare(name, "series.curtailment_mw", a(s["curtailment_mw"]), total_curt, 2 * nvar * SER + SER)
-    rep.compare(name, "curtailment_mwh", m["curtailment_mwh"], (total_curt * w).sum(), 2 * nvar * sw * SER + MET)
+    rep.compare(
+        name, "series.curtailment_mw", a(s["curtailment_mw"]), total_curt, 2 * nvar * SER + SER
+    )
+    rep.compare(
+        name,
+        "curtailment_mwh",
+        m["curtailment_mwh"],
+        (total_curt * w).sum(),
+        2 * nvar * sw * SER + MET,
+    )
 
     sus = assets["storage_units"]
     if sus:
@@ -252,10 +278,30 @@ def check_energy_accounting(res: dict, exp: Expected, rep: Report) -> None:
         soc = np.sum([a(x["soc_mwh"]) for x in sus], axis=0)
         dis = np.sum([a(x["p_dispatch_mw"]) for x in sus], axis=0)
         chg = np.sum([a(x["p_store_mw"]) for x in sus], axis=0)
-        rep.compare(name, "series.storage_dispatch_mw=Σ su p", a(s["storage_dispatch_mw"]), p, _tol(p, ns + 1))
-        rep.compare(name, "series.storage_soc_mwh=Σ su soc", a(s["storage_soc_mwh"]), soc, _tol(soc, ns + 1))
-        rep.compare(name, "storage_discharge_mwh", m["storage_discharge_mwh"], (dis * w).sum(), ns * sw * SER + MET)
-        rep.compare(name, "storage_charge_mwh", m["storage_charge_mwh"], (chg * w).sum(), ns * sw * SER + MET)
+        rep.compare(
+            name,
+            "series.storage_dispatch_mw=Σ su p",
+            a(s["storage_dispatch_mw"]),
+            p,
+            _tol(p, ns + 1),
+        )
+        rep.compare(
+            name, "series.storage_soc_mwh=Σ su soc", a(s["storage_soc_mwh"]), soc, _tol(soc, ns + 1)
+        )
+        rep.compare(
+            name,
+            "storage_discharge_mwh",
+            m["storage_discharge_mwh"],
+            (dis * w).sum(),
+            ns * sw * SER + MET,
+        )
+        rep.compare(
+            name,
+            "storage_charge_mwh",
+            m["storage_charge_mwh"],
+            (chg * w).sum(),
+            ns * sw * SER + MET,
+        )
     else:
         rep.compare(name, "storage_discharge_mwh (no units)", m["storage_discharge_mwh"], 0.0, MET)
         rep.compare(name, "storage_charge_mwh (no units)", m["storage_charge_mwh"], 0.0, MET)
@@ -338,11 +384,15 @@ def check_generator_limits(res: dict, exp: Expected, rep: Report) -> None:
         e = exp.gens.get(g["id"])
         if e is None:
             continue
-        rep.require(name, g["carrier"] == e.carrier and g["bus"] == e.bus, f"{g['id']}: carrier/bus")
+        rep.require(
+            name, g["carrier"] == e.carrier and g["bus"] == e.bus, f"{g['id']}: carrier/bus"
+        )
         avail_exp = e.pmax_pu * e.p_nom
         p = a(g["p_mw"])
         avail = a(g["available_mw"])
-        rep.compare(name, f"{g['id']} available_mw=p_max_pu·p_nom", avail, avail_exp, _tol(avail_exp))
+        rep.compare(
+            name, f"{g['id']} available_mw=p_max_pu·p_nom", avail, avail_exp, _tol(avail_exp)
+        )
         rep.bound(name, f"{g['id']} p<=available", p, avail_exp, _tol(avail_exp))
         floor = e.pmin_pu * e.p_nom
         rep.bound(name, f"{g['id']} p>=p_min_pu·p_nom", -p, -floor, _tol(floor))
@@ -384,8 +434,12 @@ def check_branch_limits(res: dict, exp: Expected, rep: Report) -> None:
             with np.errstate(divide="ignore", invalid="ignore"):
                 want = np.where(lim > 0, np.abs(flow) / lim * 100.0, np.nan)
                 tol_pct = SER + np.where(lim > 0, SER / lim * 100.0, 0.0)
-            rep.compare(name, f"{list_name}/{r['id']} loading=|flow|/(s_nom·s_max_pu)", load, want, tol_pct)
-            rep.bound(name, f"{list_name}/{r['id']} |flow|<=s_nom·s_max_pu", np.abs(flow), lim, _tol(lim))
+            rep.compare(
+                name, f"{list_name}/{r['id']} loading=|flow|/(s_nom·s_max_pu)", load, want, tol_pct
+            )
+            rep.bound(
+                name, f"{list_name}/{r['id']} |flow|<=s_nom·s_max_pu", np.abs(flow), lim, _tol(lim)
+            )
             peak = float(np.nanmax(load)) if np.isfinite(load).any() else np.nan
             in_service_max.append(peak)
             in_service_all.append(load)
@@ -395,13 +449,21 @@ def check_branch_limits(res: dict, exp: Expected, rep: Report) -> None:
                 lines_only += 1
     peaks = np.asarray(in_service_max)
     congested = int(np.sum(peaks >= CONGESTION_THRESHOLD_PCT))
-    rep.compare(name, "congested_line_count (branches ≥ 99.9 %)", m["congested_line_count"], congested, boundary + 0.5)
+    rep.compare(
+        name,
+        "congested_line_count (branches ≥ 99.9 %)",
+        m["congested_line_count"],
+        congested,
+        boundary + 0.5,
+    )
     rep.facts["congested_branches"] = congested
     rep.facts["congested_lines_only"] = lines_only
     allv = np.concatenate(in_service_all) if in_service_all else np.zeros(0)
     if allv.size:
         rep.compare(name, "max_line_loading_pct", m["max_line_loading_pct"], np.nanmax(allv), 1e-3)
-        rep.compare(name, "mean_line_loading_pct", m["mean_line_loading_pct"], np.nanmean(allv), 1e-3)
+        rep.compare(
+            name, "mean_line_loading_pct", m["mean_line_loading_pct"], np.nanmean(allv), 1e-3
+        )
         rep.facts["max_loading_pct"] = float(np.nanmax(allv))
     for lk in assets["links"]:
         e = exp.links[lk["id"]]
@@ -429,7 +491,9 @@ def check_storage(res: dict, exp: Expected, rep: Report) -> None:
         spill, soc = a(s["spill_mw"]), a(s["soc_mwh"])
         sid = s["id"]
         rep.compare(name, f"{sid} p=p_dispatch-p_store", p, pd_ - ps, 3 * SER)
-        rep.bound(name, f"{sid} p_dispatch<=p_max_pu·p_nom", pd_, e.pmax_pu * e.p_nom, _tol(e.p_nom))
+        rep.bound(
+            name, f"{sid} p_dispatch<=p_max_pu·p_nom", pd_, e.pmax_pu * e.p_nom, _tol(e.p_nom)
+        )
         rep.bound(name, f"{sid} p_store<=-p_min_pu·p_nom", ps, -e.pmin_pu * e.p_nom, _tol(e.p_nom))
         rep.bound(name, f"{sid} p_dispatch>=0", -pd_, 0.0, _tol(0.0))
         rep.bound(name, f"{sid} p_store>=0", -ps, 0.0, _tol(0.0))
@@ -440,9 +504,7 @@ def check_storage(res: dict, exp: Expected, rep: Report) -> None:
         rep.bound(name, f"{sid} soc>=0", -soc, 0.0, _tol(0.0))
         prev = np.concatenate([[soc[-1] if e.cyclic else e.soc_initial], soc[:-1]])
         keep = (1.0 - e.standing_loss) ** w
-        want = prev * keep + w * (
-            e.eff_store * ps - pd_ / e.eff_dispatch + e.inflow - spill
-        )
+        want = prev * keep + w * (e.eff_store * ps - pd_ / e.eff_dispatch + e.inflow - spill)
         tol = SER * (1 + keep) + w * SER * (e.eff_store + 1 / e.eff_dispatch + 1) + _tol(e_nom)
         rep.compare(name, f"{sid} SOC recursion", soc, want, tol)
 
@@ -468,7 +530,13 @@ def check_outage_events(res: dict, exp: Expected, rep: Report, scenario) -> None
             )
             rep.require(name, g["outaged"] is True, f"generator {ev.asset_id} not flagged outaged")
             rep.compare(name, f"generator {ev.asset_id} p=0 in window", a(g["p_mw"])[win], 0.0, SER)
-            rep.compare(name, f"generator {ev.asset_id} available=0 in window", a(g["available_mw"])[win], 0.0, SER)
+            rep.compare(
+                name,
+                f"generator {ev.asset_id} available=0 in window",
+                a(g["available_mw"])[win],
+                0.0,
+                SER,
+            )
         elif ev.type == "line_outage":
             n_events += 1
             ln = "lines" if ev.component == "line" else "transformers"
@@ -495,7 +563,9 @@ def check_outage_events(res: dict, exp: Expected, rep: Report, scenario) -> None
         }
         | {f"link/{e.asset_id}" for e in scenario.events if e.type == "link_outage"}
     )
-    rep.require(name, flagged == expected_flags, f"outaged flags {flagged} != events {expected_flags}")
+    rep.require(
+        name, flagged == expected_flags, f"outaged flags {flagged} != events {expected_flags}"
+    )
     if n_events == 0:
         rep.skip(name, "scenario has no outage events (flags verified all false)", status="pass")
 
@@ -504,7 +574,9 @@ def check_objective(res: dict, exp: Expected, rep: Report) -> None:
     name = "objective"
     m, assets = res["metrics"], res["assets"]
     obj = res["solver"]["objective_eur"]
-    rep.compare(name, "total_system_cost_eur == solver.objective_eur", m["total_system_cost_eur"], obj, 0.0)
+    rep.compare(
+        name, "total_system_cost_eur == solver.objective_eur", m["total_system_cost_eur"], obj, 0.0
+    )
     w, wo = exp.w_gen, exp.w_obj
     shed_mw = np.sum([a(b["load_shed_mw"]) for b in assets["buses"]], axis=0)
     shed_cost = float((shed_mw * exp.voll * w).sum())
@@ -553,7 +625,9 @@ def check_co2(res: dict, exp: Expected, rep: Report) -> None:
     reported = res["metrics"]["co2_emissions_t"]
     emitting = {c for c, v in exp.carrier_co2.items() if v}
     if not emitting:
-        rep.require(name, reported is None, f"no CO2 intensities in dataset but co2_emissions_t={reported}")
+        rep.require(
+            name, reported is None, f"no CO2 intensities in dataset but co2_emissions_t={reported}"
+        )
         rep.require(
             name,
             any(NO_CO2_WARNING in wtxt for wtxt in res["warnings"]),
@@ -561,7 +635,9 @@ def check_co2(res: dict, exp: Expected, rep: Report) -> None:
         )
         rep.facts["co2"] = "null (no intensities)"
         return
-    rep.require(name, reported is not None, "dataset has CO2 intensities but co2_emissions_t is null")
+    rep.require(
+        name, reported is not None, "dataset has CO2 intensities but co2_emissions_t is null"
+    )
     if reported is None:
         return
     w = exp.w_gen

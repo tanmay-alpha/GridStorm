@@ -74,7 +74,9 @@ def check_provenance(doc: dict, rep: Report) -> stormspec.Scenario:
         res["engine"]["version"] == head["engine_version"] == res["manifest"]["engine_version"],
         "engine version disagrees between payload, header and manifest",
     )
-    rep.require(name, head["outcome"] == res["outcome"], "artifact header outcome != payload outcome")
+    rep.require(
+        name, head["outcome"] == res["outcome"], "artifact header outcome != payload outcome"
+    )
     rep.facts["scenario_hash"] = h
     rep.facts["dataset_sha256"] = file_sha
     return scenario

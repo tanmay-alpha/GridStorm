@@ -87,6 +87,9 @@ def test_corruption_is_detected(preset, field, check):
 def test_nonunit_snapshot_weightings_are_exercised():
     scenario = stormspec.load_scenario(PRESETS / "pypsa-eur-be-baseline.yaml")
     assert np.all(netmodel.build(scenario).w_gen == 24)
-    assert evaluate_artifact(ARTIFACTS / "pypsa-eur-be-baseline.json").checks[
-        "energy_accounting"
-    ].status == "pass"
+    assert (
+        evaluate_artifact(ARTIFACTS / "pypsa-eur-be-baseline.json")
+        .checks["energy_accounting"]
+        .status
+        == "pass"
+    )

@@ -152,7 +152,9 @@ def build(scenario: Scenario) -> Expected:
             demand.loc[m, cols] *= ev.value
         elif ev.type == "renewable_availability_multiplier":
             cols = [
-                g for g in pmax.columns if g in variable and str(gens_df.at[g, "carrier"]) == ev.carrier
+                g
+                for g in pmax.columns
+                if g in variable and str(gens_df.at[g, "carrier"]) == ev.carrier
             ]
             pmax.loc[m, cols] *= ev.value
         elif ev.type == "generator_outage":
@@ -160,7 +162,9 @@ def build(scenario: Scenario) -> Expected:
             pmin.loc[m, ev.asset_id] = 0.0
             outaged_gens.add(ev.asset_id)
         elif ev.type == "line_outage":
-            outaged_branches.add(("lines" if ev.component == "line" else "transformers", ev.asset_id))
+            outaged_branches.add(
+                ("lines" if ev.component == "line" else "transformers", ev.asset_id)
+            )
         elif ev.type == "link_outage":
             outaged_links.add(ev.asset_id)
         elif ev.type == "storage_state":
@@ -212,7 +216,9 @@ def build(scenario: Scenario) -> Expected:
         lmin = _dense(n, "Link", "p_min_pu", snaps)
         lmax = _dense(n, "Link", "p_max_pu", snaps)
         leff = _dense(n, "Link", "efficiency", snaps)
-        extra = [c for c in n.links.columns if c.startswith("bus") and c[3:].isdigit() and c[3:] > "1"]
+        extra = [
+            c for c in n.links.columns if c.startswith("bus") and c[3:].isdigit() and c[3:] > "1"
+        ]
         for lk in n.links.index:
             links[str(lk)] = Link(
                 bus0=str(n.links.at[lk, "bus0"]),
