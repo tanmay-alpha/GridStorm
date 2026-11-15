@@ -80,12 +80,20 @@ export function DataTable<T>({
                     key={c.key}
                     scope="col"
                     aria-sort={ariaSort}
-                    className={cn('px-2 py-1.5 font-semibold text-fg-muted', c.align === 'right' && 'text-right')}
+                    className={cn(
+                      'px-2 font-semibold text-fg-muted',
+                      // Sortable headers trade cell padding for a ≥ 24 px button (WCAG 2.5.8); same row height.
+                      c.sortValue ? 'py-0.5' : 'py-1.5',
+                      c.align === 'right' && 'text-right',
+                    )}
                   >
                     {c.sortValue ? (
                       <button
                         type="button"
-                        className={cn('inline-flex items-center gap-1 hover:text-fg', c.align === 'right' && 'flex-row-reverse')}
+                        className={cn(
+                          'inline-flex min-h-6 min-w-6 items-center gap-1 hover:text-fg',
+                          c.align === 'right' && 'flex-row-reverse',
+                        )}
                         onClick={() =>
                           setSort(
                             active && sort.dir === 'desc'
@@ -157,14 +165,14 @@ export function DataTable<T>({
         </table>
       </div>
       {sorted.length > pageSize && (
-        <div className="flex items-center justify-between gap-2 px-2 py-1.5 text-xs text-fg-muted">
+        <div className="flex items-center justify-between gap-2 px-2 py-1 text-xs text-fg-muted">
           <span>
             Showing {p * pageSize + 1}–{Math.min((p + 1) * pageSize, sorted.length)} of {sorted.length}
           </span>
           <span className="flex gap-1">
             <button
               type="button"
-              className="rounded border border-line px-2 py-0.5 disabled:opacity-40"
+              className="min-h-6 rounded border border-line px-2 py-0.5 disabled:opacity-40"
               disabled={p === 0}
               onClick={() => setPage(p - 1)}
             >
@@ -172,7 +180,7 @@ export function DataTable<T>({
             </button>
             <button
               type="button"
-              className="rounded border border-line px-2 py-0.5 disabled:opacity-40"
+              className="min-h-6 rounded border border-line px-2 py-0.5 disabled:opacity-40"
               disabled={p >= pages - 1}
               onClick={() => setPage(p + 1)}
             >

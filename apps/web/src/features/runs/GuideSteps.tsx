@@ -4,7 +4,7 @@ import { cn } from '../../components/ui'
 /** Guided demo (contract: `guide=1`): IEEE 14-bus generator outage, from failure to downloads. */
 export type GuideStep = 'failure' | 'result' | 'compare' | 'brief' | 'download'
 
-const STEPS: { key: GuideStep; label: string }[] = [
+export const GUIDE_STEPS: readonly { key: GuideStep; label: string }[] = [
   { key: 'failure', label: 'Fail a generator' },
   { key: 'result', label: 'Read the result' },
   { key: 'compare', label: 'Compare with baseline' },
@@ -19,12 +19,12 @@ export const GUIDE_STUDIO_URL = '/studio?network=pglib-case14-ieee&preset=pglib-
  * target are shown as text. Steps before `current` are marked done.
  */
 export function GuideSteps({ current, links }: { current: GuideStep; links: Partial<Record<GuideStep, string | null>> }) {
-  const at = STEPS.findIndex((s) => s.key === current)
+  const at = GUIDE_STEPS.findIndex((s) => s.key === current)
   return (
     <nav aria-label="Guided demo steps" className="gs-panel border-accent/40 bg-accent-soft/40 px-3 py-2" data-testid="guide-steps">
       <p className="text-2xs font-semibold uppercase tracking-wide text-accent">Guided demo · IEEE 14-bus generator outage</p>
       <ol className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs">
-        {STEPS.map((s, i) => {
+        {GUIDE_STEPS.map((s, i) => {
           const href = links[s.key]
           const state = i < at ? 'done' : i === at ? 'current' : 'todo'
           const body = (

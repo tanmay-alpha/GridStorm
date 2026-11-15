@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, type Ref } from 'react'
 import { X } from 'lucide-react'
 import { useAssetTable } from '../../api/hooks'
 import type { CostBasis, Provenance } from '../../api/types'
@@ -43,6 +43,7 @@ export function AssetDetails({
   costBasis,
   onSelect,
   onClose,
+  ref,
 }: {
   networkId: string
   assets: MapAssets
@@ -53,6 +54,8 @@ export function AssetDetails({
   costBasis: CostBasis | null
   onSelect: (ref: AssetRef) => void
   onClose: () => void
+  /** The card is programmatically focusable (tabIndex −1), e.g. after an asset-search pick. */
+  ref?: Ref<HTMLElement>
 }) {
   useEffect(() => {
     const dismiss = (event: KeyboardEvent) => {
@@ -92,7 +95,7 @@ export function AssetDetails({
   }
 
   return (
-    <section aria-labelledby="asset-details-title" data-testid="asset-details" className="flex min-h-0 flex-col">
+    <section ref={ref} tabIndex={-1} aria-labelledby="asset-details-title" data-testid="asset-details" className="flex min-h-0 flex-col">
       <header className="flex items-start justify-between gap-2 border-b border-line px-3 py-2">
         <div className="min-w-0">
           <p className="gs-label">{KIND_LABEL[selected.kind]}</p>

@@ -119,8 +119,12 @@ describe('Crisis Studio on a network without live execution', () => {
   it('prevents submitting an edited scenario when no verified result exists', async () => {
     renderStudio('/studio?preset=scigrid-de-baseline')
     fireEvent.click(await screen.findByText('Advanced: solver & execution'))
+    const summary = screen.getByTestId('scenario-summary')
+    expect(summary).toHaveTextContent('SciGRID Germany — baseline day · 0 events')
     const limit = await screen.findByTestId('time-limit')
     fireEvent.change(limit, { target: { value: '120' } })
+    // An edited preset is a custom scenario: the summary no longer names the preset as the crisis.
+    expect(summary).toHaveTextContent('Custom (based on SciGRID Germany — baseline day) · 0 events')
     fireEvent.click(screen.getByTestId('step-run'))
     await waitFor(() => expect(screen.getByTestId('execution-forecast')).toHaveTextContent('cannot run here'), {
       timeout: 3000,

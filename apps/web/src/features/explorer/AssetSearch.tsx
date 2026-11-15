@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState, type RefObject } from 'react'
 import { Dialog } from 'radix-ui'
 import { Search } from 'lucide-react'
 import { searchAssets, KIND_LABEL, type SearchEntry } from '../../components/network/assets'
@@ -6,21 +6,37 @@ import type { AssetRef } from '../../components/map/features'
 import { assetKey } from '../../components/map/features'
 import { cn } from '../../components/ui/cn'
 
-/** Command-palette style asset search (Ctrl/⌘+K). ARIA combobox + listbox pattern. */
+/**
+ * Command-palette style asset search (Ctrl/⌘+K). ARIA combobox + listbox pattern. The query is
+ * cleared whenever the palette closes; remount it (`key`) to reset it on a network change. After a
+ * pick, focus moves to `pickedFocus` (the opened details card) instead of back to the trigger.
+ */
 export function AssetSearch({
   index,
   onPick,
   disabled,
+  pickedFocus,
 }: {
   index: SearchEntry[]
   onPick: (ref: AssetRef) => void
   disabled?: boolean
+  /** Element focused after an asset is picked; falls back to the trigger when absent. */
+  pickedFocus?: RefObject<HTMLElement | null>
 }) {
   const [open, setOpen] = useState(false)
   const [q, setQ] = useState('')
   const [active, setActive] = useState(0)
+  const picked = useRef(false)
   const listId = useId()
   const results = useMemo(() => searchAssets(index, q), [index, q])
+
+  const changeOpen = (next: boolean) => {
+    setOpen(next)
+    if (!next) {
+      setQ('')
+      setActive(0)
+    }
+  }
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -35,13 +51,13 @@ export function AssetSearch({
 
   const pick = (e: SearchEntry | undefined) => {
     if (!e) return
+    picked.current = true
     onPick(e.ref)
-    setOpen(false)
-    setQ('')
+    changeOpen(false)
   }
 
   return (
-    <Dialog.Root open={open} onOpenChange={setOpen}>
+    <Dialog.Root open={open} onOpenChange={changeOpen}>
       {/* Named by its visible text ("Search assets… Ctrl K", WCAG 2.5.3); shortcut exposed separately. */}
       <Dialog.Trigger asChild>
         <button
@@ -57,7 +73,16 @@ export function AssetSearch({
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-40 bg-black/40" />
-        <Dialog.Content className="fixed left-1/2 top-[12vh] z-50 w-[min(36rem,calc(100vw-1.5rem))] -translate-x-1/2 rounded-md border border-line bg-surface shadow-2xl">
+        <Dialog.Content
+          className="fixed left-1/2 top-[12vh] z-50 w-[min(36rem,calc(100vw-1.5rem))] -translate-x-1/2 rounded-md border border-line bg-surface shadow-2xl"
+          onCloseAutoFocus={(e) => {
+            const target = picked.current ? pickedFocus?.current : null
+            picked.current = false
+            if (!target) return
+            e.preventDefault()
+            target.focus()
+          }}
+        >
           <Dialog.Title className="sr-only">Search network assets</Dialog.Title>
           <Dialog.Description className="sr-only">
             Type an asset id, bus name, carrier or country. Use arrow keys and Enter to select.

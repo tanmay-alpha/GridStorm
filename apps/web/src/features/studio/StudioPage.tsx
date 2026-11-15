@@ -49,6 +49,7 @@ import {
 import { GridStep } from './GridStep'
 import { GuidePanel } from './GuidePanel'
 import { PresetList } from './PresetList'
+import { crisisLabel, plural } from './presentation'
 import { EVENT_LABEL, availableEventTypes, blankSpec, localIssues, newEvent, normaliseSpec } from './spec'
 import { Stepper } from './Stepper'
 import { useDebounced } from './useDebounced'
@@ -300,11 +301,7 @@ export default function StudioPage() {
   const stepIndex = STEPS.indexOf(step)
   const prevStep = stepIndex > 0 ? STEPS[stepIndex - 1]! : null
   const nextStep = stepIndex < STEPS.length - 1 ? STEPS[stepIndex + 1]! : null
-  const crisisLabel = !spec
-    ? 'Not chosen yet'
-    : presetRecord && !edited
-      ? (presetRecord.name ?? presetRecord.spec.name)
-      : spec.name || spec.id
+  const crisisName = crisisLabel(spec, presetRecord, edited !== null)
   const snaps = network?.snapshots ?? null
   const durationH = spec && snaps?.resolution_h != null ? spec.horizon.snapshots * snaps.resolution_h : null
   const costBasis = resolveCostBasis(networkDetail.data, network)
@@ -488,6 +485,7 @@ export default function StudioPage() {
                     event={e}
                     assets={assets.data!}
                     horizon={spec.horizon}
+                    issues={eventErrors}
                     onChange={(ne) => setEvent(i, ne)}
                     onRemove={() => update((s) => ({ ...s, events: s.events.filter((_, j) => j !== i) }))}
                   />
@@ -532,7 +530,7 @@ export default function StudioPage() {
           title="Horizon"
           description={
             snaps
-              ? `Grid has ${snaps.count} snapshots × ${formatQuantity(snaps.resolution_h, 'h')} (${formatTimestamp(snaps.start)} → ${formatTimestamp(snaps.end)}).`
+              ? `Grid has ${plural(snaps.count, 'snapshot')} × ${formatQuantity(snaps.resolution_h, 'h')} (${formatTimestamp(snaps.start)} → ${formatTimestamp(snaps.end)}).`
               : 'Snapshot metadata unavailable.'
           }
         >
@@ -873,22 +871,22 @@ export default function StudioPage() {
             <dl className="flex flex-col gap-2" data-testid="scenario-summary">
               <SummaryRow label="Grid">{network ? `${network.name} (${network.id})` : 'Not chosen yet'}</SummaryRow>
               <SummaryRow label="Crisis">
-                {crisisLabel}
-                {spec && <span className="text-fg-muted"> · {spec.events.length} events</span>}
+                {crisisName}
+                {spec && <span className="text-fg-muted"> · {plural(spec.events.length, 'event')}</span>}
               </SummaryRow>
               {spec && (
                 <SummaryRow label="Horizon">
-                  {spec.horizon.snapshots} snapshots from #{spec.horizon.start ?? 0} ({formatQuantity(durationH, 'h')})
+                  {plural(spec.horizon.snapshots, 'snapshot')} from #{spec.horizon.start ?? 0} ({formatQuantity(durationH, 'h')})
                 </SummaryRow>
               )}
               {spec && (
                 <SummaryRow label="Validation">
                   <span data-testid="validation-summary">
                     {local.length > 0 || report?.valid === false
-                      ? `${local.length + (report?.errors.length ?? 0)} error(s) — see step 4`
+                      ? `${plural(local.length + (report?.errors.length ?? 0), 'error')} — see step 4`
                       : validating || !report
                         ? 'checking…'
-                        : `valid${report.warnings.length ? ` · ${report.warnings.length} warning(s)` : ''}`}
+                        : `valid${report.warnings.length ? ` · ${plural(report.warnings.length, 'warning')}` : ''}`}
                   </span>
                 </SummaryRow>
               )}

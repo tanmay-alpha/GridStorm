@@ -120,6 +120,10 @@
   .tabular {
     font-variant-numeric: tabular-nums;
   }
+  /* Native sliders render ~16 px tall; give every range input a ≥ 24 px hit area (WCAG 2.5.8). */
+  input[type='range'] {
+    min-height: 1.5rem;
+  }
 }
 
 @layer components {
@@ -186,4 +190,10 @@
 }
 [data-theme='dark'] .maplibregl-ctrl-attrib a {
   color: var(--gs-fg-muted);
+}
+/* Scale bar: themed surface, border and text in both themes (MapLibre's default is a light box). */
+.maplibregl-ctrl-scale {
+  background-color: color-mix(in srgb, var(--gs-surface) 85%, transparent);
+  border-color: var(--gs-fg-muted);
+  color: var(--gs-fg);
 }

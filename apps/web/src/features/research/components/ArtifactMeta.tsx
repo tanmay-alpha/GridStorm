@@ -5,7 +5,8 @@ import { artifactProvenance, rec, str, type ParsedArtifact } from '../lib/parse'
 
 /**
  * Mandatory header for every artifact view (execution mode, engine + version, created_at,
- * short payload sha256, provenance class) plus reproduction details in a disclosure.
+ * short payload sha256, provenance class when the artifact declares one; no "n/a" placeholder)
+ * plus reproduction details in a disclosure.
  */
 export function ArtifactMeta({ artifact, provenanceOverride }: { artifact: ParsedArtifact; provenanceOverride?: Provenance | null }) {
   const h = artifact.header
@@ -20,7 +21,6 @@ export function ArtifactMeta({ artifact, provenanceOverride }: { artifact: Parse
           {h.engine}
           {h.engine_version ? ` ${h.engine_version}` : ''}
         </Badge>
-        {prov.length === 0 && <ProvenanceBadge value={null} />}
         {prov.map((p) => (
           <span key={p.label ?? '_'} className="inline-flex items-center gap-1">
             {p.label && <span className="text-fg-subtle">{p.label}:</span>}

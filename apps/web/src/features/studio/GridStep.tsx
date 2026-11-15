@@ -3,6 +3,7 @@ import type { NetworkSummary } from '../../api/types'
 import { Badge, CostBasisBadge, ExecutionBadge, Panel, cn } from '../../components/ui'
 import { formatNumber, formatQuantity } from '../../lib/format'
 import type { ExecutionPolicy } from './flow'
+import { plural } from './presentation'
 
 /**
  * Step 1: grid choice as an ARIA radio group (one Tab stop; arrow keys move and select, as in a
@@ -67,7 +68,7 @@ export function GridStep({
                 </span>
                 <span className="text-xs text-fg-muted">
                   {formatNumber(n.counts.buses ?? null)} buses · {formatNumber(n.counts.lines ?? null)} lines ·{' '}
-                  {n.snapshots ? `${n.snapshots.count} snapshots × ${formatQuantity(n.snapshots.resolution_h, 'h')}` : 'snapshots n/a'}
+                  {n.snapshots ? `${plural(n.snapshots.count, 'snapshot')} × ${formatQuantity(n.snapshots.resolution_h, 'h')}` : 'snapshots n/a'}
                   {n.peak_load_mw != null && <> · peak load {formatQuantity(n.peak_load_mw, 'MW', { scale: true })}</>}
                 </span>
                 <span className="font-mono text-2xs text-fg-subtle">{n.id}</span>
