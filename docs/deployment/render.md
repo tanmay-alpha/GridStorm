@@ -95,6 +95,10 @@ Use the rate-limited `POST /api/v1/simulations/{id}/recompute` with the same acc
 environment. Both rerun the stored specification as a **new** job, retaining old metadata,
 recording `recomputed_from_job_id` and the old checksum in the initial stage event's
 `lost_result_sha256`. Never reuse missing/corrupt artifacts or inaccessible private jobs.
+When the original bytes still exist (e.g. a committed precomputed artifact in git history),
+`python -m gridstorm_api.jobs.restore JOB_ID... --source FILE` re-uploads them only if their
+sha256 equals the recorded checksum, keeping the original job; see
+[backend: lost or corrupt artifacts](backend.md#lost-or-corrupt-artifacts).
 
 ## Free-tier limits
 
