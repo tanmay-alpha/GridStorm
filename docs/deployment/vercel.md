@@ -4,10 +4,11 @@ The frontend (`apps/web`) is a static React + Vite single-page app. It holds no 
 to the API (see [render.md](render.md)) over HTTPS.
 
 Status (2026-11-15): production is live at <https://gridstorm.vercel.app> (project `gridstorm`,
-Root Directory `apps/web`). Releases are deployed from the repository root with the Vercel CLI
-after CI passes and the matching API is live: `vercel pull --yes --environment=production`,
-`vercel build --prod`, `vercel deploy --prebuilt --prod`. Prebuilt deployments carry no Git
-metadata, so record the deployed commit in TODO.md. Git auto-deploy is not enabled.
+Root Directory `apps/web`). The Vercel GitHub integration is active: pull requests get preview
+deployments and a push to `main` deploys production automatically (observed for the GridStorm 3.0
+merge `cf482f2`). Because web and API deploy independently, merge API-contract changes so the web
+tolerates the previous API (the 3.0 research pages fall back to full documents). Manual fallback:
+`vercel pull --yes --environment=production`, `vercel build --prod`, `vercel deploy --prebuilt --prod`.
 
 ## Project settings
 
