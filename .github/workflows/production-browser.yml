@@ -35,7 +35,7 @@ jobs:
         run: npx playwright test --config playwright.production.config.ts
       - name: Upload screenshot evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: gridstorm-production-browser
           path: apps/web/test-results/
