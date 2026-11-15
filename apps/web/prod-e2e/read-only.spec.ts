@@ -123,7 +123,23 @@ for (const [name, width, height] of [['desktop', 1440, 900], ['tablet', 768, 102
         await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
         await expect(page.locator('html')).toHaveAttribute('data-theme', theme)
         await expect(page.locator('body')).toContainText(/precomputed/i)
-        expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), route).toBe(true)
+        const overflow = await page.evaluate(() => {
+          const vw = window.innerWidth
+          const offenders: string[] = []
+          for (const el of document.querySelectorAll<HTMLElement>('body *')) {
+            const box = el.getBoundingClientRect()
+            if (box.width === 0 || box.right <= vw + 1) continue
+            let p = el.parentElement
+            let clipped = false
+            while (p) {
+              if (/(auto|scroll|hidden|clip)/.test(getComputedStyle(p).overflowX)) { clipped = true; break }
+              p = p.parentElement
+            }
+            if (!clipped) offenders.push(`${el.tagName.toLowerCase()}.${String(el.className).slice(0, 60)} right=${Math.round(box.right)} "${(el.innerText || '').slice(0, 40)}"`)
+          }
+          return { scroll: document.documentElement.scrollWidth, vw, offenders: offenders.slice(0, 5) }
+        })
+        expect(overflow.scroll <= overflow.vw, `${route} horizontal overflow: ${JSON.stringify(overflow)}`).toBe(true)
       }
       expect(errors).toEqual([])
       expect(failed).toEqual([])

@@ -22,7 +22,9 @@ function BackendStatus() {
       data-state={state}
       title={state === 'up' && h.data?.git_sha ? `git ${h.data.git_sha}` : label}
       className={cn(
-        'inline-flex items-center gap-1.5 rounded border px-2 py-0.5 text-2xs font-medium whitespace-nowrap',
+        // min-w-0 + truncate: on narrow screens the longest labels ("Checking backend…",
+        // "Backend unreachable") must shrink instead of widening the header past the viewport.
+        'inline-flex min-w-0 max-w-[9.5rem] items-center gap-1.5 rounded border px-2 py-0.5 text-2xs font-medium whitespace-nowrap sm:max-w-none',
         state === 'up' && 'border-ok/40 text-ok',
         state === 'down' && 'border-danger/50 bg-danger-soft text-danger',
         state === 'checking' && 'border-line text-fg-muted',
@@ -31,11 +33,11 @@ function BackendStatus() {
       <span
         aria-hidden
         className={cn(
-          'size-1.5 rounded-full',
+          'size-1.5 shrink-0 rounded-full',
           state === 'up' ? 'bg-ok' : state === 'down' ? 'bg-danger' : 'bg-fg-subtle',
         )}
       />
-      {label}
+      <span className="truncate">{label}</span>
     </span>
   )
 }
@@ -97,7 +99,7 @@ export function AppLayout() {
             <div className="gs-panel absolute right-0 top-full mt-2 min-w-48 p-2 shadow-xl"><NavItems research vertical /></div>
           </details>
         </nav>
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex min-w-0 items-center gap-2">
           <BackendStatus />
           <ThemeToggle />
           <Dialog.Root open={menuOpen} onOpenChange={setMenuOpen}>
