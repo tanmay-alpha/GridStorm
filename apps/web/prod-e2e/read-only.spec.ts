@@ -1,4 +1,11 @@
 import { test, expect } from '@playwright/test'
+import type { Map as MapLibreMap } from 'maplibre-gl'
+
+declare global {
+  interface Window {
+    __gridstormMap?: MapLibreMap
+  }
+}
 
 /**
  * No POST/PUT/DELETE. Runs only against the public Vercel frontend and its configured API.
@@ -11,7 +18,7 @@ test('desktop public journey: map, validation, library and research pages', asyn
   await expect(page.getByTestId('backend-status')).toHaveAttribute('data-state', 'up', { timeout: 120_000 })
   await expect(page.getByTestId('network-select')).toHaveValue('pglib-case14-ieee')
   await expect(page.locator('.maplibregl-canvas')).toBeVisible()
-  await page.waitForFunction(() => window.__gridstormMap?.loaded(), { timeout: 90_000 })
+  await page.waitForFunction(() => window.__gridstormMap?.loaded(), undefined, { timeout: 90_000 })
   await page.screenshot({ path: 'test-results/production-explorer-desktop.png' })
 
   await page.goto('/studio?preset=pglib-case14-ieee-baseline')
