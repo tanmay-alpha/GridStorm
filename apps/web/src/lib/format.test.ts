@@ -29,11 +29,17 @@ describe('formatQuantity', () => {
 
   it('promotes SI prefixes only when scaling is requested', () => {
     expect(formatQuantity(4948.5663, 'MWh')).toBe('4,949 MWh')
-    expect(formatQuantity(4948.5663, 'MWh', { scale: true })).toBe('4.95 GWh')
+    expect(formatQuantity(4948.5663, 'MWh', { scale: true })).toBe('4.949 GWh')
     expect(formatQuantity(2_500_000, 'MWh', { scale: true })).toBe('2.5 TWh')
     expect(formatQuantity(1500, 'MW', { scale: true })).toBe('1.5 GW')
-    expect(formatQuantity(1_234_567, 'EUR', { scale: true })).toBe('1.23 M EUR')
+    expect(formatQuantity(1_234_567, 'EUR', { scale: true })).toBe('1.235 M EUR')
     expect(formatQuantity(240, 't', { scale: true })).toBe('240 t')
+  })
+
+  it('keeps enough significant digits that distinct scaled values never read the same', () => {
+    expect(formatQuantity(2_001_372.9, 't', { scale: true })).toBe('2.001 Mt')
+    expect(formatQuantity(2_000_000, 't', { scale: true })).toBe('2 Mt')
+    expect(formatQuantity(1_234_567, 'EUR', { scale: true, digits: 1 })).toBe('1.2 M EUR')
   })
 })
 
@@ -54,15 +60,17 @@ describe('formatDuration / formatTimestamp', () => {
     expect(formatDuration(null)).toBe(NO_VALUE)
   })
 
-  it('formats ISO timestamps in UTC', () => {
+  it('formats ISO timestamps in UTC, always with seconds', () => {
     expect(formatTimestamp('2026-11-14T16:14:28.859612Z')).toBe('2026-11-14 16:14:28Z')
+    expect(formatTimestamp('2026-11-15T00:41:00.179Z')).toBe('2026-11-15 00:41:00Z')
+    expect(formatTimestamp('2026-11-15T00:40:51Z')).toBe('2026-11-15 00:40:51Z')
     expect(formatTimestamp(null)).toBe(NO_VALUE)
   })
 
   it('preserves the model clock for timezone-naive snapshots', () => {
     expect(formatTimestamp('2015-01-01T00:00:00')).toBe('2015-01-01 00:00')
     expect(formatTimestamp('2015-01-01T09:00:00')).toBe('2015-01-01 09:00')
-    expect(formatTimestamp('2015-01-01T09:00:00+05:30')).toBe('2015-01-01 03:30Z')
+    expect(formatTimestamp('2015-01-01T09:00:00+05:30')).toBe('2015-01-01 03:30:00Z')
   })
 })
 
@@ -86,6 +94,8 @@ describe('field-name units (contract: units are encoded in field names)', () => 
   it('derives labels without the unit suffix', () => {
     expect(labelFromFieldName('peak_load_shed_mw')).toBe('Peak load shed')
     expect(labelFromFieldName('marginal_cost_eur_per_mwh')).toBe('Marginal cost')
+    expect(labelFromFieldName('co2_emissions_t')).toBe('CO₂ emissions')
+    expect(labelFromFieldName('co2_emissions_t_per_mwh')).toBe('CO₂ emissions')
   })
 })
 

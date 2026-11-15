@@ -4,7 +4,7 @@
  * `currency_verified` bases with currency EUR are real euros.
  */
 import type { CostBasis, CostBasisKind } from '../api/types'
-import { formatNumber, isFiniteNumber, NO_VALUE } from './format'
+import { formatNumber, formatScaledNumber, isFiniteNumber, NO_VALUE } from './format'
 
 export const UNKNOWN_MONEY_UNIT = 'cost units (basis unknown)'
 export const UNKNOWN_PRICE_UNIT = 'cost units/MWh (basis unknown)'
@@ -55,7 +55,11 @@ const SCALE: [number, string][] = [
   [1e3, 'k'],
 ]
 
-/** Total cost, e.g. "2.05 M EUR", "2,051.53 PGLib cost units". Null basis → explicit unknown label. */
+/**
+ * Total cost, e.g. "2.051 M EUR", "2,051.53 PGLib cost units". Scaled values keep 4 significant digits
+ * (unless `digits` is given) so a total and its penalty term never collapse to the same text.
+ * Null basis → explicit unknown label.
+ */
 export function formatMoney(
   v: number | null | undefined,
   basis: CostBasis | null | undefined,
@@ -65,7 +69,10 @@ export function formatMoney(
   const unit = moneyUnit(basis)
   if (opts.scale) {
     for (const [factor, prefix] of SCALE) {
-      if (Math.abs(v) >= factor) return `${formatNumber(v / factor, opts.digits ?? 2)} ${prefix} ${unit}`
+      if (Math.abs(v) >= factor) {
+        const n = opts.digits === undefined ? formatScaledNumber(v / factor) : formatNumber(v / factor, opts.digits)
+        return `${n} ${prefix} ${unit}`
+      }
     }
   }
   return `${formatNumber(v, opts.digits)} ${unit}`

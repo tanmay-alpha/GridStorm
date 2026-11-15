@@ -74,8 +74,10 @@ export function EmptyState({
 }
 
 /**
- * Honest error display. Distinguishes "backend unreachable" (no HTTP response) from
- * API errors ({error:{code,message}}) and shows the real code/message.
+ * Honest error display. "Unreachable" only for a request that got no HTTP response (status 0: the
+ * fetch itself failed); a 502/503/504 from the host's proxy is "temporarily unavailable" (typically a
+ * free-tier backend waking up); any other status is an API error with its real code/message.
+ * Local-development hints are shown in dev builds only.
  */
 export function ErrorState({
   error,
@@ -89,10 +91,18 @@ export function ErrorState({
   className?: string
 }) {
   const apiErr = error instanceof ApiError ? error : null
-  const unreachable = apiErr?.unreachable ?? false
-  const Icon = unreachable ? ServerOff : AlertTriangle
+  const noResponse = apiErr?.status === 0
+  const gatewayDown = !!apiErr?.unreachable && !noResponse
+  const Icon = apiErr?.unreachable ? ServerOff : AlertTriangle
   const heading =
-    title ?? (unreachable ? 'Backend unreachable or waking up' : apiErr?.status === 404 ? 'Not found' : 'Request failed')
+    title ??
+    (noResponse
+      ? 'Backend unreachable or waking up'
+      : gatewayDown
+        ? 'Backend temporarily unavailable'
+        : apiErr?.status === 404
+          ? 'Not found'
+          : 'Request failed')
   const message = error instanceof Error ? error.message : String(error)
   return (
     <div
@@ -104,17 +114,22 @@ export function ErrorState({
         {heading}
       </div>
       <p className="text-xs text-fg">{message}</p>
-      {apiErr && !unreachable && (
+      {apiErr && !noResponse && (
         <p className="font-mono text-2xs text-fg-muted">
           HTTP {apiErr.status} · {apiErr.code}
         </p>
       )}
-      {unreachable && (
-        <p className="text-xs text-fg-muted">
-          The GridStorm API did not respond. A hosted free-tier backend can take 30–60 s to wake
-          from idle — retry shortly. Locally, start it with{' '}
-          <code className="font-mono">uv run uvicorn gridstorm_api.main:app</code> or check
-          <code className="font-mono"> VITE_API_BASE_URL</code>.
+      {apiErr?.unreachable && (
+        <p className="text-xs text-fg-muted" data-testid="backend-wake-hint">
+          {noResponse ? 'The GridStorm API did not respond.' : 'The GridStorm API host reported it is not ready.'} The hosted
+          backend runs on a free tier and can take 30–60 s to wake up after being idle — please retry in a minute.
+          {import.meta.env.DEV && (
+            <>
+              {' '}
+              Locally, start it with <code className="font-mono">uv run uvicorn gridstorm_api.main:app</code> or check
+              <code className="font-mono"> VITE_API_BASE_URL</code>.
+            </>
+          )}
         </p>
       )}
       {onRetry && (

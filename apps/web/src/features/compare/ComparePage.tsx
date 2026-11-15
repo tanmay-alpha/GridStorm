@@ -25,7 +25,7 @@ import {
 } from '../../components/ui'
 import { formatDelta, formatNumber, formatQuantity, formatRelativeChange, NO_VALUE } from '../../lib/format'
 import { resolveCostBasis } from '../../lib/money'
-import { downloadJson, downloadText } from '../../lib/download'
+import { downloadBlob, downloadText } from '../../lib/download'
 import { buildBrief } from '../brief/brief'
 import { GridImpactBrief } from '../brief/GridImpactBrief'
 import { CostBasisNote } from '../runs/CostBasis'
@@ -117,6 +117,11 @@ function metricColumns(costs: CostComparability, bBasis: CostBasis | null, sBasi
 
 type MapView = 'delta_max' | 'delta_t' | 'scenario_t' | 'baseline_t'
 
+/** Which result(s) failed, as the subject of a sentence: "both results" / "the baseline result". */
+function failedResults(baseline: boolean, scenario: boolean): string {
+  return baseline && scenario ? 'both results' : baseline ? 'the baseline result' : 'the scenario result'
+}
+
 function ComparisonView({ comparison, guide }: { comparison: Comparison; guide: boolean }) {
   const rep = comparison.report
   const network = useNetwork(comparison.network_id)
@@ -124,12 +129,14 @@ function ComparisonView({ comparison, guide }: { comparison: Comparison; guide: 
   const scenario = useResult(comparison.scenario_job_id, true)
   const [view, setView] = useState<MapView>('delta_max')
   const [t, setT] = useState(0)
+  // JSON is saved as the server's exact bytes so its sha256 matches X-GridStorm-Report-SHA256.
   const export_ = useMutation({
     mutationFn: async (format: 'json' | 'md') => {
-      if (format === 'json') downloadJson(`gridstorm-comparison-${comparison.id}.json`, await api.reportJson(comparison.id))
+      if (format === 'json') downloadBlob(`gridstorm-comparison-${comparison.id}.json`, await api.reportJsonBlob(comparison.id))
       else downloadText(`gridstorm-comparison-${comparison.id}.md`, await api.reportMarkdown(comparison.id), 'text/markdown')
     },
   })
+  const resultsGone = isResultUnavailable(baseline.error) || isResultUnavailable(scenario.error)
 
   const series = useMemo(() => (baseline.data && scenario.data ? { b: baseline.data, s: scenario.data } : null), [baseline.data, scenario.data])
   const bBasis = resolveCostBasis(baseline.data, network.data)
@@ -141,8 +148,10 @@ function ComparisonView({ comparison, guide }: { comparison: Comparison; guide: 
   const labels = useMemo(() => (series ? snapshotLabels(series.s) : []), [series])
   const tt = Math.min(t, Math.max(0, labels.length - 1))
   const maxDelta = useMemo(() => deltaValues(rep.branch_loading), [rep.branch_loading])
-  const values = useMemo(() => {
-    if (view === 'delta_max' || !series) return maxDelta
+  const values = useMemo<Record<string, number | null>>(() => {
+    if (view === 'delta_max') return maxDelta
+    // Snapshot views need both results; never show the horizon maxima under a snapshot label.
+    if (!series) return {}
     if (view === 'delta_t') return deltaAt(series.b, series.s, tt)
     return branchLoadingAt(view === 'scenario_t' ? series.s : series.b, tt)
   }, [view, series, tt, maxDelta])
@@ -208,8 +217,15 @@ function ComparisonView({ comparison, guide }: { comparison: Comparison; guide: 
         <Panel title="Grid Impact Brief" id="brief" description="Scenario versus baseline, derived by fixed rules from both stored results.">
           {brief ? (
             <GridImpactBrief brief={brief} />
+          ) : resultsGone ? (
+            <p className="text-xs text-warn" data-testid="brief-results-unavailable">
+              The brief needs both runs’ result files, and {failedResults(isResultUnavailable(baseline.error), isResultUnavailable(scenario.error))}{' '}
+              {isResultUnavailable(baseline.error) && isResultUnavailable(scenario.error) ? 'are' : 'is'} no longer stored (HTTP 410); re-run from the run pages linked above. The metric changes come from the comparison report, which is stored separately and remains valid.
+            </p>
           ) : baseline.error || scenario.error ? (
-            <p className="text-xs text-warn">The brief needs both stored results; one could not be loaded.</p>
+            <p className="text-xs text-warn">
+              The brief needs both stored results; {failedResults(!!baseline.error, !!scenario.error)} could not be loaded.
+            </p>
           ) : (
             <SkeletonBlock rows={4} label="Loading results for the brief" />
           )}
@@ -226,26 +242,26 @@ function ComparisonView({ comparison, guide }: { comparison: Comparison; guide: 
               testId="map-view"
               options={[
                 { value: 'delta_max', label: 'Δ max loading over horizon [pp]' },
-                { value: 'delta_t', label: 'Δ loading at snapshot [pp]' },
-                { value: 'scenario_t', label: 'Scenario loading at snapshot [%]' },
-                { value: 'baseline_t', label: 'Baseline loading at snapshot [%]' },
+                { value: 'delta_t', label: `Δ loading at snapshot [pp]${resultsGone ? ' — results unavailable' : ''}` },
+                { value: 'scenario_t', label: `Scenario loading at snapshot [%]${resultsGone ? ' — results unavailable' : ''}` },
+                { value: 'baseline_t', label: `Baseline loading at snapshot [%]${resultsGone ? ' — results unavailable' : ''}` },
               ]}
             />
-            {view !== 'delta_max' &&
+            {resultsGone && view !== 'delta_max' ? (
+              <p role="alert" className="text-xs text-warn" data-testid="replay-results-unavailable">
+                Snapshot views unavailable: a run's stored result file is no longer available (HTTP 410), so per-snapshot loading cannot be shown. Open the baseline or scenario run above and choose “Re-run this scenario”. The Δ max loading view comes from the stored comparison report and remains available.
+              </p>
+            ) : (
+              view !== 'delta_max' &&
               (series ? (
                 // Single-period networks get a one-step slider labelled "single period (no timestamp)"; replay is disabled.
                 <SnapshotSlider labels={labels} value={tt} onChange={setT} />
               ) : baseline.error || scenario.error ? (
-                isResultUnavailable(baseline.error) || isResultUnavailable(scenario.error) ? (
-                  <p role="alert" className="text-xs text-warn">
-                    Replay unavailable: a run's stored result is missing. Open the baseline or scenario run above and choose “Re-run this scenario”. The stored comparison summary remains readable.
-                  </p>
-                ) : (
-                  <ErrorState error={baseline.error ?? scenario.error} title="Could not load run results for replay" />
-                )
+                <ErrorState error={baseline.error ?? scenario.error} title="Could not load run results for replay" />
               ) : (
                 <SkeletonBlock rows={1} label="Loading run results" />
-              ))}
+              ))
+            )}
             <BranchValueMap
               networkId={comparison.network_id}
               values={values}
@@ -374,6 +390,9 @@ export default function ComparePage() {
     initialData: create.data && create.data.id === comparisonId ? create.data : undefined,
     staleTime: Infinity,
   })
+  // A stored comparison opened by id (no a/b picks): the pickers stay free for a new pair, and the
+  // panel copy names the pair being shown instead of prompting as if nothing were selected.
+  const storedOnly = comparison.data && !baselineId && !scenarioId ? comparison.data : null
 
   const options = (list: typeof completed, exclude: string) => [
     { value: '', label: 'Select a completed run…' },
@@ -435,7 +454,16 @@ export default function ComparePage() {
           A comparison needs two completed simulations on the same network.
         </EmptyState>
       ) : (
-        <Panel title="Select runs" description={network ? `Only runs on ${network} are offered once one side is chosen.` : 'Pick a baseline and a scenario run on the same network.'}>
+        <Panel
+          title={storedOnly ? 'Compare a different pair' : 'Select runs'}
+          description={
+            storedOnly
+              ? `Shown below: stored comparison of ${storedOnly.report.baseline.scenario_name ?? storedOnly.report.baseline.scenario_id} (baseline) → ${storedOnly.report.scenario.scenario_name ?? storedOnly.report.scenario.scenario_id} (scenario). Pick two runs here to start a new comparison.`
+              : network
+                ? `Only runs on ${network} are offered once one side is chosen.`
+                : 'Pick a baseline and a scenario run on the same network.'
+          }
+        >
           <div className="grid items-end gap-3 md:grid-cols-[1fr_1fr_auto]">
             <SelectField
               label="Baseline run"

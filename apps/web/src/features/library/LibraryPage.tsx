@@ -66,7 +66,13 @@ const jobColumns: Column<Job>[] = [
     header: 'Wall time',
     align: 'right',
     sortValue: (j) => j.solver?.wall_time_s,
-    render: (j) => formatDuration(j.solver?.wall_time_s),
+    // A precomputed job reports the offline run's solver time, not work done for this job.
+    render: (j) =>
+      j.execution_mode === 'precomputed' && j.solver?.wall_time_s != null ? (
+        <span title="Solver time of the offline precomputed run">{formatDuration(j.solver.wall_time_s)} (precomputed)</span>
+      ) : (
+        formatDuration(j.solver?.wall_time_s)
+      ),
   },
   { key: 'created', header: 'Created (UTC)', sortValue: (j) => j.created_at, render: (j) => formatTimestamp(j.created_at) },
 ]

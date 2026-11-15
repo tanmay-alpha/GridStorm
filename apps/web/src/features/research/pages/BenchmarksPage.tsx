@@ -1,8 +1,8 @@
 import { useMemo, type ReactNode } from 'react'
 import type { ArtifactIndexItem, CostBasis } from '../../../api/types'
 import { Badge, Chart, DataTable, EmptyState, ErrorState, KeyValue, MetricCard, PageHeader, Panel, SkeletonBlock, type ChartOption, type Column, type Tone } from '../../../components/ui'
-import { formatNumber, formatQuantity, labelFromFieldName, NO_VALUE } from '../../../lib/format'
-import { formatMoney, resolveCostBasis } from '../../../lib/money'
+import { formatNumber, formatQuantity, labelFromFieldName, NO_VALUE, unitFromFieldName } from '../../../lib/format'
+import { formatMoney, isRealCurrency, moneyUnit, resolveCostBasis } from '../../../lib/money'
 import { ArtifactSection } from '../components/ArtifactPanel'
 import { ArtifactMeta } from '../components/ArtifactMeta'
 import { Disclaimer } from '../components/Disclaimer'
@@ -262,7 +262,34 @@ export function RiskView({ study }: { study: RiskStudy }) {
 
 const VERDICT_TONE: Record<string, Tone> = { AGREES: 'ok', DISAGREES: 'danger', EXPECTED_DIFFERENCE: 'info', NOT_RUN: 'neutral' }
 
-const crossColumns: Column<CrossCheck>[] = [
+/**
+ * Cross-engine artifacts write PGLib/MATPOWER money as "$" ("$/MWh", "$/h"): nominal benchmark
+ * coefficients, not dollars. Show them in the network's cost basis unless that basis is real USD.
+ */
+function relabelDollar(text: string, basis: CostBasis | null): string {
+  if (isRealCurrency(basis) && basis?.currency === 'USD') return text
+  return text.replace(/\$(?=\/(?:MWh|h)\b)/g, moneyUnit(basis))
+}
+
+/** One metric value with the unit its field name encodes; counts stay integers, `_per_h` is money per hour. */
+function crossMetric(field: string, v: number | string | null, basis: CostBasis | null): { label: string; value: string } {
+  if (field.endsWith('_per_h')) {
+    const label = labelFromFieldName(field.slice(0, -'_per_h'.length))
+    return { label, value: typeof v === 'number' ? `${formatNumber(v)} ${moneyUnit(basis)}/h` : (v ?? NO_VALUE) }
+  }
+  if (typeof v !== 'number') return { label: labelFromFieldName(field), value: v ?? NO_VALUE }
+  const unit = unitFromFieldName(field)
+  const n = Number.isInteger(v) ? formatNumber(v) : v.toPrecision(4)
+  return { label: labelFromFieldName(field), value: unit ? `${n} ${unit}` : n }
+}
+
+/** Tolerances span 1e-9…1: three significant digits, exponent notation below 1e-6, no dimensionless "1". */
+function crossTolerance(t: NonNullable<CrossCheck['tolerance']>, basis: CostBasis | null): string {
+  const unit = t.unit && t.unit !== '1' ? ` ${relabelDollar(t.unit, basis)}` : ''
+  return `${t.metric ?? ''} ≤ ${t.value === null ? NO_VALUE : String(Number(t.value.toPrecision(3)))}${unit}`
+}
+
+const crossColumns = (basisOf: (c: CrossCheck) => CostBasis | null): Column<CrossCheck>[] => [
   { key: 'case', header: 'Case', sortValue: (c) => c.case, render: (c) => <span className="font-mono">{c.case ?? NO_VALUE}</span> },
   { key: 'check', header: 'Check', render: (c) => c.title ?? c.id },
   { key: 'eng', header: 'Engines', render: (c) => c.engines.join(' vs ') },
@@ -272,22 +299,24 @@ const crossColumns: Column<CrossCheck>[] = [
     header: 'Metrics',
     render: (c) => (
       <ul>
-        {Object.entries(c.metrics).map(([k, v]) => (
-          <li key={k}>
-            <span className="text-fg-muted">{labelFromFieldName(k)}:</span>{' '}
-            <span className="font-mono">{v === null ? NO_VALUE : typeof v === 'number' ? v.toPrecision(4) : v}</span>
-          </li>
-        ))}
+        {Object.entries(c.metrics).map(([k, v]) => {
+          const m = crossMetric(k, v, basisOf(c))
+          return (
+            <li key={k}>
+              <span className="text-fg-muted">{m.label}:</span> <span className="font-mono">{m.value}</span>
+            </li>
+          )
+        })}
       </ul>
     ),
   },
   {
     key: 'tol',
     header: 'Tolerance',
-    render: (c) => (c.tolerance ? `${c.tolerance.metric ?? ''} ≤ ${formatNumber(c.tolerance.value, 6)} ${c.tolerance.unit ?? ''}` : NO_VALUE),
+    render: (c) => (c.tolerance ? crossTolerance(c.tolerance, basisOf(c)) : NO_VALUE),
   },
   { key: 'verdict', header: 'Verdict', sortValue: (c) => c.verdict, render: (c) => <Badge tone={VERDICT_TONE[c.verdict] ?? 'neutral'}>{c.verdict.replaceAll('_', ' ')}</Badge> },
-  { key: 'why', header: 'Explanation', render: (c) => <span className="text-fg-muted">{c.explanation ?? NO_VALUE}</span> },
+  { key: 'why', header: 'Explanation', render: (c) => <span className="text-fg-muted">{c.explanation ? relabelDollar(c.explanation, basisOf(c)) : NO_VALUE}</span> },
 ]
 
 function CrossEngineSection({ items }: { items: ArtifactIndexItem[] }) {
@@ -295,12 +324,14 @@ function CrossEngineSection({ items }: { items: ArtifactIndexItem[] }) {
     'cross-engine',
     items.map((i) => i.artifact_id),
   )
+  const networks = useNetworks()
   if (items.length === 0) return <EmptyState title="No cross-engine artifacts published">data/artifacts/cross-engine is empty or missing.</EmptyState>
   const failed = results.find((r) => r.isError)
   if (failed) return <ErrorState error={failed.error} onRetry={() => void failed.refetch()} />
   if (results.some((r) => !r.data)) return <SkeletonBlock rows={4} label="Loading cross-engine artifacts" />
   const arts = results.map((r) => r.data as ParsedArtifact)
   const checks = arts.flatMap((a) => parseCrossEngine(a.payload).checks)
+  const columns = crossColumns((c) => resolveCostBasis(networks.data?.find((n) => n.id === c.case)))
   return (
     <div className="flex flex-col gap-3">
       <details>
@@ -311,7 +342,7 @@ function CrossEngineSection({ items }: { items: ArtifactIndexItem[] }) {
           ))}
         </div>
       </details>
-      <DataTable columns={crossColumns} rows={checks} rowKey={(c) => `${c.case}:${c.id}`} caption="Cross-engine agreement checks" />
+      <DataTable columns={columns} rows={checks} rowKey={(c) => `${c.case}:${c.id}`} caption="Cross-engine agreement checks" />
     </div>
   )
 }

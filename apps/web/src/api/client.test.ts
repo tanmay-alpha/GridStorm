@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest'
-import { ApiError, buildUrl, itemsOf, request } from './client'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { ApiError, buildUrl, itemsOf, request, requestBlob } from './client'
 import semantic from '../test/fixtures/validation-semantic-errors.json'
 
 const jsonResponse = (status: number, body: unknown) =>
@@ -53,6 +53,32 @@ describe('request', () => {
     const e2 = (await request('/health', { fetchImpl: waking }).catch((e: unknown) => e)) as ApiError
     expect(e2.unreachable).toBe(true)
     expect(e2.code).toBe('http_503')
+  })
+
+  it('never reports an HTTP 500 as unreachable', async () => {
+    const broken: typeof fetch = async () => jsonResponse(500, { error: { code: 'internal_error', message: 'boom' } })
+    const e = (await request('/api/v1/reports/x', { fetchImpl: broken }).catch((err: unknown) => err)) as ApiError
+    expect(e.status).toBe(500)
+    expect(e.code).toBe('internal_error')
+    expect(e.unreachable).toBe(false)
+  })
+})
+
+describe('requestBlob', () => {
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('returns the body bytes unchanged (a download hashes to the server sha256)', async () => {
+    const body = '{"b":1,"a":[1.50,2]}'
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(body, { status: 200, headers: { 'Content-Type': 'application/json' } })))
+    const blob = await requestBlob('/api/v1/simulations/x/result')
+    expect(await blob.text()).toBe(body)
+  })
+
+  it('maps error statuses to ApiError like request', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => jsonResponse(410, { error: { code: 'artifact_unavailable', message: 'gone' } })))
+    const e = (await requestBlob('/api/v1/simulations/x/result').catch((err: unknown) => err)) as ApiError
+    expect(e.status).toBe(410)
+    expect(e.code).toBe('artifact_unavailable')
   })
 })
 
