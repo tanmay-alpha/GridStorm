@@ -72,7 +72,12 @@ class Settings:
 
     cors_origins: list[str] = field(default_factory=lambda: ["http://localhost:5173"])
     max_body_bytes: int = 256 * 1024
+    # Proxy trust (see ratelimit.py): only enable behind an ingress that clients cannot bypass.
     trust_proxy: bool = False
+    # Single-IP header the edge overwrites on every request (Render: Cloudflare's cf-connecting-ip).
+    client_ip_header: str | None = None
+    # Fallback: take the N-th X-Forwarded-For entry from the right (entries appended by proxies).
+    trusted_proxy_hops: int = 1
     rate_limit_post_per_min: float = 60.0
     rate_limit_post_burst: int = 20
     rate_limit_sim_per_min: float = 6.0
@@ -90,6 +95,8 @@ class Settings:
     job_stale_after_s: float = 60.0
     job_poll_s: float = 2.0
     max_queued_jobs: int = 50
+    # Queued+running jobs per signed-in owner, or per anonymous client IP (0 disables the cap).
+    max_active_jobs_per_client: int = 2
 
     artifact_store: Literal["local", "s3", "supabase"] = "local"
     artifact_dir: Path | None = None
@@ -156,6 +163,10 @@ class Settings:
         store = _env("GRIDSTORM_ARTIFACT_STORE", "local")
         if store not in ("local", "s3", "supabase"):
             raise ValueError("GRIDSTORM_ARTIFACT_STORE must be 'local', 's3' or 'supabase'")
+        proxy_hops = _env_int("GRIDSTORM_TRUSTED_PROXY_HOPS", 1)
+        if proxy_hops < 1:
+            raise ValueError("GRIDSTORM_TRUSTED_PROXY_HOPS must be >= 1")
+        ip_header = _env("GRIDSTORM_CLIENT_IP_HEADER")
         return cls(
             data_dir=data_dir,
             state_dir=state_dir,
@@ -169,6 +180,8 @@ class Settings:
             cors_origins=[o for o in origins if o] or ["http://localhost:5173"],
             max_body_bytes=_env_int("GRIDSTORM_MAX_BODY_BYTES", 256 * 1024),
             trust_proxy=_env_bool("GRIDSTORM_TRUST_PROXY", False),
+            client_ip_header=ip_header.lower() if ip_header else None,
+            trusted_proxy_hops=proxy_hops,
             rate_limit_post_per_min=_env_float("GRIDSTORM_RATE_LIMIT_POST_PER_MIN", 60.0),
             rate_limit_post_burst=_env_int("GRIDSTORM_RATE_LIMIT_POST_BURST", 20),
             rate_limit_sim_per_min=_env_float("GRIDSTORM_RATE_LIMIT_SIM_PER_MIN", 6.0),
@@ -187,6 +200,7 @@ class Settings:
             job_max_attempts=max(1, _env_int("GRIDSTORM_JOB_MAX_ATTEMPTS", 2)),
             job_stale_after_s=_env_float("GRIDSTORM_JOB_STALE_AFTER_S", 60.0),
             max_queued_jobs=_env_int("GRIDSTORM_MAX_QUEUED_JOBS", 50),
+            max_active_jobs_per_client=max(0, _env_int("GRIDSTORM_MAX_ACTIVE_JOBS_PER_CLIENT", 2)),
             artifact_store=store,  # type: ignore[arg-type]
             artifact_dir=Path(artifact_dir) if artifact_dir else None,
             s3_bucket=_env("GRIDSTORM_S3_BUCKET"),

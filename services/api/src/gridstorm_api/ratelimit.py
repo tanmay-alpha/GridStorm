@@ -1,23 +1,129 @@
-"""In-process per-IP token buckets for POST endpoints, and a request body size limit.
+"""Client identity behind a trusted proxy, in-process token buckets for POST endpoints, and a
+request body size limit.
 
 Limits (defaults; env-configurable):
   * ``post``: 60 requests/min refill, burst 20, for every POST endpoint;
   * ``simulations``: additionally 6 requests/min, burst 3, for ``POST /api/v1/simulations``.
 State is per process (a multi-instance deployment multiplies the effective limit by the number of
-instances). The client IP is the socket peer, or the first ``X-Forwarded-For`` hop when
-``GRIDSTORM_TRUST_PROXY=true`` (Render terminates TLS in a proxy).
+instances). Buckets are keyed by the client address (IPv6 clients by their /64, which one
+subscriber typically controls in full).
+
+The client address is the socket peer unless ``GRIDSTORM_TRUST_PROXY=true``, in which case
+``TrustedProxyMiddleware`` replaces ``scope["client"]`` (and ``scope["scheme"]``) once, for the
+rate limiter, HSTS, redirects and uvicorn's access log alike:
+
+1. ``GRIDSTORM_CLIENT_IP_HEADER`` (e.g. ``cf-connecting-ip``): a single-IP header that the edge
+   proxy *overwrites* on every request. Used when present exactly once and a valid IP.
+2. Otherwise the ``GRIDSTORM_TRUSTED_PROXY_HOPS``-th ``X-Forwarded-For`` entry from the right.
+   Proxies append, so a client can only add entries on the left; entries left of the chosen one
+   are never used. With fewer entries than hops the socket peer is kept.
+
+Render (docs/audit/security-3.0.md): Cloudflare fronts every service and sets
+``CF-Connecting-IP``; Render's proxies append further ``X-Forwarded-For`` entries. Uvicorn must run
+with ``--no-proxy-headers``: its ``--forwarded-allow-ips='*'`` mode takes the *leftmost*,
+client-controlled entry.
 """
 
 from __future__ import annotations
 
+import ipaddress
 import math
 import threading
 import time
 from collections import OrderedDict
+from collections.abc import Iterable
 
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from .errors import APIError, error_body
+
+Headers = Iterable[tuple[bytes, bytes]]
+
+
+def parse_ip(value: str) -> str | None:
+    """Normalised IP of a forwarded value (bare, ``v4:port`` or ``[v6]:port``), else None."""
+    value = value.strip()
+    if value.startswith("["):
+        end = value.find("]")
+        value = value[1:end] if end > 0 else value
+    elif value.count(":") == 1:
+        value = value.split(":", 1)[0]
+    try:
+        return str(ipaddress.ip_address(value))
+    except ValueError:
+        return None
+
+
+def forwarded_client_ip(
+    headers: Headers, *, client_ip_header: str | None, proxy_hops: int
+) -> str | None:
+    """Client address asserted by the trusted proxy chain, or None to keep the socket peer."""
+    headers = list(headers)
+    if client_ip_header:
+        name = client_ip_header.lower().encode("latin-1")
+        values = [v for n, v in headers if n == name]
+        if len(values) == 1:
+            ip = parse_ip(values[0].decode("latin-1"))
+            if ip is not None:
+                return ip
+    hops = [
+        hop.strip()
+        for n, v in headers
+        if n == b"x-forwarded-for"
+        for hop in v.decode("latin-1").split(",")
+        if hop.strip()
+    ]
+    if proxy_hops < 1 or len(hops) < proxy_hops:
+        return None
+    return parse_ip(hops[-proxy_hops])
+
+
+def forwarded_proto(headers: Headers) -> str | None:
+    for name, value in headers:
+        if name == b"x-forwarded-proto":
+            proto = value.decode("latin-1").split(",")[0].strip().lower()
+            return proto if proto in ("http", "https") else None
+    return None
+
+
+class TrustedProxyMiddleware:
+    """Rewrite ``scope["client"]``/``scope["scheme"]`` from trusted proxy headers (see module doc).
+
+    The scope dict is mutated in place, so uvicorn's access log reports the resolved client too.
+    """
+
+    def __init__(self, app: ASGIApp, *, client_ip_header: str | None, proxy_hops: int) -> None:
+        self.app = app
+        self.client_ip_header = client_ip_header
+        self.proxy_hops = proxy_hops
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] == "http":
+            headers = scope.get("headers") or []
+            ip = forwarded_client_ip(
+                headers, client_ip_header=self.client_ip_header, proxy_hops=self.proxy_hops
+            )
+            if ip is not None:
+                scope["client"] = (ip, 0)
+            proto = forwarded_proto(headers)
+            if proto is not None:
+                scope["scheme"] = proto
+        await self.app(scope, receive, send)
+
+
+def client_key(scope: Scope) -> str:
+    """Rate-limit bucket key: the client IP, IPv6 aggregated to its /64."""
+    client = scope.get("client")
+    host = client[0] if client else "unknown"
+    try:
+        ip = ipaddress.ip_address(host)
+    except ValueError:
+        return host
+    if isinstance(ip, ipaddress.IPv6Address):
+        if ip.ipv4_mapped is not None:
+            return str(ip.ipv4_mapped)
+        return str(ipaddress.IPv6Network((ip, 64), strict=False))
+    return str(ip)
 
 
 class RateLimited(APIError):
@@ -51,17 +157,6 @@ class TokenBucketLimiter:
             self._buckets[key] = (tokens - 1.0, now)
             while len(self._buckets) > self.max_keys:
                 self._buckets.popitem(last=False)
-
-
-def client_ip(scope: Scope, trust_proxy: bool) -> str:
-    if trust_proxy:
-        for name, value in scope.get("headers") or []:
-            if name == b"x-forwarded-for":
-                first = value.decode("latin-1").split(",")[0].strip()
-                if first:
-                    return first
-    client = scope.get("client")
-    return client[0] if client else "unknown"
 
 
 class BodySizeLimitMiddleware:

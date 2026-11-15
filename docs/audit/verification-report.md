@@ -1,5 +1,7 @@
 # GridStorm independent verification report
 
+> **Status 2026-11-15 (GridStorm 3.0 review): historical record of the first deployment.** The API no longer runs on ephemeral SQLite: production uses Supabase Postgres (P6-02) and Supabase Storage (POST-01). Statements about `sqlite-ephemeral` and `auth_not_configured` describe that earlier deployment only.
+
 Verifier: Agent F (independent of every component owner). Defects with reproduction commands are in
 [`issues.md`](issues.md). Black-box API tests are in [`tests/integration/`](../../tests/integration/).
 

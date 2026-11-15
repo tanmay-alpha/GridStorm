@@ -8,6 +8,7 @@ from sqlalchemy import func, select
 from ..access import can_modify, can_read, resolve_visibility, visible
 from ..db.models import SimulationArtifact, SimulationJob, SimulationMetrics
 from ..deps import (
+    ClientKey,
     Ctx,
     CurrentPrincipal,
     DBSession,
@@ -59,10 +60,17 @@ def get_visible_job(session: Any, principal: Any, job_id: str) -> SimulationJob:
     summary="Validate and enqueue a simulation (or reuse an identical completed result)",
     description="Body: `{scenario_id}` (preset or saved record id) or `{scenario: spec}`. "
     "In `GRIDSTORM_EXECUTION_MODE=precomputed` only scenarios with a committed precomputed "
-    "result can be served (execution_mode=precomputed); otherwise 409.",
+    "result can be served (execution_mode=precomputed); otherwise 409. A caller that already "
+    "has `GRIDSTORM_MAX_ACTIVE_JOBS_PER_CLIENT` (default 2) queued or running jobs gets 429 "
+    "`too_many_active_jobs` (signed-in users counted per account, anonymous callers per client "
+    "IP); reused and precomputed results never count.",
 )
 def create_simulation(
-    ctx: Ctx, session: DBSession, principal: CurrentPrincipal, body: SimulationCreate
+    ctx: Ctx,
+    session: DBSession,
+    principal: CurrentPrincipal,
+    client: ClientKey,
+    body: SimulationCreate,
 ) -> dict[str, Any]:
     record_id: str | None = None
     requested = body.visibility
@@ -87,6 +95,7 @@ def create_simulation(
         scenario_record_id=record_id,
         visibility=visibility,
         reuse=body.reuse,
+        client_key=client,
     )
     return job_json(ctx, session, job)
 
@@ -169,10 +178,10 @@ def cancel_simulation(
     summary="Recompute a lost result as a new job with recorded provenance",
 )
 def recompute_simulation(
-    ctx: Ctx, session: DBSession, principal: CurrentPrincipal, job_id: str
+    ctx: Ctx, session: DBSession, principal: CurrentPrincipal, client: ClientKey, job_id: str
 ) -> dict[str, Any]:
     source = get_visible_job(session, principal, job_id)
-    return job_json(ctx, session, recompute_job(ctx, session, principal, source))
+    return job_json(ctx, session, recompute_job(ctx, session, principal, source, client_key=client))
 
 
 @router.get(

@@ -509,6 +509,9 @@ class WorkerPool:
             history.append(stage_event(stages.get_nowait()))
         with self._lock:
             self._procs.pop(job_id, None)
+            # request_cancel() may have killed the engine before the loop body ever ran
+            if job_id in self._cancel and reason is None:
+                reason = "cancel"
             self._cancel.discard(job_id)
 
         try:

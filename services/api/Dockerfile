@@ -48,8 +48,14 @@ ENV PATH=/app/services/api/.venv/bin:$PATH \
     GRIDSTORM_DATA_DIR=/app/data \
     GRIDSTORM_STATE_DIR=/tmp/gridstorm \
     GRIDSTORM_MIGRATIONS_DIR=/app/database/migrations \
-    GRIDSTORM_TRUST_PROXY=true \
     GRIDSTORM_GIT_SHA=${GIT_SHA}
+# Render topology (docs/audit/security-3.0.md): client -> Cloudflare -> Render proxies -> app.
+# Cloudflare overwrites CF-Connecting-IP; the app (not uvicorn) resolves the client from it, or
+# else from the 2nd X-Forwarded-For entry from the right. Set GRIDSTORM_TRUST_PROXY=false when
+# the container is reachable without that ingress.
+ENV GRIDSTORM_TRUST_PROXY=true \
+    GRIDSTORM_CLIENT_IP_HEADER=cf-connecting-ip \
+    GRIDSTORM_TRUSTED_PROXY_HOPS=2
 
 RUN groupadd --system --gid 10001 gridstorm \
     && useradd --system --uid 10001 --gid gridstorm --home-dir /app --no-create-home gridstorm \
@@ -70,4 +76,6 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
 
 # One uvicorn process: the job worker pool lives in-process (bounded by
 # GRIDSTORM_MAX_CONCURRENT_JOBS); engine runs are subprocesses with RSS/time limits.
-CMD ["sh", "-c", "exec uvicorn gridstorm_api.main:app --host 0.0.0.0 --port \"${PORT:-8000}\" --proxy-headers --forwarded-allow-ips='*' --no-server-header"]
+# --no-proxy-headers: uvicorn's --forwarded-allow-ips='*' would take the LEFTMOST (client-spoofable)
+# X-Forwarded-For entry; TrustedProxyMiddleware sets client and scheme instead.
+CMD ["sh", "-c", "exec uvicorn gridstorm_api.main:app --host 0.0.0.0 --port \"${PORT:-8000}\" --no-proxy-headers --no-server-header"]

@@ -1,5 +1,7 @@
 # Production audit — 2026-11-15 (UTC)
 
+> **Status 2026-11-15 (GridStorm 3.0 review): historical record.** The P0 artifact-loss finding is superseded: durable Supabase Storage was deployed in `dd185d1` and verified across a controlled Render restart (TODO POST-01). The P1 Studio guard, first-click demo and compare-with-baseline items were addressed in POST-02/05/08. Current state: [TODO.md](../../TODO.md) §GridStorm 3.0.
+
 ## Scope / evidence
 
 Target: `main` commit `1c05c2391d32e5248c7039626ec030ce1f0277c1`.

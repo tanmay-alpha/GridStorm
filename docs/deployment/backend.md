@@ -60,11 +60,16 @@ Without it every push to `main` redeploys and, on SQLite, wipes all jobs (observ
 jobs returned 404 seconds after creation while another workstream's commit was deploying).
 Commits under `data/artifacts/` still redeploy because precomputed results are baked into the image.
 
-Supabase is not provisioned automatically. Until `DATABASE_URL` is configured, the service uses
-SQLite under `/tmp/gridstorm`; `/ready` explicitly returns `kind: sqlite-ephemeral`. Saved
-scenarios, jobs, comparisons, and newly generated artifacts disappear on redeploy or instance
-replacement. Committed catalog/preset/precomputed files survive because they are baked into the
-image. This is a demo, not durable production persistence. Free Render services may cold-start.
+**Current production (verified 2026-11-15):** the live service uses Supabase Postgres
+(`/ready` → `database.kind: postgres`) and the private Supabase Storage bucket
+`gridstorm-artifacts` (`/ready` → `storage.backend: supabase`, `durable: true`); result files
+survived a controlled restart (TODO POST-01).
+
+For a fresh deployment, Supabase is not provisioned automatically. Until `DATABASE_URL` is
+configured, the service uses SQLite under `/tmp/gridstorm`; `/ready` explicitly returns
+`kind: sqlite-ephemeral`. Saved scenarios, jobs, comparisons, and newly generated artifacts then
+disappear on redeploy or instance replacement. Committed catalog/preset/precomputed files survive
+because they are baked into the image. Free Render services may cold-start.
 
 For durable storage, provide a real Postgres connection URL and apply migrations (below), and
 configure Supabase Storage. A Postgres database alone does not preserve local result files.
@@ -179,11 +184,22 @@ plain Postgres lacks Supabase's `auth` schema): first run `applied` both files, 
 
 ## Operational limits
 
-POST token buckets are per-IP, in-process: general requests refill 60/minute with burst 20;
-simulation submission additionally refills 6/minute with burst 3. Limits return 429 and
-`Retry-After`. Request bodies are limited to 262144 bytes by default (413 when exceeded).
-Only trust forwarded client-IP headers behind a controlled ingress; the Render image is
-configured for that proxy boundary. A public direct deployment should disable proxy trust.
+POST token buckets are per-client, in-process (IPv6 clients are keyed by their /64): general
+requests refill 60/minute with burst 20; simulation submission additionally refills 6/minute
+with burst 3. Limits return 429 and `Retry-After`. Request bodies are limited to 262144 bytes by
+default (413 when exceeded).
+
+Client identity behind a proxy (`GRIDSTORM_TRUST_PROXY=true`, only behind an ingress clients
+cannot bypass; disable it for a directly exposed deployment): the client IP is the
+`GRIDSTORM_CLIENT_IP_HEADER` value if it is present once and a valid IP, otherwise the
+`GRIDSTORM_TRUSTED_PROXY_HOPS`-th `X-Forwarded-For` entry counted from the right (proxies append,
+so client-supplied entries only ever sit further left); with fewer entries the socket peer is
+used. The scheme comes from `X-Forwarded-Proto` (HSTS, redirect URLs). The Render image and
+blueprint set `cf-connecting-ip` and `2`: Render serves every service through Cloudflare, which
+overwrites `CF-Connecting-IP`, and Render's proxies append one or two more `X-Forwarded-For`
+entries (evidence and sources: `docs/audit/security-3.0.md`). Uvicorn runs with
+`--no-proxy-headers`; never use `--forwarded-allow-ips='*'`, which picks the leftmost,
+client-controlled entry.
 
 Default Python settings allow 600 s / 2048 MB, whereas the Render blueprint and Compose use
 180 s / 400 MB. The worker polls aggregate process-tree RSS roughly every 0.25 seconds (not a

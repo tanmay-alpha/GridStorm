@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 from .auth import Principal, principal_from_request
 from .context import AppContext
 from .errors import NotFound
-from .ratelimit import client_ip
+from .ratelimit import client_key
 
 
 def get_ctx(request: Request) -> AppContext:
@@ -31,12 +31,17 @@ def get_principal(request: Request) -> Principal:
 
 def rate_limit_post(request: Request) -> None:
     ctx: AppContext = request.app.state.ctx
-    ctx.post_limiter.check(client_ip(request.scope, ctx.settings.trust_proxy))
+    ctx.post_limiter.check(client_key(request.scope))
 
 
 def rate_limit_simulations(request: Request) -> None:
     ctx: AppContext = request.app.state.ctx
-    ctx.sim_limiter.check(client_ip(request.scope, ctx.settings.trust_proxy))
+    ctx.sim_limiter.check(client_key(request.scope))
+
+
+def get_client_key(request: Request) -> str:
+    """Rate-limit identity of the caller (resolved client IP; see ratelimit.py)."""
+    return client_key(request.scope)
 
 
 @dataclass
@@ -63,3 +68,4 @@ Ctx = Annotated[AppContext, Depends(get_ctx)]
 DBSession = Annotated[Session, Depends(get_session)]
 CurrentPrincipal = Annotated[Principal, Depends(get_principal)]
 Paging = Annotated[Pagination, Depends(pagination)]
+ClientKey = Annotated[str, Depends(get_client_key)]

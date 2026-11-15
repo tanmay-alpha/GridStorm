@@ -1,5 +1,7 @@
 # Scientific result audit — 2026-11-15
 
+> **Status 2026-11-15 (GridStorm 3.0 review): historical record.** The live `artifact_missing` finding is superseded by POST-01/01b. Monetary columns labelled "EUR" here are in each dataset's cost basis (PGLib: benchmark cost units; SciGRID-DE / ac-dc-meshed: illustrative costs; only pypsa-eur-be is EUR) — see [cost-basis audit](../research/cost-basis-audit.md).
+
 ## Verdict and evidence
 
 **All 12 committed PyPSA artifacts pass the independent offline checks.** Two small presets were solved again locally: objectives matched the committed values exactly, and all 18 metrics per result matched within the stated reproducibility tolerance. **Live scientific results remain unavailable**, not passed: the only publicly listed completed job returned HTTP 500 `artifact_missing`.
