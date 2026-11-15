@@ -27,15 +27,22 @@ Evidence: [production audit](docs/audit/production-2026-11-15.md) · [draft UX P
 
 These items are **not** included in the original 58/58 delivery count.
 
-| ID | Task | Pri | Owner | Deps | Status | Acceptance criteria |
+Statuses for this section: `BACKLOG → IMPLEMENTING → LOCALLY TESTED → CI VERIFIED → DEPLOYED → PROD TESTED`, or `BLOCKED`.
+Integration branch: `release/production-recovery` (PR #7 head + recovery work). Coordinator: I.
+
+| ID | Task | Pri | Owner | Deps | Status | Acceptance criteria / evidence |
 |---|---|---|---|---|---|---|
-| POST-01 | Durable generated-result artifact storage (Render resets disk) | P0 | E/Backend | storage provider credentials; issue #8 | BACKLOG | Complete live job; controlled Render restart; retrieve result/report with unchanged SHA256; older missing files recovered only via verified recomputation |
-| POST-02 | Crisis Studio proactive unavailable-run guard, runnable example CTA, scoped presets, clearer missing-result state, polish | P1 | C/Frontend | audit evidence | TESTING | Draft PR #7 passes type/lint/unit/Playwright, visually reviewed; no knowingly doomed POST; honest missing artifact message |
-| POST-03 | Read-only public Vercel + Render checks | P1 | F/Verification | deployed URLs | TESTING | Chromium desktop/mobile browser smoke succeeded; public GET probe validates APIs and catches known result artifact failure. Keep failing persistence check until issue #8 fixed |
-| POST-04 | GeoJSON-first map loading and demand-loaded details instead of nine large asset fetches | P1 | C/Frontend + E/Backend | POST-02 | BACKLOG | Faster measured first paint with no loss of click/legend/filter functionality; browser coverage |
-| POST-05 | Guided run-to-compare journey and grouped primary/research navigation | P2 | C/Frontend | POST-02 | BACKLOG | First-time visitor can use map → crisis → result → compare without confusion; desktop/mobile accessibility |
-| POST-06 | Verify production Supabase RLS, policies and privilege boundaries directly | P1 | E/Backend + F/Verification | authorized access | BACKLOG | Direct production schema/policy tests on intended project; no client-exposed privileged secrets |
-| POST-07 | Explicitly distinguish artifact writability from durability in readiness and Library | P1 | E/Backend + C/Frontend | POST-01 | BACKLOG | /ready and UI show storage type/durability; no false indication a completed job is fully preserved |
+| POST-01 | Durable generated-result artifact storage (Render resets disk) | P0 | E/Storage | Supabase Storage bucket `gridstorm-artifacts` (created 2026-11-15, private; service-role R/W/D verified, anon read denied) | IMPLEMENTING | Complete live job; controlled Render restart; retrieve result/report with unchanged SHA256; job never marked completed unless durable write verified |
+| POST-01b | Truthful missing-artifact semantics (410 `artifact_unavailable`, `result_available`), reuse only verified blobs, recovery by recomputation with provenance | P0 | E/Storage + C/UXWorkflow | POST-01 | IMPLEMENTING | Tests: restart→retrieve, missing→410, tampered→500, reuse present/missing, legacy job; job `2d47898b…` recovered by recompute or shown unavailable |
+| POST-02 | Crisis Studio proactive unavailable-run guard, runnable example CTA, scoped presets, clearer missing-result state, polish | P1 | C/Frontend | audit evidence | LOCALLY TESTED (PR #7) | Draft PR #7 passes type/lint/unit/Playwright, visually reviewed; no knowingly doomed POST; honest missing artifact message |
+| POST-03 | Read-only public Vercel + Render checks + keep-alive for free Supabase | P1 | F/LiveAudit | deployed URLs | IMPLEMENTING | Chromium desktop/mobile smoke; public GET probe incl. result retrieval; scheduled `/ready` keep-alive |
+| POST-04 | GeoJSON-first map loading and demand-loaded details instead of nine large asset fetches | P1 | C/UXShell | POST-02 | IMPLEMENTING | Before/after request count, bytes, first paint on 3 networks; no loss of click/legend/filter |
+| POST-05 | Landing + grouped navigation + Explorer map-first redesign | P1 | C/UXShell | POST-02 | IMPLEMENTING | First-time visitor reaches a real runnable IEEE-14 crisis in ≤ 2 clicks; desktop/tablet/mobile, light/dark screenshots |
+| POST-06 | Verify production Supabase RLS, policies, indexes, privilege boundaries; secrets hygiene (Vercel/Render/bundle/history) | P1 | E/SecurityDB | authorized access | IMPLEMENTING | Rolled-back policy tests as anon/authenticated; API owner-isolation tests; privileged vars removed from Vercel web project |
+| POST-07 | Readiness distinguishes writable vs durable storage | P1 | E/Storage | POST-01 | IMPLEMENTING | `/ready` shows backend + `durable`; Render no longer reports local as durable |
+| POST-08 | Studio staged flow, results dashboard hierarchy, compare-with-baseline | P1 | C/UXWorkflow | POST-02 | IMPLEMENTING | Staged flow keeps all options; outcome never mislabelled; deltas incl. zero baseline; different-network rejected pre-POST |
+| POST-09 | Deep functional audit of production (all routes, 3 viewports, 2 themes) | P1 | F/LiveAudit | — | IMPLEMENTING | `docs/audit/functional-2026-11-15.md` findings table with owners; before screenshots |
+| POST-10 | Scientific invariant regression suite over committed + live results | P1 | B/Science | — | IMPLEMENTING | Balance, units/weights, unserved energy, limits, SOC, outages, objective, hashes; reproducibility of 2 presets |
 
 ## Phase 0 — Research, audit, baseline
 
