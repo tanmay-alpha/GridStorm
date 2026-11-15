@@ -28,9 +28,7 @@ def fetch(url: str, *, origin: str | None = None, retries: int = 1):
         except HTTPError as exc:
             # 4xx/5xx are real server responses, not cold-start network failures.
             detail = exc.read(500).decode('utf-8', errors='replace').strip()
-            raise RuntimeError(
-                f"GET {url}: HTTP {exc.code}; response {detail[:240]!r}"
-            ) from exc
+            raise RuntimeError(f"GET {url}: HTTP {exc.code}; response {detail[:240]!r}") from exc
         except (URLError, TimeoutError) as exc:
             if attempt + 1 >= retries:
                 raise RuntimeError(f"GET {url}: {type(exc).__name__}") from exc
