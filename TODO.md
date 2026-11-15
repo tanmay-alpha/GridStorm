@@ -19,7 +19,7 @@ Last updated: 2026-11-15
 | DEPLOYED (observed live) | 12 | API on Render, web on Vercel, live jobs, comparisons/reports, Studio + Run dashboard, line-loading replay, Explorer map, OOM fix, a11y/perf fixes, audit defect fixes, PyPSA-Eur BE live, Supabase Postgres |
 | VERIFIED (evidence recorded) | 46 | research, licensing (incl. ENTSO-E remediation), all science engines, data, CI, verification, security, a11y/perf audit, EENS wording |
 
-Live: https://gridstorm.vercel.app · https://gridstorm-api.onrender.com · CI green on `17d76e4`.
+Live: https://gridstorm.vercel.app (web from `main` `67354b0`) · https://gridstorm-api.onrender.com (API `dd185d1`; later commits are web/test/docs only and skipped by the Render build filter) · CI green on `67354b0` (run 43664627266) · production smoke + public browser smoke (11/11) green (runs 43663047984, 43664680740).
 
 ## Post-launch production audit — 2026-11-15
 
@@ -45,6 +45,7 @@ Integration branch: `release/production-recovery` (PR #7 head + recovery work). 
 | POST-10 | Scientific invariant regression suite | P1 | B/Science | — | PROD TESTED | 161 offline tests; live network test passes on retrievable live results |
 | POST-11 | Percentage-point units for absolute deltas of % metrics | P2 | C/UXWorkflow + I | — | DEPLOYED | `delta_unit: "pp"` (API), UI "pp"; unit + hermetic e2e tests |
 | POST-12 | Cosmetic: PGLib single-snapshot label shows PyPSA default `now` in replay | P3 | C | — | BACKLOG | Show "single period (no timestamp)" for networks without a time index |
+| POST-13 | Transient mobile horizontal overflow seen once on `/library` cold load in CI (Linux, 390 px) | P3 | C | — | IMPLEMENTING | Not reproducible locally or in the Linux Playwright image; header status pill made shrinkable + regression spec; prod assertion now names offending elements; next run 11/11 green. Close after 3 consecutive green scheduled runs |
 
 ## Phase 0 — Research, audit, baseline
 
