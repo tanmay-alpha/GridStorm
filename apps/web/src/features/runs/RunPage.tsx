@@ -1,62 +1,41 @@
-import { useMemo, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router'
+import { useMemo } from 'react'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Ban, Download, FileJson, FileText, RotateCcw } from 'lucide-react'
 import { api, ApiError } from '../../api/client'
-import { qk, TERMINAL_STATUSES, useJob, useJobArtifacts, useNetwork, useNetworks, useResult } from '../../api/hooks'
+import { qk, TERMINAL_STATUSES, useAssetTable, useJob, useJobArtifacts, useNetwork, useResult, useScenario } from '../../api/hooks'
 import type { GridstormResult, Job, JobStage } from '../../api/types'
-import { BranchValueMap } from '../../components/map/BranchValueMap'
-import { SnapshotSlider } from '../../components/map/SnapshotSlider'
-import type { AssetRef } from '../../components/map/features'
 import {
   Badge,
   Button,
-  Chart,
-  DataTable,
   EmptyState,
   ErrorState,
   ExecutionModeBadge,
   JobStatusBadge,
   KeyValue,
-  MetricCard,
   OutcomeBadge,
   PageHeader,
   Panel,
   SkeletonBlock,
   buttonClass,
+  CostBasisBadge,
   cn,
-  type Column,
 } from '../../components/ui'
-import { NO_VALUE, formatDuration, formatQuantity, formatTimestamp, isFiniteNumber, shortHash } from '../../lib/format'
+import { NO_VALUE, formatDuration, formatQuantity, formatTimestamp, shortHash } from '../../lib/format'
+import { formatMoney, resolveCostBasis } from '../../lib/money'
 import { downloadJson, downloadText } from '../../lib/download'
-import { cssVar, useTheme } from '../../lib/theme'
 import { useDocumentTitle } from '../../lib/title'
+import { buildBrief } from '../brief/brief'
+import { GridImpactBrief } from '../brief/GridImpactBrief'
+import { compareUrl } from '../compare/baseline'
 import { CompareWithBaseline } from '../compare/CompareWithBaseline'
-import {
-  branchLoadingAt,
-  branchRows,
-  generationOption,
-  hasData,
-  loadShedOption,
-  isIntegrityError,
-  isResultUnavailable,
-  outcomeSummary,
-  priceOption,
-  snapshotLabels,
-  storageOption,
-  type BranchRow,
-  summaryMetrics,
-} from './result'
+import { useBaselinePlan } from '../compare/useBaselinePlan'
+import { GuideSteps, GUIDE_STUDIO_URL } from './GuideSteps'
+import { BaselineChange, HeadlineCards, KeyAssumptions } from './RunOverview'
+import { RunResultView } from './RunResultView'
+import { changedBranchKeys, headlineFacts, isIntegrityError, isResultUnavailable, outagedKeys, outcomeSummary } from './result'
 
-const STAGES: JobStage[] = [
-  'queued',
-  'loading_network',
-  'applying_scenario',
-  'building_model',
-  'solving',
-  'postprocessing',
-  'done',
-]
+const STAGES: JobStage[] = ['queued', 'loading_network', 'applying_scenario', 'building_model', 'solving', 'postprocessing', 'done']
 
 function StageTimeline({ job }: { job: Job }) {
   const seen = new Map(job.stage_history.map((s) => [s.stage, s.at]))
@@ -69,13 +48,7 @@ function StageTimeline({ job }: { job: Job }) {
         const current = s === job.stage && !terminal
         const failed = s === failedAt
         return (
-          <li
-            key={s}
-            className="flex items-center gap-2"
-            aria-current={current ? 'step' : undefined}
-            data-stage={s}
-            data-reached={at ? 'true' : 'false'}
-          >
+          <li key={s} className="flex items-center gap-2" aria-current={current ? 'step' : undefined} data-stage={s} data-reached={at ? 'true' : 'false'}>
             <span
               aria-hidden
               className={cn(
@@ -94,17 +67,16 @@ function StageTimeline({ job }: { job: Job }) {
   )
 }
 
+/** Solver failures, infeasibility and numerical warnings reported by the worker. */
 function Diagnostics({ job, result }: { job: Job; result: GridstormResult | undefined }) {
   const issues: string[] = []
   if (job.error) issues.push(`${job.error.code}: ${job.error.message}`)
   if (job.outcome === 'infeasible')
-    issues.push(
-      'The optimisation is infeasible: demand cannot be met within network and generator limits. Enable load shedding or relax the scenario events.',
-    )
+    issues.push('The optimisation is infeasible: demand cannot be met within network and generator limits. Enable load shedding or relax the scenario events.')
   if (!job.error && job.status === 'timeout') issues.push('The job exceeded its time limit.')
   if (!issues.length && !result?.warnings.length) return null
   return (
-    <Panel title="Diagnostics" className="border-warn/50" id="diagnostics">
+    <Panel title="Diagnostics & numerical warnings" className="border-warn/50" id="diagnostics">
       <div className="flex flex-col gap-2 text-xs" data-testid="diagnostics">
         {issues.map((i) => (
           <p key={i} className="text-danger">
@@ -129,184 +101,6 @@ function Diagnostics({ job, result }: { job: Job; result: GridstormResult | unde
   )
 }
 
-const branchColumns: Column<BranchRow>[] = [
-  { key: 'kind', header: 'Type', sortValue: (r) => r.kind, render: (r) => r.kind },
-  { key: 'id', header: 'Id', sortValue: (r) => r.id, render: (r) => <span className="font-mono">{r.id}</span> },
-  {
-    key: 's_nom',
-    header: 's_nom [MVA]',
-    align: 'right',
-    sortValue: (r) => r.s_nom_mva,
-    render: (r) => formatQuantity(r.s_nom_mva, ''),
-  },
-  {
-    key: 'flow',
-    header: 'max |flow| [MW]',
-    align: 'right',
-    sortValue: (r) => r.max_flow_mw,
-    render: (r) => formatQuantity(r.max_flow_mw, ''),
-  },
-  {
-    key: 'loading',
-    header: 'max loading [%]',
-    align: 'right',
-    sortValue: (r) => r.max_loading_pct,
-    render: (r) => (
-      <span className={cn(r.max_loading_pct !== null && r.max_loading_pct >= 99.9 && 'font-semibold text-danger')}>
-        {formatQuantity(r.max_loading_pct, '')}
-      </span>
-    ),
-  },
-  {
-    key: 'outaged',
-    header: 'Status',
-    sortValue: (r) => (r.outaged ? 1 : 0),
-    render: (r) => (r.outaged ? <Badge tone="danger">outaged</Badge> : 'in service'),
-  },
-]
-
-function ResultView({ job, result }: { job: Job; result: GridstormResult }) {
-  const networks = useNetworks()
-  const network = useNetwork(job.network_id)
-  const { theme } = useTheme()
-  const [t, setT] = useState(0)
-  const [selected, setSelected] = useState<AssetRef | null>(null)
-  const kind = networks.data?.find((n) => n.id === job.network_id)?.coordinate_kind ?? 'schematic'
-  const carrierColors = useMemo(
-    () => Object.fromEntries((network.data?.carriers ?? []).map((c) => [c.id, c.color])),
-    [network.data],
-  )
-  const m = result.metrics
-  const labels = useMemo(() => snapshotLabels(result), [result])
-  const values = useMemo(() => branchLoadingAt(result, t), [result, t])
-  const rows = useMemo(() => branchRows(result), [result])
-  // Theme is a dependency so the demand line picks up the new foreground colour.
-  const genOpt = useMemo(
-    () => generationOption(result, carrierColors, cssVar('--gs-fg') || '#18202b'),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [result, carrierColors, theme],
-  )
-  const shedOpt = useMemo(() => loadShedOption(result), [result])
-  const storeOpt = useMemo(() => storageOption(result), [result])
-  const priceOpt = useMemo(() => priceOption(result), [result])
-  const s = result.series
-  const hasStorage = hasData(s.storage_dispatch_mw) || hasData(s.storage_soc_mwh)
-  const hasShed = hasData(s.load_shed_mw)
-
-  return (
-    <>
-
-      <div className="grid gap-3 xl:grid-cols-2">
-        <Panel title="Generation by carrier vs demand" description="Stacked dispatch [MW]; dashed line = demand.">
-          <Chart option={genOpt} ariaLabel="Stacked generation by carrier in MW with demand overlaid" testId="chart-generation" height={280} />
-        </Panel>
-        <Panel title="Line loading map" description="Colour = |flow| / s_nom at the selected snapshot.">
-          <div className="flex flex-col gap-2">
-            <SnapshotSlider labels={labels} value={Math.min(t, labels.length - 1)} onChange={setT} />
-            {job.network_id && (
-              <BranchValueMap
-                networkId={job.network_id}
-                coordinateKind={kind}
-                values={values}
-                mode="loading"
-                selected={selected}
-                onSelect={setSelected}
-                className="h-[320px]"
-                ariaLabel={`Line loading map at snapshot ${t + 1}`}
-              />
-            )}
-            {selected && (
-              <p className="text-xs" data-testid="map-selection">
-                {selected.kind} <code className="font-mono">{selected.id}</code>: loading{' '}
-                {formatQuantity(values[`${selected.kind}:${selected.id}`] ?? null, '%')}
-              </p>
-            )}
-          </div>
-        </Panel>
-        <Panel title="Load shedding" description="Load shed [MW] per snapshot.">
-          {hasShed ? (
-            <Chart option={shedOpt} ariaLabel="Load shed in MW per snapshot" testId="chart-load-shed" />
-          ) : (
-            <p className="py-6 text-center text-xs text-fg-muted" data-testid="no-load-shed">
-              {s.load_shed_mw?.some(isFiniteNumber) ? 'No load was shed in this run.' : 'Load-shedding series not reported.'}
-            </p>
-          )}
-        </Panel>
-        <Panel title="Storage" description="Aggregate dispatch [MW] and state of charge [MWh].">
-          {hasStorage ? (
-            <Chart option={storeOpt} ariaLabel="Storage dispatch in MW and state of charge in MWh" testId="chart-storage" />
-          ) : (
-            <p className="py-6 text-center text-xs text-fg-muted">{s.storage_dispatch_mw?.some(isFiniteNumber) || s.storage_soc_mwh?.some(isFiniteNumber) ? 'No storage activity (network has no storage or it was idle/disabled).' : 'Storage series not reported.'}</p>
-          )}
-        </Panel>
-        <Panel title="Prices" description="Mean nodal marginal price [EUR/MWh].">
-          {s.mean_marginal_price_eur_per_mwh?.some(isFiniteNumber) ? (
-            <Chart option={priceOpt} ariaLabel="Mean marginal price in EUR per MWh" testId="chart-prices" />
-          ) : (
-            <p className="py-6 text-center text-xs text-fg-muted">No price series in this result.</p>
-          )}
-        </Panel>
-        <Panel title="Generation by carrier (energy)">
-          <KeyValue
-            rows={Object.entries(m.generation_by_carrier_mwh ?? {})
-              .sort((a, b) => b[1] - a[1])
-              .map(([c, v]) => [c, formatQuantity(v, 'MWh', { scale: true })])}
-          />
-        </Panel>
-      </div>
-
-      <Panel title={`Congested elements & branch details (${rows.length})`} description={`${rows.filter((row) => row.max_loading_pct !== null && row.max_loading_pct >= 99.9).length} branches at ≥ 99.9 % loading. Maximum over the horizon; click a row to highlight it on the map.`}>
-        <DataTable
-          columns={branchColumns}
-          rows={rows}
-          rowKey={(r) => r.key}
-          caption="Branch loading summary"
-          initialSort={{ key: 'loading', dir: 'desc' }}
-          pageSize={25}
-          selectedKey={selected ? `${selected.kind}:${selected.id}` : null}
-          onRowClick={(r) => setSelected({ kind: r.kind, id: r.id })}
-        />
-      </Panel>
-      <Panel title="Additional metrics">
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-          <MetricCard label="Peak load shed" value={m.peak_load_shed_mw} unit="MW" />
-          <MetricCard label="Load-shed duration" value={m.load_shed_hours} unit="h" />
-          <MetricCard label="Total load" value={m.total_load_mwh} unit="MWh" />
-          <MetricCard label="Served load" value={m.served_load_mwh} unit="MWh" />
-          <MetricCard label="Generation cost" value={m.generation_cost_eur} unit="EUR" />
-          <MetricCard label="Mean line loading" value={m.mean_line_loading_pct} unit="%" />
-        </div>
-      </Panel>
-
-      <div className="grid gap-3 lg:grid-cols-2">
-        <Panel title="Assumptions" id="assumptions">
-          {result.assumptions.length ? (
-            <ul className="list-disc space-y-0.5 pl-4 text-xs text-fg-muted" data-testid="assumptions">
-              {result.assumptions.map((a) => (
-                <li key={a}>{a}</li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-xs text-fg-muted">The result lists no assumptions.</p>
-          )}
-        </Panel>
-        <Panel title="Engine & reproducibility">
-          <KeyValue
-            rows={[
-              ['Engine', `${result.engine.name} ${result.engine.version} (${result.engine.formulation})`],
-              ['Scenario', `${result.scenario_id} · hash ${shortHash(result.scenario_hash, 16)}`],
-              ['Snapshots', `${result.snapshots.length} (${formatTimestamp(result.snapshots[0])} → ${formatTimestamp(result.snapshots.at(-1))})`],
-              ['Result sha256', <code key="r" className="break-all font-mono">{job.result_sha256 ?? NO_VALUE}</code>],
-              ['Scenario sha256', <code key="s" className="break-all font-mono">{result.scenario_hash ?? NO_VALUE}</code>],
-              ['Balance residual', formatQuantity(m.balance_residual_max_mw, 'MW')],
-            ]}
-          />
-        </Panel>
-      </div>
-    </>
-  )
-}
-
 function Downloads({ job, result }: { job: Job; result: GridstormResult | undefined }) {
   const artifacts = useJobArtifacts(job.id, job.status === 'completed' && job.result_available !== false && !!result)
   const report = useMutation({
@@ -316,7 +110,7 @@ function Downloads({ job, result }: { job: Job; result: GridstormResult | undefi
     },
   })
   return (
-    <Panel title="Downloads">
+    <Panel title="Downloads" id="downloads">
       <div className="flex flex-col gap-2">
         <div className="flex flex-wrap gap-1.5">
           <Button size="sm" disabled={!result} onClick={() => result && downloadJson(`gridstorm-result-${job.id}.json`, result)} data-testid="download-result">
@@ -330,10 +124,10 @@ function Downloads({ job, result }: { job: Job; result: GridstormResult | undefi
           >
             <FileJson aria-hidden className="size-3.5" /> Manifest
           </Button>
-          <Button size="sm" disabled={!result || report.isPending} onClick={() => report.mutate('md')}>
+          <Button size="sm" disabled={!result || report.isPending} onClick={() => report.mutate('md')} data-testid="download-report-md">
             <FileText aria-hidden className="size-3.5" /> Report MD
           </Button>
-          <Button size="sm" disabled={!result || report.isPending} onClick={() => report.mutate('json')}>
+          <Button size="sm" disabled={!result || report.isPending} onClick={() => report.mutate('json')} data-testid="download-report-json">
             <FileJson aria-hidden className="size-3.5" /> Report JSON
           </Button>
         </div>
@@ -355,13 +149,56 @@ function Downloads({ job, result }: { job: Job; result: GridstormResult | undefi
   )
 }
 
+/** Brief + "what changed" + result sections for a completed run with a loaded result. */
+function CompletedRun({ job, result, guide }: { job: Job; result: GridstormResult; guide: boolean }) {
+  const network = useNetwork(job.network_id)
+  const { plan } = useBaselinePlan(job)
+  const baselineJobId = plan?.kind === 'compare' ? plan.baselineJob.id : undefined
+  const baseline = useResult(baselineJobId, !!baselineJobId)
+  const recordId = job.scenario_record_id ?? job.scenario_id
+  const scenario = useScenario(recordId, !!recordId)
+  const hasStorage = (result.assets.storage_units?.length ?? 0) > 0
+  const storageUnits = useAssetTable(job.network_id, 'storage_units', hasStorage)
+  const basis = resolveCostBasis(result, network.data)
+  const brief = useMemo(
+    () =>
+      buildBrief(result, {
+        baseline: baseline.data ?? null,
+        network: network.data,
+        scenario: scenario.data?.spec ?? null,
+        storageUnits: storageUnits.data ?? null,
+      }),
+    [result, baseline.data, network.data, scenario.data, storageUnits.data],
+  )
+  const outaged = useMemo(() => outagedKeys(result), [result])
+  const highlighted = useMemo(() => (baseline.data ? changedBranchKeys(baseline.data, result) : []), [baseline.data, result])
+  return (
+    <>
+      <div className="grid gap-3 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
+        <Panel
+          title="Grid Impact Brief"
+          id="brief"
+          description="What happened and what it coincides with — derived by fixed rules from this run’s stored data (expand Evidence)."
+        >
+          <GridImpactBrief brief={brief} />
+        </Panel>
+        <BaselineChange job={job} result={result} plan={plan} baseline={baseline} network={network.data} guide={guide} />
+      </div>
+      <RunResultView job={job} result={result} network={network.data} basis={basis} outaged={outaged} highlighted={highlighted} />
+    </>
+  )
+}
+
 export default function RunPage() {
   const { id } = useParams()
+  const [params] = useSearchParams()
+  const guide = params.get('guide') === '1'
   const navigate = useNavigate()
   const job = useJob(id)
   const queryClient = useQueryClient()
   const done = job.data?.status === 'completed'
   const result = useResult(id, done && job.data?.result_available !== false)
+  const network = useNetwork(job.data?.network_id)
   const storedMetrics = useQuery({
     queryKey: ['run-metrics', id],
     queryFn: ({ signal }) => api.simulationMetrics(id!, signal),
@@ -371,7 +208,7 @@ export default function RunPage() {
     mutationFn: () => api.recomputeSimulation(id!),
     onSuccess: (next) => {
       void queryClient.invalidateQueries({ queryKey: qk.jobs })
-      void navigate(`/runs/${encodeURIComponent(next.id)}`)
+      void navigate(`/runs/${encodeURIComponent(next.id)}${guide ? '?guide=1' : ''}`)
     },
   })
   const cancel = useMutation({
@@ -418,14 +255,16 @@ export default function RunPage() {
   const unavailable = j.result_available === false || isResultUnavailable(result.error)
   const summary = outcomeSummary(j.status, result.data?.outcome ?? storedMetrics.data?.outcome ?? j.outcome, solver)
   const headlineMetrics = result.data?.metrics ?? storedMetrics.data?.metrics
+  const basis = resolveCostBasis(result.data, network.data)
+  const showResult = done && !unavailable && !!result.data
 
   return (
     <div className="mx-auto flex max-w-[1500px] flex-col gap-3 p-3 md:p-4">
       <PageHeader
-        title={<span>Run {result.data?.scenario_id ?? j.scenario_id ?? ''}</span>}
+        title={<span className="break-all">Run {result.data?.scenario_id ?? j.scenario_id ?? ''}</span>}
         subtitle={
           <>
-            Job <code className="font-mono">{j.id}</code> on network <code className="font-mono">{j.network_id}</code> · created{' '}
+            Job <code className="font-mono">{j.id.slice(0, 8)}</code> on network <code className="font-mono">{j.network_id}</code> · created{' '}
             {formatTimestamp(j.created_at)}
           </>
         }
@@ -452,33 +291,37 @@ export default function RunPage() {
                 <Ban aria-hidden className="size-3.5" /> {j.cancel_requested ? 'Cancel requested' : 'Cancel'}
               </Button>
             )}
-            {done && result.data && !unavailable && <CompareWithBaseline job={j} />}
+            {showResult && <CompareWithBaseline job={j} guide={guide} />}
           </>
         }
       />
+      {guide && <GuideStepsForRun job={j} ready={showResult} />}
       {cancel.error && <ErrorState error={cancel.error} title="Cancel failed" />}
-      <section className="gs-panel p-4" aria-label="Run summary" data-testid="run-summary">
+      <section className="gs-panel flex flex-col gap-2.5 p-3 md:p-4" aria-label="Run summary" data-testid="run-summary" id="run-summary">
         <div className="flex flex-wrap items-center gap-2">
-          <h2 className="text-lg font-semibold" data-testid="outcome-headline">{summary.label}</h2>
+          <h2 className="text-lg font-semibold" data-testid="outcome-headline">
+            {summary.label}
+          </h2>
           <Badge tone={summary.tone}>{j.status}</Badge>
           <p className="text-xs text-fg-muted">{summary.detail}</p>
+          {headlineMetrics && (
+            <span className="ml-auto">
+              <CostBasisBadge basis={basis} />
+            </span>
+          )}
         </div>
-        {headlineMetrics && (
-          <div aria-label="Key metrics" className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-5" data-testid="metrics">
-            {summaryMetrics(headlineMetrics).map((metric) => (
-              <MetricCard key={metric.key} label={metric.label} value={metric.value} unit={metric.unit} tone={metric.tone} hint={metric.hint} />
-            ))}
-          </div>
-        )}
+        {headlineMetrics && <HeadlineCards facts={headlineFacts(headlineMetrics, basis)} />}
+        {result.data && <KeyAssumptions result={result.data} basis={basis} />}
       </section>
-
 
       {done &&
         (unavailable ? (
           <Panel title="Result file unavailable" className="border-warn/50" id="result-unavailable">
             <div role="alert" data-testid="result-artifact-missing" className="flex flex-col gap-2 text-sm text-fg">
               <p>This simulation completed, but its detailed result file is no longer available.</p>
-              <p className="text-xs text-fg-muted">The job record remains available. Numerical series cannot be recovered from metadata alone; re-run the stored scenario to generate a new result.</p>
+              <p className="text-xs text-fg-muted">
+                The job record remains available. Numerical series cannot be recovered from metadata alone; re-run the stored scenario to generate a new result.
+              </p>
               <Button size="sm" onClick={() => rerun.mutate()} disabled={rerun.isPending}>
                 <RotateCcw aria-hidden className="size-3.5" /> {rerun.isPending ? 'Starting new run…' : 'Re-run this scenario'}
               </Button>
@@ -486,26 +329,29 @@ export default function RunPage() {
             </div>
           </Panel>
         ) : result.error ? (
-          <ErrorState error={result.error} title={isIntegrityError(result.error) ? 'Result integrity check failed' : 'Could not load result'} onRetry={() => void result.refetch()} />
+          <ErrorState
+            error={result.error}
+            title={isIntegrityError(result.error) ? 'Result integrity check failed' : 'Could not load result'}
+            onRetry={() => void result.refetch()}
+          />
         ) : !result.data ? (
           <SkeletonBlock rows={8} label="Loading result" />
         ) : (
-          <ResultView job={j} result={result.data} />
+          <CompletedRun job={j} result={result.data} guide={guide} />
         ))}
+      <Diagnostics job={j} result={result.data} />
       <div className="grid gap-3 lg:grid-cols-3">
         <Panel title="Status">
           <StageTimeline job={j} />
-          {!terminal && (
-            <p className="mt-2 text-2xs text-fg-subtle">Polling the backend every second; stages appear as the worker reports them.</p>
-          )}
+          {!terminal && <p className="mt-2 text-2xs text-fg-subtle">Polling the backend every second; stages appear as the worker reports them.</p>}
         </Panel>
-        <Panel title="Solver">
+        <Panel title="Solver configuration">
           <KeyValue
             rows={[
               ['Solver', solver ? `${solver.name ?? NO_VALUE} ${solver.version ?? ''}` : NO_VALUE],
               ['Status', solver?.status ?? NO_VALUE],
               ['Termination', solver?.termination_condition ?? NO_VALUE],
-              ['Objective', formatQuantity(solver?.objective_eur, 'EUR', { scale: true })],
+              ['Objective', formatMoney(solver?.objective_eur, basis, { scale: true })],
               ['Wall time', formatDuration(solver?.wall_time_s)],
               ['Attempts', j.attempts ?? NO_VALUE],
               ['Started', formatTimestamp(j.started_at)],
@@ -515,11 +361,20 @@ export default function RunPage() {
         </Panel>
         <Downloads job={j} result={result.data} />
       </div>
-
-      <Diagnostics job={j} result={result.data} />
       {terminal && !done && (
         <EmptyState title={`Run ${j.status}`}>No result is available for a {j.status} job. See diagnostics above.</EmptyState>
       )}
     </div>
+  )
+}
+
+function GuideStepsForRun({ job, ready }: { job: Job; ready: boolean }) {
+  const { plan } = useBaselinePlan(job)
+  const compare = plan?.kind === 'compare' ? compareUrl(plan.baselineJob.id, job.id, { auto: true, guide: true }) : '#baseline-change'
+  return (
+    <GuideSteps
+      current={ready ? 'compare' : 'result'}
+      links={{ failure: GUIDE_STUDIO_URL, result: '#run-summary', compare: ready ? compare : null, brief: ready ? '#brief' : null, download: '#downloads' }}
+    />
   )
 }

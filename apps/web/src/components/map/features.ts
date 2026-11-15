@@ -3,6 +3,7 @@ import type {
   CanonicalGenerator,
   CanonicalLine,
   CanonicalLink,
+  CanonicalLoad,
   CanonicalStorageUnit,
   CanonicalTransformer,
   CoordinateKind,
@@ -44,9 +45,21 @@ export interface MapFeatures {
   branches: FC<LineFeature>
   generators: FC<PointFeature>
   storage: FC<PointFeature>
+  /** Loads at their bus; empty unless the caller supplied a loads table (drawn by the schematic view). */
+  loads: FC<PointFeature>
   /** [minLon, minLat, maxLon, maxLat] in map coordinates, or null if nothing placeable. */
   bounds: [number, number, number, number] | null
   skipped: { buses: number; branches: number }
+}
+
+/**
+ * Result overlays keyed by assetKey(kind, id): assets out of service in a scenario and assets the
+ * caller wants emphasised (e.g. branches whose loading changed). Supplied by run/compare pages only;
+ * the Explorer never sets them.
+ */
+export interface AssetMarks {
+  outaged?: readonly string[]
+  highlighted?: readonly string[]
 }
 
 /**
@@ -101,7 +114,7 @@ function voltagePasses(kv: number | null | undefined, f: FeatureFilters): boolea
 
 /**
  * The columns buildFeatures reads. Full canonical tables (NetworkAssets) satisfy it, and so do
- * the rows reconstructed from the network GeoJSON (geojson.ts) plus optional generator/storage tables.
+ * the rows reconstructed from the network GeoJSON (geojson.ts) plus optional generator/storage/load tables.
  */
 export interface MapAssets {
   buses: Pick<CanonicalBus, 'id' | 'name' | 'x' | 'y' | 'v_nom_kv' | 'carrier' | 'country'>[]
@@ -110,6 +123,7 @@ export interface MapAssets {
   links: Pick<CanonicalLink, 'id' | 'bus0' | 'bus1' | 'carrier'>[]
   generators: Pick<CanonicalGenerator, 'id' | 'bus' | 'carrier' | 'p_nom_mw'>[]
   storage_units: Pick<CanonicalStorageUnit, 'id' | 'bus' | 'carrier' | 'p_nom_mw'>[]
+  loads?: Pick<CanonicalLoad, 'id' | 'bus' | 'p_peak_mw'>[]
 }
 
 export function buildFeatures(
@@ -118,10 +132,14 @@ export function buildFeatures(
   filters: FeatureFilters = NO_FILTERS,
   /** Branch values keyed by assetKey(kind, id), e.g. "line:12" → loading %. */
   lineValues?: Record<string, number | null>,
+  marks?: AssetMarks,
 ): MapFeatures {
   const project = makeProjector(kind, a.buses)
   const busPos = new Map<string, [number, number]>()
   const busById = new Map(a.buses.map((b) => [b.id, b]))
+  const outaged = new Set(marks?.outaged)
+  const highlighted = new Set(marks?.highlighted)
+  const marked = (key: string) => ({ outaged: outaged.has(key), highlighted: highlighted.has(key) })
   let minLon = Infinity
   let minLat = Infinity
   let maxLon = -Infinity
@@ -148,10 +166,11 @@ export function buildFeatures(
     minLat = Math.min(minLat, p[1])
     maxLat = Math.max(maxLat, p[1])
     if (!voltagePasses(b.v_nom_kv, filters) || !countryOk(b.id)) continue
+    const key = assetKey('bus', b.id)
     buses.push({
       type: 'Feature',
       geometry: { type: 'Point', coordinates: p },
-      properties: { key: assetKey('bus', b.id), id: b.id, asset_type: 'bus', v_nom_kv: b.v_nom_kv, carrier: b.carrier, country: b.country, name: b.name },
+      properties: { key, id: b.id, asset_type: 'bus', v_nom_kv: b.v_nom_kv, carrier: b.carrier, country: b.country, name: b.name, ...marked(key) },
     })
   }
 
@@ -177,7 +196,7 @@ export function buildFeatures(
     branches.push({
       type: 'Feature',
       geometry: { type: 'LineString', coordinates: [p0, p1] },
-      properties: { key, id, asset_type: type, v_nom_kv: kv, carrier, value },
+      properties: { key, id, asset_type: type, bus0, bus1, v_nom_kv: kv, carrier, value, ...marked(key) },
     })
   }
   for (const l of a.lines) pushBranch('line', l.id, l.bus0, l.bus1, l.v_nom_kv ?? busById.get(l.bus0)?.v_nom_kv ?? null, l.carrier)
@@ -190,10 +209,11 @@ export function buildFeatures(
     const p = busPos.get(g.bus)
     if (!p || !countryOk(g.bus)) continue
     if (g.carrier && filters.hiddenCarriers.has(g.carrier)) continue
+    const key = assetKey('generator', g.id)
     generators.push({
       type: 'Feature',
       geometry: { type: 'Point', coordinates: p },
-      properties: { key: assetKey('generator', g.id), id: g.id, asset_type: 'generator', carrier: g.carrier, p_nom_mw: g.p_nom_mw ?? 0 },
+      properties: { key, id: g.id, asset_type: 'generator', bus: g.bus, carrier: g.carrier, p_nom_mw: g.p_nom_mw ?? 0, ...marked(key) },
     })
   }
   const storage: PointFeature[] = []
@@ -201,10 +221,22 @@ export function buildFeatures(
     const p = busPos.get(s.bus)
     if (!p || !countryOk(s.bus)) continue
     if (s.carrier && filters.hiddenCarriers.has(s.carrier)) continue
+    const key = assetKey('storage_unit', s.id)
     storage.push({
       type: 'Feature',
       geometry: { type: 'Point', coordinates: p },
-      properties: { key: assetKey('storage_unit', s.id), id: s.id, asset_type: 'storage_unit', carrier: s.carrier, p_nom_mw: s.p_nom_mw ?? 0 },
+      properties: { key, id: s.id, asset_type: 'storage_unit', bus: s.bus, carrier: s.carrier, p_nom_mw: s.p_nom_mw ?? 0, ...marked(key) },
+    })
+  }
+  const loads: PointFeature[] = []
+  for (const l of a.loads ?? []) {
+    const p = busPos.get(l.bus)
+    if (!p || !countryOk(l.bus)) continue
+    const key = assetKey('load', l.id)
+    loads.push({
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: p },
+      properties: { key, id: l.id, asset_type: 'load', bus: l.bus, p_peak_mw: l.p_peak_mw, ...marked(key) },
     })
   }
 
@@ -214,6 +246,7 @@ export function buildFeatures(
     branches: { type: 'FeatureCollection', features: branches },
     generators: { type: 'FeatureCollection', features: generators },
     storage: { type: 'FeatureCollection', features: storage },
+    loads: { type: 'FeatureCollection', features: loads },
     bounds,
     skipped: { buses: skippedBuses, branches: skippedBranches },
   }

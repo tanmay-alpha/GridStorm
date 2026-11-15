@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 import uuid
@@ -15,7 +16,13 @@ from sqlalchemy.orm import Session
 from ..access import audit, ensure_profile, visible
 from ..auth import Principal
 from ..context import AppContext
-from ..db.models import SimulationArtifact, SimulationJob, SimulationMetrics, utcnow
+from ..db.models import (
+    AuditEvent,
+    SimulationArtifact,
+    SimulationJob,
+    SimulationMetrics,
+    utcnow,
+)
 from ..errors import APIError, Conflict, ServiceUnavailable, Unprocessable
 from ..validation import ValidationOutcome, validate_spec
 from .results import (
@@ -32,6 +39,46 @@ TERMINAL = ("completed", "failed", "cancelled", "timeout")
 REUSABLE_OUTCOMES = ("feasible", "infeasible")
 # Most recent identical completed jobs inspected for reuse (reused jobs share one blob).
 REUSE_CANDIDATES = 5
+ACTIVE = ("queued", "running")
+_JOB_CREATE_ACTIONS = ("simulation.create", "simulation.recompute")
+
+
+def client_fingerprint(client_key: str) -> str:
+    """Pseudonymous anonymous-client id kept in the server-only audit trail (never the raw IP)."""
+    return hashlib.sha256(f"gridstorm-client:{client_key}".encode()).hexdigest()[:32]
+
+
+def active_jobs_of(session: Session, principal: Principal, fingerprint: str | None) -> int:
+    """Queued+running jobs of a signed-in owner, or of an anonymous client fingerprint."""
+    if principal.user_id is not None:
+        return (
+            session.scalar(
+                select(func.count())
+                .select_from(SimulationJob)
+                .where(
+                    SimulationJob.owner_id == principal.user_id, SimulationJob.status.in_(ACTIVE)
+                )
+            )
+            or 0
+        )
+    if fingerprint is None:
+        return 0
+    # Ownerless active jobs are bounded by GRIDSTORM_MAX_QUEUED_JOBS, so this stays small.
+    ids = session.scalars(
+        select(SimulationJob.id).where(
+            SimulationJob.owner_id.is_(None), SimulationJob.status.in_(ACTIVE)
+        )
+    ).all()
+    if not ids:
+        return 0
+    details = session.scalars(
+        select(AuditEvent.details).where(
+            AuditEvent.target_type == "simulation_job",
+            AuditEvent.action.in_(_JOB_CREATE_ACTIONS),
+            AuditEvent.target_id.in_([str(i) for i in ids]),
+        )
+    ).all()
+    return sum(1 for d in details if (d or {}).get("client") == fingerprint)
 
 
 def iso(dt: datetime | None) -> str | None:
@@ -277,13 +324,20 @@ def create_job(
     reuse: bool,
     recompute_of: SimulationJob | None = None,
     claim_for: str | None = None,
+    client_key: str | None = None,
 ) -> SimulationJob:
     """Create a job: precomputed completion, verified reuse, or a queued live run.
 
     ``recompute_of`` records recompute provenance and disables reuse. ``claim_for`` (recovery CLI)
     inserts a live job already claimed by that worker id, so no API worker can take it.
+    ``client_key`` (the rate-limit identity of an HTTP caller) enforces
+    ``GRIDSTORM_MAX_ACTIVE_JOBS_PER_CLIENT`` for anonymous callers; signed-in callers are counted
+    by owner. Only jobs that actually enqueue are capped (reuse/precomputed never are).
     """
     ensure_profile(session, principal)
+    fingerprint = (
+        client_fingerprint(client_key) if client_key and principal.user_id is None else None
+    )
     mode = ctx.settings.execution_mode
     assert outcome.entry is not None and outcome.scenario_hash is not None
     if mode == "live" and not ctx.settings.live_execution(outcome.entry.id):
@@ -325,8 +379,20 @@ def create_job(
             queued = session.scalar(
                 select(func.count())
                 .select_from(SimulationJob)
-                .where(SimulationJob.status.in_(("queued", "running")))
+                .where(SimulationJob.status.in_(ACTIVE))
             )
+            cap = ctx.settings.max_active_jobs_per_client
+            if claim_for is None and cap > 0 and (principal.user_id or fingerprint):
+                active = active_jobs_of(session, principal, fingerprint)
+                if active >= cap:
+                    raise APIError(
+                        f"you already have {active} simulation(s) queued or running; at most "
+                        f"{cap} per user or client may be active at a time. Wait for one to "
+                        "finish or cancel it, then submit again.",
+                        code="too_many_active_jobs",
+                        status_code=429,
+                        details={"active_jobs": active, "limit": cap},
+                    )
             if (queued or 0) >= ctx.settings.max_queued_jobs:
                 raise ServiceUnavailable(
                     "the simulation queue is full; try again later",
@@ -357,6 +423,7 @@ def create_job(
             "reused": job.reused,
             "mode": job.execution_mode,
             **provenance,
+            **({"client": fingerprint} if fingerprint else {}),
         },
     )
     session.commit()
@@ -373,6 +440,7 @@ def recompute_job(
     *,
     force: bool = False,
     claim_for: str | None = None,
+    client_key: str | None = None,
 ) -> SimulationJob:
     """Re-run a completed job's stored scenario spec as a NEW job (``recomputed_from`` = source).
 
@@ -420,6 +488,7 @@ def recompute_job(
         reuse=False,
         recompute_of=source,
         claim_for=claim_for,
+        client_key=client_key,
     )
 
 

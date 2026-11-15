@@ -109,6 +109,7 @@ class NetworkSummary(BaseModel):
     has_network_file: bool
     live_execution: bool
     source: dict[str, Any] | None = None
+    cost_basis: dict[str, Any] | None = None
 
 
 class NetworkDetail(NetworkSummary):

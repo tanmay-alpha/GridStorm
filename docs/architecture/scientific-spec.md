@@ -24,7 +24,7 @@ operational.
 | $g_{s,t}$ | generator dispatch | MW | `generators_t.p` |
 | $\bar G_s$ | generator nominal power | MW | `p_nom` |
 | $\underline g_{s,t}, \bar g_{s,t}$ | per-unit min/max availability | p.u. | `p_min_pu`, `p_max_pu` |
-| $o_s$ | marginal cost | EUR/MWh | `marginal_cost` |
+| $o_s$ | marginal cost | `cost_basis.money_unit`/MWh | `marginal_cost` |
 | $d_{n,t}$ | demand at bus $n$ | MW | `loads_t.p_set` (sign −1) |
 | $f_{\ell,t}$ | branch active-power flow bus0 → bus1 | MW | `lines_t.p0`, `transformers_t.p0` |
 | $F_\ell$, $\bar f_\ell$ | branch rating, per-unit limit | MVA, p.u. | `s_nom`, `s_max_pu` |
@@ -34,7 +34,7 @@ operational.
 | $\eta^{st}_r, \eta^{dis}_r, \eta^{sl}_r$ | store / dispatch efficiency, standing loss | – | `efficiency_store`, `efficiency_dispatch`, `standing_loss` |
 | $h_r$ | energy-to-power ratio | h | `max_hours` |
 | $p^{shed}_{n,t}$ | load shed at bus $n$ | MW | generator `"<bus> load_shedding"` |
-| $\mathrm{VOLL}$ | value of lost load | EUR/MWh | `mitigation.load_shedding.voll_eur_per_mwh` |
+| $\mathrm{VOLL}$ | load-shedding penalty | `cost_basis.money_unit`/MWh | `mitigation.load_shedding.voll_eur_per_mwh` (legacy name) |
 
 ### 1.1 Objective
 
@@ -49,6 +49,21 @@ capacity is extendable (§5.1). `total_system_cost_eur` is the LP objective; `lo
 is the VOLL term; `generation_cost_eur` = objective − shedding cost.
 Docs: <https://docs.pypsa.org/latest/user-guide/optimization/objective/>.
 
+The objective is denominated in the dataset's **`cost_basis.money_unit`**, not automatically EUR.
+Both PGLib cases use nominal benchmark **PGLib cost units**; the AC/DC and SciGRID examples use
+**illustrative cost units**; the Belgium tutorial uses **EUR (2025)** technology assumptions.
+`cost_basis` is read from the manifest beside `network.nc` and embedded in every new result,
+including infeasible/error results. `cost_basis.penalties` declares the scenario VOLL value and unit.
+VOLL is interpreted in that same dataset unit/MWh, a numerical penalty rather than an empirical
+outage-damage estimate. **No exchange-rate or inflation conversion is performed.**
+
+Legacy names `*_eur`, `*_eur_per_mwh`, `objective_eur` and `voll_eur_per_mwh` remain unchanged
+to preserve stored data, clients and scenario hashes; their units come from `cost_basis`.
+Cost deltas are withheld (`null`, `costs_comparable: false`) unless both runs have the same
+non-empty `comparability_key`. Physical energy/loading comparisons are unaffected.
+See the [cost-basis audit](../research/cost-basis-audit.md) for coefficient evidence and the
+exact before/after objective comparison of all 12 presets.
+
 ### 1.2 Nodal power balance (Kirchhoff's current law)
 
 For every bus $n$ and snapshot $t$:
@@ -60,7 +75,8 @@ $$
 
 with $K$ the incidence matrix ($+1$ at bus0, $-1$ at bus1). For a link, $p_{1,k,t} = -\eta_k\, p_{0,k,t}$.
 The bus marginal price reported as `marginal_price_eur_per_mwh` is the dual of this constraint
-(EUR/MWh). Docs: <https://docs.pypsa.org/latest/user-guide/optimization/energy-balance/>.
+(`cost_basis.price_unit`, the dataset money unit/MWh).
+Docs: <https://docs.pypsa.org/latest/user-guide/optimization/energy-balance/>.
 
 ### 1.3 Kirchhoff's voltage law — cycle formulation
 
@@ -153,7 +169,7 @@ $\pi_k$. Infeasible scenarios must not be passed in.
 
 * Generators, storage `p`: positive = injection into the bus. Loads: positive = consumption.
 * Branch `flow_mw` = `p0`: power withdrawn from bus0 (positive = flow bus0 → bus1).
-* Units: MW, MWh, MVA, EUR, EUR/MWh, t CO2, h; percentages in %.
+* Units: MW, MWh, MVA, `cost_basis.money_unit`, `cost_basis.price_unit`, t CO2, h; percentages in %.
 * Series are rounded to 4 decimals, metrics to 6 decimals (balance residual to 9).
 
 ## 4. Scenario events → model changes

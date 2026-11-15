@@ -6,9 +6,10 @@ import type { ArtifactIndexItem, NetworkDetail } from '../../../api/types'
 import { DataTable, EmptyState, ErrorState, PageHeader, Panel, ProvenanceBadge, SkeletonBlock, type Column } from '../../../components/ui'
 import { formatTimestamp, NO_VALUE } from '../../../lib/format'
 import { TeX } from '../components/TeX'
+import { useInView } from '../components/useInView'
 import { ASSUMPTIONS, DOC_LINKS, ENGINE_PINS, EQUATIONS, LIMITATIONS, PROVENANCE_ROWS, REFERENCES, docUrl, type Statement } from '../content/methods'
-import { useArtifactIndex, useNetworks } from '../hooks'
-import { parseArtifact } from '../lib/parse'
+import { useArtifactCatalog, useNetworks } from '../hooks'
+import { catalogHeader, HEADER_MISSING } from '../lib/indexing'
 
 function Cite({ path }: { path: string }) {
   return (
@@ -30,21 +31,17 @@ function StatementList({ items }: { items: Statement[] }) {
   )
 }
 
-/** Engine versions as recorded in the headers of published artifacts (one artifact per engine). */
+/**
+ * Engine versions as recorded in the file headers of published artifacts (first artifact per
+ * engine), all from the one `include=header` catalog request.
+ */
 function EngineVersions() {
-  const index = useArtifactIndex({})
+  const index = useArtifactCatalog()
   const firstPerEngine = useMemo(() => {
     const m = new Map<string, ArtifactIndexItem>()
-    for (const it of index.data ?? []) if (it.engine && !m.has(it.engine)) m.set(it.engine, it)
+    for (const it of index.data ?? []) if (it.engine && it.available !== false && !m.has(it.engine)) m.set(it.engine, it)
     return [...m.values()]
   }, [index.data])
-  const results = useQueries({
-    queries: firstPerEngine.map((it) => ({
-      queryKey: ['research', 'artifact', it.engine, it.artifact_id],
-      queryFn: async ({ signal }: { signal: AbortSignal }) => parseArtifact(await api.artifact(it.engine, it.artifact_id, signal)),
-      staleTime: Infinity,
-    })),
-  })
   if (index.isError) return <ErrorState error={index.error} onRetry={() => void index.refetch()} />
   if (index.isPending) return <SkeletonBlock rows={3} label="Loading artifact index" />
   if (firstPerEngine.length === 0) return <EmptyState title="No published artifacts">The backend artifact index is empty.</EmptyState>
@@ -60,13 +57,12 @@ function EngineVersions() {
         </tr>
       </thead>
       <tbody>
-        {firstPerEngine.map((it, i) => {
-          const r = results[i]
-          const h = r?.data?.header
+        {firstPerEngine.map((it) => {
+          const h = catalogHeader(it)?.header
           return (
             <tr key={it.engine} className="border-b border-line/60">
               <td className="px-2 py-1 font-medium">{it.engine}</td>
-              <td className="px-2 py-1 font-mono">{r?.isError ? 'failed to load' : h ? h.engine_version || NO_VALUE : '…'}</td>
+              <td className="px-2 py-1 font-mono">{h ? h.engine_version || NO_VALUE : HEADER_MISSING}</td>
               <td className="px-2 py-1 font-mono">
                 {it.artifact_id}
                 {h && <span className="text-fg-subtle"> · {formatTimestamp(h.created_at)}</span>}
@@ -122,26 +118,36 @@ const networkColumns: Column<NetworkDetail>[] = [
   },
 ]
 
+/**
+ * Network summaries render at once; the per-network manifests (retrieval date, quality flags) are
+ * requested only when this below-the-fold table nears the viewport.
+ */
 function DataProvenance() {
   const networks = useNetworks()
+  const [ref, inView] = useInView<HTMLDivElement>()
   const details = useQueries({
     queries: (networks.data ?? []).map((n) => ({
       queryKey: ['research', 'network', n.id],
       queryFn: ({ signal }: { signal: AbortSignal }) => api.network(n.id, signal),
       staleTime: 5 * 60_000,
+      enabled: inView,
     })),
   })
-  if (networks.isError) return <ErrorState error={networks.error} onRetry={() => void networks.refetch()} />
-  if (networks.isPending) return <SkeletonBlock rows={4} label="Loading network manifests" />
-  if (networks.data.length === 0) return <EmptyState title="No networks published">GET /api/v1/networks returned no datasets.</EmptyState>
-  const rows: NetworkDetail[] = networks.data.map((n, i) => details[i]?.data ?? n)
-  const failed = details.filter((d) => d.isError).length
-  return (
-    <>
-      <DataTable columns={networkColumns} rows={rows} rowKey={(r) => r.id} caption="Dataset provenance from network manifests" pageSize={20} />
-      {failed > 0 && <p className="mt-2 text-xs text-warn">{failed} manifest request(s) failed; those rows show summary fields only.</p>}
-    </>
-  )
+  let body
+  if (networks.isError) body = <ErrorState error={networks.error} onRetry={() => void networks.refetch()} />
+  else if (networks.isPending) body = <SkeletonBlock rows={4} label="Loading network manifests" />
+  else if (networks.data.length === 0) body = <EmptyState title="No networks published">GET /api/v1/networks returned no datasets.</EmptyState>
+  else {
+    const rows: NetworkDetail[] = networks.data.map((n, i) => details[i]?.data ?? n)
+    const failed = details.filter((d) => d.isError).length
+    body = (
+      <>
+        <DataTable columns={networkColumns} rows={rows} rowKey={(r) => r.id} caption="Dataset provenance from network manifests" pageSize={20} />
+        {failed > 0 && <p className="mt-2 text-xs text-warn">{failed} manifest request(s) failed; those rows show summary fields only.</p>}
+      </>
+    )
+  }
+  return <div ref={ref}>{body}</div>
 }
 
 export function MethodsPage() {

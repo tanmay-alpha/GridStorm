@@ -1,5 +1,5 @@
 import type { NetworkAssets } from '../../api/hooks'
-import type { NetworkSummary } from '../../api/types'
+import type { NetworkSummary, ValidationIssue } from '../../api/types'
 import {
   SCENARIO_ID_PATTERN,
   type EventType,
@@ -9,7 +9,10 @@ import {
 
 /** Default solver time limit shown in the form (stormspec models.py SolverOptions default). */
 export const DEFAULT_TIME_LIMIT_S = 120
-/** Default VOLL used by stormspec LoadShedding. */
+/**
+ * Default VOLL used by stormspec LoadShedding. Legacy `_EUR` naming (matches `voll_eur_per_mwh`): the
+ * value is in the dataset's cost_basis money unit per MWh (gridstorm-cost-basis/1.0), not euros.
+ */
 export const DEFAULT_VOLL_EUR_PER_MWH = 10_000
 
 /** A fresh, fully specified scenario for `network` (no events). Horizon defaults to ≤ 24 snapshots. */
@@ -132,11 +135,18 @@ export function newEvent(type: EventType, a: NetworkAssets): StormEvent {
   }
 }
 
-/** Client-side checks that need no backend; the API report remains authoritative. */
-export function localIssues(spec: StormSpec): string[] {
-  const out: string[] = []
+/**
+ * Client-side checks that need no backend, in the API's ValidationIssue shape (same paths), so the
+ * UI can attach them to fields. The API report remains authoritative.
+ */
+export function localIssues(spec: StormSpec): ValidationIssue[] {
+  const out: ValidationIssue[] = []
   if (!SCENARIO_ID_PATTERN.test(spec.id))
-    out.push('Scenario id must be 3–64 characters: lowercase letters, digits and hyphens, starting with a letter or digit.')
-  if (!spec.name.trim()) out.push('Scenario name is required.')
+    out.push({
+      code: 'client_check',
+      path: 'id',
+      message: 'Use 3–64 characters: lowercase letters, digits and hyphens, starting with a letter or digit.',
+    })
+  if (!spec.name.trim()) out.push({ code: 'client_check', path: 'name', message: 'Give the scenario a name.' })
   return out
 }

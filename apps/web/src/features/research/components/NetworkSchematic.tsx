@@ -19,7 +19,13 @@ export function NetworkSchematic({
   const q = useNetworkGeojson(networkId)
   const geom = useMemo(() => (q.data ? geometryFromGeojson(q.data) : null), [q.data])
   if (q.isError) return <ErrorState error={q.error} title="Network geometry unavailable" onRetry={() => void q.refetch()} />
-  if (!geom) return <SkeletonBlock rows={5} label="Loading network geometry" />
+  // Same height as the drawn schematic (GridSchematic default 360 px) so the detail below does not jump.
+  if (!geom)
+    return (
+      <div className="min-h-[360px]">
+        <SkeletonBlock rows={5} label="Loading network geometry" />
+      </div>
+    )
   if (geom.branches.length === 0) {
     return <EmptyState title="No branch geometry">The GeoJSON for {networkId} has no LineString features to draw.</EmptyState>
   }

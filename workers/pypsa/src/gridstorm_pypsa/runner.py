@@ -185,7 +185,8 @@ def _reject(code: str, path: str, message: str) -> ScenarioRejected:
 class _Applied:
     """Book-keeping of what the scenario changed (for outputs and assumptions)."""
 
-    def __init__(self) -> None:
+    def __init__(self, money_unit: str = "cost units (basis unknown)") -> None:
+        self.money_unit = money_unit
         self.outaged_branches: set[tuple[str, str]] = set()  # ("lines"|"transformers", id)
         self.outaged_links: set[str] = set()
         self.outaged_generators: set[str] = set()
@@ -420,7 +421,8 @@ def _add_load_shedding(
     )
     applied.assumptions.append(
         f"Load shedding modelled as one dispatchable generator per load bus ({len(names)} buses), "
-        f"marginal cost = VOLL {voll:g} EUR/MWh, bounded by the bus demand at every snapshot"
+        f"marginal cost = VOLL {voll:g} {applied.money_unit}/MWh, bounded by the bus demand "
+        "at every snapshot; VOLL is a penalty parameter, not an economic estimate"
     )
 
 
@@ -703,6 +705,43 @@ def _postprocess(n: pypsa.Network, scenario: Scenario, applied: _Applied) -> dic
 # --------------------------------------------------------------------------- entry point
 
 
+def _cost_basis(network_dir: Path, scenario: Scenario) -> dict:
+    """Read the adjacent manifest in both live API and precompute executions."""
+    path = network_dir / "manifest.json"
+    basis = (
+        json.loads(path.read_text(encoding="utf-8")).get("cost_basis") if path.is_file() else None
+    )
+    if basis is None:
+        basis = {
+            "schema_version": "gridstorm-cost-basis/1.0",
+            "kind": "illustrative",
+            "currency": None,
+            "currency_year": None,
+            "money_unit": "cost units (basis unknown)",
+            "price_unit": "cost units (basis unknown)/MWh",
+            "comparability_key": f"unknown:{scenario.dataset.network_id}",
+            "provenance": "Dataset manifest does not declare coefficient provenance.",
+            "assumptions": ["No verified currency or currency conversion is claimed."],
+        }
+    else:
+        basis = dict(basis)
+    basis["penalties"] = (
+        [
+            {
+                "term": "load_shedding",
+                "value_per_mwh": scenario.mitigation.load_shedding.voll_eur_per_mwh,
+                "unit": basis["price_unit"],
+                "nature": "penalty",
+                "description": "Scenario VOLL interpreted in the dataset money unit; "
+                "not an economic estimate.",
+            }
+        ]
+        if scenario.mitigation.load_shedding.enabled
+        else []
+    )
+    return basis
+
+
 def _base_assumptions() -> list[str]:
     return [
         "DC linearised power flow (LOPF) — no reactive power, voltage magnitudes or losses",
@@ -776,7 +815,8 @@ def run_scenario(
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         n.set_snapshots(n.snapshots[h.start : h.end])
-    applied = _Applied()
+    basis = _cost_basis(network_dir, scenario)
+    applied = _Applied(basis["money_unit"])
     _fix_capacities(n, applied)
     _drop_global_constraints(n, applied)
     _release_setpoints(n, applied)
@@ -827,6 +867,7 @@ def run_scenario(
         "scenario_hash": stormspec.scenario_hash(scenario),
         "network_id": network_id,
         "provenance": "modeled",
+        "cost_basis": basis,
         "engine": {"name": "pypsa", "version": pypsa.__version__, "formulation": "lopf"},
         "solver": {
             "name": "highs",
@@ -857,7 +898,16 @@ def run_scenario(
                 f"Solver finished with status {status!r}, termination {condition!r}: "
                 "no valid solution, no numbers are reported."
             )
-    result["assumptions"] = _base_assumptions() + applied.assumptions + list(scenario.assumptions)
+    result["assumptions"] = (
+        _base_assumptions()
+        + [
+            f"All monetary coefficients and legacy *_eur fields use {basis['money_unit']}; "
+            "no currency conversion is performed."
+        ]
+        + basis["assumptions"]
+        + applied.assumptions
+        + list(scenario.assumptions)
+    )
     result["warnings"] = result_warnings + applied.warnings
 
     manifest = ExecutionManifest(

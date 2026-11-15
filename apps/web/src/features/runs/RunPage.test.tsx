@@ -1,10 +1,15 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { QueryClientProvider } from '@tanstack/react-query'
+import { readFileSync } from 'node:fs'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createQueryClient } from '../../api/queryClient'
 import { ThemeProvider } from '../../lib/theme'
 import RunPage from './RunPage'
+
+// Map and charts need WebGL/canvas; their own suites cover them.
+vi.mock('../../components/map/BranchValueMap', () => ({ BranchValueMap: () => <div>network map</div> }))
+vi.mock('../../components/ui/Chart', () => ({ Chart: ({ testId }: { testId?: string }) => <div data-testid={testId} /> }))
 
 const MISSING = 'd813df71-9211-4d0b-b80d-e7d38fc2a93a'
 
@@ -104,5 +109,58 @@ describe('RunPage', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Job not found' })).toBeInTheDocument()
     expect(screen.queryByRole('status', { name: 'Loading job' })).not.toBeInTheDocument()
     expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('RunPage — completed run (real IEEE 14 gen-1 outage result)', () => {
+  const read = (id: string) => JSON.parse(readFileSync(`../../data/artifacts/pypsa/${id}.json`, 'utf8')).payload
+  const PGLIB = {
+    schema_version: 'gridstorm-cost-basis/1.0', kind: 'benchmark_nominal', currency: null, currency_year: null,
+    money_unit: 'PGLib cost units', price_unit: 'PGLib cost units/MWh', comparability_key: 'pglib', provenance: 'MATPOWER gencost', assumptions: [],
+    penalties: [{ term: 'load_shedding', value_per_mwh: 10000, unit: 'PGLib cost units/MWh', nature: 'penalty' }],
+  }
+  const outage = { ...read('pglib-case14-ieee-gen-1-outage'), cost_basis: PGLIB }
+  const job = {
+    id: 'run-1', scenario_id: 'pglib-case14-ieee-gen-1-outage', scenario_hash: outage.scenario_hash, network_id: 'pglib-case14-ieee',
+    status: 'completed', result_available: true, stage: 'done', stage_history: [], execution_mode: 'live', outcome: 'feasible',
+    solver: outage.solver, error: null, result_sha256: 'abc', created_at: '2026-11-15T00:00:00Z', finished_at: '2026-11-15T00:01:00Z',
+  }
+
+  it('answers what happened above the details: outcome, facts in the cost basis, brief, guide; no EUR, no `now`', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (input: string) => {
+      const path = new URL(input, 'http://localhost').pathname
+      const ok = (data: unknown) => new Response(JSON.stringify(data), { status: 200 })
+      if (path === '/api/v1/simulations/run-1') return ok(job)
+      if (path === '/api/v1/simulations/run-1/result') return ok(outage)
+      if (path.endsWith('/artifacts')) return ok({ items: [] })
+      if (path === '/api/v1/simulations' || path === '/api/v1/scenarios' || path === '/api/v1/networks') return ok({ items: [] })
+      return new Response(JSON.stringify({ error: { code: 'not_found', message: path } }), { status: 404 })
+    }))
+    render(
+      <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+        <ThemeProvider>
+          <MemoryRouter initialEntries={['/runs/run-1?guide=1']}>
+            <Routes>
+              <Route path="/runs/:id" element={<RunPage />} />
+            </Routes>
+          </MemoryRouter>
+        </ThemeProvider>
+      </QueryClientProvider>,
+    )
+    const brief = await screen.findByTestId('grid-impact-brief', undefined, { timeout: 7_000 })
+    expect(screen.getByTestId('outcome-headline')).toHaveTextContent('Feasible')
+    const metrics = screen.getByTestId('metrics')
+    expect(within(metrics).getByText('200 MWh')).toBeInTheDocument()
+    expect(within(metrics).getByText('22.78 %')).toBeInTheDocument()
+    expect(within(metrics).getByText('2 M PGLib cost units')).toBeInTheDocument()
+    expect(within(brief).getByTestId('brief-headline')).toHaveTextContent('Feasible with 200 MWh unserved (77.22 % of demand)')
+    expect(brief.querySelector('[data-statement="outage"]')).toHaveTextContent('generator gen-1')
+    expect(screen.getByTestId('key-assumptions')).toHaveTextContent('single period (no timestamp)')
+    expect(screen.getByTestId('snapshot-label')).toHaveTextContent('single period (no timestamp)')
+    expect(screen.getByTestId('guide-steps').querySelector('[aria-current="step"]')).toHaveAttribute('data-step', 'compare')
+    expect(screen.getByTestId('penalty-load_shedding')).toHaveTextContent('10,000 PGLib cost units/MWh')
+    // Only the dataset's own assumption text may mention EUR (to say the costs are *not* EUR).
+    for (const el of [screen.getByTestId('run-summary'), brief, screen.getByTestId('cost-basis')]) expect(el.textContent).not.toMatch(/\bEUR\b/)
+    expect(document.body.textContent).not.toMatch(/\bnow\b/)
   })
 })

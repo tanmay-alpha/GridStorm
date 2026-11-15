@@ -1,5 +1,18 @@
 import { describe, expect, it } from 'vitest'
-import { availability, canEnter, effectiveStep, initialStep, runBlockReason, type ExecutionPolicy } from './flow'
+import type { NetworkSummary, ScenarioRecord } from '../../api/types'
+import {
+  availability,
+  canEnter,
+  effectiveStep,
+  initialStep,
+  recommendedNetwork,
+  recommendedPreset,
+  runBlockReason,
+  type ExecutionPolicy,
+} from './flow'
+import networks from './__fixtures__/networks.json'
+import scenarios from './__fixtures__/scenarios-scigrid-de.json'
+import artifacts from './__fixtures__/artifacts-simulation.json'
 
 const policy: ExecutionPolicy = { live: new Map([['small', true], ['large', false]]), precomputed: new Set(['verified']) }
 
@@ -30,5 +43,26 @@ describe('staged Crisis Studio', () => {
     expect(runBlockReason({ ...valid, localIssues: 1 })).toContain('validation errors')
     expect(runBlockReason({ ...valid, availability: 'unavailable' })).toContain('refuse')
     expect(runBlockReason({ ...valid, submitting: true })).toBe('Submitting…')
+  })
+})
+
+describe('sensible defaults', () => {
+  const records = scenarios.items as unknown as ScenarioRecord[]
+  const nets = networks.items as unknown as NetworkSummary[]
+  const real: ExecutionPolicy = {
+    live: new Map(nets.map((n) => [n.id, n.live_execution])),
+    precomputed: new Set(artifacts.items.map((a) => a.scenario_hash).filter((h): h is string => typeof h === 'string')),
+  }
+  it('recommends a runnable crisis preset (with events) before the baseline', () => {
+    const rec = recommendedPreset('scigrid-de', records, real)
+    expect(rec?.spec.events.length).toBeGreaterThan(0)
+    expect(availability(real, 'scigrid-de', rec!.hash)).toBe('precomputed')
+    expect(recommendedPreset('scigrid-de', records, { ...real, precomputed: new Set() })).toBeNull()
+  })
+  it('recommends the guided-demo grid when it is solved live, else the smallest live grid with a crisis', () => {
+    expect(recommendedNetwork(nets, records)?.id).toBe('pglib-case14-ieee')
+    const withoutDemo = nets.filter((n) => n.id !== 'pglib-case14-ieee')
+    // No crisis presets of live grids in this list: falls back to the smallest live grid.
+    expect(recommendedNetwork(withoutDemo, records)?.id).toBe('ac-dc-meshed')
   })
 })

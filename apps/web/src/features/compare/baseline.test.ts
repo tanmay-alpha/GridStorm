@@ -13,6 +13,7 @@ describe('Compare with baseline', () => {
   it('selects an existing same-network completed baseline', () => {
     expect(baselinePlan(job, presets, [done], policy)).toMatchObject({ kind: 'compare', baselineJob: { id: 'baseline' } })
     expect(compareUrl('base id', 'scenario id')).toBe('/compare?a=base%20id&b=scenario%20id')
+    expect(compareUrl('base', 'crisis', { auto: true, guide: true })).toBe('/compare?a=base&b=crisis&auto=1&guide=1')
   })
   it('rejects another network, missing results and incomplete runs', () => {
     for (const candidate of [{ ...done, network_id: 'other' }, { ...done, result_available: false }, { ...done, status: 'running' as const }]) {

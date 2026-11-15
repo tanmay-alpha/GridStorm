@@ -5,6 +5,10 @@
 
 export const NO_VALUE = '—'
 
+/**
+ * Physical / engineering units. `EUR` and `EUR/MWh` are legacy: GridStorm money is denominated in
+ * the dataset cost basis, so new code formats money with `lib/money.ts` (never these units).
+ */
 export type Unit =
   | 'MW'
   | 'MWh'
@@ -91,6 +95,36 @@ export function formatDelta(v: number | null | undefined, unit: Unit, opts: { sc
   if (v === 0) return formatQuantity(0, unit, opts)
   const s = formatQuantity(Math.abs(v), unit, opts)
   return `${v > 0 ? '+' : '\u2212'}${s}`
+}
+
+/** Signed change of a quantity that is itself a percentage, in percentage points: "+3.2 pp". */
+export function formatPctPoints(v: number | null | undefined, digits?: number): string {
+  if (!isFiniteNumber(v)) return NO_VALUE
+  if (v === 0) return '0 pp'
+  return `${v > 0 ? '+' : '\u2212'}${formatNumber(Math.abs(v), digits)} pp`
+}
+
+/** Shown instead of a relative change when the baseline is exactly 0 (division undefined). */
+export const ZERO_BASELINE = 'n/a (baseline 0)'
+
+/**
+ * Relative change (scenario − baseline) ÷ |baseline| as a signed percentage. Missing inputs → "—";
+ * a zero baseline → "n/a (baseline 0)" (never ±∞ or a fake 0 %).
+ */
+export function formatRelativeChange(baseline: number | null | undefined, scenario: number | null | undefined): string {
+  if (!isFiniteNumber(baseline) || !isFiniteNumber(scenario)) return NO_VALUE
+  if (baseline === 0) return ZERO_BASELINE
+  return formatDelta(((scenario - baseline) / Math.abs(baseline)) * 100, '%')
+}
+
+/**
+ * Money fields keep legacy `_eur` suffixes (`total_system_cost_eur`, `*_eur_per_mwh`) but are
+ * denominated in the dataset cost basis: `total` → formatMoney, `price` → formatPrice.
+ */
+export function moneyFieldKind(field: string): 'total' | 'price' | null {
+  if (field.endsWith('_eur_per_mwh')) return 'price'
+  if (field.endsWith('_eur')) return 'total'
+  return null
 }
 
 export function formatDuration(seconds: number | null | undefined): string {

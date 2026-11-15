@@ -33,6 +33,7 @@ from canonical_grid import (
     dump_json,
 )
 from network_import.canonical import from_pypsa
+from network_import.cost_basis import dataset_cost_basis
 from network_import.manifest import file_entries
 from network_import.paths import networks_dir, sha256_file, write_text
 from replace_load import ATTRIBUTION, LICENSE_SPDX, LICENSE_URL, REPLACEMENT_ATTR
@@ -181,6 +182,7 @@ def main() -> None:
             temporal=f"{snaps.start} .. {snaps.end}, {snaps.count} snapshots at "
             f"{snaps.resolution_h} h",
         ),
+        cost_basis=dataset_cost_basis(NETWORK_ID),
         units={
             "v_nom": "kV",
             "p_nom": "MW",
@@ -190,7 +192,8 @@ def main() -> None:
             "r": "ohm (lines)",
             "length": "km",
             "marginal_cost": "EUR/MWh",
-            "capital_cost": "EUR/MW/a (annuitised, per snapshot-weighted horizon)",
+            "capital_cost": "EUR per nominal MW (power) or MWh (Store energy), "
+            "annualised then scaled to the model horizon",
             "co2_emissions": "t/MWh",
         },
         missing_value_policy=(

@@ -128,7 +128,7 @@ describe('Crisis Advisor', () => {
     const run = parseAdvisor(parseArtifact(advisor).payload)
     expect(run.crisisState?.nViolations).toBe(4)
     expect(run.candidates.map((c) => c.status)).toEqual(['accepted', 'rejected'])
-    expect(run.candidates[0]?.objective?.objectiveEur).toBe(457537.72)
+    expect(run.candidates[0]?.objective?.objective).toBe(457537.72)
     expect(run.candidates[1]?.rejectionReasons).toEqual(advisor.payload.candidates[1]!.rejection_reasons)
     expect(run.recommendationId).toBe(advisor.payload.recommendation.candidate_id)
     expect(run.objective.definition).toBe(advisor.payload.objective.definition)

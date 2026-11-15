@@ -2,5 +2,8 @@
 # Intentionally a no-op restatement: GridStorm uses the upstream tutorial settings unchanged
 # (BE, 5 clusters, 2013-03-01..08, 24h temporal averaging, HiGHS) so results are comparable
 # to upstream CI. Any future deviation must be listed in docs/research/pypsa-eur-build.md.
+# Cost provenance at pinned upstream c8209014: data/versions.csv selects technology-data
+# v0.15.0; that release's config.yaml sets eur_year: 2025. costs.year: null selects
+# planning_horizons (2050), not the currency year. See docs/research/cost-basis-audit.md.
 run:
   name: test-elec

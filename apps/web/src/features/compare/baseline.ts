@@ -12,8 +12,16 @@ export type BaselinePlan =
   /** Cannot offer a baseline; `reason` is shown to the user. */
   | { kind: 'none'; reason: string }
 
-export const compareUrl = (baselineJobId: string, scenarioJobId: string) =>
-  `/compare?a=${encodeURIComponent(baselineJobId)}&b=${encodeURIComponent(scenarioJobId)}`
+/**
+ * Compare page URL for two runs (`a` = baseline, `b` = scenario). `auto` creates the comparison on
+ * arrival (one-click "Compare with baseline"); `guide` keeps the guided demo active.
+ */
+export function compareUrl(baselineJobId: string, scenarioJobId: string, opts: { auto?: boolean; guide?: boolean } = {}): string {
+  const q = new URLSearchParams({ a: baselineJobId, b: scenarioJobId })
+  if (opts.auto) q.set('auto', '1')
+  if (opts.guide) q.set('guide', '1')
+  return `/compare?${q.toString().replace(/\+/g, '%20')}`
+}
 
 /**
  * A compatible baseline for `job`: same network, scenario hash of the network's baseline preset.

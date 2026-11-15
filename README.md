@@ -50,7 +50,8 @@ Details: [overview](docs/architecture/overview.md) · [decisions](docs/decisions
 
 ## Known limitations
 
-- Jobs and metadata persist in **Supabase Postgres**, but generated result files use the local artifact store (no R2 credentials), so a job's downloadable result JSON may need recomputation after a Render restart.
+- Jobs and metadata persist in **Supabase Postgres** and generated result files in a private **Supabase Storage** bucket (durable across Render restarts; verified by a controlled restart on 2026-11-15, see [TODO](TODO.md) POST-01). Results produced before that fix (issue #8) may return HTTP 410 `artifact_unavailable` and can be recomputed as a new job.
+- Money values are in each dataset's declared **cost basis**, not universally EUR: PGLib cases use benchmark cost units (MATPOWER/PGLib nominal $, secant-linearised, not converted), the PyPSA example networks (`ac-dc-meshed`, `scigrid-de`) use illustrative placeholder cost units, and only the PyPSA-Eur Belgium model carries EUR-denominated model cost assumptions (technology-data v0.15.0, 2025 EUR). Value of lost load is a penalty in the same unit. Cross-basis cost comparisons are withheld. See the [cost-basis audit](docs/research/cost-basis-audit.md).
 - LOPF is a DC linearisation: no reactive power, voltage magnitudes or losses. The AC studies are steady-state only: no protection, dynamics or transient stability.
 - Outage probabilities in StormRisk are modelled from IEEE RTS-96 ranges, not observed for these networks.
 

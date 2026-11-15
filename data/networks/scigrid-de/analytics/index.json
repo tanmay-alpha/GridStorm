@@ -38,8 +38,8 @@
   },
   "costs": {
    "path": "costs.json",
-   "sha256": "3db0930aec20689ae10f605d60d7662f0a479f7668ad94977e35bb19f5dd28e4",
-   "bytes": 5860
+   "sha256": "48a360a3872955b9c314e017a28fc52852a83415b7ad15fd2ee4a7edbec8bfca",
+   "bytes": 5964
   },
   "summary": {
    "path": "summary.json",

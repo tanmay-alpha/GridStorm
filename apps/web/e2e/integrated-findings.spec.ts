@@ -1,6 +1,7 @@
 import { test as base, expect } from '@playwright/test'
 import type { Page } from '@playwright/test'
 import { mkdir, writeFile } from 'node:fs/promises'
+import { waitForNetworkView } from './helpers/networkView'
 import path from 'node:path'
 
 const evidence = path.resolve('../../docs/audit/screenshots/2026-11-15-integrated')
@@ -165,7 +166,7 @@ test('F-09: Ctrl+K, load-3 selection, Escape dismisses asset details', async ({ 
   const errors: string[] = []
   page.on('pageerror', (error) => errors.push(error.message))
   await page.goto('/explore?network=pglib-case14-ieee')
-  await expect(page.getByTestId('network-map')).toHaveAttribute('data-map-ready', 'true')
+  await waitForNetworkView(page, 'pglib-case14-ieee')
   await page.getByRole('checkbox', { name: 'Include generation, storage and loads in search' }).check()
   await page.keyboard.press('Control+k')
   await page.getByRole('combobox', { name: 'Asset search query' }).fill('load-3')

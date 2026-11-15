@@ -1,0 +1,62 @@
+{
+  "id": "050871ee-7874-40cb-83be-33e5db13779a",
+  "scenario_id": "pglib-case14-ieee-gen-1-outage",
+  "scenario_record_id": "pglib-case14-ieee-gen-1-outage",
+  "scenario_hash": "ba25e910a97c0caed16c841af59913905fc7d8b93f920015c8fd90c4de22d8e9",
+  "network_id": "pglib-case14-ieee",
+  "execution_mode": "live",
+  "reused": false,
+  "reused_from_job_id": null,
+  "recomputed_from_job_id": null,
+  "status": "completed",
+  "stage": "done",
+  "stage_history": [
+    {
+      "stage": "queued",
+      "at": "2026-11-15T09:26:16.698888Z"
+    },
+    {
+      "stage": "loading_network",
+      "at": "2026-11-15T09:26:19.802907Z"
+    },
+    {
+      "stage": "applying_scenario",
+      "at": "2026-11-15T09:26:21.758812Z"
+    },
+    {
+      "stage": "building_model",
+      "at": "2026-11-15T09:26:21.780357Z"
+    },
+    {
+      "stage": "solving",
+      "at": "2026-11-15T09:26:22.203518Z"
+    },
+    {
+      "stage": "postprocessing",
+      "at": "2026-11-15T09:26:22.297403Z"
+    },
+    {
+      "stage": "done",
+      "at": "2026-11-15T09:26:22.351468Z"
+    }
+  ],
+  "outcome": "feasible",
+  "solver": {
+    "name": "highs",
+    "version": "1.16.0",
+    "status": "ok",
+    "termination_condition": "optimal",
+    "objective_eur": 2001372.900146,
+    "wall_time_s": 0.094
+  },
+  "error": null,
+  "cancel_requested": false,
+  "attempts": 1,
+  "created_at": "2026-11-15T09:26:16.698888Z",
+  "started_at": "2026-11-15T09:26:16.703727Z",
+  "finished_at": "2026-11-15T09:26:22.649235Z",
+  "result_sha256": "bd34fc6e55206466e2049fbaf9d4f4d043566770e26e85570b213ccaa368212f",
+  "result_available": true,
+  "owner_id": null,
+  "visibility": "public"
+}

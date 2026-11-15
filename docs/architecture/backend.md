@@ -75,7 +75,8 @@ and always identifies itself explicitly.
 
 ## Artifacts and reproducibility
 
-ArtifactStore supports LocalFS and S3-compatible storage (including R2). Keys are immutable,
+ArtifactStore supports LocalFS, S3-compatible storage (including R2) and Supabase Storage (private
+bucket, server-side service-role credential; the production backend since `dd185d1`). Keys are immutable,
 content-addressed `sha256/<digest>.json` (logs use `.txt`), recorded with sha256, size and content
 type. Reads verify expected hashes. Precomputed files additionally verify their canonical
 payload hash. No missing or corrupt artifact is replaced by synthetic data.
@@ -89,8 +90,11 @@ and result hashes. Unweighted deterministic unserved energy is never described a
 
 One uvicorn process owns an in-process worker pool and rate-limit buckets. This is intentionally
 a small demo service, not a distributed durable queue. Use the [deployment guide](../deployment/backend.md)
-for Docker/Render, Postgres migration and artifact-storage settings. SQLite and local artifacts
-on Render are ephemeral, and `/ready` reports `sqlite-ephemeral` honestly. `/health` is a cheap
+for Docker/Render, Postgres migration and artifact-storage settings. Production uses Supabase
+Postgres for metadata and the private Supabase Storage bucket `gridstorm-artifacts` for result
+payloads (`/ready` → `storage.backend: supabase`, `durable: true`). SQLite and local artifacts
+remain available for development but are ephemeral on Render, and `/ready` reports
+`sqlite-ephemeral` / `durable: false` honestly in that configuration. `/health` is a cheap
 liveness signal, not proof that a database, solver or catalog is ready.
 
 Tests in `services/api/tests` exercise endpoints, JWT/owner isolation, lifecycle and recovery,

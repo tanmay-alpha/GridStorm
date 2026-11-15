@@ -5,9 +5,14 @@ import { loadingColor, LOADING_SCALE } from '../../../lib/scales'
 import { ArtifactSection } from '../components/ArtifactPanel'
 import { Disclaimer } from '../components/Disclaimer'
 import { NetworkSchematic } from '../components/NetworkSchematic'
-import { useArtifactIndex } from '../hooks'
+import type { CostBasis } from '../../../api/types'
+import { costBasisKindLabel, formatMoney, formatPrice, moneyUnit, resolveCostBasis } from '../../../lib/money'
+import { useArtifactCatalog, useNetworks } from '../hooks'
 import { formatViolation, parseAdvisor, type AdvisorRun, type Candidate, type StateSummary } from '../lib/advisor'
+import { relabelLegacyEur } from '../lib/moneyText'
 import { branchKey, type BranchStyle } from '../lib/geometry'
+import { selectArtifacts } from '../lib/indexing'
+import { RESERVE_WHILE_LOADING } from '../lib/layout'
 import { N1_CLASSES, outageLabel, parseN1, type ContingencyRow, type N1Study } from '../lib/n1'
 
 const CLASS_TONE: Record<string, Tone> = {
@@ -169,7 +174,7 @@ export function N1View({ study, networkId }: { study: N1Study; networkId: string
   )
 }
 
-function StateCompare({ before, after, label }: { before: StateSummary | null; after: StateSummary | null; label: string }) {
+function StateCompare({ before, after, label, basis }: { before: StateSummary | null; after: StateSummary | null; label: string; basis: CostBasis | null }) {
   const rows: [string, (s: StateSummary) => string][] = [
     ['Converged', (s) => (s.converged === null ? NO_VALUE : s.converged ? 'yes' : 'no')],
     ['Violations', (s) => formatNumber(s.nViolations ?? s.violations.length)],
@@ -178,7 +183,7 @@ function StateCompare({ before, after, label }: { before: StateSummary | null; a
     ['Supplied load', (s) => formatQuantity(s.suppliedLoadMw, 'MW')],
     ['Islanded load', (s) => formatQuantity(s.islandedLoadMw, 'MW')],
     ['Losses', (s) => formatQuantity(s.lossesMw, 'MW')],
-    ['Generation cost', (s) => `${formatQuantity(s.generationCostEurPerH, 'EUR')}/h`],
+    ['Generation cost', (s) => `${formatMoney(s.generationCostPerH, basis)}/h`],
   ]
   return (
     <table className="w-full text-xs">
@@ -203,22 +208,22 @@ function StateCompare({ before, after, label }: { before: StateSummary | null; a
   )
 }
 
-const candidateColumns: Column<Candidate>[] = [
+const candidateColumns = (basis: CostBasis | null): Column<Candidate>[] => [
   { key: 'rank', header: 'Rank', align: 'right', sortValue: (c) => c.rank, render: (c) => c.rank ?? NO_VALUE },
   { key: 'status', header: 'Status', sortValue: (c) => c.status, render: (c) => <Badge tone={c.status === 'accepted' ? 'ok' : 'danger'}>{c.status}</Badge> },
   { key: 'origin', header: 'Origin', sortValue: (c) => c.origin, render: (c) => c.origin ?? NO_VALUE },
   { key: 'actions', header: 'Actions', render: (c) => <ul>{c.actions.map((a) => <li key={a}>{a}</li>)}</ul> },
-  { key: 'objective', header: 'Objective', align: 'right', sortValue: (c) => c.objective?.objectiveEur, render: (c) => formatQuantity(c.objective?.objectiveEur, 'EUR') },
+  { key: 'objective', header: `Objective [${moneyUnit(basis)}]`, align: 'right', sortValue: (c) => c.objective?.objective, render: (c) => formatMoney(c.objective?.objective, basis) },
   { key: 'shed', header: 'Load shed', align: 'right', sortValue: (c) => c.objective?.loadShedMw, render: (c) => formatQuantity(c.objective?.loadShedMw, 'MW') },
   { key: 'loading', header: 'Max loading after', align: 'right', sortValue: (c) => c.after?.maxBranchLoadingPct, render: (c) => formatQuantity(c.after?.maxBranchLoadingPct, '%') },
   {
     key: 'reasons',
     header: 'Rejection reasons',
-    render: (c) => (c.rejectionReasons.length ? <ul className="list-disc pl-4">{c.rejectionReasons.map((r) => <li key={r}>{r}</li>)}</ul> : NO_VALUE),
+    render: (c) => (c.rejectionReasons.length ? <ul className="list-disc pl-4">{c.rejectionReasons.map((r) => <li key={r}>{relabelLegacyEur(r, basis)}</li>)}</ul> : NO_VALUE),
   },
 ]
 
-export function AdvisorView({ run }: { run: AdvisorRun }) {
+export function AdvisorView({ run, basis }: { run: AdvisorRun; basis: CostBasis | null }) {
   const rec = run.candidates.find((c) => c.id === run.recommendationId) ?? null
   const crisisParts = [
     run.crisis.lineOutages.length ? `branch outage ${run.crisis.lineOutages.join(', ')}` : null,
@@ -236,7 +241,7 @@ export function AdvisorView({ run }: { run: AdvisorRun }) {
         {run.crisisNotes.length > 0 && (
           <ul className="mt-1 list-disc pl-5 text-xs text-fg-muted">
             {run.crisisNotes.map((n) => (
-              <li key={n}>{n}</li>
+              <li key={n}>{relabelLegacyEur(n, basis)}</li>
             ))}
           </ul>
         )}
@@ -263,12 +268,16 @@ export function AdvisorView({ run }: { run: AdvisorRun }) {
 
       <section aria-label="Ranking objective" className="rounded border border-line p-2 text-xs">
         <h3 className="text-sm font-semibold">Ranking objective</h3>
-        <p className="font-mono">{run.objective.definition ?? NO_VALUE}</p>
+        <p className="font-mono">{run.objective.definition ? relabelLegacyEur(run.objective.definition, basis) : NO_VALUE}</p>
         <p className="mt-1">Ranking: {run.objective.ranking ?? NO_VALUE}</p>
         <p className="mt-1 text-fg-muted">
-          VOLL {formatQuantity(run.objective.vollEurPerMwh, 'EUR/MWh')} · switching penalty {formatQuantity(run.objective.switchingPenaltyEur, 'EUR')} · assumed duration{' '}
+          VOLL penalty {formatPrice(run.objective.vollPerMwh, basis)} · switching penalty {formatMoney(run.objective.switchingPenalty, basis)} · assumed duration{' '}
           {formatQuantity(run.objective.assumedDurationH, 'h')}
-          {run.objective.notes && <> · {run.objective.notes}</>}
+          {run.objective.notes && <> · {relabelLegacyEur(run.objective.notes, basis)}</>}
+        </p>
+        <p className="mt-1 text-fg-muted" data-testid="advisor-cost-basis">
+          Costs: {costBasisKindLabel(basis)} — {moneyUnit(basis)}
+          {basis?.provenance ? `. ${basis.provenance}` : ''}
         </p>
       </section>
 
@@ -277,7 +286,7 @@ export function AdvisorView({ run }: { run: AdvisorRun }) {
           <summary className="cursor-pointer font-semibold">Acceptance rules</summary>
           <ul className="mt-1 list-disc pl-5">
             {run.acceptanceRules.map((r) => (
-              <li key={r}>{r}</li>
+              <li key={r}>{relabelLegacyEur(r, basis)}</li>
             ))}
           </ul>
         </details>
@@ -286,11 +295,11 @@ export function AdvisorView({ run }: { run: AdvisorRun }) {
       {rec && (
         <section aria-label="Recommendation">
           <h3 className="text-sm font-semibold">Recommended candidate {rec.id}</h3>
-          <p className="text-xs">{rec.explanation ?? rec.actions.join('; ')}</p>
+          <p className="text-xs">{rec.explanation ? relabelLegacyEur(rec.explanation, basis) : rec.actions.join('; ')}</p>
           <div className="mt-2 grid grid-cols-2 gap-2 md:grid-cols-4">
-            <MetricCard label="Objective" value={rec.objective?.objectiveEur} unit="EUR" />
+            <MetricCard label={`Objective [${moneyUnit(basis)}]`} value={rec.objective?.objective} unit="" />
             <MetricCard label="Load shed" value={rec.objective?.loadShedMw} unit="MW" />
-            <MetricCard label="Generation cost Δ" value={rec.objective?.generationCostDeltaEur} unit="EUR" />
+            <MetricCard label={`Generation cost Δ [${moneyUnit(basis)}]`} value={rec.objective?.generationCostDelta} unit="" />
             <MetricCard label="Switching actions" value={rec.objective?.switchingActions} unit="" scale={false} />
           </div>
           {rec.nMinus1 && (
@@ -302,7 +311,7 @@ export function AdvisorView({ run }: { run: AdvisorRun }) {
           )}
         </section>
       )}
-      <StateCompare before={run.crisisState} after={rec?.after ?? null} label="Crisis state versus state after the recommended candidate" />
+      <StateCompare before={run.crisisState} after={rec?.after ?? null} label="Crisis state versus state after the recommended candidate" basis={basis} />
 
       {run.comparison.length > 0 && (
         <section aria-label="Baselines">
@@ -315,7 +324,7 @@ export function AdvisorView({ run }: { run: AdvisorRun }) {
               { key: 'load', header: 'Max loading', align: 'right', render: (r) => formatQuantity(r.maxBranchLoadingPct, '%') },
               { key: 'vm', header: 'Min vm', align: 'right', render: (r) => pu(r.minVm) },
               { key: 'shed', header: 'Load shed', align: 'right', render: (r) => formatQuantity(r.loadShedMw, 'MW') },
-              { key: 'obj', header: 'Objective', align: 'right', render: (r) => formatQuantity(r.objectiveEur, 'EUR') },
+              { key: 'obj', header: `Objective [${moneyUnit(basis)}]`, align: 'right', render: (r) => formatMoney(r.objective, basis) },
             ]}
             rows={run.comparison}
             rowKey={(r) => r.policy}
@@ -328,7 +337,7 @@ export function AdvisorView({ run }: { run: AdvisorRun }) {
         <h3 className="text-sm font-semibold">
           Candidates: {accepted} accepted, {run.candidates.length - accepted} rejected
         </h3>
-        <DataTable columns={candidateColumns} rows={run.candidates} rowKey={(c) => c.id} caption="All evaluated candidates with AC verdicts" pageSize={20} emptyText="No candidates were evaluated." />
+        <DataTable columns={candidateColumns(basis)} rows={run.candidates} rowKey={(c) => c.id} caption="All evaluated candidates with AC verdicts" pageSize={20} emptyText="No candidates were evaluated." />
       </section>
 
       {run.securityStatement && (
@@ -341,9 +350,10 @@ export function AdvisorView({ run }: { run: AdvisorRun }) {
           <summary className="cursor-pointer font-semibold">Assumptions</summary>
           <ul className="mt-1 list-disc pl-5">
             {run.assumptions.map((a) => (
-              <li key={a}>{a}</li>
+              <li key={a}>{relabelLegacyEur(a, basis)}</li>
             ))}
           </ul>
+          <p className="mt-1 text-fg-muted">Cost units in artifact text are shown in the network&apos;s cost basis (the advisor wrote them under a legacy currency naming convention).</p>
         </details>
       )}
     </div>
@@ -352,10 +362,9 @@ export function AdvisorView({ run }: { run: AdvisorRun }) {
 
 export function ContingencyPage() {
   const selectId = useId()
-  const n1 = useArtifactIndex({ engine: 'pandapower', kind: 'n_minus_1' })
-  const adv = useArtifactIndex({ engine: 'advisor' })
-  const n1Items = useMemo(() => (n1.data ?? []).filter((i) => i.available !== false), [n1.data])
-  const advItems = useMemo(() => (adv.data ?? []).filter((i) => i.available !== false), [adv.data])
+  const index = useArtifactCatalog()
+  const n1Items = useMemo(() => selectArtifacts(index.data, 'pandapower', 'n_minus_1'), [index.data])
+  const advItems = useMemo(() => selectArtifacts(index.data, 'advisor'), [index.data])
   const networks = useMemo(() => {
     const ids = new Set<string>()
     for (const it of [...n1Items, ...advItems]) if (it.network_id) ids.add(it.network_id)
@@ -363,10 +372,12 @@ export function ContingencyPage() {
   }, [n1Items, advItems])
   const [picked, setPicked] = useState<string | null>(null)
   const networkId = picked && networks.includes(picked) ? picked : (networks[0] ?? null)
+  const catalog = useNetworks()
+  const basis = resolveCostBasis(catalog.data?.find((n) => n.id === networkId))
 
   let body: ReactNode
-  if (n1.isError && adv.isError) body = <ErrorState error={n1.error} onRetry={() => void Promise.all([n1.refetch(), adv.refetch()])} />
-  else if (n1.isPending || adv.isPending) body = <SkeletonBlock rows={6} label="Loading artifact index" />
+  if (index.isError) body = <ErrorState error={index.error} onRetry={() => void index.refetch()} />
+  else if (index.isPending) body = <SkeletonBlock rows={6} label="Loading artifact index" />
   else if (!networkId)
     body = (
       <EmptyState title="No contingency or advisor artifacts published">
@@ -376,33 +387,30 @@ export function ContingencyPage() {
   else
     body = (
       <>
-        <Panel title="AC N-1 contingency study (pandapower)" id="n1">
-          {n1.isError ? (
-            <ErrorState error={n1.error} onRetry={() => void n1.refetch()} />
-          ) : (
-            <ArtifactSection
-              key={`n1-${networkId}`}
-              engine="pandapower"
-              items={n1Items.filter((i) => i.network_id === networkId)}
-              label="N-1 study"
-              emptyText={`No pandapower N-1 artifact for ${networkId}.`}
-              render={(a) => <N1View study={parseN1(a.payload)} networkId={networkId} />}
-            />
-          )}
+        <Panel title="AC N-1 contingency study (pandapower)" id="n1" bodyClassName={RESERVE_WHILE_LOADING}>
+          <ArtifactSection
+            key={`n1-${networkId}`}
+            engine="pandapower"
+            items={n1Items.filter((i) => i.network_id === networkId)}
+            label="N-1 study"
+            emptyText={`No pandapower N-1 artifact for ${networkId}.`}
+            render={(a) => <N1View study={parseN1(a.payload)} networkId={networkId} />}
+          />
         </Panel>
-        <Panel title="Crisis Response Advisor" id="advisor" description="Deterministic candidate search verified by AC power flow (no LLM).">
-          {adv.isError ? (
-            <ErrorState error={adv.error} onRetry={() => void adv.refetch()} />
-          ) : (
-            <ArtifactSection
-              key={`adv-${networkId}`}
-              engine="advisor"
-              items={advItems.filter((i) => i.network_id === networkId)}
-              label="Crisis case"
-              emptyText={`No Crisis Advisor artifact for ${networkId}.`}
-              render={(a) => <AdvisorView run={parseAdvisor(a.payload)} />}
-            />
-          )}
+        <Panel
+          title="Crisis Response Advisor"
+          id="advisor"
+          description="Deterministic candidate search verified by AC power flow (no LLM)."
+          bodyClassName={RESERVE_WHILE_LOADING}
+        >
+          <ArtifactSection
+            key={`adv-${networkId}`}
+            engine="advisor"
+            items={advItems.filter((i) => i.network_id === networkId)}
+            label="Crisis case"
+            emptyText={`No Crisis Advisor artifact for ${networkId}.`}
+            render={(a) => <AdvisorView run={parseAdvisor(a.payload)} basis={basis} />}
+          />
         </Panel>
       </>
     )

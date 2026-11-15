@@ -32,6 +32,8 @@ services:
       GRIDSTORM_MAX_CONCURRENT_JOBS: "1"
       GRIDSTORM_JOB_TIMEOUT_S: "180"
       GRIDSTORM_JOB_MEMORY_MB: "400"
+      # Direct, unproxied access: never trust client-supplied forwarding headers here.
+      GRIDSTORM_TRUST_PROXY: "false"
     depends_on:
       postgres:
         condition: service_healthy

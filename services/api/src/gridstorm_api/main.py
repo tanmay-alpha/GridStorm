@@ -22,7 +22,7 @@ from .analytics import AnalyticsService
 from .config import Settings
 from .context import AppContext
 from .errors import install_error_handlers
-from .ratelimit import BodySizeLimitMiddleware
+from .ratelimit import BodySizeLimitMiddleware, TrustedProxyMiddleware
 from .readiness import SolverProbe, StorageProbe
 from .routers import artifacts, comparisons, health, networks, scenarios, simulations
 from .security_headers import SecurityHeadersMiddleware
@@ -111,10 +111,17 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         expose_headers=EXPOSED_HEADERS,
         max_age=600,
     )
-    # outermost: reject oversized bodies before anything else reads them
+    # reject oversized bodies before anything else reads them
     app.add_middleware(BodySizeLimitMiddleware, max_bytes=settings.max_body_bytes)
     # wraps everything, so 413s and error responses carry the headers too (VER-011)
-    app.add_middleware(SecurityHeadersMiddleware, trust_proxy=settings.trust_proxy)
+    app.add_middleware(SecurityHeadersMiddleware)
+    if settings.trust_proxy:
+        # outermost: resolve client address and scheme once, before anything reads them
+        app.add_middleware(
+            TrustedProxyMiddleware,
+            client_ip_header=settings.client_ip_header,
+            proxy_hops=settings.trusted_proxy_hops,
+        )
 
     for module in (health, networks, scenarios, simulations, comparisons, artifacts):
         app.include_router(module.router)

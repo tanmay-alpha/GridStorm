@@ -1,5 +1,20 @@
 {
   "schema_version": "dataset-manifest/1.0",
+  "cost_basis": {
+    "schema_version": "gridstorm-cost-basis/1.0",
+    "currency": "EUR",
+    "currency_year": 2025,
+    "kind": "currency_verified",
+    "money_unit": "EUR",
+    "price_unit": "EUR/MWh",
+    "comparability_key": "pypsa-eur-v2026.09.0:technology-data-v0.15.0:EUR2025",
+    "provenance": "PyPSA-Eur c8209014 tutorial uses technology-data v0.15.0; its config.yaml declares eur_year: 2025, with costs loaded in EUR by the upstream electricity build.",
+    "assumptions": [
+      "EUR 2025 technology assumptions for the 2050 planning horizon, not observed 2013 electricity prices; currency year differs from weather year and planning year.",
+      "Capital costs are annualised and scaled to the objective-weighted horizon; dispatch-only GridStorm freezes capacities and excludes investment costs.",
+      "VOLL is a user-selected penalty in EUR/MWh on this basis, not a calibrated economic estimate."
+    ]
+  },
   "network_id": "pypsa-eur-be",
   "name": "PyPSA-Eur Belgium tutorial (5 clusters, 2013-03-01..07, 24 h)",
   "description": "Reduced PyPSA-Eur electricity-only model of Belgium built from the upstream tutorial configuration: OSM-based transmission grid clustered to 5 buses, conventional and renewable generators, battery/H2 storage, one week of March 2013 at daily resolution.",
@@ -41,7 +56,7 @@
     "r": "ohm (lines)",
     "length": "km",
     "marginal_cost": "EUR/MWh",
-    "capital_cost": "EUR/MW/a (annuitised, per snapshot-weighted horizon)",
+    "capital_cost": "EUR per nominal MW (power) or MWh (Store energy), annualised then scaled to the model horizon",
     "co2_emissions": "t/MWh"
   },
   "missing_value_policy": "Values PyPSA-Eur does not provide are null in canonical.json; nothing is imputed by GridStorm. The synthetic BE load has no gaps in the 168 h window (checked by replace_load.py).",

@@ -1,5 +1,5 @@
 import { useId } from 'react'
-import type { LayerVisibility } from '../../components/map/NetworkMap'
+import type { LayerVisibility } from '../../components/map/layers'
 import type { FeatureFilters } from '../../components/map/features'
 
 function Check({
@@ -32,29 +32,36 @@ function Check({
   )
 }
 
+const LAYER_LABEL: Record<keyof LayerVisibility, string> = {
+  buses: 'Buses',
+  lines: 'Lines & transformers (by voltage)',
+  links: 'Links (DC / controllable)',
+  generators: 'Generators (by carrier)',
+  storage: 'Storage units',
+  loads: 'Loads',
+}
+
+const GEOGRAPHIC_ROWS: (keyof LayerVisibility)[] = ['buses', 'lines', 'links', 'generators', 'storage']
+
 export function LayerControls({
   layers,
   onLayers,
   counts,
+  rows = GEOGRAPHIC_ROWS,
 }: {
   layers: LayerVisibility
   onLayers: (l: LayerVisibility) => void
-  counts: Record<keyof LayerVisibility, number | null>
+  counts: Partial<Record<keyof LayerVisibility, number | null>>
+  /** Layers offered for this view (the geographic map has no load layer). */
+  rows?: (keyof LayerVisibility)[]
 }) {
-  const rows: [keyof LayerVisibility, string][] = [
-    ['buses', 'Buses'],
-    ['lines', 'Lines & transformers (by voltage)'],
-    ['links', 'Links (DC / controllable)'],
-    ['generators', 'Generators (by carrier)'],
-    ['storage', 'Storage units'],
-  ]
   return (
     <fieldset className="flex flex-col gap-1">
       <legend className="gs-label mb-1">Layers</legend>
-      {rows.map(([k, label]) => (
+      {rows.map((k) => (
         <Check
           key={k}
-          label={`${label} · ${counts[k]?.toLocaleString('en-US') ?? 'load on demand'}`}
+          label={`${LAYER_LABEL[k]} · ${counts[k]?.toLocaleString('en-US') ?? 'load on demand'}`}
           checked={layers[k]}
           onChange={(v) => onLayers({ ...layers, [k]: v })}
           testId={`layer-${k}`}

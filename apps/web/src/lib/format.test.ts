@@ -2,6 +2,10 @@ import { describe, expect, it } from 'vitest'
 import {
   NO_VALUE,
   formatDelta,
+  formatPctPoints,
+  formatRelativeChange,
+  moneyFieldKind,
+  ZERO_BASELINE,
   formatDuration,
   formatQuantity,
   formatTimestamp,
@@ -82,5 +86,29 @@ describe('field-name units (contract: units are encoded in field names)', () => 
   it('derives labels without the unit suffix', () => {
     expect(labelFromFieldName('peak_load_shed_mw')).toBe('Peak load shed')
     expect(labelFromFieldName('marginal_cost_eur_per_mwh')).toBe('Marginal cost')
+  })
+})
+
+describe('comparison deltas', () => {
+  it('renders changes of percentages in percentage points', () => {
+    expect(formatPctPoints(-51.829038)).toBe('\u221251.83 pp')
+    expect(formatPctPoints(3.2)).toBe('+3.2 pp')
+    expect(formatPctPoints(0)).toBe('0 pp')
+    expect(formatPctPoints(null)).toBe(NO_VALUE)
+  })
+
+  it('gives relative change against |baseline| and never divides by a zero baseline', () => {
+    expect(formatRelativeChange(100, 75)).toBe('\u221225 %')
+    expect(formatRelativeChange(-100, -75)).toBe('+25 %')
+    expect(formatRelativeChange(0, 200)).toBe(ZERO_BASELINE)
+    expect(formatRelativeChange(0, 0)).toBe('n/a (baseline 0)')
+    expect(formatRelativeChange(null, 5)).toBe(NO_VALUE)
+    expect(formatRelativeChange(5, undefined)).toBe(NO_VALUE)
+  })
+
+  it('identifies legacy *_eur money fields so they are formatted in the cost basis', () => {
+    expect(moneyFieldKind('total_system_cost_eur')).toBe('total')
+    expect(moneyFieldKind('mean_marginal_price_eur_per_mwh')).toBe('price')
+    expect(moneyFieldKind('unserved_energy_mwh')).toBeNull()
   })
 })

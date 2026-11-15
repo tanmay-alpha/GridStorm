@@ -1,5 +1,7 @@
 # Functional production audit — 2026-11-15
 
+> **Status 2026-11-15 (GridStorm 3.0 review): historical, before-recovery record.** Findings F-01..F-09 were fixed and verified in production (TODO POST-09); see [TODO.md](../../TODO.md) for the current state.
+
 ## Target and evidence boundaries
 
 Audited the actual public deployment at https://gridstorm.vercel.app against https://gridstorm-api.onrender.com, not the recovery branch or a local preview. Browser evidence is in [2026-11-15-before](screenshots/2026-11-15-before/). These are **before-recovery** observations; source changes by other workstreams are not proof of deployed remediation.

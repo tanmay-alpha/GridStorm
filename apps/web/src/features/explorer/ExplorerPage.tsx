@@ -1,15 +1,19 @@
-import { useMemo, useState } from 'react'
+import { Suspense, useCallback, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { ArrowUpRight, SlidersHorizontal } from 'lucide-react'
 import { useAssetTable, useNetwork, useNetworkGeojson } from '../../api/hooks'
-import { buildFeatures, NO_FILTERS, type AssetRef, type FeatureFilters } from '../../components/map/features'
+import { buildFeatures, NO_FILTERS, type AssetRef, type FeatureFilters, type MapFeatures } from '../../components/map/features'
 import { BranchLegend } from '../../components/map/MapLegend'
-import { DEFAULT_LAYERS, NetworkMap, type LayerVisibility } from '../../components/map/NetworkMap'
+import { DEFAULT_LAYERS, type LayerVisibility } from '../../components/map/layers'
+import { LazyNetworkMap } from '../../components/map/LazyNetworkMap'
+import { SchematicLegend } from '../../components/map/schematic/SchematicLegend'
+import { SchematicView } from '../../components/map/schematic/SchematicView'
 import { buildSearchIndex } from '../../components/network/assets'
 import { NetworkSelect } from '../../components/network/NetworkSelect'
 import { useSelectedNetwork } from '../../components/network/useSelectedNetwork'
 import { Badge, EmptyState, ErrorState, Legend, SkeletonBlock } from '../../components/ui'
 import { cn } from '../../components/ui/cn'
+import { resolveCostBasis } from '../../lib/money'
 import { carrierColor } from '../../lib/scales'
 import { AssetDetails } from './AssetDetails'
 import { AssetSearch } from './AssetSearch'
@@ -18,23 +22,52 @@ import { FilterControls, LayerControls } from './LayerControls'
 import { SchematicBadge } from '../../components/map/SchematicBadge'
 import { assetsFromGeojson } from '../../components/map/geojson'
 import { groupCarriers } from '../../components/map/carriers'
+import { GUIDED_DEMO_URL } from '../studio/flow'
 
 const EMPTY: never[] = []
+
+/**
+ * Initial layers per coordinate kind. Geographic networks (thousands of units) start with geometry
+ * only and fetch generator/storage tables when their layer is switched on. Schematic test cases are
+ * small (≤ 118 buses), so their units are drawn at their buses from the start.
+ */
+const INITIAL_LAYERS: Record<'geographic' | 'schematic', LayerVisibility> = {
+  geographic: { ...DEFAULT_LAYERS, generators: false, storage: false, loads: false },
+  schematic: DEFAULT_LAYERS,
+}
+
+const wideScreen = () => window.matchMedia?.('(min-width: 768px)').matches ?? true
+
+/** Area the asset details card covers: a 20 rem right column (md+) or the lower 60 % on phones. */
+const detailsCover = (_w: number, h: number) => (wideScreen() ? { right: 336, bottom: 0 } : { right: 0, bottom: Math.round(0.6 * h) })
 
 export default function ExplorerPage() {
   const sel = useSelectedNetwork()
   const detail = useNetwork(sel.id)
   const geojson = useNetworkGeojson(sel.id, sel.summary?.network_sha256)
-  const [layers, setLayers] = useState<LayerVisibility>({ ...DEFAULT_LAYERS, generators: false, storage: false })
+  const kind = sel.summary?.coordinate_kind ?? 'schematic'
+  const [layersByKind, setLayersByKind] = useState(INITIAL_LAYERS)
+  const layers = layersByKind[kind]
+  const setLayers = (next: LayerVisibility) => setLayersByKind((all) => ({ ...all, [kind]: next }))
   const [filters, setFilters] = useState<FeatureFilters>(NO_FILTERS)
   const [selected, setSelected] = useState<AssetRef | null>(null)
   const [panelOpen, setPanelOpen] = useState(true)
+  const [legendOpen, setLegendOpen] = useState(wideScreen)
+  // Legend panel size (incl. its offsets), kept clear by the schematic fit where the canvas has room.
+  const [legendBox, setLegendBox] = useState<{ width: number; height: number } | null>(null)
+  const legendObserver = useRef<ResizeObserver | null>(null)
+  const legendRef = useCallback((el: HTMLDetailsElement | null) => {
+    legendObserver.current?.disconnect()
+    legendObserver.current = null
+    if (!el) return
+    legendObserver.current = new ResizeObserver(() => setLegendBox({ width: el.offsetWidth + 16, height: el.offsetHeight + 36 }))
+    legendObserver.current.observe(el)
+  }, [])
   const [searchAll, setSearchAll] = useState(false)
   const generators = useAssetTable(sel.id, 'generators', layers.generators || searchAll)
   const storage = useAssetTable(sel.id, 'storage_units', layers.storage || searchAll)
-  const loads = useAssetTable(sel.id, 'loads', searchAll)
+  const loads = useAssetTable(sel.id, 'loads', (kind === 'schematic' && layers.loads) || searchAll)
   const carriers = useAssetTable(sel.id, 'carriers', layers.generators || layers.storage || searchAll)
-  const kind = sel.summary?.coordinate_kind ?? 'schematic'
   const data = useMemo(() => {
     if (!geojson.data) return undefined
     return { ...assetsFromGeojson(geojson.data), generators: generators.data ?? EMPTY, storage_units: storage.data ?? EMPTY, loads: loads.data ?? EMPTY }
@@ -60,6 +93,12 @@ export default function ExplorerPage() {
     () => (data ? [...new Set(data.buses.map((b) => b.country).filter((c): c is string => !!c))].sort() : []),
     [data],
   )
+
+  // The MapLibre map stays mounted (hidden) once a geographic network has been shown, so returning
+  // from a schematic network reuses its WebGL context, style and tiles instead of rebuilding them.
+  const [geoFeatures, setGeoFeatures] = useState<MapFeatures | null>(null)
+  const showGeo = kind === 'geographic' && !!features && !!sel.summary
+  if (showGeo && geoFeatures !== features) setGeoFeatures(features)
 
   const selectNetwork = (id: string) => {
     setSelected(null)
@@ -87,7 +126,22 @@ export default function ExplorerPage() {
     links: features?.branches.features.filter((f) => f.properties.asset_type === 'link').length ?? 0,
     generators: generators.data ? features?.generators.features.length ?? 0 : null,
     storage: storage.data ? features?.storage.features.length ?? 0 : null,
+    loads: loads.data ? features?.loads.features.length ?? 0 : null,
   }
+  const layerRows: (keyof LayerVisibility)[] =
+    kind === 'schematic' ? ['buses', 'lines', 'links', 'generators', 'storage', 'loads'] : ['buses', 'lines', 'links', 'generators', 'storage']
+  const carrierLegend = groupCarriers(Object.keys(carrierColors)).map(({ group, carriers: names }) => (
+    <details key={group} className="mt-2">
+      <summary className="cursor-pointer text-xs text-fg-muted">
+        {group} ({names.length})
+      </summary>
+      <Legend
+        className="mt-2"
+        title={kind === 'schematic' ? 'Carrier' : 'Carrier (size ∝ √p_nom)'}
+        items={names.map((label) => ({ label, color: carrierColors[label]! }))}
+      />
+    </details>
+  ))
 
   return (
     <div className="flex h-full min-h-0 flex-col md:flex-row">
@@ -116,7 +170,7 @@ export default function ExplorerPage() {
         <div id="explorer-controls" className={cn('min-h-0 flex-col gap-4 overflow-y-auto p-3', panelOpen ? 'flex' : 'hidden md:flex')}>
           <NetworkSelect networks={sel.list} value={sel.id} onChange={selectNetwork} disabled={sel.networks.isPending} />
           <Link
-            to="/studio?network=pglib-case14-ieee&preset=pglib-case14-ieee-gen-1-outage"
+            to={GUIDED_DEMO_URL}
             className="group flex items-center justify-between gap-3 rounded-lg border border-accent/30 bg-accent-soft px-3 py-2.5 text-accent transition-colors hover:border-accent hover:bg-accent/10 focus-visible:outline-offset-2"
             data-testid="try-sample-crisis"
           >
@@ -137,7 +191,7 @@ export default function ExplorerPage() {
           {(generators.error || storage.error || loads.error || carriers.error) && <ErrorState error={generators.error ?? storage.error ?? loads.error ?? carriers.error} title="Requested asset table unavailable" />}
           {data && (
             <>
-              <LayerControls layers={layers} onLayers={setLayers} counts={counts} />
+              <LayerControls layers={layers} onLayers={setLayers} counts={counts} rows={layerRows} />
               <FilterControls
                 filters={filters}
                 onFilters={setFilters}
@@ -160,26 +214,52 @@ export default function ExplorerPage() {
       </aside>
 
       <div className="relative order-1 min-h-[50vh] flex-1 md:order-2 md:min-h-0">
+        {geoFeatures && (
+          <Suspense fallback={showGeo ? <SkeletonBlock rows={3} label="Loading map" /> : null}>
+            <LazyNetworkMap
+              coordinateKind="geographic"
+              features={showGeo ? features! : geoFeatures}
+              layers={layersByKind.geographic}
+              carrierColors={carrierColors}
+              selected={showGeo ? selected : null}
+              onSelect={setSelected}
+              hidden={!showGeo}
+              ariaLabel={`Map of ${sel.summary?.name ?? 'the network'}. Use the asset search (Ctrl+K) for keyboard access to assets.`}
+            />
+          </Suspense>
+        )}
         {geojson.error ? (
           <div className="p-4">
             <ErrorState error={geojson.error} title="Could not load network map" onRetry={() => void geojson.refetch()} />
           </div>
         ) : features && sel.summary ? (
           <>
-            <NetworkMap
-              coordinateKind={kind}
-              features={features}
-              layers={layers}
-              carrierColors={carrierColors}
-              selected={selected}
-              onSelect={setSelected}
-              ariaLabel={`Map of ${sel.summary.name}. Use the asset search (Ctrl+K) for keyboard access to assets.`}
-            />
-            {kind === 'schematic' && <SchematicBadge />}
-            <details className="gs-panel absolute bottom-7 left-2 z-10 max-h-[40%] max-w-60 overflow-y-auto p-2 shadow-sm" data-testid="map-legend" open>
+            {kind === 'schematic' && (
+              <>
+                <SchematicView
+                  networkId={sel.id!}
+                  features={features}
+                  layers={layers}
+                  carrierColors={carrierColors}
+                  selected={selected}
+                  onSelect={setSelected}
+                  ariaLabel={`Schematic of ${sel.summary.name}. Tab to a bus and use the arrow keys, or the asset search (Ctrl+K), for keyboard access to assets.`}
+                  panel={legendOpen ? legendBox : null}
+                  occlusion={detailsCover}
+                />
+                <SchematicBadge />
+              </>
+            )}
+            <details
+              ref={legendRef}
+              className="gs-panel absolute bottom-7 left-2 z-10 max-h-[calc(100%-4rem)] max-w-64 overflow-y-auto p-2 shadow-sm md:max-h-[55%]"
+              data-testid="map-legend"
+              open={legendOpen}
+              onToggle={(e) => setLegendOpen(e.currentTarget.open)}
+            >
               <summary className="flex min-h-11 cursor-pointer items-center text-xs font-semibold">Map legend</summary>
-              <BranchLegend mode="voltage" />
-              {groupCarriers(Object.keys(carrierColors)).map(({ group, carriers: names }) => <details key={group} className="mt-2"><summary className="cursor-pointer text-xs text-fg-muted">{group} ({names.length})</summary><Legend className="mt-2" title="Carrier (size ∝ √p_nom)" items={names.map((label) => ({ label, color: carrierColors[label]! }))} /></details>)}
+              {kind === 'schematic' ? <SchematicLegend features={features} layers={layers} /> : <BranchLegend mode="voltage" />}
+              {carrierLegend}
               {(features.skipped.buses > 0 || features.skipped.branches > 0) && (
                 <p className="mt-2 text-2xs text-warn">
                   Not drawn (no coordinates): {features.skipped.buses} buses, {features.skipped.branches} branches
@@ -209,6 +289,7 @@ export default function ExplorerPage() {
               selected={selected}
               fieldProvenance={detail.data?.field_provenance}
               coordinateKind={kind}
+              costBasis={resolveCostBasis(sel.summary, detail.data?.manifest)}
               onSelect={setSelected}
               onClose={() => setSelected(null)}
             />

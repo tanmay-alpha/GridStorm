@@ -29,11 +29,9 @@ COMPARISON_ASSUMPTIONS = [
 ]
 
 _UNITS = (
-    ("_eur_per_mwh", "EUR/MWh"),
     ("_mwh", "MWh"),
     ("_mw", "MW"),
     ("_pct", "%"),
-    ("_eur", "EUR"),
     ("_hours", "h"),
     ("_h", "h"),
     ("_t", "t"),
@@ -41,7 +39,12 @@ _UNITS = (
 )
 
 
-def unit_of(name: str) -> str | None:
+def unit_of(name: str, cost_basis: dict[str, Any] | None = None) -> str | None:
+    basis = cost_basis or {}
+    if name.endswith("_eur_per_mwh"):
+        return basis.get("price_unit") or "cost units (basis unknown)/MWh"
+    if name.endswith("_eur"):
+        return basis.get("money_unit") or "cost units (basis unknown)"
     for suffix, unit in _UNITS:
         if name.endswith(suffix):
             return unit
@@ -87,6 +90,35 @@ def branch_max_loading(result: dict[str, Any]) -> dict[tuple[str, str], dict[str
     return out
 
 
+def legacy_report_cost_basis(
+    report: dict[str, Any], basis: dict[str, Any] | None
+) -> dict[str, Any]:
+    """Hydrate old stored comparisons without rewriting their durable database document."""
+    if report.get("cost_basis"):
+        return report
+    from copy import deepcopy
+
+    resolved = deepcopy(report)
+    resolved["cost_basis"] = basis
+    resolved["costs_comparable"] = bool(basis and basis.get("comparability_key"))
+    for label in ("baseline", "scenario"):
+        if label in resolved:
+            resolved[label]["cost_basis"] = basis
+    for metric in resolved.get("metrics") or []:
+        name = metric["metric"]
+        if name.endswith(("_eur", "_eur_per_mwh")):
+            metric["unit"] = unit_of(name, basis)
+            metric["delta_unit"] = metric["unit"]
+            if not resolved["costs_comparable"]:
+                metric.update(delta=None, delta_pct=None)
+    for field in ("assumptions", "warnings"):
+        resolved[field] = [
+            text.replace(" EUR/MWh", f" {unit_of('price_eur_per_mwh', basis)}")
+            for text in resolved.get(field) or []
+        ]
+    return resolved
+
+
 def compare_results(baseline: dict[str, Any], scenario: dict[str, Any]) -> dict[str, Any]:
     warnings: list[str] = []
     for label, res in (("baseline", baseline), ("scenario", scenario)):
@@ -96,18 +128,31 @@ def compare_results(baseline: dict[str, Any], scenario: dict[str, Any]) -> dict[
                 "affected deltas are null"
             )
     bm, sm = baseline.get("metrics") or {}, scenario.get("metrics") or {}
+    bb, sb = baseline.get("cost_basis"), scenario.get("cost_basis")
+    comparable = bool(
+        bb
+        and sb
+        and bb.get("comparability_key")
+        and bb.get("comparability_key") == sb.get("comparability_key")
+    )
+    if not comparable and any(n.endswith(("_eur", "_eur_per_mwh")) for n in set(bm) | set(sm)):
+        warnings.append("Cost bases differ or are unknown: monetary deltas are withheld.")
     metrics = []
     for name in sorted(set(bm) | set(sm)):
         if isinstance(bm.get(name), dict) or isinstance(sm.get(name), dict):
             continue
-        unit = unit_of(name)
+        monetary = name.endswith(("_eur", "_eur_per_mwh"))
+        unit = unit_of(name, bb) if comparable or not monetary else None
+        row = delta_row(bm.get(name), sm.get(name))
+        if monetary and not comparable:
+            row.update(delta=None, delta_pct=None)
         metrics.append(
             {
                 "metric": name,
                 "unit": unit,
                 # An absolute change of a percentage is in percentage points, not percent.
                 "delta_unit": "pp" if unit == "%" else unit,
-                **delta_row(bm.get(name), sm.get(name)),
+                **row,
             }
         )
 
@@ -143,6 +188,7 @@ def compare_results(baseline: dict[str, Any], scenario: dict[str, Any]) -> dict[
         )
     )
     return {
+        "costs_comparable": comparable,
         "metrics": metrics,
         "carriers": carriers,
         "branch_loading": branches,
@@ -201,6 +247,8 @@ def build_comparison_report(
         "schema_version": COMPARISON_SCHEMA,
         "provenance": "calculated",
         "network_id": baseline_job.network_id,
+        "cost_basis": baseline.get("cost_basis"),
+        "costs_comparable": body["costs_comparable"],
         "baseline": _run_ref(baseline_job, baseline),
         "scenario": _run_ref(scenario_job, scenario),
         **body,
@@ -220,6 +268,7 @@ def _run_ref(job: SimulationJob, result: dict[str, Any]) -> dict[str, Any]:
         "scenario_name": (job.spec or {}).get("name"),
         "scenario_hash": job.scenario_hash,
         "outcome": result.get("outcome"),
+        "cost_basis": result.get("cost_basis"),
     }
 
 
@@ -231,9 +280,10 @@ def build_job_report(
         "schema_version": JOB_REPORT_SCHEMA,
         "provenance": "modeled",
         "network_id": job.network_id,
+        "cost_basis": result.get("cost_basis"),
         "run": _run_ref(job, result),
         "metrics": [
-            {"metric": k, "unit": unit_of(k), "value": _num(v)}
+            {"metric": k, "unit": unit_of(k, result.get("cost_basis")), "value": _num(v)}
             for k, v in sorted(metrics.items())
             if not isinstance(v, dict)
         ],
@@ -305,6 +355,9 @@ def comparison_markdown(report: dict[str, Any], comparison_id: str) -> str:
         "",
         "Values are model outputs (provenance: modeled); deltas are calculated (scenario − "
         "baseline). This is not a prediction of real grid behaviour.",
+        "",
+        f"Cost basis: {(report.get('cost_basis') or {}).get('money_unit', 'unknown')}. "
+        f"Costs comparable: {report.get('costs_comparable', False)}.",
         "",
     ]
     if report["warnings"]:
@@ -392,6 +445,8 @@ def job_markdown(report: dict[str, Any]) -> str:
         f"`{report['network_id']}` — outcome **{run['outcome']}**.",
         "",
         "Values are model outputs (provenance: modeled), not observations or predictions.",
+        "",
+        f"Cost basis: {(report.get('cost_basis') or {}).get('money_unit', 'unknown')}.",
         "",
     ]
     if report["warnings"]:

@@ -1,47 +1,59 @@
-import { useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, ArrowRight, Check, Play, Plus, RotateCcw, Save } from 'lucide-react'
+import { ArrowLeft, ArrowRight, History, Play, Plus, RotateCcw, Save, Sparkles } from 'lucide-react'
 import { ApiError, api } from '../../api/client'
 import { qk, useNetwork, useNetworkAssets, useNetworks, useScenario, useScenarios } from '../../api/hooks'
 import { LIMITS, type EventType, type StormEvent, type StormSpec } from '../../api/stormspec'
-import type { NetworkSummary, ScenarioRecord, ValidationReport } from '../../api/types'
+import type { ScenarioRecord, ValidationIssue, ValidationReport } from '../../api/types'
 import {
   Badge,
   Button,
   CheckboxField,
+  CostBasisBadge,
+  Disclosure,
   EmptyState,
   ErrorState,
+  ExecutionBadge,
   KeyValue,
+  LoadingState,
+  Modal,
   NumberField,
   PageHeader,
   Panel,
+  ScientificNotice,
   SkeletonBlock,
   TextField,
-  cn,
-  type Tone,
+  type ExecutionAvailability,
 } from '../../components/ui'
-import { formatNumber, formatQuantity, formatTimestamp, shortHash } from '../../lib/format'
+import { formatQuantity, formatTimestamp, shortHash } from '../../lib/format'
 import { isRecord } from '../../lib/guards'
+import { priceUnit, resolveCostBasis } from '../../lib/money'
+import { clearDraft, draftMatches, loadDraft, storeDraft, type StudioDraft } from './draft'
 import { EventEditor } from './EventEditor'
 import {
-  AVAILABILITY_LABEL,
+  GUIDED_DEMO,
   STEPS,
   STEP_LABEL,
   availability,
   canEnter,
   effectiveStep,
   initialStep,
+  recommendedNetwork,
+  recommendedPreset,
   recordNetwork,
   runBlockReason,
   runnableAlternatives,
-  type Availability,
-  type ExecutionPolicy,
   type Step,
 } from './flow'
+import { GridStep } from './GridStep'
+import { GuidePanel } from './GuidePanel'
+import { PresetList } from './PresetList'
 import { EVENT_LABEL, availableEventTypes, blankSpec, localIssues, newEvent, normaliseSpec } from './spec'
+import { Stepper } from './Stepper'
 import { useDebounced } from './useDebounced'
 import { useExecutionPolicy } from './useExecutionPolicy'
+import { RunError } from './RunError'
 import { ValidationMessages } from './ValidationMessages'
 
 /** Extract the ValidationReport from a 422 `scenario_invalid` error (services/api contract). */
@@ -55,165 +67,18 @@ function reportFromError(err: unknown): ValidationReport | null {
   return null
 }
 
-const AVAILABILITY_TONE: Record<Availability, Tone> = {
-  live: 'accent',
-  precomputed: 'info',
-  unavailable: 'warn',
-  checking: 'neutral',
+/** Messages of the issues at `path` or below it (`path.x`, `path[0]`), for a field-level error. */
+function issuesAt(issues: ValidationIssue[], ...paths: string[]): string | undefined {
+  const hits = issues.filter((i) => paths.some((p) => i.path === p || i.path.startsWith(`${p}.`) || i.path.startsWith(`${p}[`)))
+  return hits.length ? hits.map((i) => i.message).join(' ') : undefined
 }
 
-function AvailabilityBadge({ value, testId }: { value: Availability; testId?: string }) {
-  return (
-    <span data-testid={testId} data-availability={value}>
-      <Badge tone={AVAILABILITY_TONE[value]}>{AVAILABILITY_LABEL[value]}</Badge>
-    </span>
-  )
-}
-
-function Stepper({ current, open, onGo }: { current: Step; open: (s: Step) => boolean; onGo: (s: Step) => void }) {
-  return (
-    <nav aria-label="Crisis Studio steps">
-      <ol className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
-        {STEPS.map((s, i) => {
-          const active = s === current
-          const done = STEPS.indexOf(current) > i
-          return (
-            <li key={s}>
-              <button
-                type="button"
-                onClick={() => onGo(s)}
-                disabled={!open(s)}
-                aria-current={active ? 'step' : undefined}
-                data-testid={`step-${s}`}
-                className={cn(
-                  'flex w-full items-center gap-2 rounded border px-2.5 py-2 text-left text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50',
-                  active ? 'border-accent bg-accent-soft text-fg' : 'border-line bg-surface text-fg-muted hover:bg-surface-2',
-                )}
-              >
-                <span
-                  aria-hidden
-                  className={cn(
-                    'flex size-5 shrink-0 items-center justify-center rounded-full border text-2xs font-semibold',
-                    active ? 'border-accent bg-accent text-accent-fg' : done ? 'border-ok text-ok' : 'border-line-strong',
-                  )}
-                >
-                  {done ? <Check className="size-3" /> : i + 1}
-                </span>
-                <span>
-                  <span className="sr-only">Step {i + 1}: </span>
-                  {STEP_LABEL[s]}
-                </span>
-              </button>
-            </li>
-          )
-        })}
-      </ol>
-    </nav>
-  )
-}
-
-function GridStep({
-  networks,
-  value,
-  policy,
-  onPick,
-}: {
-  networks: NetworkSummary[]
-  value: string | null
-  policy: ExecutionPolicy
-  onPick: (id: string) => void
-}) {
-  return (
-    <Panel title="1 · Choose grid" description="The power-system dataset the crisis is applied to.">
-      <div role="radiogroup" aria-label="Grid" className="grid gap-2 sm:grid-cols-2">
-        {networks.map((n) => {
-          const live = policy.live.get(n.id)
-          const checked = value === n.id
-          return (
-            <button
-              key={n.id}
-              type="button"
-              role="radio"
-              aria-checked={checked}
-              onClick={() => onPick(n.id)}
-              data-testid="grid-option"
-              data-network-id={n.id}
-              className={cn(
-                'flex flex-col gap-1 rounded border p-3 text-left hover:bg-surface-2',
-                checked ? 'border-accent bg-accent-soft' : 'border-line',
-              )}
-            >
-              <span className="flex flex-wrap items-center gap-1.5">
-                <span className="text-sm font-semibold text-fg">{n.name}</span>
-                <span data-testid="grid-execution">
-                  {live === undefined ? <Badge>checking availability</Badge> : live ? (
-                    <Badge tone="accent" title="This deployment solves scenarios on this grid live">
-                      live solve
-                    </Badge>
-                  ) : (
-                    <Badge tone="info" title="Only scenarios with a verified precomputed result can be opened">
-                      precomputed only
-                    </Badge>
-                  )}
-                </span>
-                {n.coordinate_kind === 'schematic' && <Badge tone="warn">schematic</Badge>}
-              </span>
-              <span className="font-mono text-2xs text-fg-subtle">{n.id}</span>
-              <span className="text-xs text-fg-muted">
-                {formatNumber(n.counts.buses ?? null)} buses · {formatNumber(n.counts.lines ?? null)} lines ·{' '}
-                {n.snapshots ? `${n.snapshots.count} snapshots × ${formatQuantity(n.snapshots.resolution_h, 'h')}` : 'snapshots n/a'}
-                {n.peak_load_mw != null && <> · peak load {formatQuantity(n.peak_load_mw, 'MW', { scale: true })}</>}
-              </span>
-            </button>
-          )
-        })}
-      </div>
-    </Panel>
-  )
-}
-
-function ScenarioList({
-  records,
-  activeId,
-  onPick,
-  policy,
-  empty,
-}: {
-  records: ScenarioRecord[]
-  activeId: string | null
-  onPick: (r: ScenarioRecord) => void
-  policy: ExecutionPolicy
-  empty: string
-}) {
-  if (!records.length) return <p className="px-1 py-2 text-xs text-fg-muted">{empty}</p>
-  return (
-    <ul className="grid gap-1.5 sm:grid-cols-2">
-      {records.map((r) => (
-        <li key={r.id}>
-          <button
-            type="button"
-            onClick={() => onPick(r)}
-            aria-current={activeId === r.id ? 'true' : undefined}
-            data-testid="preset-item"
-            data-preset-id={r.id}
-            className={cn(
-              'flex h-full w-full flex-col gap-0.5 rounded border px-2.5 py-2 text-left hover:bg-surface-2',
-              activeId === r.id ? 'border-accent bg-accent-soft' : 'border-line',
-            )}
-          >
-            <span className="text-xs font-semibold text-fg">{r.name ?? r.spec.name}</span>
-            {r.spec.description && <span className="line-clamp-2 text-2xs text-fg-muted">{r.spec.description}</span>}
-            <span className="truncate font-mono text-2xs text-fg-subtle">
-              {r.id} · {recordNetwork(r)} · {r.spec.events?.length ?? 0} events
-            </span>
-            <span className="mt-0.5">
-              <AvailabilityBadge value={availability(policy, recordNetwork(r), r.hash)} testId="preset-execution" />
-            </span>
-          </button>
-        </li>
-      ))}
-    </ul>
-  )
+const FORECAST_TEXT: Record<ExecutionAvailability, string> = {
+  live: 'The backend solves this scenario now (execution mode: live).',
+  precomputed:
+    'This exact scenario matches a verified precomputed result; the server returns it (execution mode: precomputed).',
+  unavailable: 'This scenario cannot run here: no live solve on this grid and no verified result for this exact scenario.',
+  checking: 'Checking for a matching verified precomputed result…',
 }
 
 function SummaryRow({ label, children }: { label: string; children: ReactNode }) {
@@ -231,19 +96,30 @@ export default function StudioPage() {
   const queryClient = useQueryClient()
   const networks = useNetworks()
   const scenarios = useScenarios()
-  const [edited, setEdited] = useState<StormSpec | null>(null)
+  const guide = params.get('guide') === '1'
+  const presetId = params.get('preset')
+  const requestedNet = params.get('network')
+
+  // Unsaved edits from an earlier visit: reopened automatically when the URL opens the same
+  // scenario (not in the guided demo, which always shows the curated preset), otherwise offered.
+  const [savedDraft, setSavedDraft] = useState<StudioDraft | null>(loadDraft)
+  const [edited, setEdited] = useState<StormSpec | null>(() =>
+    !guide && savedDraft && draftMatches(savedDraft, requestedNet, presetId) ? savedDraft.spec : null,
+  )
+  const [restoredAt, setRestoredAt] = useState<string | null>(() => (edited ? (savedDraft?.savedAt ?? null) : null))
   const [addType, setAddType] = useState<EventType>('line_outage')
   const [showAllPresets, setShowAllPresets] = useState(false)
-  const [requestedStep, setRequestedStep] = useState<Step>(() => initialStep(params.get('network'), params.get('preset')))
+  const [confirmDiscard, setConfirmDiscard] = useState(false)
+  const [requestedStep, setRequestedStep] = useState<Step>(() => initialStep(requestedNet, presetId))
+  const contentRef = useRef<HTMLDivElement>(null)
+  const focusContent = useRef(false)
 
-  const presetId = params.get('preset')
   const records = useMemo(() => scenarios.data ?? [], [scenarios.data])
   const listedRecord = presetId ? (records.find((r) => r.id === presetId) ?? null) : null
   // Unlisted (anonymous) saves are not in the list but can be opened by id via ?preset=<id>.
   const unlisted = useScenario(presetId, scenarios.isSuccess && !listedRecord)
   const presetRecord = listedRecord ?? unlisted.data ?? null
   const netList = useMemo(() => networks.data ?? [], [networks.data])
-  const requestedNet = params.get('network')
 
   // Current spec: user edits, else the selected preset/saved scenario. No crisis chosen yet: no spec.
   const spec: StormSpec | null = edited ?? (presetRecord ? normaliseSpec(presetRecord.spec) : null)
@@ -253,6 +129,18 @@ export default function StudioPage() {
   const crisisChosen = spec !== null
   const flowState = { networkId, crisisChosen }
   const step = effectiveStep(requestedStep, flowState)
+
+  // Move focus to the new step's content after a step change made by the user (keyboard users
+  // otherwise stay on the button they pressed, far from the new content).
+  useEffect(() => {
+    if (!focusContent.current) return
+    focusContent.current = false
+    contentRef.current?.focus()
+  }, [step])
+  const goTo = (s: Step) => {
+    focusContent.current = true
+    setRequestedStep(s)
+  }
 
   const { policy, simArtifacts } = useExecutionPolicy()
   // Picker assets are only needed while events are edited (step 2 with a chosen crisis).
@@ -276,24 +164,54 @@ export default function StudioPage() {
       presetRecord && !edited ? api.submitSimulation({ scenario_id: presetRecord.id }) : api.submitSimulation({ scenario: s }),
     onSuccess: (job) => {
       void queryClient.invalidateQueries({ queryKey: qk.jobs })
-      void navigate(`/runs/${encodeURIComponent(job.id)}`)
+      void navigate(`/runs/${encodeURIComponent(job.id)}${guide ? '?guide=1' : ''}`)
     },
   })
   const save = useMutation({
     mutationFn: (s: StormSpec) => api.saveScenario(s),
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: qk.scenarios }),
+    onSuccess: () => {
+      clearDraft()
+      setSavedDraft(null)
+      void queryClient.invalidateQueries({ queryKey: qk.scenarios })
+    },
   })
 
   const resetMutations = () => {
     run.reset()
     save.reset()
   }
-  const update = (fn: (s: StormSpec) => StormSpec) => {
-    if (!spec) return
-    setEdited(fn(spec))
+  const setDraft = (next: StormSpec) => {
+    const d: StudioDraft = { spec: next, basedOn: presetId, savedAt: new Date().toISOString() }
+    storeDraft(d)
+    setSavedDraft(d)
+    setEdited(next)
+    setRestoredAt(null)
     resetMutations()
   }
-  const pickNetwork = (id: string) => {
+  const update = (fn: (s: StormSpec) => StormSpec) => {
+    if (spec) setDraft(fn(spec))
+  }
+  const discardEdits = () => {
+    clearDraft()
+    setSavedDraft(null)
+    setEdited(null)
+    setRestoredAt(null)
+    resetMutations()
+  }
+  const restoreDraft = (d: StudioDraft) => {
+    setEdited(d.spec)
+    setRestoredAt(d.savedAt)
+    resetMutations()
+    setParams((p) => {
+      const q = new URLSearchParams(p)
+      q.set('network', d.spec.dataset.network_id)
+      if (d.basedOn) q.set('preset', d.basedOn)
+      else q.delete('preset')
+      return q
+    })
+    goTo('review')
+  }
+  const pickNetwork = (id: string, advance: boolean) => {
     if (id !== networkId) {
       setEdited(null)
       resetMutations()
@@ -304,28 +222,36 @@ export default function StudioPage() {
         return q
       })
     }
-    setRequestedStep('crisis')
+    if (advance) goTo('crisis')
   }
-  const pickPreset = (r: ScenarioRecord) => {
+  /** `guided`: open the preset in the guided demo (guide=1), as the Home CTA does. */
+  const pickPreset = (r: ScenarioRecord, next?: Step, guided = false) => {
     setEdited(null)
+    setRestoredAt(null)
     resetMutations()
     setParams((p) => {
       const q = new URLSearchParams(p)
       q.set('preset', r.id)
       q.set('network', recordNetwork(r))
+      if (guided) q.set('guide', '1')
       return q
     })
+    if (next) goTo(next)
   }
   const startCustom = () => {
     if (!network) return
-    setEdited(blankSpec(network))
-    resetMutations()
     setParams((p) => {
       const q = new URLSearchParams(p)
       q.delete('preset')
       q.set('network', network.id)
       return q
     })
+    const d: StudioDraft = { spec: blankSpec(network), basedOn: null, savedAt: new Date().toISOString() }
+    storeDraft(d)
+    setSavedDraft(d)
+    setEdited(d.spec)
+    setRestoredAt(null)
+    resetMutations()
   }
 
   if (networks.error)
@@ -336,8 +262,8 @@ export default function StudioPage() {
     )
   if (networks.isPending)
     return (
-      <div className="p-4">
-        <SkeletonBlock rows={8} label="Loading Crisis Studio" />
+      <div className="mx-auto max-w-[1500px] p-4">
+        <LoadingState label="Loading Crisis Studio" rows={8} />
       </div>
     )
   if (netList.length === 0)
@@ -346,6 +272,7 @@ export default function StudioPage() {
   const local = spec ? localIssues(spec) : []
   const runReport = reportFromError(run.error)
   const shownReport = runReport ?? report
+  const allErrors = [...local, ...(shownReport?.errors ?? [])]
   const blocked = local.length > 0 || report?.valid === false
   const presets = records.filter((r) => r.preset)
   const saved = records.filter((r) => !r.preset)
@@ -357,7 +284,7 @@ export default function StudioPage() {
   const liveNetworks = netList.filter((n) => n.live_execution).map((n) => n.id)
   const runnablePresets = netPresets.filter((r) => policy.precomputed?.has(r.hash))
   const currentHash = presetRecord && !edited ? presetRecord.hash : (report?.scenario_hash ?? null)
-  const avail: Availability = networkId ? availability(policy, networkId, currentHash) : 'checking'
+  const avail: ExecutionAvailability = networkId ? availability(policy, networkId, currentHash) : 'checking'
   const blockReason = runBlockReason({
     crisisChosen,
     localIssues: local.length,
@@ -370,11 +297,6 @@ export default function StudioPage() {
     avail === 'unavailable' && networkId
       ? runnableAlternatives(networkId, presetRecord, records, netList, policy)
       : []
-  const liveUnavailable =
-    run.error instanceof ApiError && run.error.code === 'live_execution_unavailable' ? run.error : null
-  const liveNetworksFromError = Array.isArray(liveUnavailable?.details.live_networks)
-    ? (liveUnavailable.details.live_networks as unknown[]).map(String)
-    : []
   const stepIndex = STEPS.indexOf(step)
   const prevStep = stepIndex > 0 ? STEPS[stepIndex - 1]! : null
   const nextStep = stepIndex < STEPS.length - 1 ? STEPS[stepIndex + 1]! : null
@@ -385,77 +307,118 @@ export default function StudioPage() {
       : spec.name || spec.id
   const snaps = network?.snapshots ?? null
   const durationH = spec && snaps?.resolution_h != null ? spec.horizon.snapshots * snaps.resolution_h : null
+  const costBasis = resolveCostBasis(networkDetail.data, network)
+  const recNetwork = recommendedNetwork(netList, records)
+  const recPreset = networkId ? recommendedPreset(networkId, records, policy) : null
+  const quickStart = recNetwork ? recommendedPreset(recNetwork.id, records, policy) : null
+  const otherDraft = !edited && savedDraft ? savedDraft : null
+  const errorsIn = (s: Step) => allErrors.filter((i) => (i.path.startsWith('events') ? 'crisis' : 'review') === s)
+  const exitGuide = (() => {
+    const q = new URLSearchParams(params)
+    q.delete('guide')
+    return `/studio?${q.toString()}`
+  })()
 
   const setEvent = (i: number, e: StormEvent) =>
     update((s) => ({ ...s, events: s.events.map((x, j) => (j === i ? e : x)) }))
 
   let content: ReactNode
   if (step === 'grid') {
-    content = <GridStep networks={netList} value={networkId} policy={policy} onPick={pickNetwork} />
+    content = (
+      <div className="flex flex-col gap-3">
+        {quickStart && recNetwork && (
+          <div className="gs-panel flex flex-wrap items-center justify-between gap-3 p-4" data-testid="quick-start">
+            <div className="min-w-0">
+              <p className="gs-label">Not sure where to start?</p>
+              <p className="text-sm text-fg">
+                <span className="font-semibold">{quickStart.name ?? quickStart.spec.name}</span>{' '}
+                <span className="text-fg-muted">on {recNetwork.name}, a small grid that is solved live here.</span>
+              </p>
+            </div>
+            <Button
+              variant="primary"
+              onClick={() => pickPreset(quickStart, 'review', quickStart.id === GUIDED_DEMO.preset)}
+              data-testid="quick-start-button"
+            >
+              <Sparkles aria-hidden className="size-4" /> Use this scenario
+            </Button>
+          </div>
+        )}
+        <GridStep
+          networks={netList}
+          value={networkId}
+          recommendedId={recNetwork?.id ?? null}
+          policy={policy}
+          onPick={pickNetwork}
+        />
+      </div>
+    )
   } else if (step === 'crisis') {
     const types = assets.data ? availableEventTypes(assets.data) : []
     const effectiveAddType = types.includes(addType) ? addType : (types[0] ?? 'demand_multiplier')
+    const eventErrors = errorsIn('crisis')
     content = (
       <div className="flex flex-col gap-3">
         <Panel
           title={`2 · Choose crisis on ${network?.name ?? networkId}`}
-          description="Start from a curated preset for this grid, a saved scenario, or build custom events."
+          description="Start from a curated preset, a saved scenario, or build custom events. Open “Details & ids” for full traceability."
           actions={
             (presets.length > netPresets.length || saved.length > visibleSaved.length || showAllPresets) && (
-              <button
-                type="button"
-                className="text-2xs font-semibold text-accent underline underline-offset-2"
-                data-testid="show-all-presets"
-                onClick={() => setShowAllPresets((v) => !v)}
-              >
+              <Button size="sm" variant="ghost" data-testid="show-all-presets" onClick={() => setShowAllPresets((v) => !v)}>
                 {showAllPresets ? 'Current grid only' : 'All grids'}
-              </button>
+              </Button>
             )
           }
         >
           {scenarios.error ? (
             <ErrorState error={scenarios.error} title="Could not load scenarios" onRetry={() => void scenarios.refetch()} />
           ) : scenarios.isPending ? (
-            <SkeletonBlock rows={4} label="Loading scenarios" />
+            <LoadingState label="Loading scenarios" rows={4} />
           ) : (
-            <div className="flex flex-col gap-3">
-              <section aria-labelledby="presets-h" className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-4">
+              <section aria-labelledby="presets-h" className="flex flex-col gap-2">
                 <h3 id="presets-h" className="gs-label">
                   Presets ({visiblePresets.length})
                 </h3>
-                <ScenarioList
+                <PresetList
                   records={visiblePresets}
                   activeId={edited ? null : presetId}
-                  onPick={pickPreset}
+                  recommendedId={recPreset?.id ?? null}
+                  onPick={(r) => pickPreset(r)}
                   policy={policy}
+                  networks={netList}
                   empty="No presets for this grid."
                 />
               </section>
               {visibleSaved.length > 0 && (
-                <section aria-labelledby="saved-h" className="flex flex-col gap-1.5">
+                <section aria-labelledby="saved-h" className="flex flex-col gap-2">
                   <h3 id="saved-h" className="gs-label">
                     Saved ({visibleSaved.length})
                   </h3>
-                  <ScenarioList
+                  <PresetList
                     records={visibleSaved}
                     activeId={edited ? null : presetId}
-                    onPick={pickPreset}
+                    recommendedId={null}
+                    onPick={(r) => pickPreset(r)}
                     policy={policy}
+                    networks={netList}
                     empty="None."
                   />
                 </section>
               )}
-              <section aria-labelledby="custom-h" className="flex flex-wrap items-center gap-2 border-t border-line pt-3">
-                <h3 id="custom-h" className="gs-label w-full">
+              <section aria-labelledby="custom-h" className="flex flex-col gap-2 border-t border-line pt-3">
+                <h3 id="custom-h" className="gs-label">
                   Custom
                 </h3>
-                <Button size="sm" onClick={startCustom} data-testid="start-custom">
-                  <Plus aria-hidden className="size-3.5" /> Start a custom scenario (no events)
-                </Button>
-                <span className="text-2xs text-fg-muted">
-                  The grid as-is; add outages, demand or weather events below.
-                  {liveExecution === false && ' Custom scenarios cannot run on this grid here.'}
-                </span>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button size="sm" onClick={startCustom} data-testid="start-custom">
+                    <Plus aria-hidden className="size-3.5" /> Start a custom scenario (no events)
+                  </Button>
+                  <span className="text-2xs text-fg-muted">
+                    The grid as-is; add outages, demand or weather events below.
+                    {liveExecution === false && ' Custom scenarios cannot run on this grid here.'}
+                  </span>
+                </div>
               </section>
             </div>
           )}
@@ -463,10 +426,10 @@ export default function StudioPage() {
 
         {spec && (
           <Panel
-            title={`Custom events (${spec.events.length})`}
+            title={`Events (${spec.events.length})`}
             description={
               presetRecord && !edited
-                ? `Events of preset ${presetRecord.id}. Editing them creates a custom scenario.`
+                ? `Events of “${presetRecord.name ?? presetRecord.spec.name}”. Editing them creates a custom scenario.`
                 : 'Events applied on top of the grid over the horizon.'
             }
             actions={
@@ -477,7 +440,7 @@ export default function StudioPage() {
                   </label>
                   <select
                     id="add-event-type"
-                    className="gs-input h-7 min-h-0 py-0 text-xs"
+                    className="gs-input h-8 min-h-0 max-w-[10rem] py-0 text-xs sm:max-w-none"
                     value={effectiveAddType}
                     onChange={(e) => setAddType(e.target.value as EventType)}
                     data-testid="add-event-type"
@@ -499,6 +462,11 @@ export default function StudioPage() {
               ) : null
             }
           >
+            {eventErrors.length > 0 && (
+              <div className="mb-3">
+                <ValidationMessages report={null} local={eventErrors} pending={false} />
+              </div>
+            )}
             {assets.error ? (
               <ErrorState error={assets.error} title="Could not load network assets for pickers" onRetry={assets.refetch} />
             ) : !assets.data ? (
@@ -527,22 +495,31 @@ export default function StudioPage() {
       </div>
     )
   } else if (step === 'review' && spec) {
+    const execError = issuesAt(allErrors, 'execution')
     content = (
       <div className="flex flex-col gap-3">
-        <Panel title="3 · Review settings" description="Identity, horizon and mitigation options of this scenario.">
+        <Panel title="3 · Review settings" description="Name, horizon and mitigation options of this scenario.">
           <div className="grid gap-3 sm:grid-cols-2">
+            <TextField
+              label="Name"
+              value={spec.name}
+              testId="scenario-name"
+              error={issuesAt(allErrors, 'name')}
+              onChange={(name) => update((s) => ({ ...s, name }))}
+            />
             <TextField
               label="Scenario id"
               value={spec.id}
               testId="scenario-id"
-              hint="Lowercase letters, digits, hyphens; 3–64 chars."
+              hint="Lowercase letters, digits, hyphens; 3–64 characters. Identifies saved scenarios and results."
+              error={issuesAt(allErrors, 'id')}
               onChange={(id) => update((s) => ({ ...s, id }))}
             />
-            <TextField label="Name" value={spec.name} testId="scenario-name" onChange={(name) => update((s) => ({ ...s, name }))} />
             <TextField
               className="sm:col-span-2"
               label="Description"
               value={spec.description ?? ''}
+              error={issuesAt(allErrors, 'description')}
               onChange={(description) => update((s) => ({ ...s, description }))}
             />
           </div>
@@ -563,6 +540,7 @@ export default function StudioPage() {
               min={0}
               value={spec.horizon.start ?? 0}
               testId="horizon-start"
+              error={issuesAt(allErrors, 'horizon.start')}
               onChange={(v) => update((s) => ({ ...s, horizon: { ...s.horizon, start: v ?? 0 } }))}
             />
             <NumberField
@@ -573,6 +551,10 @@ export default function StudioPage() {
               max={LIMITS.horizonSnapshots.max}
               value={spec.horizon.snapshots}
               testId="horizon-snapshots"
+              error={issuesAt(
+                allErrors.filter((i) => i.path !== 'horizon.start'),
+                'horizon',
+              )}
               onChange={(v) => update((s) => ({ ...s, horizon: { ...s.horizon, snapshots: v ?? 0 } }))}
             />
             <div className="flex flex-col justify-end text-xs text-fg-muted">
@@ -580,7 +562,7 @@ export default function StudioPage() {
             </div>
           </div>
         </Panel>
-        <Panel title="Mitigation">
+        <Panel title="Mitigation" actions={<CostBasisBadge basis={costBasis} testId="studio-cost-basis" />}>
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="flex flex-col gap-2">
               <CheckboxField
@@ -597,7 +579,7 @@ export default function StudioPage() {
               />
               <CheckboxField
                 label="Load shedding"
-                hint="Adds load-shedding generators at value of lost load."
+                hint="Adds load-shedding generators at the value of lost load."
                 checked={spec.mitigation.load_shedding.enabled}
                 onChange={(v) =>
                   update((s) => ({
@@ -609,11 +591,13 @@ export default function StudioPage() {
             </div>
             <NumberField
               label="Value of lost load (VOLL)"
-              unit="EUR/MWh"
+              unit={priceUnit(costBasis)}
               min={0}
               max={LIMITS.vollEurPerMwh.max}
               value={spec.mitigation.load_shedding.voll_eur_per_mwh}
               testId="voll"
+              hint="Penalty per MWh of unserved energy, in the dataset's money unit. A modelling parameter, not an estimate of economic damage."
+              error={issuesAt(allErrors, 'mitigation.load_shedding')}
               onChange={(v) =>
                 update((s) => ({
                   ...s,
@@ -626,9 +610,16 @@ export default function StudioPage() {
             />
           </div>
         </Panel>
-        <details className="gs-panel p-4 text-xs" data-testid="advanced-settings">
-          <summary className="cursor-pointer text-sm font-semibold">Advanced: solver & execution</summary>
-          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+        <Disclosure
+          testId="advanced-settings"
+          summary={
+            <>
+              Advanced: solver & execution
+              {execError && <Badge tone="danger">error</Badge>}
+            </>
+          }
+        >
+          <div className="grid gap-3 sm:grid-cols-2">
             <NumberField
               label="Solver time limit"
               unit="s"
@@ -636,6 +627,7 @@ export default function StudioPage() {
               max={LIMITS.timeLimitS.max}
               value={spec.execution.solver_options?.time_limit_s ?? null}
               testId="time-limit"
+              error={execError}
               onChange={(v) =>
                 update((s) => ({
                   ...s,
@@ -651,7 +643,7 @@ export default function StudioPage() {
               ]}
             />
           </div>
-        </details>
+        </Disclosure>
       </div>
     )
   } else if (spec) {
@@ -662,20 +654,12 @@ export default function StudioPage() {
             {validation.error && !runReport ? (
               <ErrorState error={validation.error} title="Validation request failed" onRetry={() => void validation.refetch()} />
             ) : (
-              <ValidationMessages report={shownReport} local={local} pending={validating && !runReport} />
+              <ValidationMessages report={shownReport} local={local} pending={validating && !runReport} onGoToStep={goTo} />
             )}
             <div className="flex flex-wrap items-center gap-2 text-xs" data-testid="execution-forecast" data-availability={avail}>
               <span className="font-semibold">Execution:</span>
-              <AvailabilityBadge value={avail} />
-              <span className="text-fg-muted">
-                {avail === 'live'
-                  ? 'The backend solves this scenario now (execution mode: live).'
-                  : avail === 'precomputed'
-                    ? 'This exact scenario matches a verified precomputed result; the server returns it (execution mode: precomputed).'
-                    : avail === 'unavailable'
-                      ? 'This scenario cannot run here: no live solve on this grid and no verified result for this exact scenario.'
-                      : 'Checking for a matching verified precomputed result…'}
-              </span>
+              <ExecutionBadge value={avail} />
+              <span className="text-fg-muted">{FORECAST_TEXT[avail]}</span>
             </div>
             {simArtifacts.error && avail === 'checking' && (
               <ErrorState error={simArtifacts.error} title="Could not load the precomputed result index" onRetry={() => void simArtifacts.refetch()} />
@@ -696,13 +680,7 @@ export default function StudioPage() {
                 {save.isPending ? 'Saving…' : 'Save scenario'}
               </Button>
               {edited && (
-                <Button
-                  variant="ghost"
-                  onClick={() => {
-                    setEdited(null)
-                    resetMutations()
-                  }}
-                >
+                <Button variant="ghost" onClick={() => setConfirmDiscard(true)} data-testid="discard-edits">
                   <RotateCcw aria-hidden className="size-4" /> Discard edits
                 </Button>
               )}
@@ -727,23 +705,7 @@ export default function StudioPage() {
                 </ul>
               </div>
             )}
-            {liveUnavailable ? (
-              <div role="alert" className="rounded border border-warn/50 bg-warn-soft p-3 text-sm" data-testid="live-unavailable">
-                <p className="font-semibold">Run refused: live execution unavailable</p>
-                <p className="text-xs text-fg">{liveUnavailable.message}</p>
-                {liveNetworksFromError.length > 0 && (
-                  <p className="mt-1 text-xs text-fg-muted">
-                    Networks solved live on this deployment:{' '}
-                    <span className="font-mono">{liveNetworksFromError.join(', ')}</span>
-                  </p>
-                )}
-                <p className="mt-1 font-mono text-2xs text-fg-muted">
-                  HTTP {liveUnavailable.status} · {liveUnavailable.code}
-                </p>
-              </div>
-            ) : (
-              run.error && !runReport && <ErrorState error={run.error} title="Submission failed" />
-            )}
+            <RunError error={run.error} onRetry={() => run.mutate(spec)} />
             {save.error && <ErrorState error={save.error} title="Save failed" />}
             {save.data && (
               <p role="status" className="text-xs text-ok" data-testid="save-status">
@@ -762,12 +724,11 @@ export default function StudioPage() {
             )}
           </div>
         </Panel>
-        <details className="gs-panel p-3 text-xs">
-          <summary className="cursor-pointer font-semibold">StormSpec JSON</summary>
-          <pre className="mt-2 max-h-80 overflow-auto font-mono text-2xs text-fg-muted" data-testid="spec-json">
+        <Disclosure summary="StormSpec JSON (exact submitted scenario)">
+          <pre className="max-h-80 overflow-auto font-mono text-2xs text-fg-muted" data-testid="spec-json">
             {JSON.stringify(spec, null, 2)}
           </pre>
-        </details>
+        </Disclosure>
       </div>
     )
   }
@@ -779,17 +740,69 @@ export default function StudioPage() {
         subtitle="Choose a grid, choose a crisis, review the settings and run it on the backend."
         badges={
           presetRecord && !edited ? (
-            <Badge tone="info">preset {presetRecord.id}</Badge>
+            <Badge tone="info">preset</Badge>
           ) : edited ? (
             <Badge tone="accent">custom scenario</Badge>
           ) : null
         }
       />
-      <Stepper current={step} open={(s) => canEnter(s, flowState)} onGo={setRequestedStep} />
+      <Stepper current={step} open={(s) => canEnter(s, flowState)} onGo={goTo} />
+      {guide && spec && presetRecord && !edited && (
+        <GuidePanel
+          spec={spec}
+          network={network}
+          availability={avail}
+          runDisabledReason={blockReason}
+          submitting={run.isPending}
+          onRun={() => run.mutate(spec)}
+          exitTo={exitGuide}
+        >
+          {step !== 'run' && <RunError error={run.error} onRetry={() => run.mutate(spec)} />}
+        </GuidePanel>
+      )}
+      {guide && edited && (
+        <ScientificNotice kind="limitation" title="The guided demo explains the unchanged preset." testId="guide-edited">
+          <p>
+            You changed this scenario, so the guide is paused.{' '}
+            <button type="button" className="font-semibold text-accent underline underline-offset-2" onClick={() => setConfirmDiscard(true)}>
+              Discard edits
+            </button>{' '}
+            to return to it, or <Link className="font-semibold text-accent underline underline-offset-2" to={exitGuide}>exit the guide</Link>.
+          </p>
+        </ScientificNotice>
+      )}
+      {presetId && !presetRecord && unlisted.error && (
+        <ErrorState error={unlisted.error} title={`Scenario “${presetId}” could not be opened`} onRetry={() => void unlisted.refetch()} />
+      )}
+      {restoredAt && edited && (
+        <div role="status" className="flex flex-wrap items-center gap-2 rounded-lg border border-line bg-surface-2 px-3 py-2 text-xs" data-testid="draft-restored">
+          <History aria-hidden className="size-4 text-fg-muted" />
+          <span>
+            Restored your unsaved edits from {formatTimestamp(restoredAt)} (kept in this browser).
+          </span>
+          <Button size="sm" variant="ghost" onClick={() => setConfirmDiscard(true)}>
+            Discard
+          </Button>
+        </div>
+      )}
+      {otherDraft && !guide && (
+        <div role="status" className="flex flex-wrap items-center gap-2 rounded-lg border border-line bg-surface-2 px-3 py-2 text-xs" data-testid="draft-available">
+          <History aria-hidden className="size-4 text-fg-muted" />
+          <span className="min-w-0 flex-1">
+            Unsaved draft <span className="font-semibold">“{otherDraft.spec.name || otherDraft.spec.id}”</span> on{' '}
+            <span className="font-mono">{otherDraft.spec.dataset.network_id}</span> from {formatTimestamp(otherDraft.savedAt)}.
+          </span>
+          <Button size="sm" onClick={() => restoreDraft(otherDraft)} data-testid="draft-restore">
+            Restore
+          </Button>
+          <Button size="sm" variant="ghost" onClick={discardEdits} data-testid="draft-discard">
+            Discard
+          </Button>
+        </div>
+      )}
       {liveExecution === false && network && (
-        <div role="status" className="gs-panel border-warn/50 p-3 text-sm" data-testid="live-execution-notice">
-          <h2 className="font-semibold">Live solves disabled for {network.id} on this deployment</h2>
-          <p className="text-xs">
+        <ScientificNotice kind="limitation" testId="live-execution-notice" title={`Live solves disabled for ${network.id} on this deployment`}>
+          <p>
             This backend runs live solves only for grids within its memory budget
             {liveNetworks.length > 0 && (
               <>
@@ -801,14 +814,56 @@ export default function StudioPage() {
             matched by its StormSpec hash; anything else is stopped here before submission.
           </p>
           {policy.precomputed && (
-            <p className="mt-1 text-xs text-fg-muted">
+            <p>
               {runnablePresets.length} of {netPresets.length} presets for this grid have a precomputed result.
             </p>
           )}
-        </div>
+        </ScientificNotice>
       )}
       <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_18rem]">
-        <div className="flex min-w-0 flex-col gap-3">{content}</div>
+        <div className="flex min-w-0 flex-col gap-3">
+          <div
+            ref={contentRef}
+            tabIndex={-1}
+            role="region"
+            aria-label={`Step ${stepIndex + 1} of ${STEPS.length}: ${STEP_LABEL[step]}`}
+            data-testid="step-content"
+            className="flex min-w-0 flex-col gap-3 rounded-[10px] focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+          >
+            {content}
+          </div>
+          <div
+            className="sticky bottom-0 z-10 -mx-3 flex items-center justify-between gap-2 border-t border-line bg-surface px-3 py-2 md:-mx-4 md:px-4 lg:static lg:mx-0 lg:rounded-[10px] lg:border lg:px-3"
+            data-testid="step-nav"
+          >
+            {prevStep ? (
+              <Button variant="ghost" onClick={() => goTo(prevStep)} data-testid="step-back">
+                <ArrowLeft aria-hidden className="size-4" /> Back<span className="sr-only">: {STEP_LABEL[prevStep]}</span>
+              </Button>
+            ) : (
+              <span />
+            )}
+            {nextStep && (
+              <div className="flex min-w-0 items-center gap-2">
+                {!canEnter(nextStep, flowState) && (
+                  <span id="step-next-hint" className="min-w-0 text-right text-2xs text-fg-muted">
+                    {nextStep === 'crisis' ? 'Choose a grid to continue.' : 'Choose a crisis to continue.'}
+                  </span>
+                )}
+                <Button
+                  variant="primary"
+                  disabled={!canEnter(nextStep, flowState)}
+                  aria-describedby={!canEnter(nextStep, flowState) ? 'step-next-hint' : undefined}
+                  onClick={() => goTo(nextStep)}
+                  data-testid="step-next"
+                >
+                  <span className="sr-only">Next: </span>
+                  {STEP_LABEL[nextStep]} <ArrowRight aria-hidden className="size-4" />
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
         <aside aria-label="Scenario summary" className="flex min-w-0 flex-col gap-3 lg:sticky lg:top-3 lg:self-start">
           <Panel title="Your scenario">
             <dl className="flex flex-col gap-2" data-testid="scenario-summary">
@@ -835,38 +890,47 @@ export default function StudioPage() {
               )}
               {networkId && (
                 <SummaryRow label="Execution">
-                  <AvailabilityBadge value={crisisChosen ? avail : policy.live.get(networkId) === true ? 'live' : 'checking'} />
+                  <ExecutionBadge value={crisisChosen ? avail : policy.live.get(networkId) === true ? 'live' : 'checking'} />
+                </SummaryRow>
+              )}
+              {network && (
+                <SummaryRow label="Cost basis">
+                  <CostBasisBadge basis={costBasis} />
+                </SummaryRow>
+              )}
+              {presetRecord && !edited && (
+                <SummaryRow label="Scenario id · hash">
+                  <span className="font-mono text-2xs text-fg-muted">
+                    {presetRecord.id} · {shortHash(presetRecord.hash)}
+                  </span>
                 </SummaryRow>
               )}
             </dl>
-            <div className="mt-3 flex items-center justify-between gap-2">
-              {prevStep ? (
-                <Button size="sm" variant="ghost" onClick={() => setRequestedStep(prevStep)} data-testid="step-back">
-                  <ArrowLeft aria-hidden className="size-3.5" /> Back
-                </Button>
-              ) : (
-                <span />
-              )}
-              {nextStep && (
-                <Button
-                  size="sm"
-                  variant="primary"
-                  disabled={!canEnter(nextStep, flowState)}
-                  onClick={() => setRequestedStep(nextStep)}
-                  data-testid="step-next"
-                >
-                  {STEP_LABEL[nextStep]} <ArrowRight aria-hidden className="size-3.5" />
-                </Button>
-              )}
-            </div>
-            {nextStep && !canEnter(nextStep, flowState) && (
-              <p className="mt-1 text-2xs text-fg-muted">
-                {nextStep === 'crisis' ? 'Choose a grid to continue.' : 'Choose a crisis to continue.'}
-              </p>
-            )}
           </Panel>
         </aside>
       </div>
+      <Modal
+        open={confirmDiscard}
+        onOpenChange={setConfirmDiscard}
+        title="Discard your edits?"
+        description="The scenario returns to the selected preset (or to no crisis for a custom scenario). The unsaved draft in this browser is deleted."
+        testId="discard-dialog"
+        footer={
+          <>
+            <Button onClick={() => setConfirmDiscard(false)}>Keep editing</Button>
+            <Button
+              variant="danger"
+              data-testid="confirm-discard"
+              onClick={() => {
+                discardEdits()
+                setConfirmDiscard(false)
+              }}
+            >
+              Discard edits
+            </Button>
+          </>
+        }
+      />
     </div>
   )
 }

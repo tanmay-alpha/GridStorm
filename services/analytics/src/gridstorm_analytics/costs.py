@@ -61,7 +61,11 @@ def _total(series: pd.Series | None) -> float | None:
 
 
 def compute_costs(
-    n: pypsa.Network, *, carriers: list[str] | None, countries: list[str] | None
+    n: pypsa.Network,
+    *,
+    carriers: list[str] | None,
+    countries: list[str] | None,
+    cost_basis: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     solved = is_solved(n)
     installed = _stat(n, "installed_capex", carriers, countries)
@@ -93,8 +97,10 @@ def compute_costs(
             }
         )
     snapshot_hours = float(n.snapshot_weightings.objective.sum())
+    money_unit = (cost_basis or {}).get("money_unit") or "cost units (basis unknown)"
     assumptions = [
         CURRENCY_ASSUMPTION,
+        f"Declared money unit: {money_unit}.",
         "capex_installed_eur = nominal capacity (p_nom/s_nom/e_nom) x capital_cost "
         "(PyPSA statistics.installed_capex); available without optimisation.",
         "capex_optimal_eur = optimal capacity (*_opt) x capital_cost (PyPSA statistics.capex, "
@@ -119,11 +125,11 @@ def compute_costs(
         available=True,
         reason=None,
         units={
-            "rows[].capex_installed_eur": "EUR",
-            "rows[].capex_optimal_eur": "EUR",
-            "rows[].opex_eur": "EUR",
-            "by_carrier.*": "EUR",
-            "totals.*": "EUR",
+            "rows[].capex_installed_eur": money_unit,
+            "rows[].capex_optimal_eur": money_unit,
+            "rows[].opex_eur": money_unit,
+            "by_carrier.*": money_unit,
+            "totals.*": money_unit,
             "objective_weighted_hours_h": "h",
         },
         assumptions=assumptions,

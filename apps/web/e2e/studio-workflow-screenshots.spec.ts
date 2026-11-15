@@ -2,6 +2,7 @@ import { mkdir } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { expect, test } from '@playwright/test'
 import type { Job } from '../src/api/types'
+import { waitForNetworkView } from './helpers/networkView'
 
 /** Opt-in: real API evidence only. Reuses intact live jobs, otherwise submits at most two IEEE-14 runs. */
 test('capture staged studio, results and baseline comparison in both themes at three viewports', async ({ page, request }) => {
@@ -43,11 +44,7 @@ test('capture staged studio, results and baseline comparison in both themes at t
       await page.screenshot({ path: resolve(directory, `studio-${width}x${height}-${theme}.png`) })
       await page.goto(`/runs/${ids[1]}`)
       await expect(page.getByTestId('metrics')).toBeVisible()
-      await expect(page.getByTestId('network-map')).toHaveAttribute('data-map-ready', 'true')
-      await page.waitForFunction(() => {
-        const map = window.__gridstormMap
-        return map?.loaded() && map.queryRenderedFeatures({ layers: ['gs-branches', 'gs-buses'] }).length > 0
-      })
+      await waitForNetworkView(page, 'pglib-case14-ieee')
       await expect(page.getByTestId('chart-generation').locator('canvas')).toBeVisible()
       await expect(page.getByTestId('compare-baseline')).toHaveAttribute('href', `/compare?a=${ids[0]}&b=${ids[1]}`)
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
@@ -56,12 +53,8 @@ test('capture staged studio, results and baseline comparison in both themes at t
       await expect(page.getByTestId('create-comparison')).toBeEnabled()
       await page.getByTestId('create-comparison').click()
       await expect(page.getByTestId('comparison')).toBeVisible()
-      await expect(page.getByTestId('network-map')).toHaveAttribute('data-map-ready', 'true')
+      await waitForNetworkView(page, 'pglib-case14-ieee')
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
-      await page.waitForFunction(() => {
-        const map = window.__gridstormMap
-        return map?.loaded() && map.queryRenderedFeatures({ layers: ['gs-branches', 'gs-buses'] }).length > 0
-      })
       await page.screenshot({ path: resolve(directory, `compare-${width}x${height}-${theme}.png`) })
     }
   }

@@ -1,0 +1,1561 @@
+{
+  "journey": [
+    {
+      "name": "Home to guided Studio",
+      "status": "PASS",
+      "evidence": {
+        "url": "http://127.0.0.1:4190/studio?network=pglib-case14-ieee&preset=pglib-case14-ieee-gen-1-outage&guide=1",
+        "guide": "GUIDED DEMO · STEP 1 OF 3\n\nPGLib IEEE 14-bus — loss of the main unit gen-1 (deliberate load shedding)\nExit guide\n1. Run the crisis in Studio\n2. Read the impact brief\n3. Compare with the baseline\n\nQuestion: With generator gen-1 out, can the rest of the grid still serve demand, and at what cost?\n\nIf supply falls short, the optimisation sheds load at the value-of-lost-load penalty (10,000 PGLib cost units/MWh) and reports the unserved energy. The penalty is a modelling parameter, not an estimate of economic damage.\n\nRun this crisis\nWaiting for the backend to validate this scenario…\n\nIEEE 14-bus (PGLib-OPF v23.07): 14 buses, 5 generators · schematic layout, not geographic · research use only."
+      }
+    },
+    {
+      "name": "Live local gen-1 solve and Grid Impact Brief",
+      "status": "PASS",
+      "evidence": {
+        "url": "http://127.0.0.1:4190/runs/050871ee-7874-40cb-83be-33e5db13779a?guide=1",
+        "postStatus": 202,
+        "job": {
+          "id": "050871ee-7874-40cb-83be-33e5db13779a",
+          "scenario_id": "pglib-case14-ieee-gen-1-outage",
+          "scenario_record_id": "pglib-case14-ieee-gen-1-outage",
+          "scenario_hash": "ba25e910a97c0caed16c841af59913905fc7d8b93f920015c8fd90c4de22d8e9",
+          "network_id": "pglib-case14-ieee",
+          "execution_mode": "live",
+          "reused": false,
+          "reused_from_job_id": null,
+          "recomputed_from_job_id": null,
+          "status": "queued",
+          "stage": "queued",
+          "stage_history": [
+            {
+              "stage": "queued",
+              "at": "2026-11-15T09:26:16.698888Z"
+            }
+          ],
+          "outcome": null,
+          "solver": null,
+          "error": null,
+          "cancel_requested": false,
+          "attempts": 0,
+          "created_at": "2026-11-15T09:26:16.698888Z",
+          "started_at": null,
+          "finished_at": null,
+          "result_sha256": null,
+          "result_available": false,
+          "owner_id": null,
+          "visibility": "public"
+        },
+        "summary": "Feasible\nCOMPLETED\n\nSolver termination: optimal (status ok).\n\nPGLib cost units · benchmark\nUNSERVED ENERGY\n200 MWh\npeak shedding 200 MW\nDEMAND SERVED\n22.78 %\n59 MWh of 259 MWh\nCONGESTION\n0 branches\nat ≥ 99.9 % loading · max 8.83 %\nOPERATING COST (OBJECTIVE)\n2 M PGLib cost units\nincl. 2 M PGLib cost units load-shedding penalty\nCURTAILMENT\n0 MWh\n\nKEY ASSUMPTIONSpypsa LOPF · single period (no timestamp) · load shedding penalised at 10,000 PGLib cost units/MWh (VOLL penalty, not an estimate) · DC power flow: no voltages, reactive power or losses · all 12 assumptions",
+        "brief": "Feasible with 200 MWh unserved (77.22 % of demand)\n\nOK:\nThe LOPF optimisation found a feasible dispatch (solver termination optimal) for a single period (no timestamp).\nEvidence (4)\nInfo:\nScenario “PGLib IEEE 14-bus — loss of the main unit gen-1 (deliberate load shedding)” applies generator gen-1 out of service (the whole horizon); load shedding allowed as a penalised last resort, storage dispatch enabled.\nEvidence (3)\nAttention:\nOut of service in this run: generator gen-1 (NG), which dispatched up to 259 MW in the baseline.\nEvidence (2)\nCritical:\n200 MWh of demand is not served (77.22 % of 259 MWh), peak shedding 200 MW, over 1 h. Shedding is located at 10 buses: bus-3 (94.2 MWh), bus-9 (29.5 MWh), bus-14 (14.9 MWh), bus-13 (13.5 MWh), bus-6 (11.2 MWh) and 5 more.\nEvidence (10)\nOK:\nNo in-service branch reaches its thermal limit (≥ 99.9 % of s_nom); the most loaded is line branch-4 at 8.83 %.\nEvidence (2)\nAttention:\n1 of 1 in-service generators with available capacity run at their availability limit in at least one snapshot (gen-2). In every snapshot with load shedding, all in-service generators with available capacity are at their limit: no generation headroom remains.\nEvidence (1)\nInfo:\nCompared with the baseline: unserved energy 0 MWh → 200 MWh; maximum branch loading 60.66 % → 8.83 % (−51.83 pp); operating cost +2 M PGLib cost units (+97,455 %).\nEvidence (6)\nInfo:\nDispatch shifts versus baseline (energy by carrier): NG −200 MWh (−77.22 %).\nEvidence (2)\nInfo:\nThe LP objective is 2 M PGLib cost units (benchmark cost coefficients (not a currency)), of which 2 M PGLib cost units is the load-shedding penalty and 1.37 k PGLib cost units generation cost. LP economics: the scenario VOLL of 10,000 PGLib cost units/MWh is a penalty term in the same objective, so the optimiser sheds load only where no feasible redispatch is cheaper than that penalty. At 10 shedding buses the nodal price equals the VOLL penalty, i.e. shedding is the marginal option there in the model. This is model economics, not a statement about real operator practice.\nEvidence (9)\nStatements are derived mechanically from the stored result; “coincides with” means co-occurrence in the same snapshots, not a demonstrated cause.\nResults are model outputs under the run’s stated assumptions (see Assumptions), not observations or forecasts.\nGenerated by deterministic rules over the stored data (no language model); the same inputs always give the same brief.",
+        "guideSteps": "GUIDED DEMO · IEEE 14-BUS GENERATOR OUTAGE\n\n1\nFail a generator\n(done)\n2\nRead the result\n(done)\n3\nCompare with baseline\n4\nRead the Grid Impact Brief\n5\nDownload evidence"
+      }
+    },
+    {
+      "name": "Compare baseline and download Markdown",
+      "status": "PASS",
+      "evidence": {
+        "url": "http://127.0.0.1:4190/compare?a=37c0c081-d834-4b87-a3c5-8e898b5a9685&b=050871ee-7874-40cb-83be-33e5db13779a&guide=1&comparison=a3ef641c-7748-40fd-867a-75b4696f6cf2",
+        "filename": "gridstorm-comparison-a3ef641c-7748-40fd-867a-75b4696f6cf2.md",
+        "comparison": "PROVENANCE: CALCULATED\nBaseline PGLib IEEE 14-bus — baseline DC OPF FEASIBLE\n→\nScenario PGLib IEEE 14-bus — loss of the main unit gen-1 (deliberate load shedding) FEASIBLE\non pglib-case14-ieee\nCOST BASIS\nPGLib cost units · benchmark\n\nMoney is in PGLib cost units, not a currency; costs compare only within the same basis.\n\nLoad-shedding penalty (VOLL) 10,000 PGLib cost units/MWh: a modelling penalty in the same objective, not an economic estimate.\n\nMetric changes\n\nΔ = scenario − baseline. Metrics measured in % change in percentage points (pp). Relative change = Δ ÷ |baseline| × 100; it is “n/a (baseline 0)” when the baseline is 0. Cost differences are shown only when both runs share a declared cost basis. Higher is not always better: lower cost, unserved energy and congestion are preferable.\n\nMetric deltas\nMetric\tBaseline\tScenario\tΔ\tRelative\nBalance residual max [MW]\t0 MW\t0 MW\t0 MW\tn/a (baseline 0)\nCo2 emissions [t]\t—\t—\t—\t—\nCongested line count\t0\t0\t0\tn/a (baseline 0)\nCurtailment [MWh]\t0 MWh\t0 MWh\t0 MWh\tn/a (baseline 0)\nGeneration cost [PGLib cost units]\t2,052 PGLib cost units\t1,373 PGLib cost units\t−678.6 PGLib cost units\t−33.08 %\nLoad shed [h]\t0 h\t1 h\t+1 h\tn/a (baseline 0)\nLoad shedding cost [PGLib cost units]\t0 PGLib cost units\t2,000,000 PGLib cost units\t+2,000,000 PGLib cost units\tn/a (baseline 0)\nMax line loading [%]\t60.66 %\t8.83 %\t−51.83 pp\t—\nMean line loading [%]\t18.55 %\t1.84 %\t−16.7 pp\t—\nPeak load shed [MW]\t0 MW\t200 MW\t+200 MW\tn/a (baseline 0)\nServed load [MWh]\t259 MWh\t59 MWh\t−200 MWh\t−77.22 %\nStorage charge [MWh]\t0 MWh\t0 MWh\t0 MWh\tn/a (baseline 0)\nStorage discharge [MWh]\t0 MWh\t0 MWh\t0 MWh\tn/a (baseline 0)\nTotal load [MWh]\t259 MWh\t259 MWh\t0 MWh\t0 %\nTotal system cost [PGLib cost units]\t2,052 PGLib cost units\t2,001,373 PGLib cost units\t+1,999,321 PGLib cost units\t+97,455 %\nUnserved energy [MWh]\t0 MWh\t200 MWh\t+200 MWh\tn/a (baseline 0)\nGrid Impact Brief\n\nScenario versus baseline, derived by fixed rules from both stored results.\n\nFeasible with 200 MWh unserved (77.22 % of demand)\n\nOK:\nThe LOPF optimisation found a feasible dispatch (solver termination optimal) for a single period (no timestamp).\nEvidence (4)\nAttention:\nOut of service in this run: generator gen-1 (NG), which dispatched up to 259 MW in the baseline.\nEvidence (2)\nCritical:\n200 MWh of demand is not served (77.22 % of 259 MWh), peak shedding 200 MW, over 1 h. Shedding is located at 10 buses: bus-3 (94.2 MWh), bus-9 (29.5 MWh), bus-14 (14.9 MWh), bus-13 (13.5 MWh), bus-6 (11.2 MWh) and 5 more.\nEvidence (10)\nOK:\nNo in-service branch reaches its thermal limit (≥ 99.9 % of s_nom); the most loaded is line branch-4 at 8.83 %.\nEvidence (2)\nAttention:\n1 of 1 in-service generators with available capacity run at their availability limit in at least one snapshot (gen-2). In every snapshot with load shedding, all in-service generators with available capacity are at their limit: no generation headroom remains.\nEvidence (1)\nInfo:\nCompared with the baseline: unserved energy 0 MWh → 200 MWh; maximum branch loading 60.66 % → 8.83 % (−51.83 pp); operating cost +2 M PGLib cost units (+97,455 %).\nEvidence (6)\nInfo:\nDispatch shifts versus baseline (energy by carrier): NG −200 MWh (−77.22 %).\nEvidence (2)\nInfo:\nThe LP objective is 2 M PGLib cost units (benchmark cost coefficients (not a currency)), of which 2 M PGLib cost units is the load-shedding penalty and 1.37 k PGLib cost units generation cost. LP economics: the scenario VOLL of 10,000 PGLib cost units/MWh is a penalty term in the same objective, so the optimiser sheds load only where no feasible redispatch is cheaper than that penalty. At 10 shedding buses the nodal price equals the VOLL penalty, i.e. shedding is the marginal option there in the model. This is model economics, not a statement about real operator practice.\nEvidence (9)\nStatements are derived mechanically from the stored result; “coincides with” means co-occurrence in the same snapshots, not a demonstrated cause.\nResults are model outputs under the run’s stated assumptions (see Assumptions), not observations or forecasts.\nGenerated by deterministic rules over the stored data (no language model); the same inputs always give the same brief.\nNetwork: loading difference\n\nOutlined = largest branch changes; dashed = out of service.\n\nMAP SHOWS\nΔ max loading over horizon [pp]\nΔ loading at snapshot [pp]\nScenario loading at snapshot [%]\nBaseline loading at snapshot [%]\n\nSchematic network drawing. Tab to the buses, then use the arrow keys to move between neighbouring buses and Enter to open a bus. Plus and minus zoom, 0 fits the network. Lines, transformers and attached units are listed in the details of each bus and in the asset search.\n\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\nSchematic layout — not geographic\nLegend\nLOADING CHANGE (SCENARIO − BASELINE)\n≤ −20 pp\n−20 to −5 pp\n−5 to +5 pp\n+5 to +20 pp\n≥ +20 pp\nNo value in one run\nSYMBOLS\nBus (ring colour = voltage)\nLine\nTransformer\nGenerator (colour = carrier)\nLoad\nOut of service in scenario\nHighlighted\nLargest branch changes (8)\n\nStatus changes first, then by |Δ max loading| (percentage points).\n\nTop branch changes\nType\tId\tBaseline max\tScenario max\tChange\nline\tbranch-2\t60.66 %\t4.97 %\t−55.69 pp\nline\tbranch-3\t47.53 %\t4.6 %\t−42.94 pp\nline\tbranch-1\t38.42 %\t1.35 %\t−37.08 pp\ntransformer\tbranch-10\t36.73 %\t0.788 %\t−35.94 pp\ntransformer\tbranch-9\t31.1 %\t0.641 %\t−30.46 pp\nline\tbranch-4\t33.46 %\t8.83 %\t−24.63 pp\ntransformer\tbranch-8\t20.03 %\t0.413 %\t−19.62 pp\nline\tbranch-5\t23.53 %\t6.41 %\t−17.11 pp\nGeneration by carrier Δ\nGeneration by carrier deltas\nCarrier\tBaseline [MWh]\tScenario [MWh]\tΔ [MWh]\tRelative\nNG\t259\t59\t−200\t−77.22 %\nSYNC\t0\t0\t0\tn/a (baseline 0)\nAll branches (20)\n\nMax over horizon of |loading|; sorted by |Δ|.\n\nBranch loading deltas\nType\tId\tBaseline max\tScenario max\tChange\nline\tbranch-2\t60.66 %\t4.97 %\t−55.69 pp\nline\tbranch-3\t47.53 %\t4.6 %\t−42.94 pp\nline\tbranch-1\t38.42 %\t1.35 %\t−37.08 pp\ntransformer\tbranch-10\t36.73 %\t0.788 %\t−35.94 pp\ntransformer\tbranch-9\t31.1 %\t0.641 %\t−30.46 pp\nline\tbranch-4\t33.46 %\t8.83 %\t−24.63 pp\ntransformer\tbranch-8\t20.03 %\t0.413 %\t−19.62 pp\nline\tbranch-5\t23.53 %\t6.41 %\t−17.11 pp\nline\tbranch-6\t15.8 %\t4.17 %\t−11.63 pp\nline\tbranch-15\t10.58 %\t0.218 %\t−10.36 pp\nline\tbranch-17\t9.66 %\t0.371 %\t−9.29 pp\nline\tbranch-13\t8.61 %\t0.142 %\t−8.47 pp\nline\tbranch-7\t9.78 %\t2.37 %\t−7.41 pp\nline\tbranch-12\t7.33 %\t0.078 %\t−7.25 pp\nline\tbranch-20\t7.02 %\t0.483 %\t−6.53 pp\nShowing 1–15 of 20\nPrevious\nNext\nAssumptions\nDeltas are scenario minus baseline, computed from the stored gridstorm-result documents.\nBoth runs use the same network dataset; differences reflect the scenario specification only within the stated model assumptions of each run.\nResults are model outputs (provenance: modeled); deltas are provenance: calculated. They are not observations or predictions of real grid behaviour.\nDC linearised power flow (LOPF) — no reactive power, voltage magnitudes or losses\nKirchhoff's voltage law imposed on a cycle basis with series reactances (x_pu_eff); branch active-power flow limited to s_nom x s_max_pu\nPerfect foresight: all snapshots of the horizon are optimised jointly in one LP\nCosts are short-run marginal costs from the dataset; nodal prices are LP duals of the nodal balance constraints\nModeled results for scenario analysis — not a validated blackout predictor or operational forecast\nAll monetary coefficients and legacy *_eur fields use PGLib cost units; no currency conversion is performed.\nBenchmark coefficients have no verified currency year or exchange-rate provenance; they are not EUR or inflation-adjusted USD.\nSecant linearisation is exact for linear costs, approximate for quadratic costs; startup, shutdown and fixed c0 costs are omitted.\nVOLL is a scenario penalty in PGLib cost units/MWh, not a monetary estimate of outage damage.\nDataset dispatch set-points (p_set) released so the LOPF optimises dispatch: 5 generators\nLoad shedding modelled as one dispatchable generator per load bus (11 buses), marginal cost = VOLL 10000 PGLib cost units/MWh, bounded by the bus demand at every snapshot; VOLL is a penalty parameter, not an economic estimate\nSynchronous condensers (carrier SYNC) have zero active-power capacity in the dataset\nExport comparison report\n\nServer-built report (gridstorm-comparison/1.0) incl. reproducibility hashes — last step of the guided demo.\n\nExport MD\nExport JSON\n\nMoney columns in the report keep legacy _eur field names; they are denominated in the cost basis shown above, not in euros unless that basis says so.",
+        "markdownContains200": true,
+        "markdownContainsPGLib": true,
+        "markdownHasEUR": true
+      }
+    },
+    {
+      "name": "SciGRID storage study unchanged",
+      "status": "PASS",
+      "evidence": {
+        "url": "http://127.0.0.1:4190/mitigation/scigrid-de-dunkelflaute-storage",
+        "verdict": "With storage dispatched, unserved energy is unchanged at 190.2 MWh: this mitigation does not change the load-shedding outcome. The LP objective changes by −342.4 k illustrative cost units (−1.75 %). Branches at their limit: 33 → 30. Storage discharges 24.78 GWh in the mitigated run.\n\nOnly mitigation.storage_dispatch differs (false → true); events, horizon and load shedding are identical."
+      }
+    },
+    {
+      "name": "Workbench reproduction manifest",
+      "status": "PASS",
+      "evidence": {
+        "url": "http://127.0.0.1:4190/workbench?network=pglib-case14-ieee&study=pandapower-n1",
+        "filename": "gridstorm-manifest-pandapower-n1-pglib-case14-ieee.json",
+        "schema": "gridstorm-reproduction-manifest/1.0",
+        "executionMode": {
+          "value": "offline-only",
+          "meaning": "This engine does not run in the API. Results come only from the published artifact produced by an offline pipeline; reproduce them with the commands below."
+        },
+        "artifactCount": 1
+      }
+    }
+  ],
+  "routes": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "route": "/",
+      "status": "PASS",
+      "measurements": {
+        "width": 1440,
+        "document": 1440,
+        "body": 1440,
+        "main": 1440,
+        "mainClient": 1440,
+        "offenders": []
+      },
+      "axe": "Not run: neither @axe-core/playwright nor axe-core is installed in repository node_modules"
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "route": "/explore?network=pglib-case14-ieee",
+      "status": "PASS",
+      "measurements": {
+        "width": 1440,
+        "document": 1440,
+        "body": 1440,
+        "main": 1440,
+        "mainClient": 1440,
+        "offenders": []
+      },
+      "axe": "Not run: neither @axe-core/playwright nor axe-core is installed in repository node_modules"
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "route": "/explore?network=scigrid-de",
+      "status": "PASS",
+      "measurements": {
+        "width": 1440,
+        "document": 1440,
+        "body": 1440,
+        "main": 1440,
+        "mainClient": 1440,
+        "offenders": []
+      },
+      "axe": "Not run: neither @axe-core/playwright nor axe-core is installed in repository node_modules"
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "route": "/studio",
+      "status": "PASS",
+      "measurements": {
+        "width": 1440,
+        "document": 1440,
+        "body": 1440,
+        "main": 1440,
+        "mainClient": 1440,
+        "offenders": []
+      },
+      "axe": "Not run: neither @axe-core/playwright nor axe-core is installed in repository node_modules"
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "route": "/runs/050871ee-7874-40cb-83be-33e5db13779a",
+      "status": "PASS",
+      "measurements": {
+        "width": 1440,
+        "document": 1440,
+        "body": 1440,
+        "main": 1440,
+        "mainClient": 1440,
+        "offenders": []
+      },
+      "axe": "Not run: neither @axe-core/playwright nor axe-core is installed in repository node_modules"
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "route": "/compare",
+      "status": "PASS",
+      "measurements": {
+        "width": 1440,
+        "document": 1440,
+        "body": 1440,
+        "main": 1440,
+        "mainClient": 1440,
+        "offenders": []
+      },
+      "axe": "Not run: neither @axe-core/playwright nor axe-core is installed in repository node_modules"
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "route": "/mitigation",
+      "status": "PASS",
+      "measurements": {
+        "width": 1440,
+        "document": 1440,
+        "body": 1440,
+        "main": 1440,
+        "mainClient": 1440,
+        "offenders": []
+      },
+      "axe": "Not run: neither @axe-core/playwright nor axe-core is installed in repository node_modules"
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "route": "/workbench",
+      "status": "PASS",
+      "measurements": {
+        "width": 1440,
+        "document": 1440,
+        "body": 1440,
+        "main": 1440,
+        "mainClient": 1440,
+        "offenders": []
+      },
+      "axe": "Not run: neither @axe-core/playwright nor axe-core is installed in repository node_modules"
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "route": "/benchmarks",
+      "status": "PASS",
+      "measurements": {
+        "width": 1440,
+        "document": 1440,
+        "body": 1440,
+        "main": 1440,
+        "mainClient": 1440,
+        "offenders": []
+      },
+      "axe": "Not run: neither @axe-core/playwright nor axe-core is installed in repository node_modules"
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "route": "/contingency",
+      "status": "PASS",
+      "measurements": {
+        "width": 1440,
+        "document": 1440,
+        "body": 1440,
+        "main": 1440,
+        "mainClient": 1440,
+        "offenders": []
+      },
+      "axe": "Not run: neither @axe-core/playwright nor axe-core is installed in repository node_modules"
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "route": "/",
+      "status": "PASS",
+      "measurements": {
+        "width": 390,
+        "document": 390,
+        "body": 390,
+        "main": 390,
+        "mainClient": 390,
+        "offenders": []
+      },
+      "axe": "Not run: neither @axe-core/playwright nor axe-core is installed in repository node_modules"
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "route": "/explore?network=pglib-case14-ieee",
+      "status": "PASS",
+      "measurements": {
+        "width": 390,
+        "document": 390,
+        "body": 390,
+        "main": 390,
+        "mainClient": 390,
+        "offenders": []
+      },
+      "axe": "Not run: neither @axe-core/playwright nor axe-core is installed in repository node_modules"
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "route": "/explore?network=scigrid-de",
+      "status": "PASS",
+      "measurements": {
+        "width": 390,
+        "document": 390,
+        "body": 390,
+        "main": 390,
+        "mainClient": 390,
+        "offenders": []
+      },
+      "axe": "Not run: neither @axe-core/playwright nor axe-core is installed in repository node_modules"
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "route": "/studio",
+      "status": "PASS",
+      "measurements": {
+        "width": 390,
+        "document": 390,
+        "body": 390,
+        "main": 390,
+        "mainClient": 390,
+        "offenders": []
+      },
+      "axe": "Not run: neither @axe-core/playwright nor axe-core is installed in repository node_modules"
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "route": "/runs/050871ee-7874-40cb-83be-33e5db13779a",
+      "status": "PASS",
+      "measurements": {
+        "width": 390,
+        "document": 390,
+        "body": 390,
+        "main": 390,
+        "mainClient": 390,
+        "offenders": [
+          {
+            "tag": "TABLE",
+            "testid": null,
+            "class": "w-full border-collapse text-xs",
+            "rect": {
+              "x": 29,
+              "y": 4422,
+              "width": 365.84375,
+              "height": 706,
+              "top": 4422,
+              "right": 394.84375,
+              "bottom": 5128,
+              "left": 29
+            }
+          },
+          {
+            "tag": "THEAD",
+            "testid": null,
+            "class": "",
+            "rect": {
+              "x": 29,
+              "y": 4422,
+              "width": 365.84375,
+              "height": 60.5,
+              "top": 4422,
+              "right": 394.84375,
+              "bottom": 4482.5,
+              "left": 29
+            }
+          },
+          {
+            "tag": "TR",
+            "testid": null,
+            "class": "border-b border-line text-left",
+            "rect": {
+              "x": 29,
+              "y": 4422,
+              "width": 365.84375,
+              "height": 60.5,
+              "top": 4422,
+              "right": 394.84375,
+              "bottom": 4482.5,
+              "left": 29
+            }
+          },
+          {
+            "tag": "TH",
+            "testid": null,
+            "class": "px-2 py-1.5 font-semibold text-fg-muted",
+            "rect": {
+              "x": 342.828125,
+              "y": 4422,
+              "width": 52.015625,
+              "height": 60.5,
+              "top": 4422,
+              "right": 394.84375,
+              "bottom": 4482.5,
+              "left": 342.828125
+            }
+          },
+          {
+            "tag": "TBODY",
+            "testid": null,
+            "class": "",
+            "rect": {
+              "x": 29,
+              "y": 4483,
+              "width": 365.84375,
+              "height": 644.5,
+              "top": 4483,
+              "right": 394.84375,
+              "bottom": 5127.5,
+              "left": 29
+            }
+          },
+          {
+            "tag": "TR",
+            "testid": null,
+            "class": "border-b border-line/60 cursor-pointer hover:bg-surface-2",
+            "rect": {
+              "x": 29,
+              "y": 4483,
+              "width": 365.84375,
+              "height": 42.5,
+              "top": 4483,
+              "right": 394.84375,
+              "bottom": 4525.5,
+              "left": 29
+            }
+          },
+          {
+            "tag": "TD",
+            "testid": null,
+            "class": "tabular px-2 py-1 text-fg",
+            "rect": {
+              "x": 342.828125,
+              "y": 4483,
+              "width": 52.015625,
+              "height": 42.5,
+              "top": 4483,
+              "right": 394.84375,
+              "bottom": 4525.5,
+              "left": 342.828125
+            }
+          },
+          {
+            "tag": "TR",
+            "testid": null,
+            "class": "border-b border-line/60 cursor-pointer hover:bg-surface-2",
+            "rect": {
+              "x": 29,
+              "y": 4525.5,
+              "width": 365.84375,
+              "height": 43,
+              "top": 4525.5,
+              "right": 394.84375,
+              "bottom": 4568.5,
+              "left": 29
+            }
+          },
+          {
+            "tag": "TD",
+            "testid": null,
+            "class": "tabular px-2 py-1 text-fg",
+            "rect": {
+              "x": 342.828125,
+              "y": 4525.5,
+              "width": 52.015625,
+              "height": 43,
+              "top": 4525.5,
+              "right": 394.84375,
+              "bottom": 4568.5,
+              "left": 342.828125
+            }
+          },
+          {
+            "tag": "TR",
+            "testid": null,
+            "class": "border-b border-line/60 cursor-pointer hover:bg-surface-2",
+            "rect": {
+              "x": 29,
+              "y": 4568.5,
+              "width": 365.84375,
+              "height": 43,
+              "top": 4568.5,
+              "right": 394.84375,
+              "bottom": 4611.5,
+              "left": 29
+            }
+          },
+          {
+            "tag": "TD",
+            "testid": null,
+            "class": "tabular px-2 py-1 text-fg",
+            "rect": {
+              "x": 342.828125,
+              "y": 4568.5,
+              "width": 52.015625,
+              "height": 43,
+              "top": 4568.5,
+              "right": 394.84375,
+              "bottom": 4611.5,
+              "left": 342.828125
+            }
+          },
+          {
+            "tag": "TR",
+            "testid": null,
+            "class": "border-b border-line/60 cursor-pointer hover:bg-surface-2",
+            "rect": {
+              "x": 29,
+              "y": 4611.5,
+              "width": 365.84375,
+              "height": 43,
+              "top": 4611.5,
+              "right": 394.84375,
+              "bottom": 4654.5,
+              "left": 29
+            }
+          },
+          {
+            "tag": "TD",
+            "testid": null,
+            "class": "tabular px-2 py-1 text-fg",
+            "rect": {
+              "x": 342.828125,
+              "y": 4611.5,
+              "width": 52.015625,
+              "height": 43,
+              "top": 4611.5,
+              "right": 394.84375,
+              "bottom": 4654.5,
+              "left": 342.828125
+            }
+          },
+          {
+            "tag": "TR",
+            "testid": null,
+            "class": "border-b border-line/60 cursor-pointer hover:bg-surface-2",
+            "rect": {
+              "x": 29,
+              "y": 4654.5,
+              "width": 365.84375,
+              "height": 43,
+              "top": 4654.5,
+              "right": 394.84375,
+              "bottom": 4697.5,
+              "left": 29
+            }
+          },
+          {
+            "tag": "TD",
+            "testid": null,
+            "class": "tabular px-2 py-1 text-fg",
+            "rect": {
+              "x": 342.828125,
+              "y": 4654.5,
+              "width": 52.015625,
+              "height": 43,
+              "top": 4654.5,
+              "right": 394.84375,
+              "bottom": 4697.5,
+              "left": 342.828125
+            }
+          },
+          {
+            "tag": "TR",
+            "testid": null,
+            "class": "border-b border-line/60 cursor-pointer hover:bg-surface-2",
+            "rect": {
+              "x": 29,
+              "y": 4697.5,
+              "width": 365.84375,
+              "height": 43,
+              "top": 4697.5,
+              "right": 394.84375,
+              "bottom": 4740.5,
+              "left": 29
+            }
+          },
+          {
+            "tag": "TD",
+            "testid": null,
+            "class": "tabular px-2 py-1 text-fg",
+            "rect": {
+              "x": 342.828125,
+              "y": 4697.5,
+              "width": 52.015625,
+              "height": 43,
+              "top": 4697.5,
+              "right": 394.84375,
+              "bottom": 4740.5,
+              "left": 342.828125
+            }
+          },
+          {
+            "tag": "TR",
+            "testid": null,
+            "class": "border-b border-line/60 cursor-pointer hover:bg-surface-2",
+            "rect": {
+              "x": 29,
+              "y": 4740.5,
+              "width": 365.84375,
+              "height": 43,
+              "top": 4740.5,
+              "right": 394.84375,
+              "bottom": 4783.5,
+              "left": 29
+            }
+          },
+          {
+            "tag": "TD",
+            "testid": null,
+            "class": "tabular px-2 py-1 text-fg",
+            "rect": {
+              "x": 342.828125,
+              "y": 4740.5,
+              "width": 52.015625,
+              "height": 43,
+              "top": 4740.5,
+              "right": 394.84375,
+              "bottom": 4783.5,
+              "left": 342.828125
+            }
+          },
+          {
+            "tag": "TR",
+            "testid": null,
+            "class": "border-b border-line/60 cursor-pointer hover:bg-surface-2",
+            "rect": {
+              "x": 29,
+              "y": 4783.5,
+              "width": 365.84375,
+              "height": 43,
+              "top": 4783.5,
+              "right": 394.84375,
+              "bottom": 4826.5,
+              "left": 29
+            }
+          }
+        ]
+      },
+      "axe": "Not run: neither @axe-core/playwright nor axe-core is installed in repository node_modules"
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "route": "/compare",
+      "status": "PASS",
+      "measurements": {
+        "width": 390,
+        "document": 390,
+        "body": 390,
+        "main": 390,
+        "mainClient": 390,
+        "offenders": []
+      },
+      "axe": "Not run: neither @axe-core/playwright nor axe-core is installed in repository node_modules"
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "route": "/mitigation",
+      "status": "PASS",
+      "measurements": {
+        "width": 390,
+        "document": 390,
+        "body": 390,
+        "main": 390,
+        "mainClient": 390,
+        "offenders": []
+      },
+      "axe": "Not run: neither @axe-core/playwright nor axe-core is installed in repository node_modules"
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "route": "/workbench",
+      "status": "PASS",
+      "measurements": {
+        "width": 390,
+        "document": 390,
+        "body": 390,
+        "main": 390,
+        "mainClient": 390,
+        "offenders": [
+          {
+            "tag": "TABLE",
+            "testid": null,
+            "class": "w-full border-collapse text-xs",
+            "rect": {
+              "x": 33,
+              "y": 2270,
+              "width": 370.46875,
+              "height": 234,
+              "top": 2270,
+              "right": 403.46875,
+              "bottom": 2504,
+              "left": 33
+            }
+          },
+          {
+            "tag": "THEAD",
+            "testid": null,
+            "class": "",
+            "rect": {
+              "x": 33,
+              "y": 2270,
+              "width": 370.46875,
+              "height": 28.5,
+              "top": 2270,
+              "right": 403.46875,
+              "bottom": 2298.5,
+              "left": 33
+            }
+          },
+          {
+            "tag": "TR",
+            "testid": null,
+            "class": "border-b border-line text-left",
+            "rect": {
+              "x": 33,
+              "y": 2270,
+              "width": 370.46875,
+              "height": 28.5,
+              "top": 2270,
+              "right": 403.46875,
+              "bottom": 2298.5,
+              "left": 33
+            }
+          },
+          {
+            "tag": "TH",
+            "testid": null,
+            "class": "px-2 py-1.5 font-semibold text-fg-muted",
+            "rect": {
+              "x": 324.296875,
+              "y": 2270,
+              "width": 79.171875,
+              "height": 28.5,
+              "top": 2270,
+              "right": 403.46875,
+              "bottom": 2298.5,
+              "left": 324.296875
+            }
+          },
+          {
+            "tag": "TBODY",
+            "testid": null,
+            "class": "",
+            "rect": {
+              "x": 33,
+              "y": 2299,
+              "width": 370.46875,
+              "height": 204.5,
+              "top": 2299,
+              "right": 403.46875,
+              "bottom": 2503.5,
+              "left": 33
+            }
+          },
+          {
+            "tag": "TR",
+            "testid": null,
+            "class": "border-b border-line/60",
+            "rect": {
+              "x": 33,
+              "y": 2299,
+              "width": 370.46875,
+              "height": 40.5,
+              "top": 2299,
+              "right": 403.46875,
+              "bottom": 2339.5,
+              "left": 33
+            }
+          },
+          {
+            "tag": "TD",
+            "testid": null,
+            "class": "tabular px-2 py-1 text-fg",
+            "rect": {
+              "x": 324.296875,
+              "y": 2299,
+              "width": 79.171875,
+              "height": 40.5,
+              "top": 2299,
+              "right": 403.46875,
+              "bottom": 2339.5,
+              "left": 324.296875
+            }
+          },
+          {
+            "tag": "TR",
+            "testid": null,
+            "class": "border-b border-line/60",
+            "rect": {
+              "x": 33,
+              "y": 2339.5,
+              "width": 370.46875,
+              "height": 41,
+              "top": 2339.5,
+              "right": 403.46875,
+              "bottom": 2380.5,
+              "left": 33
+            }
+          },
+          {
+            "tag": "TD",
+            "testid": null,
+            "class": "tabular px-2 py-1 text-fg",
+            "rect": {
+              "x": 324.296875,
+              "y": 2339.5,
+              "width": 79.171875,
+              "height": 41,
+              "top": 2339.5,
+              "right": 403.46875,
+              "bottom": 2380.5,
+              "left": 324.296875
+            }
+          },
+          {
+            "tag": "TR",
+            "testid": null,
+            "class": "border-b border-line/60",
+            "rect": {
+              "x": 33,
+              "y": 2380.5,
+              "width": 370.46875,
+              "height": 57,
+              "top": 2380.5,
+              "right": 403.46875,
+              "bottom": 2437.5,
+              "left": 33
+            }
+          },
+          {
+            "tag": "TD",
+            "testid": null,
+            "class": "tabular px-2 py-1 text-fg",
+            "rect": {
+              "x": 324.296875,
+              "y": 2380.5,
+              "width": 79.171875,
+              "height": 57,
+              "top": 2380.5,
+              "right": 403.46875,
+              "bottom": 2437.5,
+              "left": 324.296875
+            }
+          },
+          {
+            "tag": "TR",
+            "testid": null,
+            "class": "border-b border-line/60",
+            "rect": {
+              "x": 33,
+              "y": 2437.5,
+              "width": 370.46875,
+              "height": 25,
+              "top": 2437.5,
+              "right": 403.46875,
+              "bottom": 2462.5,
+              "left": 33
+            }
+          },
+          {
+            "tag": "TD",
+            "testid": null,
+            "class": "tabular px-2 py-1 text-fg",
+            "rect": {
+              "x": 324.296875,
+              "y": 2437.5,
+              "width": 79.171875,
+              "height": 25,
+              "top": 2437.5,
+              "right": 403.46875,
+              "bottom": 2462.5,
+              "left": 324.296875
+            }
+          },
+          {
+            "tag": "TR",
+            "testid": null,
+            "class": "border-b border-line/60",
+            "rect": {
+              "x": 33,
+              "y": 2462.5,
+              "width": 370.46875,
+              "height": 41,
+              "top": 2462.5,
+              "right": 403.46875,
+              "bottom": 2503.5,
+              "left": 33
+            }
+          },
+          {
+            "tag": "TD",
+            "testid": null,
+            "class": "tabular px-2 py-1 text-fg",
+            "rect": {
+              "x": 324.296875,
+              "y": 2462.5,
+              "width": 79.171875,
+              "height": 41,
+              "top": 2462.5,
+              "right": 403.46875,
+              "bottom": 2503.5,
+              "left": 324.296875
+            }
+          }
+        ]
+      },
+      "axe": "Not run: neither @axe-core/playwright nor axe-core is installed in repository node_modules"
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "route": "/benchmarks",
+      "status": "PASS",
+      "measurements": {
+        "width": 390,
+        "document": 390,
+        "body": 390,
+        "main": 390,
+        "mainClient": 390,
+        "offenders": [
+          {
+            "tag": "TABLE",
+            "testid": null,
+            "class": "w-full border-collapse text-xs",
+            "rect": {
+              "x": 33,
+              "y": 582,
+              "width": 1085.328125,
+              "height": 435,
+              "top": 582,
+              "right": 1118.328125,
+              "bottom": 1017,
+              "left": 33
+            }
+          },
+          {
+            "tag": "THEAD",
+            "testid": null,
+            "class": "",
+            "rect": {
+              "x": 33,
+              "y": 582,
+              "width": 1085.328125,
+              "height": 92.5,
+              "top": 582,
+              "right": 1118.328125,
+              "bottom": 674.5,
+              "left": 33
+            }
+          },
+          {
+            "tag": "TR",
+            "testid": null,
+            "class": "border-b border-line text-left",
+            "rect": {
+              "x": 33,
+              "y": 582,
+              "width": 1085.328125,
+              "height": 92.5,
+              "top": 582,
+              "right": 1118.328125,
+              "bottom": 674.5,
+              "left": 33
+            }
+          },
+          {
+            "tag": "TH",
+            "testid": null,
+            "class": "px-2 py-1.5 font-semibold text-fg-muted text-right",
+            "rect": {
+              "x": 313.171875,
+              "y": 582,
+              "width": 82.90625,
+              "height": 92.5,
+              "top": 582,
+              "right": 396.078125,
+              "bottom": 674.5,
+              "left": 313.171875
+            }
+          },
+          {
+            "tag": "TH",
+            "testid": null,
+            "class": "px-2 py-1.5 font-semibold text-fg-muted text-right",
+            "rect": {
+              "x": 396.078125,
+              "y": 582,
+              "width": 64.984375,
+              "height": 92.5,
+              "top": 582,
+              "right": 461.0625,
+              "bottom": 674.5,
+              "left": 396.078125
+            }
+          },
+          {
+            "tag": "BUTTON",
+            "testid": null,
+            "class": "inline-flex items-center gap-1 hover:text-fg flex-row-reverse",
+            "rect": {
+              "x": 404.078125,
+              "y": 612,
+              "width": 48.984375,
+              "height": 32,
+              "top": 612,
+              "right": 453.0625,
+              "bottom": 644,
+              "left": 404.078125
+            }
+          },
+          {
+            "tag": "TH",
+            "testid": null,
+            "class": "px-2 py-1.5 font-semibold text-fg-muted text-right",
+            "rect": {
+              "x": 461.0625,
+              "y": 582,
+              "width": 47.71875,
+              "height": 92.5,
+              "top": 582,
+              "right": 508.78125,
+              "bottom": 674.5,
+              "left": 461.0625
+            }
+          },
+          {
+            "tag": "BUTTON",
+            "testid": null,
+            "class": "inline-flex items-center gap-1 hover:text-fg flex-row-reverse",
+            "rect": {
+              "x": 469.0625,
+              "y": 612,
+              "width": 31.71875,
+              "height": 32,
+              "top": 612,
+              "right": 500.78125,
+              "bottom": 644,
+              "left": 469.0625
+            }
+          },
+          {
+            "tag": "TH",
+            "testid": null,
+            "class": "px-2 py-1.5 font-semibold text-fg-muted text-right",
+            "rect": {
+              "x": 508.78125,
+              "y": 582,
+              "width": 64.984375,
+              "height": 92.5,
+              "top": 582,
+              "right": 573.765625,
+              "bottom": 674.5,
+              "left": 508.78125
+            }
+          },
+          {
+            "tag": "BUTTON",
+            "testid": null,
+            "class": "inline-flex items-center gap-1 hover:text-fg flex-row-reverse",
+            "rect": {
+              "x": 516.78125,
+              "y": 612,
+              "width": 48.984375,
+              "height": 32,
+              "top": 612,
+              "right": 565.765625,
+              "bottom": 644,
+              "left": 516.78125
+            }
+          },
+          {
+            "tag": "TH",
+            "testid": null,
+            "class": "px-2 py-1.5 font-semibold text-fg-muted text-right",
+            "rect": {
+              "x": 573.765625,
+              "y": 582,
+              "width": 47.71875,
+              "height": 92.5,
+              "top": 582,
+              "right": 621.484375,
+              "bottom": 674.5,
+              "left": 573.765625
+            }
+          },
+          {
+            "tag": "BUTTON",
+            "testid": null,
+            "class": "inline-flex items-center gap-1 hover:text-fg flex-row-reverse",
+            "rect": {
+              "x": 581.765625,
+              "y": 612,
+              "width": 31.71875,
+              "height": 32,
+              "top": 612,
+              "right": 613.484375,
+              "bottom": 644,
+              "left": 581.765625
+            }
+          },
+          {
+            "tag": "TH",
+            "testid": null,
+            "class": "px-2 py-1.5 font-semibold text-fg-muted text-right",
+            "rect": {
+              "x": 621.484375,
+              "y": 582,
+              "width": 56.34375,
+              "height": 92.5,
+              "top": 582,
+              "right": 677.828125,
+              "bottom": 674.5,
+              "left": 621.484375
+            }
+          },
+          {
+            "tag": "BUTTON",
+            "testid": null,
+            "class": "inline-flex items-center gap-1 hover:text-fg flex-row-reverse",
+            "rect": {
+              "x": 629.484375,
+              "y": 612,
+              "width": 40.34375,
+              "height": 32,
+              "top": 612,
+              "right": 669.828125,
+              "bottom": 644,
+              "left": 629.484375
+            }
+          },
+          {
+            "tag": "TH",
+            "testid": null,
+            "class": "px-2 py-1.5 font-semibold text-fg-muted text-right",
+            "rect": {
+              "x": 677.828125,
+              "y": 582,
+              "width": 49.09375,
+              "height": 92.5,
+              "top": 582,
+              "right": 726.921875,
+              "bottom": 674.5,
+              "left": 677.828125
+            }
+          },
+          {
+            "tag": "BUTTON",
+            "testid": null,
+            "class": "inline-flex items-center gap-1 hover:text-fg flex-row-reverse",
+            "rect": {
+              "x": 685.828125,
+              "y": 596,
+              "width": 33.09375,
+              "height": 64,
+              "top": 596,
+              "right": 718.921875,
+              "bottom": 660,
+              "left": 685.828125
+            }
+          },
+          {
+            "tag": "TH",
+            "testid": null,
+            "class": "px-2 py-1.5 font-semibold text-fg-muted text-right",
+            "rect": {
+              "x": 726.921875,
+              "y": 582,
+              "width": 69.640625,
+              "height": 92.5,
+              "top": 582,
+              "right": 796.5625,
+              "bottom": 674.5,
+              "left": 726.921875
+            }
+          },
+          {
+            "tag": "BUTTON",
+            "testid": null,
+            "class": "inline-flex items-center gap-1 hover:text-fg flex-row-reverse",
+            "rect": {
+              "x": 734.921875,
+              "y": 620,
+              "width": 53.640625,
+              "height": 16,
+              "top": 620,
+              "right": 788.5625,
+              "bottom": 636,
+              "left": 734.921875
+            }
+          },
+          {
+            "tag": "TH",
+            "testid": null,
+            "class": "px-2 py-1.5 font-semibold text-fg-muted text-right",
+            "rect": {
+              "x": 796.5625,
+              "y": 582,
+              "width": 50.953125,
+              "height": 92.5,
+              "top": 582,
+              "right": 847.515625,
+              "bottom": 674.5,
+              "left": 796.5625
+            }
+          },
+          {
+            "tag": "BUTTON",
+            "testid": null,
+            "class": "inline-flex items-center gap-1 hover:text-fg flex-row-reverse",
+            "rect": {
+              "x": 804.5625,
+              "y": 612,
+              "width": 34.953125,
+              "height": 32,
+              "top": 612,
+              "right": 839.515625,
+              "bottom": 644,
+              "left": 804.5625
+            }
+          }
+        ]
+      },
+      "axe": "Not run: neither @axe-core/playwright nor axe-core is installed in repository node_modules"
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "route": "/contingency",
+      "status": "PASS",
+      "measurements": {
+        "width": 390,
+        "document": 390,
+        "body": 390,
+        "main": 390,
+        "mainClient": 390,
+        "offenders": [
+          {
+            "tag": "TABLE",
+            "testid": null,
+            "class": "w-full border-collapse text-xs",
+            "rect": {
+              "x": 33,
+              "y": 794,
+              "width": 574.046875,
+              "height": 1024,
+              "top": 794,
+              "right": 607.046875,
+              "bottom": 1818,
+              "left": 33
+            }
+          },
+          {
+            "tag": "THEAD",
+            "testid": null,
+            "class": "",
+            "rect": {
+              "x": 33,
+              "y": 794,
+              "width": 574.046875,
+              "height": 44.5,
+              "top": 794,
+              "right": 607.046875,
+              "bottom": 838.5,
+              "left": 33
+            }
+          },
+          {
+            "tag": "TR",
+            "testid": null,
+            "class": "border-b border-line text-left",
+            "rect": {
+              "x": 33,
+              "y": 794,
+              "width": 574.046875,
+              "height": 44.5,
+              "top": 794,
+              "right": 607.046875,
+              "bottom": 838.5,
+              "left": 33
+            }
+          },
+          {
+            "tag": "TH",
+            "testid": null,
+            "class": "px-2 py-1.5 font-semibold text-fg-muted text-right",
+            "rect": {
+              "x": 386.203125,
+              "y": 794,
+              "width": 57.015625,
+              "height": 44.5,
+              "top": 794,
+              "right": 443.21875,
+              "bottom": 838.5,
+              "left": 386.203125
+            }
+          },
+          {
+            "tag": "BUTTON",
+            "testid": null,
+            "class": "inline-flex items-center gap-1 hover:text-fg flex-row-reverse",
+            "rect": {
+              "x": 394.203125,
+              "y": 800,
+              "width": 41.015625,
+              "height": 32,
+              "top": 800,
+              "right": 435.21875,
+              "bottom": 832,
+              "left": 394.203125
+            }
+          },
+          {
+            "tag": "TH",
+            "testid": null,
+            "class": "px-2 py-1.5 font-semibold text-fg-muted text-right",
+            "rect": {
+              "x": 443.21875,
+              "y": 794,
+              "width": 50.953125,
+              "height": 44.5,
+              "top": 794,
+              "right": 494.171875,
+              "bottom": 838.5,
+              "left": 443.21875
+            }
+          },
+          {
+            "tag": "BUTTON",
+            "testid": null,
+            "class": "inline-flex items-center gap-1 hover:text-fg flex-row-reverse",
+            "rect": {
+              "x": 451.21875,
+              "y": 800,
+              "width": 34.953125,
+              "height": 32,
+              "top": 800,
+              "right": 486.171875,
+              "bottom": 832,
+              "left": 451.21875
+            }
+          },
+          {
+            "tag": "TH",
+            "testid": null,
+            "class": "px-2 py-1.5 font-semibold text-fg-muted text-right",
+            "rect": {
+              "x": 494.171875,
+              "y": 794,
+              "width": 50.953125,
+              "height": 44.5,
+              "top": 794,
+              "right": 545.125,
+              "bottom": 838.5,
+              "left": 494.171875
+            }
+          },
+          {
+            "tag": "BUTTON",
+            "testid": null,
+            "class": "inline-flex items-center gap-1 hover:text-fg flex-row-reverse",
+            "rect": {
+              "x": 502.171875,
+              "y": 800,
+              "width": 34.953125,
+              "height": 32,
+              "top": 800,
+              "right": 537.125,
+              "bottom": 832,
+              "left": 502.171875
+            }
+          },
+          {
+            "tag": "TH",
+            "testid": null,
+            "class": "px-2 py-1.5 font-semibold text-fg-muted text-right",
+            "rect": {
+              "x": 545.125,
+              "y": 794,
+              "width": 61.921875,
+              "height": 44.5,
+              "top": 794,
+              "right": 607.046875,
+              "bottom": 838.5,
+              "left": 545.125
+            }
+          },
+          {
+            "tag": "BUTTON",
+            "testid": null,
+            "class": "inline-flex items-center gap-1 hover:text-fg flex-row-reverse",
+            "rect": {
+              "x": 553.125,
+              "y": 800,
+              "width": 45.921875,
+              "height": 32,
+              "top": 800,
+              "right": 599.046875,
+              "bottom": 832,
+              "left": 553.125
+            }
+          },
+          {
+            "tag": "TBODY",
+            "testid": null,
+            "class": "",
+            "rect": {
+              "x": 33,
+              "y": 839,
+              "width": 574.046875,
+              "height": 978.5,
+              "top": 839,
+              "right": 607.046875,
+              "bottom": 1817.5,
+              "left": 33
+            }
+          },
+          {
+            "tag": "TR",
+            "testid": null,
+            "class": "border-b border-line/60 cursor-pointer hover:bg-surface-2 bg-accent-soft",
+            "rect": {
+              "x": 33,
+              "y": 839,
+              "width": 574.046875,
+              "height": 40.5,
+              "top": 839,
+              "right": 607.046875,
+              "bottom": 879.5,
+              "left": 33
+            }
+          },
+          {
+            "tag": "TD",
+            "testid": null,
+            "class": "tabular px-2 py-1 text-fg text-right",
+            "rect": {
+              "x": 386.203125,
+              "y": 839,
+              "width": 57.015625,
+              "height": 40.5,
+              "top": 839,
+              "right": 443.21875,
+              "bottom": 879.5,
+              "left": 386.203125
+            }
+          },
+          {
+            "tag": "TD",
+            "testid": null,
+            "class": "tabular px-2 py-1 text-fg text-right",
+            "rect": {
+              "x": 443.21875,
+              "y": 839,
+              "width": 50.953125,
+              "height": 40.5,
+              "top": 839,
+              "right": 494.171875,
+              "bottom": 879.5,
+              "left": 443.21875
+            }
+          },
+          {
+            "tag": "TD",
+            "testid": null,
+            "class": "tabular px-2 py-1 text-fg text-right",
+            "rect": {
+              "x": 494.171875,
+              "y": 839,
+              "width": 50.953125,
+              "height": 40.5,
+              "top": 839,
+              "right": 545.125,
+              "bottom": 879.5,
+              "left": 494.171875
+            }
+          },
+          {
+            "tag": "TD",
+            "testid": null,
+            "class": "tabular px-2 py-1 text-fg text-right",
+            "rect": {
+              "x": 545.125,
+              "y": 839,
+              "width": 61.921875,
+              "height": 40.5,
+              "top": 839,
+              "right": 607.046875,
+              "bottom": 879.5,
+              "left": 545.125
+            }
+          },
+          {
+            "tag": "TR",
+            "testid": null,
+            "class": "border-b border-line/60 cursor-pointer hover:bg-surface-2",
+            "rect": {
+              "x": 33,
+              "y": 879.5,
+              "width": 574.046875,
+              "height": 41,
+              "top": 879.5,
+              "right": 607.046875,
+              "bottom": 920.5,
+              "left": 33
+            }
+          },
+          {
+            "tag": "TD",
+            "testid": null,
+            "class": "tabular px-2 py-1 text-fg text-right",
+            "rect": {
+              "x": 386.203125,
+              "y": 879.5,
+              "width": 57.015625,
+              "height": 41,
+              "top": 879.5,
+              "right": 443.21875,
+              "bottom": 920.5,
+              "left": 386.203125
+            }
+          },
+          {
+            "tag": "TD",
+            "testid": null,
+            "class": "tabular px-2 py-1 text-fg text-right",
+            "rect": {
+              "x": 443.21875,
+              "y": 879.5,
+              "width": 50.953125,
+              "height": 41,
+              "top": 879.5,
+              "right": 494.171875,
+              "bottom": 920.5,
+              "left": 443.21875
+            }
+          }
+        ]
+      },
+      "axe": "Not run: neither @axe-core/playwright nor axe-core is installed in repository node_modules"
+    }
+  ],
+  "errors": [],
+  "axe": "Not run: neither @axe-core/playwright nor axe-core is installed in repository node_modules"
+}

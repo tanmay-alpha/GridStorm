@@ -176,7 +176,8 @@ class LoadShedding(_Strict):
         default=10000.0,
         gt=0.0,
         le=1.0e6,
-        description="Value of lost load used as marginal cost of the load-shedding generators.",
+        description="Load-shedding penalty in the dataset cost_basis.money_unit/MWh. "
+        "Legacy field name; not necessarily EUR and not an economic outage-damage estimate.",
     )
 
 

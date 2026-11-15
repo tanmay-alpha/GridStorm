@@ -1,7 +1,7 @@
 import { useId, useState, type ReactNode } from 'react'
 import type { ArtifactIndexItem } from '../../../api/types'
 import { EmptyState, ErrorState, SkeletonBlock } from '../../../components/ui'
-import { useArtifact } from '../hooks'
+import { useArtifact, type ArtifactView } from '../hooks'
 import type { ParsedArtifact } from '../lib/parse'
 import { ArtifactMeta } from './ArtifactMeta'
 
@@ -40,13 +40,16 @@ export function ArtifactLoader({
   artifactId,
   children,
   hideMeta = false,
+  view = 'full',
 }: {
   engine: string
   artifactId: string
   children: (a: ParsedArtifact) => ReactNode
   hideMeta?: boolean
+  /** `summary` when `children` reads only fields kept by the API summary view. */
+  view?: ArtifactView
 }) {
-  const q = useArtifact(engine, artifactId)
+  const q = useArtifact(engine, artifactId, view)
   if (q.isError) return <ErrorState error={q.error} onRetry={() => void q.refetch()} />
   if (!q.data) return <SkeletonBlock rows={6} label={`Loading artifact ${artifactId}`} />
   return (
@@ -65,6 +68,7 @@ export function ArtifactSection({
   emptyText,
   emptyTitle = 'No artifact for this network',
   render,
+  view,
 }: {
   engine: string
   items: ArtifactIndexItem[]
@@ -72,6 +76,7 @@ export function ArtifactSection({
   emptyText: string
   emptyTitle?: string
   render: (a: ParsedArtifact) => ReactNode
+  view?: ArtifactView
 }) {
   const [chosen, setChosen] = useState<string | null>(null)
   const current = items.find((i) => i.artifact_id === chosen) ?? items[0]
@@ -79,7 +84,7 @@ export function ArtifactSection({
   return (
     <div className="flex flex-col gap-3">
       {items.length > 1 && <ArtifactSelect label={label} items={items} value={current.artifact_id} onChange={setChosen} />}
-      <ArtifactLoader key={current.artifact_id} engine={engine} artifactId={current.artifact_id}>
+      <ArtifactLoader key={current.artifact_id} engine={engine} artifactId={current.artifact_id} view={view}>
         {render}
       </ArtifactLoader>
     </div>

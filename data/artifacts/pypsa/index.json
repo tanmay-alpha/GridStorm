@@ -13,16 +13,16 @@
       "objective_eur": 128678.57336,
       "unserved_energy_mwh": 0.0,
       "measurements": {
-        "run_scenario_wall_time_s": 4.877,
-        "solver_wall_time_s": 0.176,
-        "process_wall_time_s": 10.746,
-        "peak_rss_mb": 277.2,
+        "run_scenario_wall_time_s": 2.65,
+        "solver_wall_time_s": 0.103,
+        "process_wall_time_s": 5.457,
+        "peak_rss_mb": 278.3,
         "rss_method": "psutil peak_wset (Windows)",
         "cpu": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
         "threads": 1
       },
-      "payload_sha256": "81419b60ceda85783b9ab47c5b82ecff629a2eecd6a976d0a494edb324105ecc",
-      "created_at": "2026-11-14T20:55:53.161Z"
+      "payload_sha256": "cab86a706945014e1d3aa539113fe7f05b0b7420ff529ac0329280fe61520a63",
+      "created_at": "2026-11-15T09:03:23.315Z"
     },
     {
       "artifact_id": "ac-dc-meshed-dc-link-outage",
@@ -35,16 +35,16 @@
       "objective_eur": 131950.187606,
       "unserved_energy_mwh": 0.0,
       "measurements": {
-        "run_scenario_wall_time_s": 2.995,
-        "solver_wall_time_s": 0.118,
-        "process_wall_time_s": 6.974,
-        "peak_rss_mb": 277.0,
+        "run_scenario_wall_time_s": 2.451,
+        "solver_wall_time_s": 0.107,
+        "process_wall_time_s": 5.292,
+        "peak_rss_mb": 278.3,
         "rss_method": "psutil peak_wset (Windows)",
         "cpu": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
         "threads": 1
       },
-      "payload_sha256": "ccc5d9c603c22c60bacf206f8b1502c3ea502d3fba0adf20b01ad2446907371d",
-      "created_at": "2026-11-14T20:56:00.159Z"
+      "payload_sha256": "93d45cb8fce06566f31541f9c7c3972168b06df85ed0440f5e1d2a7aec8cf40d",
+      "created_at": "2026-11-15T09:03:28.633Z"
     },
     {
       "artifact_id": "pglib-case118-ieee-baseline",
@@ -57,16 +57,16 @@
       "objective_eur": 93132.679288,
       "unserved_energy_mwh": 0.0,
       "measurements": {
-        "run_scenario_wall_time_s": 2.526,
-        "solver_wall_time_s": 0.107,
-        "process_wall_time_s": 5.961,
-        "peak_rss_mb": 280.4,
+        "run_scenario_wall_time_s": 2.371,
+        "solver_wall_time_s": 0.105,
+        "process_wall_time_s": 5.51,
+        "peak_rss_mb": 280.7,
         "rss_method": "psutil peak_wset (Windows)",
         "cpu": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
         "threads": 1
       },
-      "payload_sha256": "85f0e3bea69f980e5551ec340e9ff8a7c6bb0824071200dfe910aa6e60c1124c",
-      "created_at": "2026-11-14T20:56:06.141Z"
+      "payload_sha256": "b65c799bc3c6cbd0fc19645fbb0ff963f9123ad8fa0ae7baea693dee2978c047",
+      "created_at": "2026-11-15T08:54:12.573Z"
     },
     {
       "artifact_id": "pglib-case14-ieee-baseline",
@@ -79,16 +79,16 @@
       "objective_eur": 2051.526309,
       "unserved_energy_mwh": 0.0,
       "measurements": {
-        "run_scenario_wall_time_s": 2.357,
-        "solver_wall_time_s": 0.104,
-        "process_wall_time_s": 5.667,
+        "run_scenario_wall_time_s": 2.098,
+        "solver_wall_time_s": 0.091,
+        "process_wall_time_s": 5.03,
         "peak_rss_mb": 277.2,
         "rss_method": "psutil peak_wset (Windows)",
         "cpu": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
         "threads": 1
       },
-      "payload_sha256": "38bb4b159ee871230c7d89dd9a63d321efbedd180c2ddcbb84b3e1790e9d5c25",
-      "created_at": "2026-11-14T20:56:11.833Z"
+      "payload_sha256": "9a253f42692faa47c02203bfd3030facb5ba2bd82f40f856eff4b8ce0e6d7798",
+      "created_at": "2026-11-15T08:54:17.629Z"
     },
     {
       "artifact_id": "pglib-case14-ieee-gen-1-outage",
@@ -101,16 +101,16 @@
       "objective_eur": 2001372.900146,
       "unserved_energy_mwh": 200.0,
       "measurements": {
-        "run_scenario_wall_time_s": 2.608,
-        "solver_wall_time_s": 0.115,
-        "process_wall_time_s": 6.26,
+        "run_scenario_wall_time_s": 2.223,
+        "solver_wall_time_s": 0.096,
+        "process_wall_time_s": 5.217,
         "peak_rss_mb": 276.9,
         "rss_method": "psutil peak_wset (Windows)",
         "cpu": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
         "threads": 1
       },
-      "payload_sha256": "2ee7105768da4dee80bc05ea8def94250ab1bbad6d61681802e71558f92adbee",
-      "created_at": "2026-11-14T20:56:18.109Z"
+      "payload_sha256": "3c4a5e6fd85f92d10505e355b845073bfafb78562559ce7ad903c4813f4bc437",
+      "created_at": "2026-11-15T08:54:22.875Z"
     },
     {
       "artifact_id": "pypsa-eur-be-baseline",
@@ -123,16 +123,16 @@
       "objective_eur": 56023127.857557,
       "unserved_energy_mwh": 0.0,
       "measurements": {
-        "run_scenario_wall_time_s": 4.108,
-        "solver_wall_time_s": 0.152,
-        "process_wall_time_s": 6.998,
-        "peak_rss_mb": 281.0,
+        "run_scenario_wall_time_s": 4.184,
+        "solver_wall_time_s": 0.153,
+        "process_wall_time_s": 7.271,
+        "peak_rss_mb": 281.6,
         "rss_method": "psutil peak_wset (Windows)",
         "cpu": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
         "threads": 1
       },
-      "payload_sha256": "db5538974359c25d7b8e990e1daca5e63ce40c4b18721529051f214431db542f",
-      "created_at": "2026-11-14T23:14:11.927Z"
+      "payload_sha256": "8b032ce50bcb85c87a7e8f7d6fe5921995d30050688a92348035e17f469c0cbb",
+      "created_at": "2026-11-15T08:54:30.167Z"
     },
     {
       "artifact_id": "scigrid-de-baseline",
@@ -145,16 +145,16 @@
       "objective_eur": 6684817.323607,
       "unserved_energy_mwh": 0.0,
       "measurements": {
-        "run_scenario_wall_time_s": 8.102,
-        "solver_wall_time_s": 3.359,
-        "process_wall_time_s": 11.851,
-        "peak_rss_mb": 541.1,
+        "run_scenario_wall_time_s": 6.507,
+        "solver_wall_time_s": 2.525,
+        "process_wall_time_s": 9.989,
+        "peak_rss_mb": 541.9,
         "rss_method": "psutil peak_wset (Windows)",
         "cpu": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
         "threads": 1
       },
-      "payload_sha256": "e3e3494b0065a4781b808e5f6200b04540d47e0324b8d38bd3ff4c82cf0c109a",
-      "created_at": "2026-11-14T20:56:30.086Z"
+      "payload_sha256": "619d5d407897503ef150ea1b014176df2234da0113927f07138eb8f05db5e75c",
+      "created_at": "2026-11-15T08:54:40.227Z"
     },
     {
       "artifact_id": "scigrid-de-dunkelflaute-storage-off",
@@ -167,16 +167,16 @@
       "objective_eur": 19614438.430578,
       "unserved_energy_mwh": 190.215174,
       "measurements": {
-        "run_scenario_wall_time_s": 9.928,
-        "solver_wall_time_s": 1.942,
-        "process_wall_time_s": 15.693,
-        "peak_rss_mb": 549.5,
+        "run_scenario_wall_time_s": 5.385,
+        "solver_wall_time_s": 1.206,
+        "process_wall_time_s": 8.575,
+        "peak_rss_mb": 548.5,
         "rss_method": "psutil peak_wset (Windows)",
         "cpu": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
         "threads": 1
       },
-      "payload_sha256": "b2e16a739f8649c1707185f52d0b33a4a6205202712280c45e55074c8dead7e4",
-      "created_at": "2026-11-14T20:56:45.908Z"
+      "payload_sha256": "50fd0a0de0af6918aae9ad70f048a67fca68f1ecb9583640baf65d3f9e7a6554",
+      "created_at": "2026-11-15T08:54:48.893Z"
     },
     {
       "artifact_id": "scigrid-de-dunkelflaute-storage-on",
@@ -189,16 +189,16 @@
       "objective_eur": 19272040.832661,
       "unserved_energy_mwh": 190.215174,
       "measurements": {
-        "run_scenario_wall_time_s": 10.401,
-        "solver_wall_time_s": 2.818,
-        "process_wall_time_s": 15.484,
-        "peak_rss_mb": 548.8,
+        "run_scenario_wall_time_s": 6.306,
+        "solver_wall_time_s": 2.11,
+        "process_wall_time_s": 9.286,
+        "peak_rss_mb": 549.3,
         "rss_method": "psutil peak_wset (Windows)",
         "cpu": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
         "threads": 1
       },
-      "payload_sha256": "16ffb35887c9b4e97cbf880ebddb28b4d3fab065474ed21b830da56e52cbc31e",
-      "created_at": "2026-11-14T20:57:01.514Z"
+      "payload_sha256": "45c14654c93c85548e42b669b966be3f9ca163130218534ea8aff81f2d487158",
+      "created_at": "2026-11-15T08:54:58.268Z"
     },
     {
       "artifact_id": "scigrid-de-high-demand",
@@ -211,16 +211,16 @@
       "objective_eur": 16337147.738097,
       "unserved_energy_mwh": 446.659815,
       "measurements": {
-        "run_scenario_wall_time_s": 9.413,
-        "solver_wall_time_s": 4.067,
-        "process_wall_time_s": 15.085,
-        "peak_rss_mb": 544.2,
+        "run_scenario_wall_time_s": 6.414,
+        "solver_wall_time_s": 2.533,
+        "process_wall_time_s": 9.548,
+        "peak_rss_mb": 544.9,
         "rss_method": "psutil peak_wset (Windows)",
         "cpu": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
         "threads": 1
       },
-      "payload_sha256": "e0587608e6a536ee915a40bf1ec77c2586be62777a0e184800d8bd38711c3a28",
-      "created_at": "2026-11-14T20:57:16.706Z"
+      "payload_sha256": "ab81d802a9b522475526ad55e0d6f770d729ec3a794bbbaf6dbbb9021987ad4a",
+      "created_at": "2026-11-15T08:55:07.893Z"
     },
     {
       "artifact_id": "scigrid-de-line-448-outage",
@@ -233,16 +233,16 @@
       "objective_eur": 6999042.865984,
       "unserved_energy_mwh": 0.0,
       "measurements": {
-        "run_scenario_wall_time_s": 8.724,
-        "solver_wall_time_s": 3.294,
-        "process_wall_time_s": 13.255,
-        "peak_rss_mb": 541.9,
+        "run_scenario_wall_time_s": 5.882,
+        "solver_wall_time_s": 2.269,
+        "process_wall_time_s": 8.839,
+        "peak_rss_mb": 543.0,
         "rss_method": "psutil peak_wset (Windows)",
         "cpu": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
         "threads": 1
       },
-      "payload_sha256": "83b69f6599ad41396f75ffe91a71278ceb665458d03ecb45319900371329cc6e",
-      "created_at": "2026-11-14T20:57:30.064Z"
+      "payload_sha256": "37cf57ad0920d8be0bd9917e9038d4e5e3bd9d577878dce19dd4e6c5c7306234",
+      "created_at": "2026-11-15T08:55:16.822Z"
     },
     {
       "artifact_id": "scigrid-de-wind-lull",
@@ -255,16 +255,16 @@
       "objective_eur": 11843595.347971,
       "unserved_energy_mwh": 0.0,
       "measurements": {
-        "run_scenario_wall_time_s": 11.515,
-        "solver_wall_time_s": 3.788,
-        "process_wall_time_s": 18.072,
-        "peak_rss_mb": 545.6,
+        "run_scenario_wall_time_s": 6.341,
+        "solver_wall_time_s": 2.242,
+        "process_wall_time_s": 9.964,
+        "peak_rss_mb": 544.7,
         "rss_method": "psutil peak_wset (Windows)",
         "cpu": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
         "threads": 1
       },
-      "payload_sha256": "f4f19dad505a81e06591ab9c145ce0a2b4f4618c525a5822cbe55885d1e70c4f",
-      "created_at": "2026-11-14T20:57:48.269Z"
+      "payload_sha256": "71b8bef30f3044358b78fcb10f16f8897f4f1682d00367b7ce9fe015748439b3",
+      "created_at": "2026-11-15T08:55:26.895Z"
     }
   ]
 }

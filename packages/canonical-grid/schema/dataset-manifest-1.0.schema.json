@@ -1,5 +1,89 @@
 {
   "$defs": {
+    "CostBasis": {
+      "additionalProperties": false,
+      "description": "Money provenance; legacy ``*_eur`` fields are denominated in ``money_unit``.",
+      "properties": {
+        "assumptions": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Assumptions",
+          "type": "array"
+        },
+        "comparability_key": {
+          "minLength": 1,
+          "title": "Comparability Key",
+          "type": "string"
+        },
+        "currency": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Currency"
+        },
+        "currency_year": {
+          "anyOf": [
+            {
+              "maximum": 2200,
+              "minimum": 1900,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Currency Year"
+        },
+        "kind": {
+          "enum": [
+            "currency_verified",
+            "benchmark_nominal",
+            "illustrative"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "money_unit": {
+          "minLength": 1,
+          "title": "Money Unit",
+          "type": "string"
+        },
+        "price_unit": {
+          "minLength": 1,
+          "title": "Price Unit",
+          "type": "string"
+        },
+        "provenance": {
+          "minLength": 1,
+          "title": "Provenance",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "gridstorm-cost-basis/1.0",
+          "default": "gridstorm-cost-basis/1.0",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "currency",
+        "currency_year",
+        "money_unit",
+        "price_unit",
+        "comparability_key",
+        "provenance",
+        "assumptions"
+      ],
+      "title": "CostBasis",
+      "type": "object"
+    },
     "Coverage": {
       "additionalProperties": false,
       "properties": {
@@ -167,6 +251,17 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "properties": {
+    "cost_basis": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CostBasis"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
     "coverage": {
       "$ref": "#/$defs/Coverage"
     },

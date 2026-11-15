@@ -1,0 +1,869 @@
+[
+  {
+    "route": "/",
+    "theme": "light",
+    "width": 1440,
+    "height": 900,
+    "actualTheme": "light",
+    "seriousCritical": [],
+    "allViolationCounts": [],
+    "incomplete": [
+      {
+        "id": "aria-prohibited-attr",
+        "nodes": 1
+      }
+    ]
+  },
+  {
+    "route": "/explore?network=pglib-case14-ieee",
+    "theme": "light",
+    "width": 1440,
+    "height": 900,
+    "actualTheme": "light",
+    "seriousCritical": [],
+    "allViolationCounts": [],
+    "incomplete": [
+      {
+        "id": "aria-prohibited-attr",
+        "nodes": 1
+      },
+      {
+        "id": "color-contrast",
+        "nodes": 18
+      }
+    ]
+  },
+  {
+    "route": "/explore?network=scigrid-de",
+    "theme": "light",
+    "width": 1440,
+    "height": 900,
+    "actualTheme": "light",
+    "seriousCritical": [],
+    "allViolationCounts": [],
+    "incomplete": [
+      {
+        "id": "aria-prohibited-attr",
+        "nodes": 1
+      },
+      {
+        "id": "color-contrast",
+        "nodes": 4
+      }
+    ]
+  },
+  {
+    "route": "/studio",
+    "theme": "light",
+    "width": 1440,
+    "height": 900,
+    "actualTheme": "light",
+    "seriousCritical": [
+      {
+        "id": "label-content-name-mismatch",
+        "impact": "serious",
+        "description": "Ensure that elements labelled through their content must have their visible text as part of their accessible name",
+        "help": "Elements must have their visible text as part of their accessible name",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/label-content-name-mismatch?application=playwright",
+        "nodes": [
+          {
+            "target": [
+              ".hover\\:border-line-strong.border-line.rounded-lg:nth-child(1) > .border-t.py-2.flex-wrap > .inline-flex[data-cost-kind=\"illustrative\"] > .hover\\:opacity-85.cursor-pointer[aria-haspopup=\"dialog\"]"
+            ],
+            "html": "<button type=\"button\" aria-label=\"Cost basis: illustrative cost units (Illustrative placeholder costs). Show details\" class=\"inline-flex cursor-pointer items-center rounded-sm hover:opacity-85\" aria-haspopup=\"dialog\" aria-expanded=\"false\" data-state=\"closed\">",
+            "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+          },
+          {
+            "target": [
+              ".hover\\:border-line-strong.border-line.rounded-lg:nth-child(2) > .border-t.py-2.flex-wrap > .inline-flex[data-cost-kind=\"benchmark_nominal\"] > .hover\\:opacity-85.cursor-pointer[aria-haspopup=\"dialog\"]"
+            ],
+            "html": "<button type=\"button\" aria-label=\"Cost basis: PGLib cost units (Benchmark cost coefficients (not a currency)). Show details\" class=\"inline-flex cursor-pointer items-center rounded-sm hover:opacity-85\" aria-haspopup=\"dialog\" aria-expanded=\"false\" data-state=\"closed\">",
+            "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+          },
+          {
+            "target": [
+              ".hover\\:border-line-strong.border-line.rounded-lg:nth-child(3) > .border-t.py-2.flex-wrap > .inline-flex[data-cost-kind=\"benchmark_nominal\"] > .hover\\:opacity-85.cursor-pointer[aria-haspopup=\"dialog\"]"
+            ],
+            "html": "<button type=\"button\" aria-label=\"Cost basis: PGLib cost units (Benchmark cost coefficients (not a currency)). Show details\" class=\"inline-flex cursor-pointer items-center rounded-sm hover:opacity-85\" aria-haspopup=\"dialog\" aria-expanded=\"false\" data-state=\"closed\">",
+            "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+          },
+          {
+            "target": [
+              "span[data-cost-kind=\"currency_verified\"] > .hover\\:opacity-85.cursor-pointer[aria-haspopup=\"dialog\"]"
+            ],
+            "html": "<button type=\"button\" aria-label=\"Cost basis: EUR (Currency-denominated model costs). Show details\" class=\"inline-flex cursor-pointer items-center rounded-sm hover:opacity-85\" aria-haspopup=\"dialog\" aria-expanded=\"false\" data-state=\"closed\">",
+            "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+          },
+          {
+            "target": [
+              ".hover\\:border-line-strong.border-line.rounded-lg:nth-child(5) > .border-t.py-2.flex-wrap > .inline-flex[data-cost-kind=\"illustrative\"] > .hover\\:opacity-85.cursor-pointer[aria-haspopup=\"dialog\"]"
+            ],
+            "html": "<button type=\"button\" aria-label=\"Cost basis: illustrative cost units (Illustrative placeholder costs). Show details\" class=\"inline-flex cursor-pointer items-center rounded-sm hover:opacity-85\" aria-haspopup=\"dialog\" aria-expanded=\"false\" data-state=\"closed\">",
+            "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+          }
+        ]
+      }
+    ],
+    "allViolationCounts": [
+      {
+        "id": "label-content-name-mismatch",
+        "impact": "serious",
+        "nodes": 5
+      }
+    ],
+    "incomplete": [
+      {
+        "id": "aria-prohibited-attr",
+        "nodes": 1
+      }
+    ]
+  },
+  {
+    "route": "/runs/35dc7cf7-f5fa-4f79-8f8b-e50a23978235",
+    "theme": "light",
+    "width": 1440,
+    "height": 900,
+    "actualTheme": "light",
+    "seriousCritical": [
+      {
+        "id": "label-content-name-mismatch",
+        "impact": "serious",
+        "description": "Ensure that elements labelled through their content must have their visible text as part of their accessible name",
+        "help": "Elements must have their visible text as part of their accessible name",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/label-content-name-mismatch?application=playwright",
+        "nodes": [
+          {
+            "target": [
+              ".ml-auto > .inline-flex[data-cost-kind=\"benchmark_nominal\"] > .hover\\:opacity-85[aria-haspopup=\"dialog\"][data-state=\"closed\"]"
+            ],
+            "html": "<button type=\"button\" aria-label=\"Cost basis: PGLib cost units (Benchmark cost coefficients (not a currency)). Show details\" class=\"inline-flex cursor-pointer items-center rounded-sm hover:opacity-85\" aria-haspopup=\"dialog\" aria-expanded=\"false\" data-state=\"closed\">",
+            "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+          },
+          {
+            "target": [
+              "button[data-testid=\"cost-basis-badge-trigger\"]"
+            ],
+            "html": "<button type=\"button\" aria-label=\"Cost basis: PGLib co...\" data-testid=\"cost-basis-badge-tri...\" class=\"inline-flex cursor-p...\" aria-haspopup=\"dialog\" aria-expanded=\"false\" data-state=\"closed\">",
+            "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+          }
+        ]
+      },
+      {
+        "id": "link-in-text-block",
+        "impact": "serious",
+        "description": "Ensure links are distinguished from surrounding text in a way that does not rely on color",
+        "help": "Links must be distinguishable without relying on color",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/link-in-text-block?application=playwright",
+        "nodes": [
+          {
+            "target": [
+              "a[href$=\"#assumptions\"]"
+            ],
+            "html": "<a href=\"#assumptions\" class=\"text-accent underline-offset-2 hover:underline\">all 12 assumptions</a>",
+            "failureSummary": "Fix any of the following:\n  The link has insufficient color contrast of 1.12:1 with the surrounding text. (Minimum contrast is 3:1, link text: #1d5fb8, surrounding text: #4e5a6b)\n  The link has no styling (such as underline) to distinguish it from the surrounding text"
+          }
+        ]
+      }
+    ],
+    "allViolationCounts": [
+      {
+        "id": "label-content-name-mismatch",
+        "impact": "serious",
+        "nodes": 2
+      },
+      {
+        "id": "link-in-text-block",
+        "impact": "serious",
+        "nodes": 1
+      }
+    ],
+    "incomplete": [
+      {
+        "id": "aria-prohibited-attr",
+        "nodes": 2
+      },
+      {
+        "id": "color-contrast",
+        "nodes": 15
+      }
+    ]
+  },
+  {
+    "route": "/compare",
+    "theme": "light",
+    "width": 1440,
+    "height": 900,
+    "actualTheme": "light",
+    "seriousCritical": [],
+    "allViolationCounts": [],
+    "incomplete": [
+      {
+        "id": "aria-prohibited-attr",
+        "nodes": 1
+      }
+    ]
+  },
+  {
+    "route": "/mitigation",
+    "theme": "light",
+    "width": 1440,
+    "height": 900,
+    "actualTheme": "light",
+    "seriousCritical": [],
+    "allViolationCounts": [],
+    "incomplete": [
+      {
+        "id": "aria-prohibited-attr",
+        "nodes": 1
+      }
+    ]
+  },
+  {
+    "route": "/workbench",
+    "theme": "light",
+    "width": 1440,
+    "height": 900,
+    "actualTheme": "light",
+    "seriousCritical": [
+      {
+        "id": "scrollable-region-focusable",
+        "impact": "serious",
+        "description": "Ensure elements that have scrollable content are accessible by keyboard in Safari",
+        "help": "Scrollable region must have keyboard access",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/scrollable-region-focusable?application=playwright",
+        "nodes": [
+          {
+            "target": [
+              "pre[data-testid=\"reproduction-commands\"]"
+            ],
+            "html": "<pre class=\"mt-1 overflow-x-auto rounded border border-line bg-surface-2 p-2 text-2xs\" data-testid=\"reproduction-commands\">",
+            "failureSummary": "Fix any of the following:\n  Element should have focusable content\n  Element should be focusable"
+          },
+          {
+            "target": [
+              "pre:nth-child(4)"
+            ],
+            "html": "<pre class=\"mt-1 overflow-x-auto rounded border border-line bg-surface-2 p-2 text-2xs\">",
+            "failureSummary": "Fix any of the following:\n  Element should have focusable content\n  Element should be focusable"
+          }
+        ]
+      }
+    ],
+    "allViolationCounts": [
+      {
+        "id": "scrollable-region-focusable",
+        "impact": "serious",
+        "nodes": 2
+      }
+    ],
+    "incomplete": [
+      {
+        "id": "aria-prohibited-attr",
+        "nodes": 1
+      },
+      {
+        "id": "color-contrast",
+        "nodes": 5
+      }
+    ]
+  },
+  {
+    "route": "/benchmarks",
+    "theme": "light",
+    "width": 1440,
+    "height": 900,
+    "actualTheme": "light",
+    "seriousCritical": [],
+    "allViolationCounts": [],
+    "incomplete": [
+      {
+        "id": "aria-prohibited-attr",
+        "nodes": 1
+      }
+    ]
+  },
+  {
+    "route": "/contingency",
+    "theme": "light",
+    "width": 1440,
+    "height": 900,
+    "actualTheme": "light",
+    "seriousCritical": [],
+    "allViolationCounts": [],
+    "incomplete": [
+      {
+        "id": "aria-prohibited-attr",
+        "nodes": 1
+      }
+    ]
+  },
+  {
+    "route": "/",
+    "theme": "dark",
+    "width": 1440,
+    "height": 900,
+    "actualTheme": "dark",
+    "seriousCritical": [],
+    "allViolationCounts": [],
+    "incomplete": [
+      {
+        "id": "aria-prohibited-attr",
+        "nodes": 1
+      }
+    ]
+  },
+  {
+    "route": "/explore?network=pglib-case14-ieee",
+    "theme": "dark",
+    "width": 1440,
+    "height": 900,
+    "actualTheme": "dark",
+    "seriousCritical": [],
+    "allViolationCounts": [],
+    "incomplete": [
+      {
+        "id": "aria-prohibited-attr",
+        "nodes": 1
+      },
+      {
+        "id": "color-contrast",
+        "nodes": 18
+      }
+    ]
+  },
+  {
+    "route": "/explore?network=scigrid-de",
+    "theme": "dark",
+    "width": 1440,
+    "height": 900,
+    "actualTheme": "dark",
+    "seriousCritical": [],
+    "allViolationCounts": [],
+    "incomplete": [
+      {
+        "id": "aria-prohibited-attr",
+        "nodes": 1
+      },
+      {
+        "id": "color-contrast",
+        "nodes": 8
+      }
+    ]
+  },
+  {
+    "route": "/studio",
+    "theme": "dark",
+    "width": 1440,
+    "height": 900,
+    "actualTheme": "dark",
+    "seriousCritical": [
+      {
+        "id": "label-content-name-mismatch",
+        "impact": "serious",
+        "description": "Ensure that elements labelled through their content must have their visible text as part of their accessible name",
+        "help": "Elements must have their visible text as part of their accessible name",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/label-content-name-mismatch?application=playwright",
+        "nodes": [
+          {
+            "target": [
+              ".hover\\:border-line-strong.border-line.rounded-lg:nth-child(1) > .border-t.py-2.flex-wrap > .inline-flex[data-cost-kind=\"illustrative\"] > .hover\\:opacity-85.cursor-pointer[aria-haspopup=\"dialog\"]"
+            ],
+            "html": "<button type=\"button\" aria-label=\"Cost basis: illustrative cost units (Illustrative placeholder costs). Show details\" class=\"inline-flex cursor-pointer items-center rounded-sm hover:opacity-85\" aria-haspopup=\"dialog\" aria-expanded=\"false\" data-state=\"closed\">",
+            "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+          },
+          {
+            "target": [
+              ".hover\\:border-line-strong.border-line.rounded-lg:nth-child(2) > .border-t.py-2.flex-wrap > .inline-flex[data-cost-kind=\"benchmark_nominal\"] > .hover\\:opacity-85.cursor-pointer[aria-haspopup=\"dialog\"]"
+            ],
+            "html": "<button type=\"button\" aria-label=\"Cost basis: PGLib cost units (Benchmark cost coefficients (not a currency)). Show details\" class=\"inline-flex cursor-pointer items-center rounded-sm hover:opacity-85\" aria-haspopup=\"dialog\" aria-expanded=\"false\" data-state=\"closed\">",
+            "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+          },
+          {
+            "target": [
+              ".hover\\:border-line-strong.border-line.rounded-lg:nth-child(3) > .border-t.py-2.flex-wrap > .inline-flex[data-cost-kind=\"benchmark_nominal\"] > .hover\\:opacity-85.cursor-pointer[aria-haspopup=\"dialog\"]"
+            ],
+            "html": "<button type=\"button\" aria-label=\"Cost basis: PGLib cost units (Benchmark cost coefficients (not a currency)). Show details\" class=\"inline-flex cursor-pointer items-center rounded-sm hover:opacity-85\" aria-haspopup=\"dialog\" aria-expanded=\"false\" data-state=\"closed\">",
+            "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+          },
+          {
+            "target": [
+              "span[data-cost-kind=\"currency_verified\"] > .hover\\:opacity-85.cursor-pointer[aria-haspopup=\"dialog\"]"
+            ],
+            "html": "<button type=\"button\" aria-label=\"Cost basis: EUR (Currency-denominated model costs). Show details\" class=\"inline-flex cursor-pointer items-center rounded-sm hover:opacity-85\" aria-haspopup=\"dialog\" aria-expanded=\"false\" data-state=\"closed\">",
+            "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+          },
+          {
+            "target": [
+              ".hover\\:border-line-strong.border-line.rounded-lg:nth-child(5) > .border-t.py-2.flex-wrap > .inline-flex[data-cost-kind=\"illustrative\"] > .hover\\:opacity-85.cursor-pointer[aria-haspopup=\"dialog\"]"
+            ],
+            "html": "<button type=\"button\" aria-label=\"Cost basis: illustrative cost units (Illustrative placeholder costs). Show details\" class=\"inline-flex cursor-pointer items-center rounded-sm hover:opacity-85\" aria-haspopup=\"dialog\" aria-expanded=\"false\" data-state=\"closed\">",
+            "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+          }
+        ]
+      }
+    ],
+    "allViolationCounts": [
+      {
+        "id": "label-content-name-mismatch",
+        "impact": "serious",
+        "nodes": 5
+      }
+    ],
+    "incomplete": [
+      {
+        "id": "aria-prohibited-attr",
+        "nodes": 1
+      }
+    ]
+  },
+  {
+    "route": "/runs/35dc7cf7-f5fa-4f79-8f8b-e50a23978235",
+    "theme": "dark",
+    "width": 1440,
+    "height": 900,
+    "actualTheme": "dark",
+    "seriousCritical": [
+      {
+        "id": "label-content-name-mismatch",
+        "impact": "serious",
+        "description": "Ensure that elements labelled through their content must have their visible text as part of their accessible name",
+        "help": "Elements must have their visible text as part of their accessible name",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/label-content-name-mismatch?application=playwright",
+        "nodes": [
+          {
+            "target": [
+              ".ml-auto > .inline-flex[data-cost-kind=\"benchmark_nominal\"] > .hover\\:opacity-85[aria-haspopup=\"dialog\"][data-state=\"closed\"]"
+            ],
+            "html": "<button type=\"button\" aria-label=\"Cost basis: PGLib cost units (Benchmark cost coefficients (not a currency)). Show details\" class=\"inline-flex cursor-pointer items-center rounded-sm hover:opacity-85\" aria-haspopup=\"dialog\" aria-expanded=\"false\" data-state=\"closed\">",
+            "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+          },
+          {
+            "target": [
+              "button[data-testid=\"cost-basis-badge-trigger\"]"
+            ],
+            "html": "<button type=\"button\" aria-label=\"Cost basis: PGLib co...\" data-testid=\"cost-basis-badge-tri...\" class=\"inline-flex cursor-p...\" aria-haspopup=\"dialog\" aria-expanded=\"false\" data-state=\"closed\">",
+            "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+          }
+        ]
+      },
+      {
+        "id": "link-in-text-block",
+        "impact": "serious",
+        "description": "Ensure links are distinguished from surrounding text in a way that does not rely on color",
+        "help": "Links must be distinguishable without relying on color",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/link-in-text-block?application=playwright",
+        "nodes": [
+          {
+            "target": [
+              "a[href$=\"#assumptions\"]"
+            ],
+            "html": "<a href=\"#assumptions\" class=\"text-accent underline-offset-2 hover:underline\">all 12 assumptions</a>",
+            "failureSummary": "Fix any of the following:\n  The link has insufficient color contrast of 1.08:1 with the surrounding text. (Minimum contrast is 3:1, link text: #6ea8ef, surrounding text: #a4adba)\n  The link has no styling (such as underline) to distinguish it from the surrounding text"
+          }
+        ]
+      }
+    ],
+    "allViolationCounts": [
+      {
+        "id": "label-content-name-mismatch",
+        "impact": "serious",
+        "nodes": 2
+      },
+      {
+        "id": "link-in-text-block",
+        "impact": "serious",
+        "nodes": 1
+      }
+    ],
+    "incomplete": [
+      {
+        "id": "aria-prohibited-attr",
+        "nodes": 2
+      },
+      {
+        "id": "color-contrast",
+        "nodes": 15
+      }
+    ]
+  },
+  {
+    "route": "/compare",
+    "theme": "dark",
+    "width": 1440,
+    "height": 900,
+    "actualTheme": "dark",
+    "seriousCritical": [],
+    "allViolationCounts": [],
+    "incomplete": [
+      {
+        "id": "aria-prohibited-attr",
+        "nodes": 1
+      }
+    ]
+  },
+  {
+    "route": "/mitigation",
+    "theme": "dark",
+    "width": 1440,
+    "height": 900,
+    "actualTheme": "dark",
+    "seriousCritical": [],
+    "allViolationCounts": [],
+    "incomplete": [
+      {
+        "id": "aria-prohibited-attr",
+        "nodes": 1
+      }
+    ]
+  },
+  {
+    "route": "/workbench",
+    "theme": "dark",
+    "width": 1440,
+    "height": 900,
+    "actualTheme": "dark",
+    "seriousCritical": [
+      {
+        "id": "scrollable-region-focusable",
+        "impact": "serious",
+        "description": "Ensure elements that have scrollable content are accessible by keyboard in Safari",
+        "help": "Scrollable region must have keyboard access",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/scrollable-region-focusable?application=playwright",
+        "nodes": [
+          {
+            "target": [
+              "pre[data-testid=\"reproduction-commands\"]"
+            ],
+            "html": "<pre class=\"mt-1 overflow-x-auto rounded border border-line bg-surface-2 p-2 text-2xs\" data-testid=\"reproduction-commands\">",
+            "failureSummary": "Fix any of the following:\n  Element should have focusable content\n  Element should be focusable"
+          },
+          {
+            "target": [
+              "pre:nth-child(4)"
+            ],
+            "html": "<pre class=\"mt-1 overflow-x-auto rounded border border-line bg-surface-2 p-2 text-2xs\">",
+            "failureSummary": "Fix any of the following:\n  Element should have focusable content\n  Element should be focusable"
+          }
+        ]
+      }
+    ],
+    "allViolationCounts": [
+      {
+        "id": "scrollable-region-focusable",
+        "impact": "serious",
+        "nodes": 2
+      }
+    ],
+    "incomplete": [
+      {
+        "id": "aria-prohibited-attr",
+        "nodes": 1
+      },
+      {
+        "id": "color-contrast",
+        "nodes": 5
+      }
+    ]
+  },
+  {
+    "route": "/benchmarks",
+    "theme": "dark",
+    "width": 1440,
+    "height": 900,
+    "actualTheme": "dark",
+    "seriousCritical": [],
+    "allViolationCounts": [],
+    "incomplete": [
+      {
+        "id": "aria-prohibited-attr",
+        "nodes": 1
+      }
+    ]
+  },
+  {
+    "route": "/contingency",
+    "theme": "dark",
+    "width": 1440,
+    "height": 900,
+    "actualTheme": "dark",
+    "seriousCritical": [],
+    "allViolationCounts": [],
+    "incomplete": [
+      {
+        "id": "aria-prohibited-attr",
+        "nodes": 1
+      }
+    ]
+  },
+  {
+    "route": "/",
+    "theme": "light",
+    "width": 390,
+    "height": 844,
+    "actualTheme": "light",
+    "seriousCritical": [],
+    "allViolationCounts": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": 1
+      }
+    ]
+  },
+  {
+    "route": "/explore?network=pglib-case14-ieee",
+    "theme": "light",
+    "width": 390,
+    "height": 844,
+    "actualTheme": "light",
+    "seriousCritical": [],
+    "allViolationCounts": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": 33
+      }
+    ]
+  },
+  {
+    "route": "/explore?network=scigrid-de",
+    "theme": "light",
+    "width": 390,
+    "height": 844,
+    "actualTheme": "light",
+    "seriousCritical": [],
+    "allViolationCounts": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": 19
+      }
+    ]
+  },
+  {
+    "route": "/studio",
+    "theme": "light",
+    "width": 390,
+    "height": 844,
+    "actualTheme": "light",
+    "seriousCritical": [
+      {
+        "id": "label-content-name-mismatch",
+        "impact": "serious",
+        "description": "Ensure that elements labelled through their content must have their visible text as part of their accessible name",
+        "help": "Elements must have their visible text as part of their accessible name",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/label-content-name-mismatch?application=playwright",
+        "nodes": [
+          {
+            "target": [
+              ".hover\\:border-line-strong.border-line.rounded-lg:nth-child(1) > .border-t.py-2.flex-wrap > .inline-flex[data-cost-kind=\"illustrative\"] > .hover\\:opacity-85.cursor-pointer[aria-haspopup=\"dialog\"]"
+            ],
+            "html": "<button type=\"button\" aria-label=\"Cost basis: illustrative cost units (Illustrative placeholder costs). Show details\" class=\"inline-flex cursor-pointer items-center rounded-sm hover:opacity-85\" aria-haspopup=\"dialog\" aria-expanded=\"false\" data-state=\"closed\">",
+            "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+          },
+          {
+            "target": [
+              ".hover\\:border-line-strong.border-line.rounded-lg:nth-child(2) > .border-t.py-2.flex-wrap > .inline-flex[data-cost-kind=\"benchmark_nominal\"] > .hover\\:opacity-85.cursor-pointer[aria-haspopup=\"dialog\"]"
+            ],
+            "html": "<button type=\"button\" aria-label=\"Cost basis: PGLib cost units (Benchmark cost coefficients (not a currency)). Show details\" class=\"inline-flex cursor-pointer items-center rounded-sm hover:opacity-85\" aria-haspopup=\"dialog\" aria-expanded=\"false\" data-state=\"closed\">",
+            "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+          },
+          {
+            "target": [
+              ".hover\\:border-line-strong.border-line.rounded-lg:nth-child(3) > .border-t.py-2.flex-wrap > .inline-flex[data-cost-kind=\"benchmark_nominal\"] > .hover\\:opacity-85.cursor-pointer[aria-haspopup=\"dialog\"]"
+            ],
+            "html": "<button type=\"button\" aria-label=\"Cost basis: PGLib cost units (Benchmark cost coefficients (not a currency)). Show details\" class=\"inline-flex cursor-pointer items-center rounded-sm hover:opacity-85\" aria-haspopup=\"dialog\" aria-expanded=\"false\" data-state=\"closed\">",
+            "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+          },
+          {
+            "target": [
+              "span[data-cost-kind=\"currency_verified\"] > .hover\\:opacity-85.cursor-pointer[aria-haspopup=\"dialog\"]"
+            ],
+            "html": "<button type=\"button\" aria-label=\"Cost basis: EUR (Currency-denominated model costs). Show details\" class=\"inline-flex cursor-pointer items-center rounded-sm hover:opacity-85\" aria-haspopup=\"dialog\" aria-expanded=\"false\" data-state=\"closed\">",
+            "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+          },
+          {
+            "target": [
+              ".hover\\:border-line-strong.border-line.rounded-lg:nth-child(5) > .border-t.py-2.flex-wrap > .inline-flex[data-cost-kind=\"illustrative\"] > .hover\\:opacity-85.cursor-pointer[aria-haspopup=\"dialog\"]"
+            ],
+            "html": "<button type=\"button\" aria-label=\"Cost basis: illustrative cost units (Illustrative placeholder costs). Show details\" class=\"inline-flex cursor-pointer items-center rounded-sm hover:opacity-85\" aria-haspopup=\"dialog\" aria-expanded=\"false\" data-state=\"closed\">",
+            "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+          }
+        ]
+      }
+    ],
+    "allViolationCounts": [
+      {
+        "id": "label-content-name-mismatch",
+        "impact": "serious",
+        "nodes": 5
+      }
+    ],
+    "incomplete": []
+  },
+  {
+    "route": "/runs/35dc7cf7-f5fa-4f79-8f8b-e50a23978235",
+    "theme": "light",
+    "width": 390,
+    "height": 844,
+    "actualTheme": "light",
+    "seriousCritical": [
+      {
+        "id": "label-content-name-mismatch",
+        "impact": "serious",
+        "description": "Ensure that elements labelled through their content must have their visible text as part of their accessible name",
+        "help": "Elements must have their visible text as part of their accessible name",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/label-content-name-mismatch?application=playwright",
+        "nodes": [
+          {
+            "target": [
+              ".ml-auto > .inline-flex[data-cost-kind=\"benchmark_nominal\"] > .hover\\:opacity-85[aria-haspopup=\"dialog\"][data-state=\"closed\"]"
+            ],
+            "html": "<button type=\"button\" aria-label=\"Cost basis: PGLib cost units (Benchmark cost coefficients (not a currency)). Show details\" class=\"inline-flex cursor-pointer items-center rounded-sm hover:opacity-85\" aria-haspopup=\"dialog\" aria-expanded=\"false\" data-state=\"closed\">",
+            "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+          },
+          {
+            "target": [
+              "button[data-testid=\"cost-basis-badge-trigger\"]"
+            ],
+            "html": "<button type=\"button\" aria-label=\"Cost basis: PGLib co...\" data-testid=\"cost-basis-badge-tri...\" class=\"inline-flex cursor-p...\" aria-haspopup=\"dialog\" aria-expanded=\"false\" data-state=\"closed\">",
+            "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+          }
+        ]
+      },
+      {
+        "id": "link-in-text-block",
+        "impact": "serious",
+        "description": "Ensure links are distinguished from surrounding text in a way that does not rely on color",
+        "help": "Links must be distinguishable without relying on color",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/link-in-text-block?application=playwright",
+        "nodes": [
+          {
+            "target": [
+              "a[href$=\"#assumptions\"]"
+            ],
+            "html": "<a href=\"#assumptions\" class=\"text-accent underline-offset-2 hover:underline\">all 12 assumptions</a>",
+            "failureSummary": "Fix any of the following:\n  The link has insufficient color contrast of 1.12:1 with the surrounding text. (Minimum contrast is 3:1, link text: #1d5fb8, surrounding text: #4e5a6b)\n  The link has no styling (such as underline) to distinguish it from the surrounding text"
+          }
+        ]
+      }
+    ],
+    "allViolationCounts": [
+      {
+        "id": "label-content-name-mismatch",
+        "impact": "serious",
+        "nodes": 2
+      },
+      {
+        "id": "link-in-text-block",
+        "impact": "serious",
+        "nodes": 1
+      }
+    ],
+    "incomplete": [
+      {
+        "id": "aria-prohibited-attr",
+        "nodes": 1
+      },
+      {
+        "id": "color-contrast",
+        "nodes": 31
+      }
+    ]
+  },
+  {
+    "route": "/compare",
+    "theme": "light",
+    "width": 390,
+    "height": 844,
+    "actualTheme": "light",
+    "seriousCritical": [],
+    "allViolationCounts": [],
+    "incomplete": []
+  },
+  {
+    "route": "/mitigation",
+    "theme": "light",
+    "width": 390,
+    "height": 844,
+    "actualTheme": "light",
+    "seriousCritical": [],
+    "allViolationCounts": [],
+    "incomplete": []
+  },
+  {
+    "route": "/workbench",
+    "theme": "light",
+    "width": 390,
+    "height": 844,
+    "actualTheme": "light",
+    "seriousCritical": [
+      {
+        "id": "scrollable-region-focusable",
+        "impact": "serious",
+        "description": "Ensure elements that have scrollable content are accessible by keyboard in Safari",
+        "help": "Scrollable region must have keyboard access",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/scrollable-region-focusable?application=playwright",
+        "nodes": [
+          {
+            "target": [
+              "pre[data-testid=\"reproduction-commands\"]"
+            ],
+            "html": "<pre class=\"mt-1 overflow-x-auto rounded border border-line bg-surface-2 p-2 text-2xs\" data-testid=\"reproduction-commands\">",
+            "failureSummary": "Fix any of the following:\n  Element should have focusable content\n  Element should be focusable"
+          },
+          {
+            "target": [
+              "pre:nth-child(4)"
+            ],
+            "html": "<pre class=\"mt-1 overflow-x-auto rounded border border-line bg-surface-2 p-2 text-2xs\">",
+            "failureSummary": "Fix any of the following:\n  Element should have focusable content\n  Element should be focusable"
+          }
+        ]
+      }
+    ],
+    "allViolationCounts": [
+      {
+        "id": "scrollable-region-focusable",
+        "impact": "serious",
+        "nodes": 2
+      }
+    ],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": 17
+      }
+    ]
+  },
+  {
+    "route": "/benchmarks",
+    "theme": "light",
+    "width": 390,
+    "height": 844,
+    "actualTheme": "light",
+    "seriousCritical": [],
+    "allViolationCounts": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": 513
+      }
+    ]
+  },
+  {
+    "route": "/contingency",
+    "theme": "light",
+    "width": 390,
+    "height": 844,
+    "actualTheme": "light",
+    "seriousCritical": [],
+    "allViolationCounts": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": 185
+      }
+    ]
+  }
+]

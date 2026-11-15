@@ -34,6 +34,18 @@ services:
         value: "180"
       - key: GRIDSTORM_JOB_MEMORY_MB
         value: "400"
+      # Queued+running jobs per signed-in user / anonymous client IP (reuse never counts).
+      - key: GRIDSTORM_MAX_ACTIVE_JOBS_PER_CLIENT
+        value: "2"
+      # Client identity behind Cloudflare -> Render proxies (docs/audit/security-3.0.md): trust
+      # Cloudflare's overwritten CF-Connecting-IP; fallback = 2nd X-Forwarded-For entry from the
+      # right (never the client-controlled leftmost one).
+      - key: GRIDSTORM_TRUST_PROXY
+        value: "true"
+      - key: GRIDSTORM_CLIENT_IP_HEADER
+        value: cf-connecting-ip
+      - key: GRIDSTORM_TRUSTED_PROXY_HOPS
+        value: "2"
       - key: GRIDSTORM_CORS_ORIGINS
         value: https://gridstorm.vercel.app,https://gridstorm-tanmay-alphas-projects.vercel.app
       - key: DATABASE_URL

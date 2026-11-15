@@ -51,6 +51,7 @@ def compute(
     *,
     carriers: Sequence[str] | None = None,
     countries: Sequence[str] | None = None,
+    cost_basis: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Compute analytics ``kind`` for network ``n``.
 
@@ -65,4 +66,6 @@ def compute(
             f"unknown analytics kind {kind!r}; available: {list(KINDS)}"
         ) from None
     carriers_v, countries_v = validate_filters(n, carriers, countries)
+    if kind == "costs":
+        return func(n, carriers=carriers_v, countries=countries_v, cost_basis=cost_basis)
     return func(n, carriers=carriers_v, countries=countries_v)

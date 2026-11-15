@@ -61,11 +61,14 @@ def precompute(network_id: str, network_dir: Path) -> dict[str, object]:
     if expected is not None and expected != network_sha:
         raise SystemExit(f"{network_id}: network.nc sha256 {network_sha} != manifest {expected}")
     n = pypsa.Network(str(nc))
+    basis = json.loads((network_dir / "manifest.json").read_text(encoding="utf-8")).get(
+        "cost_basis"
+    )
     out_dir = network_dir / "analytics"
     out_dir.mkdir(exist_ok=True)
     kinds: dict[str, dict[str, object]] = {}
     for kind in gridstorm_analytics.KINDS:
-        data = _dump(gridstorm_analytics.compute(kind, n))
+        data = _dump(gridstorm_analytics.compute(kind, n, cost_basis=basis))
         (out_dir / f"{kind}.json").write_bytes(data)
         kinds[kind] = {"path": f"{kind}.json", "sha256": _sha256(data), "bytes": len(data)}
     index = {

@@ -10,15 +10,16 @@
   "countries": null
  },
  "units": {
-  "rows[].capex_installed_eur": "EUR",
-  "rows[].capex_optimal_eur": "EUR",
-  "rows[].opex_eur": "EUR",
-  "by_carrier.*": "EUR",
-  "totals.*": "EUR",
+  "rows[].capex_installed_eur": "illustrative cost units",
+  "rows[].capex_optimal_eur": "illustrative cost units",
+  "rows[].opex_eur": "illustrative cost units",
+  "by_carrier.*": "illustrative cost units",
+  "totals.*": "illustrative cost units",
   "objective_weighted_hours_h": "h"
  },
  "assumptions": [
-  "Monetary values are in the cost currency of the network data; PyPSA stores no currency unit, GridStorm assumes EUR (example-network costs are illustrative, not market data).",
+  "Monetary values use the declared dataset cost basis; legacy *_eur names do not imply EUR. No currency conversion is performed.",
+  "Declared money unit: illustrative cost units.",
   "capex_installed_eur = nominal capacity (p_nom/s_nom/e_nom) x capital_cost (PyPSA statistics.installed_capex); available without optimisation.",
   "capex_optimal_eur = optimal capacity (*_opt) x capital_cost (PyPSA statistics.capex, the quantity PyPSA-Explorer plots); null when the network is not solved.",
   "opex_eur = dispatch x marginal cost (plus storage/spill/unit-commitment cost terms when present) weighted by snapshot_weightings.objective (PyPSA statistics.opex); null when the network is not solved.",

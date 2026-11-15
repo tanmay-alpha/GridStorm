@@ -1,81 +1,72 @@
 import { useQueries, useQuery } from '@tanstack/react-query'
-import { api, itemsOf } from '../../api/client'
-import type { ArtifactIndexItem } from '../../api/types'
+import { api, ApiError, itemsOf, request } from '../../api/client'
+import type { ArtifactIndexItem, ArtifactKind, Page } from '../../api/types'
 import { parseArtifact, type ParsedArtifact } from './lib/parse'
 
-export interface ArtifactQuery {
-  engine?: string
-  kind?: string
-  network_id?: string
-}
+/**
+ * Kinds whose `GET /artifacts/{engine}/{id}?view=summary` drops only bulky per-item fields
+ * (contingency lists, sampled states, episode steps, time series); `n_minus_1` and `advisor`
+ * have no summary view.
+ */
+export const SUMMARY_KINDS: readonly ArtifactKind[] = ['simulation', 'benchmark', 'risk', 'episode', 'timeseries']
 
-/** GET /api/v1/artifacts — precomputed artifact index (contract §5/§6). */
-export function useArtifactIndex(q: ArtifactQuery, enabled = true) {
+export type ArtifactView = 'full' | 'summary'
+
+/**
+ * GET /api/v1/artifacts?include=header&limit=500 — every published artifact with its file header
+ * (engine version, command, inputs + sha256, platform, payload sha256) in one cached request,
+ * shared by all research pages and the workbench. Rows of missing files carry `header: null`.
+ */
+export function useArtifactCatalog() {
   return useQuery({
-    queryKey: ['research', 'artifact-index', q.engine ?? null, q.kind ?? null, q.network_id ?? null],
-    queryFn: async ({ signal }): Promise<ArtifactIndexItem[]> => {
-      const items = itemsOf(await api.artifacts(q, signal))
-      // The engine query param is authoritative; fill it when an index row omits it.
-      return items.map((it) => ({ ...it, engine: it.engine ?? q.engine ?? '' }))
-    },
-    enabled,
+    queryKey: ['research', 'artifact-catalog'],
+    queryFn: async ({ signal }): Promise<ArtifactIndexItem[]> =>
+      itemsOf(await request<Page<ArtifactIndexItem>>('/api/v1/artifacts', { query: { include: 'header', limit: 500 }, signal })),
     staleTime: 5 * 60_000,
   })
 }
 
-/** GET /api/v1/artifacts/{engine}/{artifact_id}, envelope validated. */
-export function useArtifact(engine: string | null | undefined, artifactId: string | null | undefined) {
-  return useQuery({
-    queryKey: ['research', 'artifact', engine ?? null, artifactId ?? null],
-    queryFn: async ({ signal }): Promise<ParsedArtifact> => parseArtifact(await api.artifact(engine as string, artifactId as string, signal)),
-    enabled: Boolean(engine && artifactId),
-    staleTime: Infinity,
-  })
+async function fetchArtifact(engine: string, artifactId: string, view: ArtifactView, signal: AbortSignal): Promise<ParsedArtifact> {
+  if (view === 'summary') {
+    try {
+      const { artifact, summary } = await api.artifactSummary(engine, artifactId, signal)
+      return parseArtifact({ artifact, payload: summary })
+    } catch (err) {
+      // APIs before 3.0 offer the summary view for `simulation` only; the full document is a superset.
+      if (!(err instanceof ApiError && err.code === 'summary_view_unsupported')) throw err
+    }
+  }
+  return parseArtifact(await api.artifact(engine, artifactId, signal))
 }
 
-/** Several artifacts of one engine in parallel (shares the cache with `useArtifact`). */
-export function useArtifacts(engine: string, artifactIds: string[]) {
-  return useQueries({
-    queries: artifactIds.map((id) => ({
-      queryKey: ['research', 'artifact', engine, id],
-      queryFn: async ({ signal }: { signal: AbortSignal }): Promise<ParsedArtifact> => parseArtifact(await api.artifact(engine, id, signal)),
-      staleTime: Infinity,
-    })),
-  })
-}
+const artifactQuery = (engine: string, artifactId: string, view: ArtifactView) => ({
+  queryKey: ['research', view === 'full' ? 'artifact' : 'artifact-summary', engine, artifactId],
+  queryFn: ({ signal }: { signal: AbortSignal }) => fetchArtifact(engine, artifactId, view, signal),
+  staleTime: Infinity,
+})
 
 /**
- * Header + summary of several `kind=simulation` artifacts (`?view=summary`): the full documents
- * carry per-asset series (SciGRID-DE ~1.2 MB each) that summary rows never read. `payload` holds
- * the summary — a verbatim subset of the payload fields; the header (provenance, payload sha256)
- * is unchanged.
+ * GET /api/v1/artifacts/{engine}/{artifact_id}, envelope validated. `view: 'summary'` returns the
+ * unchanged header plus a verbatim payload subset (see SUMMARY_KINDS).
  */
+export function useArtifact(engine: string | null | undefined, artifactId: string | null | undefined, view: ArtifactView = 'full') {
+  return useQuery({ ...artifactQuery(engine ?? '', artifactId ?? '', view), enabled: Boolean(engine && artifactId) })
+}
+
+/** Several full artifacts of one engine in parallel (shares the cache with `useArtifact`). */
+export function useArtifacts(engine: string, artifactIds: string[]) {
+  return useQueries({ queries: artifactIds.map((id) => artifactQuery(engine, id, 'full')) })
+}
+
+/** Header + summary view of several artifacts of one engine (kinds in SUMMARY_KINDS). */
 export function useArtifactSummaries(engine: string, artifactIds: string[]) {
-  return useQueries({
-    queries: artifactIds.map((id) => ({
-      queryKey: ['research', 'artifact-summary', engine, id],
-      queryFn: async ({ signal }: { signal: AbortSignal }): Promise<ParsedArtifact> => {
-        const { artifact, summary } = await api.artifactSummary(engine, id, signal)
-        return parseArtifact({ artifact, payload: summary })
-      },
-      staleTime: Infinity,
-    })),
-  })
+  return useQueries({ queries: artifactIds.map((id) => artifactQuery(engine, id, 'summary')) })
 }
 
 export function useNetworks() {
   return useQuery({
     queryKey: ['research', 'networks'],
     queryFn: async ({ signal }) => itemsOf(await api.networks(signal)),
-    staleTime: 5 * 60_000,
-  })
-}
-
-export function useNetworkDetail(id: string | null | undefined) {
-  return useQuery({
-    queryKey: ['research', 'network', id ?? null],
-    queryFn: ({ signal }) => api.network(id as string, signal),
-    enabled: Boolean(id),
     staleTime: 5 * 60_000,
   })
 }
