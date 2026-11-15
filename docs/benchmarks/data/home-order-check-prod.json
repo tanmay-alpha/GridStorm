@@ -1,0 +1,111 @@
+{
+  "base": "https://gridstorm.vercel.app",
+  "reps": 3,
+  "at": "2026-11-15T08:51:29.124Z",
+  "summary": [
+    {
+      "route": "/studio",
+      "fcp_ms": 568,
+      "lcp_ms": 1072,
+      "cls": 0.0002,
+      "settled_ms": 1575,
+      "requests": 14,
+      "api_requests": 4,
+      "transferred_kb": 392,
+      "heap_mb": 4.9,
+      "overflow_x": false
+    },
+    {
+      "route": "/",
+      "fcp_ms": 640,
+      "lcp_ms": 940,
+      "cls": 0.0002,
+      "settled_ms": 1418,
+      "requests": 7,
+      "api_requests": 1,
+      "transferred_kb": 371,
+      "heap_mb": 4.4,
+      "overflow_x": false
+    }
+  ],
+  "rows": [
+    {
+      "route": "/studio",
+      "rep": 0,
+      "fcp_ms": 568,
+      "lcp_ms": 1072,
+      "cls": 0.0002,
+      "settled_ms": 1575,
+      "requests": 14,
+      "api_requests": 4,
+      "transferred_kb": 392,
+      "heap_mb": 4.9,
+      "overflow_x": false
+    },
+    {
+      "route": "/studio",
+      "rep": 1,
+      "fcp_ms": 612,
+      "lcp_ms": 1112,
+      "cls": 0.0002,
+      "settled_ms": 1884,
+      "requests": 14,
+      "api_requests": 4,
+      "transferred_kb": 392,
+      "heap_mb": 4.9,
+      "overflow_x": false
+    },
+    {
+      "route": "/studio",
+      "rep": 2,
+      "fcp_ms": 540,
+      "lcp_ms": 1032,
+      "cls": 0.0002,
+      "settled_ms": 1544,
+      "requests": 14,
+      "api_requests": 4,
+      "transferred_kb": 392,
+      "heap_mb": 4.9,
+      "overflow_x": false
+    },
+    {
+      "route": "/",
+      "rep": 0,
+      "fcp_ms": 640,
+      "lcp_ms": 940,
+      "cls": 0.0002,
+      "settled_ms": 1418,
+      "requests": 7,
+      "api_requests": 1,
+      "transferred_kb": 371,
+      "heap_mb": 4.4,
+      "overflow_x": false
+    },
+    {
+      "route": "/",
+      "rep": 1,
+      "fcp_ms": 548,
+      "lcp_ms": 860,
+      "cls": 0.0002,
+      "settled_ms": 1590,
+      "requests": 7,
+      "api_requests": 1,
+      "transferred_kb": 371,
+      "heap_mb": 4.4,
+      "overflow_x": false
+    },
+    {
+      "route": "/",
+      "rep": 2,
+      "fcp_ms": 648,
+      "lcp_ms": 952,
+      "cls": 0.0002,
+      "settled_ms": 1417,
+      "requests": 7,
+      "api_requests": 1,
+      "transferred_kb": 371,
+      "heap_mb": 4.4,
+      "overflow_x": false
+    }
+  ]
+}

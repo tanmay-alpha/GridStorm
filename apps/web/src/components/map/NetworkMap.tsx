@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Maximize, Minus, Plus } from 'lucide-react'
 import {
   Map as MapLibreMap,
   ScaleControl,
@@ -23,6 +22,8 @@ import {
 import { cn } from '../ui/cn'
 import { assetKey, type AssetRef, type MapFeatures } from './features'
 import { planFit } from './fit'
+import { DEFAULT_LAYERS, type BranchColorMode, type LayerVisibility } from './layers'
+import { MapViewControls } from './MapViewControls'
 
 setWorkerUrl(maplibreWorkerUrl)
 
@@ -39,28 +40,6 @@ function fitToNetwork(map: MapLibreMap, bounds: MapFeatures['bounds']): void {
   else map.fitBounds(plan.bounds, { padding: plan.padding, animate: false })
 }
 
-const CONTROL =
-  'inline-flex size-11 items-center justify-center text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg disabled:opacity-50'
-
-export interface LayerVisibility {
-  buses: boolean
-  lines: boolean
-  links: boolean
-  generators: boolean
-  storage: boolean
-}
-
-export const DEFAULT_LAYERS: LayerVisibility = {
-  buses: true,
-  lines: true,
-  links: true,
-  generators: true,
-  storage: true,
-}
-
-/** voltage = colour lines by kV; loading = by `value` (%); delta = by `value` (percentage points). */
-export type BranchColorMode = 'voltage' | 'loading' | 'delta'
-
 function basemapStyle(kind: CoordinateKind, theme: 'light' | 'dark'): string | StyleSpecification {
   if (kind === 'geographic') {
     return theme === 'dark'
@@ -74,7 +53,7 @@ function basemapStyle(kind: CoordinateKind, theme: 'light' | 'dark'): string | S
   }
 }
 
-const INTERACTIVE = ['gs-branches', 'gs-transformers', 'gs-links', 'gs-buses', 'gs-generators', 'gs-storage']
+const INTERACTIVE = ['gs-branches', 'gs-transformers', 'gs-links', 'gs-buses', 'gs-generators', 'gs-storage', 'gs-outaged-points']
 
 /** Stable default: a fresh `{}` per render would re-run the styling effect on every render. */
 const NO_CARRIER_COLORS: Record<string, string> = {}
@@ -113,6 +92,7 @@ export function NetworkMap({
   className,
   ariaLabel,
   showControls = true,
+  hidden = false,
 }: {
   coordinateKind: CoordinateKind
   features: MapFeatures
@@ -124,13 +104,18 @@ export function NetworkMap({
   className?: string
   ariaLabel: string
   showControls?: boolean
+  /**
+   * Keep the MapLibre instance (WebGL context, loaded style, tiles) alive but undisplayed, so a later
+   * switch back to a geographic network reuses it instead of rebuilding the map.
+   */
+  hidden?: boolean
 }) {
   const container = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MapLibreMap | null>(null)
-  // The map instance whose own `load` event has fired, i.e. whose style accepts layer calls.
-  // A boolean is not enough: when coordinate kind/theme change, the old map is replaced in the
-  // same commit as other effects run, and a stale `ready === true` let them call
-  // setLayoutProperty on the new, still-loading map ("Style is not done loading").
+  // The map instance whose own style has loaded, i.e. which accepts layer calls. A boolean is not
+  // enough: when coordinate kind/theme change, the old map is replaced in the same commit as other
+  // effects run, and a stale `ready === true` let them call setLayoutProperty on the new, still-
+  // loading map ("Style is not done loading").
   const [loadedMap, setLoadedMap] = useState<MapLibreMap | null>(null)
   const ready = loadedMap !== null
   const { theme } = useTheme()
@@ -189,12 +174,23 @@ export function NetworkMap({
     const observer = new ResizeObserver(() => map.resize())
     observer.observe(container.current)
 
-    map.on('load', () => {
+    // `style.load`, not `load`: `load` waits for every initial basemap tile, so the network itself
+    // (local GeoJSON) appeared only after the tile server answered. Layers can be added as soon as
+    // the style is parsed; basemap tiles then stream in underneath.
+    map.once('style.load', () => {
       const empty = { type: 'FeatureCollection' as const, features: [] }
       for (const s of ['gs-branches-src', 'gs-buses-src', 'gs-generators-src', 'gs-storage-src'])
         map.addSource(s, { type: 'geojson', data: empty })
       const casing = cssVar('--gs-surface') || '#fff'
       const highlight = cssVar('--gs-fg') || '#000'
+      const danger = cssVar('--gs-danger') || '#b42318'
+      map.addLayer({
+        id: 'gs-highlighted-branch',
+        type: 'line',
+        source: 'gs-branches-src',
+        filter: ['==', ['get', 'highlighted'], true],
+        paint: { 'line-color': highlight, 'line-width': 9, 'line-opacity': 0.25 },
+      })
       map.addLayer({
         id: 'gs-selected-branch',
         type: 'line',
@@ -206,7 +202,7 @@ export function NetworkMap({
         id: 'gs-branches',
         type: 'line',
         source: 'gs-branches-src',
-        filter: ['==', ['get', 'asset_type'], 'line'],
+        filter: ['all', ['==', ['get', 'asset_type'], 'line'], ['!=', ['get', 'outaged'], true]],
         layout: { 'line-cap': 'round' },
         paint: { 'line-color': voltageColorExpression('v_nom_kv'), 'line-width': ['interpolate', ['linear'], ['zoom'], 3, 1.2, 8, 2.5, 12, 4] },
       })
@@ -214,15 +210,23 @@ export function NetworkMap({
         id: 'gs-transformers',
         type: 'line',
         source: 'gs-branches-src',
-        filter: ['==', ['get', 'asset_type'], 'transformer'],
+        filter: ['all', ['==', ['get', 'asset_type'], 'transformer'], ['!=', ['get', 'outaged'], true]],
         paint: { 'line-color': voltageColorExpression('v_nom_kv'), 'line-width': 2.5, 'line-dasharray': [1, 1] },
       })
       map.addLayer({
         id: 'gs-links',
         type: 'line',
         source: 'gs-branches-src',
-        filter: ['==', ['get', 'asset_type'], 'link'],
+        filter: ['all', ['==', ['get', 'asset_type'], 'link'], ['!=', ['get', 'outaged'], true]],
         paint: { 'line-color': HVDC_COLOR, 'line-width': 2.5, 'line-dasharray': [3, 2] },
+      })
+      // Branches out of service in a scenario: their own dashed style, independent of colour mode.
+      map.addLayer({
+        id: 'gs-outaged-branch',
+        type: 'line',
+        source: 'gs-branches-src',
+        filter: ['==', ['get', 'outaged'], true],
+        paint: { 'line-color': danger, 'line-width': 3, 'line-dasharray': [2, 1.5] },
       })
       map.addLayer({
         id: 'gs-buses',
@@ -260,6 +264,21 @@ export function NetworkMap({
           'circle-translate': [-5, 5],
         },
       })
+      // Outaged generators/storage stay visible even with their layer off (results pages hide them).
+      map.addLayer({
+        id: 'gs-outaged-points',
+        type: 'circle',
+        source: 'gs-generators-src',
+        filter: ['==', ['get', 'outaged'], true],
+        paint: { 'circle-radius': 8, 'circle-color': 'transparent', 'circle-stroke-color': danger, 'circle-stroke-width': 2.5, 'circle-translate': [5, -5] },
+      })
+      map.addLayer({
+        id: 'gs-outaged-storage',
+        type: 'circle',
+        source: 'gs-storage-src',
+        filter: ['==', ['get', 'outaged'], true],
+        paint: { 'circle-radius': 8, 'circle-color': 'transparent', 'circle-stroke-color': danger, 'circle-stroke-width': 2.5, 'circle-translate': [-5, 5] },
+      })
       map.addLayer({
         id: 'gs-selected-point',
         type: 'circle',
@@ -280,7 +299,7 @@ export function NetworkMap({
         { layers: INTERACTIVE.filter((l) => map.getLayer(l)) },
       )
       // Prefer point assets over branches when both are under the cursor.
-      const order = ['gs-storage', 'gs-generators', 'gs-buses', 'gs-transformers', 'gs-links', 'gs-branches']
+      const order = ['gs-storage', 'gs-generators', 'gs-outaged-points', 'gs-buses', 'gs-transformers', 'gs-links', 'gs-branches']
       hits.sort((a, b) => order.indexOf(a.layer.id) - order.indexOf(b.layer.id))
       const f = hits[0]
       if (!f) {
@@ -305,7 +324,7 @@ export function NetworkMap({
 
   // Every style/source call below goes through `loadedMap === mapRef.current`: effects that run in
   // the commit that replaced the map still see the previous instance in `loadedMap` and skip; they
-  // re-run with the current props once the new map's `load` handler stores it.
+  // re-run with the current props once the new map's style handler stores it.
 
   // Data updates.
   useEffect(() => {
@@ -318,12 +337,14 @@ export function NetworkMap({
   }, [features, loadedMap])
 
   // Frame the network whenever its extent changes (new network, or data arriving after a loading
-  // state). Camera calls do not need a loaded style, so this also runs before `load`.
+  // state). Camera calls do not need a loaded style, so this also runs before the style loads.
+  // resize() first: a kept-alive map revealed in this commit still has its hidden (0 px) canvas.
   const boundsKey = features.bounds?.join(',') ?? ''
   useEffect(() => {
     const map = mapRef.current
     if (!map || !boundsRef.current) return
     userMovedRef.current = false
+    map.resize()
     fitToNetwork(map, boundsRef.current)
   }, [boundsKey])
 
@@ -371,7 +392,7 @@ export function NetworkMap({
   }, [selected, loadedMap])
 
   return (
-    <div className={cn('relative h-full w-full', className)}>
+    <div className={cn('relative h-full w-full', hidden && 'hidden', className)} aria-hidden={hidden || undefined}>
       <div
         ref={container}
         role="region"
@@ -381,31 +402,7 @@ export function NetworkMap({
         className="h-full w-full"
       />
       {!ready && <div role="status" className="pointer-events-none absolute inset-0 flex items-center justify-center bg-canvas/80 text-sm text-fg-muted">Rendering network map…</div>}
-      {showControls && (
-        <div
-          role="group"
-          aria-label="Map view"
-          className="gs-panel absolute right-2 top-2 z-10 flex flex-col divide-y divide-line overflow-hidden p-0"
-        >
-          <button type="button" className={CONTROL} onClick={() => zoomBy(1)} aria-label="Zoom in" title="Zoom in">
-            <Plus aria-hidden className="size-4" />
-          </button>
-          <button type="button" className={CONTROL} onClick={() => zoomBy(-1)} aria-label="Zoom out" title="Zoom out">
-            <Minus aria-hidden className="size-4" />
-          </button>
-          <button
-            type="button"
-            className={CONTROL}
-            onClick={refit}
-            disabled={!features.bounds}
-            aria-label="Fit to network"
-            title="Fit to network"
-            data-testid="map-fit"
-          >
-            <Maximize aria-hidden className="size-4" />
-          </button>
-        </div>
-      )}
+      {showControls && <MapViewControls onZoomIn={() => zoomBy(1)} onZoomOut={() => zoomBy(-1)} onFit={refit} canFit={!!features.bounds} />}
     </div>
   )
 }

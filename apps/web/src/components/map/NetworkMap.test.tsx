@@ -2,7 +2,8 @@ import { act, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ThemeProvider } from '../../lib/theme'
 import type { MapFeatures } from './features'
-import { NetworkMap, type LayerVisibility } from './NetworkMap'
+import type { LayerVisibility } from './layers'
+import { NetworkMap } from './NetworkMap'
 
 /**
  * Minimal MapLibre stand-in with the one behaviour that matters here: style mutations throw
@@ -34,9 +35,13 @@ const fake = vi.hoisted(() => {
       else if (fn) this.handlers.set(`${event}:${layerOrFn}`, [fn])
       return this
     }
+    once(event: string, fn: Handler) {
+      return this.on(event, fn)
+    }
+    /** The component adds its layers on `style.load` (the style is parsed; basemap tiles may still load). */
     fireLoad() {
       this.styleLoaded = true
-      for (const h of this.handlers.get('load') ?? []) h()
+      for (const h of this.handlers.get('style.load') ?? []) h()
     }
     private check() {
       if (!this.styleLoaded) throw new Error('Style is not done loading.')
@@ -92,11 +97,12 @@ const features: MapFeatures = {
   branches: empty,
   generators: empty,
   storage: empty,
+  loads: empty,
   bounds: [0, 0, 10, 10],
   skipped: { buses: 0, branches: 0 },
 }
-// Same constant layer set BranchValueMap passes on the run page.
-const layers: LayerVisibility = { buses: true, lines: true, links: true, generators: false, storage: false }
+// Same constant layer set BranchValueMap passes for geographic networks on the run page.
+const layers: LayerVisibility = { buses: true, lines: true, links: true, generators: false, storage: false, loads: false }
 
 function ui(kind: 'schematic' | 'geographic') {
   return (

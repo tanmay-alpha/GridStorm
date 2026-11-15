@@ -1,6 +1,7 @@
 import { test as base, expect } from '@playwright/test'
 import type { Map as MapLibreMap } from 'maplibre-gl'
 import { createHash } from 'node:crypto'
+import { waitForNetworkView } from '../e2e/helpers/networkView'
 
 declare global {
   interface Window {
@@ -36,8 +37,8 @@ test('desktop public journey: map, validation, library and research pages', asyn
   await page.goto('/?network=pglib-case14-ieee')
   await expect(page.getByTestId('backend-status')).toHaveAttribute('data-state', 'up', { timeout: 120_000 })
   await expect(page.getByTestId('network-select')).toHaveValue('pglib-case14-ieee')
-  await expect(page.locator('.maplibregl-canvas')).toBeVisible()
-  await page.waitForFunction(() => window.__gridstormMap?.loaded(), undefined, { timeout: 90_000 })
+  // IEEE 14 is a schematic network: the SVG schematic view, not MapLibre.
+  expect(await waitForNetworkView(page, 'pglib-case14-ieee', 90_000)).toBe('schematic')
   await page.screenshot({ path: 'test-results/production-explorer-desktop.png' })
 
   await page.goto('/studio?preset=pglib-case14-ieee-baseline')
@@ -97,10 +98,7 @@ test('all five public networks render and match the API catalog', async ({ page,
   for (const id of NETWORKS) {
     await page.getByTestId('network-select').selectOption(id)
     await expect(page.getByTestId('network-select')).toHaveValue(id)
-    await page.waitForFunction(() => {
-      const map = window.__gridstormMap
-      return map?.loaded() && map.queryRenderedFeatures().some((feature) => feature.layer.id.startsWith('gs-'))
-    }, undefined, { timeout: 90_000 })
+    await waitForNetworkView(page, id, 90_000)
     await expect(page.getByTestId('map-legend')).toBeVisible()
     await expect(page.locator('body')).not.toContainText('Application error')
   }

@@ -1,16 +1,32 @@
 import { useEffect } from 'react'
 import { X } from 'lucide-react'
 import { useAssetTable } from '../../api/hooks'
-import type { Provenance } from '../../api/types'
+import type { CostBasis, Provenance } from '../../api/types'
 import { assetKey, type AssetRef, type MapAssets } from '../../components/map/features'
 import { KIND_LABEL, KIND_TABLE } from '../../components/network/assets'
 import { ErrorState, ProvenanceBadge, SkeletonBlock } from '../../components/ui'
 import { NO_VALUE, formatNumber, labelFromFieldName, unitFromFieldName } from '../../lib/format'
+import { formatMoney, formatPrice, moneyUnit, priceUnit } from '../../lib/money'
 
-function renderValue(field: string, v: unknown): string {
+/**
+ * Money columns keep legacy `_eur` names but are denominated in the dataset's cost basis
+ * (gridstorm-cost-basis/1.0): PGLib/illustrative coefficients are not euros.
+ */
+function moneyKind(field: string): 'price' | 'per_mw' | 'total' | null {
+  if (field.endsWith('_eur_per_mwh')) return 'price'
+  if (field.endsWith('_eur_per_mw') || field === 'capital_cost') return 'per_mw'
+  if (field.endsWith('_eur')) return 'total'
+  return null
+}
+
+function renderValue(field: string, v: unknown, basis: CostBasis | null): string {
   if (v === null || v === undefined) return NO_VALUE
   if (typeof v === 'boolean') return v ? 'yes' : 'no'
   if (typeof v === 'number') {
+    const money = moneyKind(field)
+    if (money === 'price') return formatPrice(v, basis)
+    if (money === 'per_mw') return `${formatNumber(v)} ${moneyUnit(basis)}/MW`
+    if (money === 'total') return formatMoney(v, basis)
     const unit = unitFromFieldName(field)
     if (field === 'x' || field === 'y') return formatNumber(v, 5)
     return unit ? `${formatNumber(v)} ${unit}` : formatNumber(v)
@@ -24,6 +40,7 @@ export function AssetDetails({
   selected,
   fieldProvenance,
   coordinateKind,
+  costBasis,
   onSelect,
   onClose,
 }: {
@@ -32,6 +49,8 @@ export function AssetDetails({
   selected: AssetRef
   fieldProvenance: Record<string, Provenance> | undefined
   coordinateKind: 'geographic' | 'schematic'
+  /** The network's cost basis; null renders money as "cost units (basis unknown)", never EUR. */
+  costBasis: CostBasis | null
   onSelect: (ref: AssetRef) => void
   onClose: () => void
 }) {
@@ -49,14 +68,20 @@ export function AssetDetails({
   const fieldLabel = (f: string) => {
     if (f === 'x') return coordinateKind === 'geographic' ? 'Longitude (x)' : 'Layout x (not geographic)'
     if (f === 'y') return coordinateKind === 'geographic' ? 'Latitude (y)' : 'Layout y (not geographic)'
+    const money = moneyKind(f)
+    const label = labelFromFieldName(f.replace(/_eur_per_mw$/, ''))
+    if (money === 'price') return `${label} [${priceUnit(costBasis)}]`
+    if (money === 'per_mw') return `${label} [${moneyUnit(costBasis)}/MW]`
+    if (money === 'total') return `${label} [${moneyUnit(costBasis)}]`
     const u = unitFromFieldName(f)
-    return u ? `${labelFromFieldName(f)} [${u}]` : labelFromFieldName(f)
+    return u ? `${label} [${u}]` : label
   }
 
   const connected: AssetRef[] = []
   if (selected.kind === 'bus') {
     for (const g of assets.generators) if (g.bus === selected.id) connected.push({ kind: 'generator', id: g.id })
     for (const s of assets.storage_units) if (s.bus === selected.id) connected.push({ kind: 'storage_unit', id: s.id })
+    for (const l of assets.loads ?? []) if (l.bus === selected.id) connected.push({ kind: 'load', id: l.id })
     for (const l of assets.lines) if (l.bus0 === selected.id || l.bus1 === selected.id) connected.push({ kind: 'line', id: l.id })
     for (const t of assets.transformers)
       if (t.bus0 === selected.id || t.bus1 === selected.id) connected.push({ kind: 'transformer', id: t.id })
@@ -98,7 +123,7 @@ export function AssetDetails({
                   <th scope="row" className="py-1 pr-2 text-left font-normal text-fg-subtle">
                     {fieldLabel(f)}
                   </th>
-                  <td className="tabular py-1 pr-2 text-right text-fg">{renderValue(f, row[f])}</td>
+                  <td className="tabular py-1 pr-2 text-right text-fg">{renderValue(f, row[f], costBasis)}</td>
                   <td className="py-1 text-right">
                     {fieldProvenance?.[`${table}.${f}`] && <ProvenanceBadge value={fieldProvenance[`${table}.${f}`]} />}
                   </td>

@@ -1,0 +1,599 @@
+{
+  "label": "before",
+  "base": "http://127.0.0.1:5174",
+  "reps": 3,
+  "at": "2026-11-15T08:51:24.565Z",
+  "cold": [
+    {
+      "rep": 0,
+      "network": "pglib-case14-ieee",
+      "ttumMs": 610,
+      "requests": 13,
+      "apiRequests": 4,
+      "apiWire": 9349,
+      "allWire": 678190,
+      "apiPaths": [
+        "/health",
+        "/api/v1/networks?limit=200",
+        "/api/v1/networks/pglib-case14-ieee",
+        "/api/v1/networks/pglib-case14-ieee/geojson"
+      ],
+      "heapMB": 11.1,
+      "mapContainers": 1,
+      "canvases": 1,
+      "errors": []
+    },
+    {
+      "rep": 0,
+      "network": "pglib-case118-ieee",
+      "ttumMs": 593,
+      "requests": 13,
+      "apiRequests": 4,
+      "apiWire": 14382,
+      "allWire": 683223,
+      "apiPaths": [
+        "/health",
+        "/api/v1/networks?limit=200",
+        "/api/v1/networks/pglib-case118-ieee/geojson",
+        "/api/v1/networks/pglib-case118-ieee"
+      ],
+      "heapMB": 11.4,
+      "mapContainers": 1,
+      "canvases": 1,
+      "errors": []
+    },
+    {
+      "rep": 0,
+      "network": "ac-dc-meshed",
+      "ttumMs": 12853,
+      "requests": 27,
+      "apiRequests": 4,
+      "apiWire": 8291,
+      "allWire": 2004951,
+      "apiPaths": [
+        "/health",
+        "/api/v1/networks?limit=200",
+        "/api/v1/networks/ac-dc-meshed/geojson",
+        "/api/v1/networks/ac-dc-meshed"
+      ],
+      "heapMB": 17.3,
+      "mapContainers": 1,
+      "canvases": 1,
+      "errors": []
+    },
+    {
+      "rep": 0,
+      "network": "scigrid-de",
+      "ttumMs": 37369,
+      "requests": 33,
+      "apiRequests": 5,
+      "apiWire": 52725,
+      "allWire": 2803531,
+      "apiPaths": [
+        "/health",
+        "/api/v1/networks?limit=200",
+        "/api/v1/networks/scigrid-de",
+        "/api/v1/networks/scigrid-de/geojson",
+        "/health"
+      ],
+      "heapMB": 21,
+      "mapContainers": 1,
+      "canvases": 1,
+      "errors": []
+    },
+    {
+      "rep": 0,
+      "network": "pypsa-eur-be",
+      "ttumMs": 20656,
+      "requests": 26,
+      "apiRequests": 4,
+      "apiWire": 9968,
+      "allWire": 2170427,
+      "apiPaths": [
+        "/health",
+        "/api/v1/networks?limit=200",
+        "/api/v1/networks/pypsa-eur-be/geojson",
+        "/api/v1/networks/pypsa-eur-be"
+      ],
+      "heapMB": 16.6,
+      "mapContainers": 1,
+      "canvases": 1,
+      "errors": []
+    },
+    {
+      "rep": 1,
+      "network": "pglib-case14-ieee",
+      "ttumMs": 572,
+      "requests": 13,
+      "apiRequests": 4,
+      "apiWire": 9349,
+      "allWire": 678190,
+      "apiPaths": [
+        "/health",
+        "/api/v1/networks?limit=200",
+        "/api/v1/networks/pglib-case14-ieee/geojson",
+        "/api/v1/networks/pglib-case14-ieee"
+      ],
+      "heapMB": 11.1,
+      "mapContainers": 1,
+      "canvases": 1,
+      "errors": []
+    },
+    {
+      "rep": 1,
+      "network": "pglib-case118-ieee",
+      "ttumMs": 588,
+      "requests": 13,
+      "apiRequests": 4,
+      "apiWire": 14382,
+      "allWire": 683223,
+      "apiPaths": [
+        "/health",
+        "/api/v1/networks?limit=200",
+        "/api/v1/networks/pglib-case118-ieee",
+        "/api/v1/networks/pglib-case118-ieee/geojson"
+      ],
+      "heapMB": 11.5,
+      "mapContainers": 1,
+      "canvases": 1,
+      "errors": []
+    },
+    {
+      "rep": 1,
+      "network": "ac-dc-meshed",
+      "ttumMs": 13460,
+      "requests": 27,
+      "apiRequests": 4,
+      "apiWire": 8291,
+      "allWire": 2005140,
+      "apiPaths": [
+        "/health",
+        "/api/v1/networks?limit=200",
+        "/api/v1/networks/ac-dc-meshed/geojson",
+        "/api/v1/networks/ac-dc-meshed"
+      ],
+      "heapMB": 17.2,
+      "mapContainers": 1,
+      "canvases": 1,
+      "errors": []
+    },
+    {
+      "rep": 1,
+      "network": "scigrid-de",
+      "ttumMs": 1682,
+      "requests": 32,
+      "apiRequests": 4,
+      "apiWire": 52433,
+      "allWire": 2802679,
+      "apiPaths": [
+        "/health",
+        "/api/v1/networks?limit=200",
+        "/api/v1/networks/scigrid-de",
+        "/api/v1/networks/scigrid-de/geojson"
+      ],
+      "heapMB": 21,
+      "mapContainers": 1,
+      "canvases": 1,
+      "errors": []
+    },
+    {
+      "rep": 1,
+      "network": "pypsa-eur-be",
+      "ttumMs": 30203,
+      "requests": 27,
+      "apiRequests": 5,
+      "apiWire": 10260,
+      "allWire": 2170944,
+      "apiPaths": [
+        "/health",
+        "/api/v1/networks?limit=200",
+        "/api/v1/networks/pypsa-eur-be",
+        "/api/v1/networks/pypsa-eur-be/geojson",
+        "/health"
+      ],
+      "heapMB": 16.6,
+      "mapContainers": 1,
+      "canvases": 1,
+      "errors": []
+    },
+    {
+      "rep": 2,
+      "network": "pglib-case14-ieee",
+      "ttumMs": 574,
+      "requests": 13,
+      "apiRequests": 4,
+      "apiWire": 9349,
+      "allWire": 678190,
+      "apiPaths": [
+        "/health",
+        "/api/v1/networks?limit=200",
+        "/api/v1/networks/pglib-case14-ieee",
+        "/api/v1/networks/pglib-case14-ieee/geojson"
+      ],
+      "heapMB": 11.1,
+      "mapContainers": 1,
+      "canvases": 1,
+      "errors": []
+    },
+    {
+      "rep": 2,
+      "network": "pglib-case118-ieee",
+      "ttumMs": 600,
+      "requests": 13,
+      "apiRequests": 4,
+      "apiWire": 14382,
+      "allWire": 683223,
+      "apiPaths": [
+        "/health",
+        "/api/v1/networks?limit=200",
+        "/api/v1/networks/pglib-case118-ieee",
+        "/api/v1/networks/pglib-case118-ieee/geojson"
+      ],
+      "heapMB": 11.5,
+      "mapContainers": 1,
+      "canvases": 1,
+      "errors": []
+    },
+    {
+      "rep": 2,
+      "network": "ac-dc-meshed",
+      "ttumMs": 7884,
+      "requests": 27,
+      "apiRequests": 4,
+      "apiWire": 8291,
+      "allWire": 2004675,
+      "apiPaths": [
+        "/health",
+        "/api/v1/networks?limit=200",
+        "/api/v1/networks/ac-dc-meshed/geojson",
+        "/api/v1/networks/ac-dc-meshed"
+      ],
+      "heapMB": 17.2,
+      "mapContainers": 1,
+      "canvases": 1,
+      "errors": []
+    },
+    {
+      "rep": 2,
+      "network": "scigrid-de",
+      "ttumMs": 6328,
+      "requests": 32,
+      "apiRequests": 4,
+      "apiWire": 52433,
+      "allWire": 2802614,
+      "apiPaths": [
+        "/health",
+        "/api/v1/networks?limit=200",
+        "/api/v1/networks/scigrid-de",
+        "/api/v1/networks/scigrid-de/geojson"
+      ],
+      "heapMB": 21.1,
+      "mapContainers": 1,
+      "canvases": 1,
+      "errors": []
+    },
+    {
+      "rep": 2,
+      "network": "pypsa-eur-be",
+      "ttumMs": 25483,
+      "requests": 26,
+      "apiRequests": 4,
+      "apiWire": 9968,
+      "allWire": 2170605,
+      "apiPaths": [
+        "/health",
+        "/api/v1/networks?limit=200",
+        "/api/v1/networks/pypsa-eur-be/geojson",
+        "/api/v1/networks/pypsa-eur-be"
+      ],
+      "heapMB": 16.7,
+      "mapContainers": 1,
+      "canvases": 1,
+      "errors": []
+    }
+  ],
+  "switches": [
+    {
+      "rep": 0,
+      "to": "pglib-case118-ieee",
+      "cached": false,
+      "switchMs": 189,
+      "requests": 3,
+      "apiRequests": 2,
+      "apiWire": 10268,
+      "allWire": 10395,
+      "apiPaths": [
+        "/api/v1/networks/pglib-case118-ieee",
+        "/api/v1/networks/pglib-case118-ieee/geojson"
+      ]
+    },
+    {
+      "rep": 0,
+      "to": "scigrid-de",
+      "cached": false,
+      "switchMs": 29688,
+      "requests": 23,
+      "apiRequests": 3,
+      "apiWire": 48611,
+      "allWire": 1709715,
+      "apiPaths": [
+        "/api/v1/networks/scigrid-de",
+        "/api/v1/networks/scigrid-de/geojson",
+        "/health"
+      ]
+    },
+    {
+      "rep": 0,
+      "to": "ac-dc-meshed",
+      "cached": true,
+      "switchMs": 261,
+      "requests": 2,
+      "apiRequests": 1,
+      "apiWire": 0,
+      "allWire": 0,
+      "apiPaths": [
+        "/api/v1/networks/ac-dc-meshed"
+      ]
+    },
+    {
+      "rep": 0,
+      "to": "pglib-case14-ieee",
+      "cached": false,
+      "switchMs": 290,
+      "requests": 6,
+      "apiRequests": 2,
+      "apiWire": 5235,
+      "allWire": 5362,
+      "apiPaths": [
+        "/api/v1/networks/pglib-case14-ieee/geojson",
+        "/api/v1/networks/pglib-case14-ieee"
+      ]
+    },
+    {
+      "rep": 0,
+      "to": "pglib-case118-ieee",
+      "cached": true,
+      "switchMs": 55,
+      "requests": 1,
+      "apiRequests": 1,
+      "apiWire": 0,
+      "allWire": 0,
+      "apiPaths": [
+        "/api/v1/networks/pglib-case118-ieee"
+      ]
+    },
+    {
+      "rep": 0,
+      "to": "scigrid-de",
+      "cached": true,
+      "switchMs": 755,
+      "requests": 21,
+      "apiRequests": 1,
+      "apiWire": 0,
+      "allWire": 127,
+      "apiPaths": [
+        "/api/v1/networks/scigrid-de"
+      ]
+    },
+    {
+      "rep": 0,
+      "to": "ac-dc-meshed",
+      "cached": true,
+      "switchMs": 257,
+      "requests": 1,
+      "apiRequests": 0,
+      "apiWire": 0,
+      "allWire": 0,
+      "apiPaths": []
+    },
+    {
+      "rep": 1,
+      "to": "pglib-case118-ieee",
+      "cached": false,
+      "switchMs": 204,
+      "requests": 3,
+      "apiRequests": 2,
+      "apiWire": 10268,
+      "allWire": 10395,
+      "apiPaths": [
+        "/api/v1/networks/pglib-case118-ieee",
+        "/api/v1/networks/pglib-case118-ieee/geojson"
+      ]
+    },
+    {
+      "rep": 1,
+      "to": "scigrid-de",
+      "cached": false,
+      "switchMs": 31865,
+      "requests": 23,
+      "apiRequests": 3,
+      "apiWire": 48611,
+      "allWire": 1709543,
+      "apiPaths": [
+        "/api/v1/networks/scigrid-de",
+        "/api/v1/networks/scigrid-de/geojson",
+        "/health"
+      ]
+    },
+    {
+      "rep": 1,
+      "to": "ac-dc-meshed",
+      "cached": true,
+      "switchMs": 315,
+      "requests": 5,
+      "apiRequests": 1,
+      "apiWire": 0,
+      "allWire": 0,
+      "apiPaths": [
+        "/api/v1/networks/ac-dc-meshed"
+      ]
+    },
+    {
+      "rep": 1,
+      "to": "pglib-case14-ieee",
+      "cached": false,
+      "switchMs": 305,
+      "requests": 3,
+      "apiRequests": 2,
+      "apiWire": 5235,
+      "allWire": 5362,
+      "apiPaths": [
+        "/api/v1/networks/pglib-case14-ieee/geojson",
+        "/api/v1/networks/pglib-case14-ieee"
+      ]
+    },
+    {
+      "rep": 1,
+      "to": "pglib-case118-ieee",
+      "cached": true,
+      "switchMs": 59,
+      "requests": 1,
+      "apiRequests": 1,
+      "apiWire": 0,
+      "allWire": 0,
+      "apiPaths": [
+        "/api/v1/networks/pglib-case118-ieee"
+      ]
+    },
+    {
+      "rep": 1,
+      "to": "scigrid-de",
+      "cached": true,
+      "switchMs": 632,
+      "requests": 21,
+      "apiRequests": 1,
+      "apiWire": 0,
+      "allWire": 127,
+      "apiPaths": [
+        "/api/v1/networks/scigrid-de"
+      ]
+    },
+    {
+      "rep": 1,
+      "to": "ac-dc-meshed",
+      "cached": true,
+      "switchMs": 230,
+      "requests": 1,
+      "apiRequests": 0,
+      "apiWire": 0,
+      "allWire": 0,
+      "apiPaths": []
+    },
+    {
+      "rep": 2,
+      "to": "pglib-case118-ieee",
+      "cached": false,
+      "switchMs": 185,
+      "requests": 3,
+      "apiRequests": 2,
+      "apiWire": 10268,
+      "allWire": 10395,
+      "apiPaths": [
+        "/api/v1/networks/pglib-case118-ieee",
+        "/api/v1/networks/pglib-case118-ieee/geojson"
+      ]
+    },
+    {
+      "rep": 2,
+      "to": "scigrid-de",
+      "cached": false,
+      "switchMs": 33706,
+      "requests": 23,
+      "apiRequests": 3,
+      "apiWire": 48611,
+      "allWire": 1709242,
+      "apiPaths": [
+        "/api/v1/networks/scigrid-de",
+        "/api/v1/networks/scigrid-de/geojson",
+        "/health"
+      ]
+    },
+    {
+      "rep": 2,
+      "to": "ac-dc-meshed",
+      "cached": true,
+      "switchMs": 302,
+      "requests": 5,
+      "apiRequests": 1,
+      "apiWire": 0,
+      "allWire": 0,
+      "apiPaths": [
+        "/api/v1/networks/ac-dc-meshed"
+      ]
+    },
+    {
+      "rep": 2,
+      "to": "pglib-case14-ieee",
+      "cached": false,
+      "switchMs": 287,
+      "requests": 3,
+      "apiRequests": 2,
+      "apiWire": 5235,
+      "allWire": 5362,
+      "apiPaths": [
+        "/api/v1/networks/pglib-case14-ieee",
+        "/api/v1/networks/pglib-case14-ieee/geojson"
+      ]
+    },
+    {
+      "rep": 2,
+      "to": "pglib-case118-ieee",
+      "cached": true,
+      "switchMs": 48,
+      "requests": 1,
+      "apiRequests": 1,
+      "apiWire": 0,
+      "allWire": 0,
+      "apiPaths": [
+        "/api/v1/networks/pglib-case118-ieee"
+      ]
+    },
+    {
+      "rep": 2,
+      "to": "scigrid-de",
+      "cached": true,
+      "switchMs": 598,
+      "requests": 21,
+      "apiRequests": 1,
+      "apiWire": 0,
+      "allWire": 127,
+      "apiPaths": [
+        "/api/v1/networks/scigrid-de"
+      ]
+    },
+    {
+      "rep": 2,
+      "to": "ac-dc-meshed",
+      "cached": true,
+      "switchMs": 265,
+      "requests": 1,
+      "apiRequests": 0,
+      "apiWire": 0,
+      "allWire": 0,
+      "apiPaths": []
+    }
+  ],
+  "heap": [
+    {
+      "rep": 0,
+      "heapMB": 23.8,
+      "mapContainers": 1,
+      "canvases": 1,
+      "errors": []
+    },
+    {
+      "rep": 1,
+      "heapMB": 23.8,
+      "mapContainers": 1,
+      "canvases": 1,
+      "errors": []
+    },
+    {
+      "rep": 2,
+      "heapMB": 23.8,
+      "mapContainers": 1,
+      "canvases": 1,
+      "errors": []
+    }
+  ]
+}

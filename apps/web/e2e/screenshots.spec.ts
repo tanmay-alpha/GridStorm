@@ -3,6 +3,7 @@ import { mkdir } from 'node:fs/promises'
 import path from 'node:path'
 import { setTimeout as sleep } from 'node:timers/promises'
 import { SCREENSHOTS } from './artifacts'
+import { waitForNetworkView } from './helpers/networkView'
 
 /**
  * Screenshot matrix (desktop + mobile, light + dark) of every route against the real local
@@ -51,7 +52,7 @@ test('screenshot matrix of all routes', async ({ browser, request }) => {
       name: 'explorer',
       url: '/explore?network=pglib-case14-ieee',
       prepare: async (page) => {
-        await page.waitForFunction(() => window.__gridstormMap?.loaded())
+        await waitForNetworkView(page, 'pglib-case14-ieee')
       },
     },
     { name: 'studio', url: '/studio?preset=pglib-case14-ieee-gen-1-outage' },

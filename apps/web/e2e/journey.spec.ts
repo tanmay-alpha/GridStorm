@@ -1,11 +1,5 @@
 import { test, expect } from '@playwright/test'
-import type { Map as MapLibreMap } from 'maplibre-gl'
-
-declare global {
-  interface Window {
-    __gridstormMap?: MapLibreMap
-  }
-}
+import { waitForNetworkView } from './helpers/networkView'
 
 test('real API: explorer, validation, live simulations, comparison, replay and exports', async ({ page }) => {
   const errors: string[] = []
@@ -13,20 +7,13 @@ test('real API: explorer, validation, live simulations, comparison, replay and e
   await page.goto('/explore?network=pglib-case14-ieee')
   await expect(page.getByTestId('backend-status')).toHaveAttribute('data-state', 'up')
   await expect(page.getByTestId('network-select')).toHaveValue('pglib-case14-ieee')
-  await expect(page.getByTestId('try-sample-crisis')).toHaveAttribute('href', '/studio?network=pglib-case14-ieee&preset=pglib-case14-ieee-gen-1-outage')
-  await expect(page.locator('.maplibregl-canvas')).toBeVisible()
-  await page.waitForFunction(() => window.__gridstormMap?.loaded())
-  const point = await page.evaluate(() => {
-    const map = window.__gridstormMap!
-    const feature = map.queryRenderedFeatures({ layers: ['gs-buses'] })[0]
-    if (!feature || feature.geometry.type !== 'Point') throw new Error('No rendered real bus')
-    const position = map.project([feature.geometry.coordinates[0], feature.geometry.coordinates[1]])
-    return { x: position.x, y: position.y }
-  })
-  await page.locator('.maplibregl-canvas').click({ position: point })
+  await expect(page.getByTestId('try-sample-crisis')).toHaveAttribute('href', '/studio?network=pglib-case14-ieee&preset=pglib-case14-ieee-gen-1-outage&guide=1')
+  // IEEE 14 is schematic: drawn by the SVG schematic view, whose buses are real, clickable elements.
+  expect(await waitForNetworkView(page, 'pglib-case14-ieee')).toBe('schematic')
+  await page.locator('[data-testid="network-schematic"] [data-bus-id="bus-1"]').click()
   await expect(page.getByTestId('asset-details')).toBeVisible()
   await page.getByRole('button', { name: 'Switch to dark theme' }).click()
-  await page.waitForFunction(() => window.__gridstormMap?.loaded())
+  await waitForNetworkView(page, 'pglib-case14-ieee')
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
 
   for (const [route, label] of [['/library', 'Library'], ['/contingency', 'Contingency'], ['/operations', 'Operations'], ['/benchmarks', 'Benchmarks'], ['/methods', 'Methods'], ['/compare', 'Compare'], ['/studio', 'Simulate']]) {
@@ -92,11 +79,10 @@ test('real API: explorer, validation, live simulations, comparison, replay and e
 test('mobile layout, navigation and both themes', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/explore?network=pglib-case14-ieee')
-  await expect(page.locator('.maplibregl-canvas')).toBeVisible()
-  await page.waitForFunction(() => window.__gridstormMap?.loaded())
+  await waitForNetworkView(page, 'pglib-case14-ieee')
   await expect(page.getByRole('complementary', { name: 'Explorer controls' })).toBeVisible()
   await page.getByRole('button', { name: 'Switch to dark theme' }).click()
-  await page.waitForFunction(() => window.__gridstormMap?.loaded())
+  await waitForNetworkView(page, 'pglib-case14-ieee')
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
   await page.getByRole('button', { name: 'Open navigation menu' }).click()
   await page.getByRole('navigation', { name: 'Mobile' }).getByRole('link', { name: 'Simulate', exact: true }).click()
