@@ -441,7 +441,7 @@ export default function RunPage() {
                 <Ban aria-hidden className="size-3.5" /> {j.cancel_requested ? 'Cancel requested' : 'Cancel'}
               </Button>
             )}
-            {done && (
+            {done && result.data && (
               <Link to={`/compare?scenario=${encodeURIComponent(j.id)}`} className={buttonClass('secondary', 'sm')}>
                 <GitCompare aria-hidden className="size-3.5" /> Compare
               </Link>
@@ -478,7 +478,15 @@ export default function RunPage() {
       <Diagnostics job={j} result={result.data} />
 
       {done &&
-        (result.error ? (
+        (result.error instanceof ApiError && result.error.code === 'artifact_missing' ? (
+          <Panel title="Result file unavailable" className="border-warn/50" id="result-unavailable">
+            <div role="alert" data-testid="result-artifact-missing" className="flex flex-col gap-2 text-sm text-fg">
+              <p>This simulation completed, but its detailed result file is no longer stored on this server.</p>
+              <p className="text-xs text-fg-muted">The simulation record and summary metrics may still be available. The hosted demo currently uses temporary file storage, so results may disappear after a backend restart. The missing numerical series cannot be recovered from metadata alone.</p>
+              <Link to="/studio" className="text-xs font-semibold text-accent underline underline-offset-2">Open Crisis Studio to run the scenario again</Link>
+            </div>
+          </Panel>
+        ) : result.error ? (
           <ErrorState error={result.error} title="Could not load result" onRetry={() => void result.refetch()} />
         ) : !result.data ? (
           <SkeletonBlock rows={8} label="Loading result" />
