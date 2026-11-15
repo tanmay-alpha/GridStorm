@@ -19,17 +19,21 @@ Terms are defined in the [glossary](glossary.md); the architecture is explained 
 
 ## 1. The demo story
 
+From **Home** (`/`), choose **Start the guided demo**. It opens
+`/studio?network=pglib-case14-ieee&preset=pglib-case14-ieee-gen-1-outage&guide=1`:
+the IEEE 14-bus loss of generator `gen-1` (`studio/flow.ts`, `GuidePanel.tsx`).
+
 | Step | Where | What you do |
 |---|---|---|
-| 1. Select a network | **Grid Explorer** (`/`) | Pick a dataset in the *Network* selector. The *Dataset* panel shows its source, license, `network.nc` SHA-256, snapshots and quality flags. |
-| 2. Explore the map | **Grid Explorer** | Toggle layers, filter by voltage/carrier/country, search an asset with Ctrl+K, click an asset to see its parameters and connected assets. |
-| 3. Build a crisis | **Crisis Studio** (`/studio`) | Start from a preset or a blank scenario, add events (outages, demand/renewable multipliers, storage state), set mitigation options. The backend validates the scenario on every change. |
-| 4. Run | **Crisis Studio** → *Run simulation* | The API creates a job and the app opens the run page `/runs/<id>`. |
-| 5. Inspect the dashboard | **Run page** | Follow the stage timeline; when completed, read the key metrics, charts, line-loading map, branch table, assumptions and reproducibility data. |
-| 6. Compare | **Compare & Replay** (`/compare`) | Choose a *baseline run* and a *scenario run* on the same network → metric deltas, generation-by-carrier deltas, loading-difference map. For baseline vs crisis vs mitigation, run three scenarios (no events; crisis events; crisis events with mitigation enabled) and compare them pairwise. |
-| 7. Replay | **Compare & Replay** | Switch the map to a per-snapshot view and drag the snapshot slider to step through the horizon. |
-| 8. Save | **Crisis Studio** → *Save scenario* | The scenario is stored with its id and hash and appears under *Saved* and in the **Library**. |
-| 9. Export | **Run page** → *Downloads*; **Compare & Replay** → *Export MD/JSON* | Result JSON, execution manifest, and reproducible reports (Markdown or JSON). |
+| 1. Fail a generator | **Crisis Studio** | Read which generator fails, the remaining installed capacity and the investigation question. Choose *Run this crisis*, or *Open the verified result* when only the matching precomputed result is available. |
+| 2. Read the result | `/runs/<id>?guide=1` | Read the outcome and summary facts. The numbered guide links to the result, baseline comparison, brief and downloads. |
+| 3. Compare with baseline | **Compare with baseline** | Opens `/compare?a=<baseline>&b=<scenario>&auto=1&guide=1`. A compatible completed baseline is reused; otherwise *Run baseline & compare* is offered when a live baseline solve is available. `auto=1` creates the comparison on arrival. |
+| 4. Read the Grid Impact Brief | **Run / Compare** | Expand the evidence behind the mechanically derived statements; co-occurrence is not proof of cause. |
+| 5. Download evidence | **Run page → Downloads**; **Compare → Export MD/JSON** | Save result JSON, execution manifest and reports. |
+
+For custom investigations, explore a dataset in **Grid Explorer** (`/explorer`), compose a
+scenario in Studio, then compare completed runs on the same network. Saved scenarios appear
+in Studio and the Library. Compare's per-snapshot map slider replays loading through the horizon.
 
 The header shows the backend status (*API &lt;version&gt;*, *Checking backend…* or *Backend
 unreachable*). On a free-tier backend the first request after an idle period can take about a
@@ -38,7 +42,7 @@ minute while the service wakes up; the app retries unreachable requests with bac
 
 ## 2. Pages
 
-### Grid Explorer (`/`)
+### Grid Explorer (`/explorer`)
 
 - **Network** selector: every network in the backend catalog (`GET /api/v1/networks`); schematic
   networks are marked "— schematic".
@@ -47,10 +51,10 @@ minute while the service wakes up; the app retries unreachable requests with bac
 - **Layers**: buses, lines, links, generators, storage, with counts.
 - **Filters**: *Voltage filter [kV]* (min/max, optionally including assets with unknown voltage),
   *Carriers* (generators and storage), *Countries* (none checked = all).
-- **Map**: branches are coloured by nominal voltage; DC links are dashed; generator markers are
-  coloured by carrier with size ∝ √p_nom. Networks with `coordinate_kind: schematic` are drawn on a
-  blank canvas with the banner **"Schematic layout — not geographic"**. Assets without coordinates
-  are counted under "Not drawn (no coordinates)".
+- **Map**: geographic networks use MapLibre. IEEE 14/118 and other schematic networks use the
+  dedicated SVG `components/map/schematic/SchematicView.tsx`, not a geographic basemap.
+  Schematic positions have no geographic meaning. Branches are coloured by nominal voltage;
+  assets without coordinates are counted under "Not drawn (no coordinates)".
 - **Asset details**: all fields with units, a provenance badge per field when the manifest
   provides one, and the list of connected assets.
 - **Dataset** panel: coordinate kind, provenance class, license (SPDX) and redistribution status,
@@ -62,6 +66,18 @@ minute while the service wakes up; the app retries unreachable requests with bac
 
 Composes a StormSpec (`stormspec/1.0`) scenario.
 
+- **Steps**: *Choose grid → Choose crisis → Review settings → Run*. Use Back/Next or an
+  available step button; later steps require the preceding selections. Tab reaches controls;
+  arrow keys move/select within the grid radio group. Focus moves to the new step's content
+  after user navigation (`Stepper.tsx`, `GridStep.tsx`, `StudioPage.tsx`).
+- **Preset cards**: compact summaries show the question and execution badge. Expand *Details & ids*
+  for the full description, scenario/network ids, hash, events and horizon (`PresetList.tsx`).
+- **Drafts**: one unsaved draft is kept in this browser's localStorage across navigation/reloads.
+  Discarding edits or successfully saving clears it. Disabled/full browser storage prevents
+  persistence but does not discard the in-memory edit (`draft.ts`).
+- **Execution availability**: *live* means this network permits live solves; *precomputed* requires
+  a verified result with the exact scenario hash; *unavailable* means neither is possible.
+  A checking state is shown while the necessary server data is loading (`flow.ts`).
 - **Scenarios**: *Presets* (shipped with the backend) and *Saved* scenarios. Picking one loads it;
   any change marks it *edited* (*Discard edits* reverts).
 - **Scenario**: network, scenario id (lowercase letters, digits, hyphens; 3–64 chars), name,
@@ -86,17 +102,30 @@ Composes a StormSpec (`stormspec/1.0`) scenario.
   A scenario without events runs the network as-is and is the natural baseline.
 - **Mitigation & execution**: *Storage dispatch* (off: storage held at zero), *Allow renewable
   curtailment* (off: variable renewables must produce all available power), *Load shedding* (adds
-  load-shedding generators priced at VOLL), *Value of lost load (VOLL)* [EUR/MWh], *Solver time
-  limit* [s]. Engine/formulation (`pypsa · lopf`) and solver (`highs`, threads) are shown.
+  load-shedding generators priced at VOLL), *Value of lost load (VOLL)* [dataset money unit/MWh],
+  *Solver time limit* [s]. Engine/formulation and solver settings are shown.
 - **Validation**: errors and warnings from `POST /api/v1/scenarios/validate` (asset ids exist with
   the right component type, carriers exist, horizon and windows in range, multiplier ranges, engine
   capability). *Run simulation* and *Save scenario* are disabled while errors remain.
+  Each message names the field, retains its exact path/code and links to the step to fix it;
+  pending validation is not presented as valid (`ValidationMessages.tsx`).
 - **Run**: *Run simulation* submits the job and opens its run page; *Save scenario* stores it and
   reports the saved id and hash.
+  HTTP 429 `too_many_active_jobs` shows *Too many simulations are already running*: wait for
+  a run to finish or cancel one, then retry. The scenario is unchanged; the message links to
+  active runs in the Library (`RunError.tsx`).
 - **StormSpec JSON**: the exact document that is validated, saved and run.
 
 ### Run page (`/runs/:id`)
 
+- **Summary facts**: outcome, unserved energy, demand served, congestion and operating cost;
+  a cost-basis badge identifies how monetary values must be read (`runs/result.ts`, `RunPage.tsx`).
+- **Grid Impact Brief**: deterministic rules summarise the stored result, scenario and available
+  baseline/mitigation evidence. Every statement records source fields and values; no language
+  model is involved. Coinciding shedding and binding limits describe association, not causation
+  (`features/brief/brief.ts`).
+- **Single-period cases**: a lone snapshot without a calendar time index is labelled
+  *single period (no timestamp)*, not a fabricated date (`runs/result.ts`).
 - **Header**: scenario id, job status, scientific outcome, execution-mode badge (*live run* or
   *precomputed*), a *reused* badge when an identical completed run was reused, *Cancel* while the
   job is not finished, *Compare* when it is.
@@ -114,7 +143,7 @@ Composes a StormSpec (`stormspec/1.0`) scenario.
   curtailment, generation cost, CO₂ emissions, mean line loading. See [§3](#3-metrics-meaning-units-formulas).
 - **Charts**: generation by carrier (stacked, MW) with demand as a dashed line; load shed [MW];
   storage dispatch [MW] and state of charge [MWh] (when the network has storage); mean nodal
-  marginal price [EUR/MWh]; generation by carrier (energy, MWh).
+  marginal price [dataset money unit/MWh]; generation by carrier (energy, MWh).
 - **Line loading map** with a snapshot slider: colour bands 0–50 %, 50–70 %, 70–90 %,
   90–99.9 %, ≥ 99.9 % (congested); grey = out of service / no value.
 - **Branches** table: type, id, `s_nom` [MVA], max |flow| [MW], max loading, outage status — the
@@ -132,8 +161,11 @@ If the job did not complete, no result is shown — "No result is available for 
   *Export JSON* (`GET /api/v1/reports/{comparison_id}`).
 - **Warnings**: e.g. when a run's outcome is not `feasible`, its metrics may be empty and the
   affected deltas are null.
-- **Metric deltas**: baseline, scenario, Δ = scenario − baseline, Δ % = Δ / |baseline| · 100
-  (null when the baseline is 0 or a value is missing — missing values are never treated as 0).
+- **Metric deltas**: Δ = scenario − baseline. Loading percentages use **percentage points (pp)**,
+  not relative percent change. Other relative deltas use Δ / |baseline| · 100; baseline zero is
+  shown as **n/a (baseline 0)**. Missing values are never treated as zero (`compare/compare.ts`).
+- **Cost deltas**: withheld unless the two runs share the same nonempty cost-basis
+  `comparability_key`; physical energy/loading deltas remain available.
 - **Line loading difference** map with four views: *Δ max loading over horizon [pp]*, *Δ loading
   at snapshot [pp]*, *Scenario loading at snapshot [%]*, *Baseline loading at snapshot [%]*. The
   per-snapshot views have a snapshot slider (the replay). Δ colour bands: ≤ −20, −20 to −5,
@@ -141,6 +173,34 @@ If the job did not complete, no result is shown — "No result is available for 
 - **Generation by carrier Δ** [MWh] (chart and table) and **Branch loading Δ** table (max over the
   horizon of |loading|, sorted by |Δ|; for links, |flow| / p_nom · 100).
 - **Assumptions** of the comparison.
+
+### Mitigation comparison (`/mitigation`)
+
+The study list (`features/mitigation/studies.ts`) contains exactly:
+
+| Study | What it shows |
+|---|---|
+| SciGRID Germany — cold dark lull: does dispatching storage avoid load shedding? | Baseline day, demand ×1.15 / wind ×0.3 / solar ×0.5 with storage held at zero, and the same crisis with storage dispatched. Only `mitigation.storage_dispatch` differs between crisis and mitigation; compare unserved energy, costs and storage dispatch. |
+| IEEE 14-bus — loss of branch-3: AC-validated corrective action | Pre-crisis, crisis and recommended-action AC states; asks whether an action clears every violation after the branch outage and bus-3 under-voltage. |
+| IEEE 14-bus — loss of generator gen-1: is any corrective action accepted? | Loss of the slack generator with insufficient remaining capacity; reports whether any candidate passes the AC acceptance rules, including an explicit no-accepted-action state. |
+
+Committed precomputed results are the default. The SciGRID study can select the latest completed
+live runs with identical scenario hashes only when all three exist; advisor studies remain
+precomputed. `/mitigation?baseline=<id>&crisis=<id>&mitigation=<id>` also compares three completed
+runs on the same network (`MitigationPage.tsx`).
+
+### Research Workbench (`/workbench`)
+
+Select a research network, then a published study (multi-network artifacts have their own group).
+Read artifact-backed results, documented assumptions/limitations, references, engine/solver
+information and reproduction commands. Detailed research pages are linked rather than duplicated.
+
+Execution labels distinguish *live re-run available*, *precomputed only* and *offline study*.
+Even when a live re-run is available, the workbench numbers are the published precomputed artifact.
+**Download reproduction manifest** saves `gridstorm-reproduction-manifest/1.0`: study references,
+network hash/source/cost basis, execution mode, result/input artifact headers and API paths,
+commands and payload-hash verification instructions (`workbench/catalog.ts`, `manifest.ts`;
+[workbench reference](research/workbench.md)).
 
 ### Library (`/library`)
 
@@ -163,8 +223,8 @@ power-flow screening on research networks. Not an operational security assessmen
   exhaustive N-2 security certificate.
 - **Crisis Response Advisor**: crisis description, violations in the crisis state, the ranking
   objective, the acceptance rules (verbatim from the artifact), the recommendation (objective
-  [EUR], load shed [MW], generation cost Δ [EUR], switching actions), crisis state vs state after
-  the recommendation, baselines vs advisor, every candidate with status and rejection reasons, and
+  [dataset money unit], load shed [MW], generation cost Δ [dataset money unit], switching actions),
+  crisis state vs state after the recommendation, baselines vs advisor, candidates and rejection reasons, and
   the artifact's verification-scope statement.
 
 ### Operations (`/operations`)
@@ -204,6 +264,26 @@ repository documents and references.
 Notation: snapshot *t* with weight Δt [h] (`snapshot_weightings_h`); all sums run over the
 scenario horizon. Implemented in `workers/pypsa/src/gridstorm_pypsa/runner.py` unless noted.
 
+### Cost basis
+
+Money is dataset-specific, not universally EUR. The
+[cost-basis audit](research/cost-basis-audit.md) records:
+
+| Dataset | Money unit |
+|---|---|
+| `ac-dc-meshed` | illustrative cost units |
+| `scigrid-de` | illustrative cost units (a different comparability key from the toy grid) |
+| `pglib-case14-ieee`, `pglib-case118-ieee` | PGLib cost units: nominal benchmark costs, not EUR or verified-year USD |
+| `pypsa-eur-be` | 2025 EUR model assumptions, not observed prices |
+
+VOLL is a chosen load-shedding penalty in the dataset's own money unit/MWh, not calibrated
+economic damage. Legacy `_eur`, `objective_eur` and `_eur_per_mwh` field names remain for
+compatibility and stable scenario hashes; they do not assert a currency. Unknown imported bases
+are shown as *cost units (basis unknown)*. No exchange-rate conversion is implied.
+Matching nonempty comparability keys permit numerical cost deltas, not comparisons of
+real-world economic welfare. Dispatch freezes capacities; installed CAPEX is not part of its
+operating objective and must not be added to OPEX as a full year's expenditure.
+
 ### Simulation (PyPSA LOPF) metrics
 
 | Metric (field) | Unit | Definition |
@@ -213,16 +293,16 @@ scenario horizon. Implemented in `workers/pypsa/src/gridstorm_pypsa/runner.py` u
 | Served load (`served_load_mwh`) | MWh | total load − unserved energy |
 | Peak load shed (`peak_load_shed_mw`) | MW | max_t P_shed,t |
 | Load-shed hours (`load_shed_hours`) | h | Σ Δt over snapshots with P_shed,t > 0.001 MW |
-| Total system cost (`total_system_cost_eur`) | EUR | Solved dispatch objective, including generator, storage/link and other operating-cost terms present in the model, plus load shedding at VOLL; not merely a fuel-cost total |
-| Load-shedding cost (`load_shedding_cost_eur`) | EUR | Σ_t Σ_shed P_shed · VOLL · Δt |
-| Generation cost (`generation_cost_eur`) | EUR | total system cost − load-shedding cost; this field name includes any other non-shedding operating-cost terms in the objective |
+| Total system cost (`total_system_cost_eur`) | dataset money unit | Solved dispatch objective, including generator, storage/link and other operating-cost terms present in the model, plus load shedding at VOLL; not merely a fuel-cost total |
+| Load-shedding cost (`load_shedding_cost_eur`) | dataset money unit | Σ_t Σ_shed P_shed · VOLL · Δt |
+| Generation cost (`generation_cost_eur`) | dataset money unit | total system cost − load-shedding cost; this field name includes any other non-shedding operating-cost terms in the objective |
 | Generation by carrier (`generation_by_carrier_mwh`) | MWh | Σ_t P_g,t · Δt per carrier (excluding shedding) |
 | Curtailment (`curtailment_mwh`, per carrier) | MWh | Σ_t max(0, p_max_pu · p_nom − P_dispatched) · Δt over variable generators |
 | Line loading (`loading_pct`; `max_/mean_line_loading_pct`) | % | 100 · \|p0\| / (s_nom · s_max_pu) per in-service line/transformer and snapshot; max and mean over all of them |
 | Congested branches (`congested_line_count`) | count | branches whose loading reaches ≥ 99.9 % at any snapshot |
 | Storage discharge / charge (`storage_discharge_mwh`, `storage_charge_mwh`) | MWh | Σ_t Σ_storage p_dispatch,t · Δt / Σ_t Σ_storage p_store,t · Δt, from the separate nonnegative discharge/charge variables (not the positive/negative parts of net fleet dispatch) |
 | CO₂ emissions (`co2_emissions_t`) | t | Σ_t Σ_g P_g,t · intensity(carrier) / efficiency · Δt; **null** (with a warning) when the dataset has no CO₂ intensities — a data gap, not "zero emissions" |
-| Mean marginal price (series) | EUR/MWh | mean over buses of the nodal-balance dual |
+| Mean marginal price (series) | dataset money unit/MWh | mean over buses of the nodal-balance dual |
 | Balance residual (`balance_residual_max_mw`) | MW | maximum absolute nodal balance residual over snapshots and buses, recomputed from solved outputs; should be near zero within numerical tolerance |
 
 ### Probabilistic metrics
@@ -274,7 +354,7 @@ candidate is re-evaluated with a full AC power flow. A candidate is **accepted**
 Otherwise it is **rejected** with explicit reasons ("violation remains: …", "new violation: …",
 "AC power flow did not converge", "islands additional load (… MW)").
 
-Ranking objective [EUR]:
+Ranking objective [dataset money unit; legacy field names retained]:
 
 ```
 objective_eur = generation_cost_eur                         (post-action AC dispatch × assumed_duration_h)
