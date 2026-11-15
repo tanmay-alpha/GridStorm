@@ -115,7 +115,27 @@ python -m gridstorm_api.jobs.recover JOB_ID --force
 ```
 
 Track the new job to completion before using its result or rebuilding a comparison/report.
-These are operator instructions, not evidence of an executed recovery or deployment.
+
+When the **original bytes** still exist somewhere (a committed precomputed artifact in git
+history, a saved download), restore them instead of recomputing. The restore CLI uploads a
+candidate only if its sha256 equals the checksum recorded for the job; it also re-derives the
+scenario blob from the stored spec, never changes the job id or checksum, and records a
+`simulation.artifact_restore` audit event. A non-matching candidate leaves the blob missing:
+
+```sh
+git show 96f3f3a:data/artifacts/pypsa/scigrid-de-baseline.json > old-artifact.json
+python -m gridstorm_api.jobs.restore JOB_ID [JOB_ID ...] --source old-artifact.json
+```
+
+Exit code 0 means every listed job's result is present and verified. Live solver results embed
+their wall time, so a recompute never reproduces their bytes; use recompute for those.
+
+**Executed 2026-11-15:** the four precomputed SciGRID baseline jobs created before durable
+storage (`5dafdc1a`, `f2fc0cf3`, `5323bc95`, `c800561d`; recorded sha256 `e3e3494b…`) were
+restored from the precomputed artifact as committed at `96f3f3a` and now return HTTP 200 with
+the recorded checksum. The five live IEEE-14 jobs lost at the same time (`2d47898b`,
+`0137980b`, `06b4f635`, `4104c5fc`, `25e3fb2a`) remain HTTP 410 with the recompute path;
+`2d47898b` was recomputed as `458fddab`.
 
 ## Postgres / Supabase schema and seed
 
