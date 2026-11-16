@@ -21,13 +21,13 @@ vi.mock('../../../components/ui/Chart', () => ({
 
 type Docs = Record<string, { index: unknown[]; docs: Record<string, unknown> }>
 
-function stubBackend(engines: Docs) {
+function stubBackend(engines: Docs, networks: unknown[] = []) {
   vi.stubGlobal(
     'fetch',
     vi.fn(async (input: string) => {
       const url = new URL(input, 'http://localhost')
       const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } })
-      if (url.pathname === '/api/v1/networks') return json({ items: [], total: 0, limit: 100, offset: 0 })
+      if (url.pathname === '/api/v1/networks') return json({ items: networks, total: networks.length, limit: 100, offset: 0 })
       const m = url.pathname.match(/^\/api\/v1\/artifacts(?:\/([^/]+)\/([^/]+))?$/)
       if (!m) return json({ error: { code: 'not_found', message: `unexpected ${url.pathname}` } }, 404)
       if (m[1]) {
@@ -97,6 +97,37 @@ describe('BenchmarksPage', () => {
 
     expect(await screen.findByText('No StormRisk studies published')).toBeInTheDocument()
     expect(await screen.findByText('No PyPSA preset artifacts published')).toBeInTheDocument()
+  })
+
+  it('formats cross-engine metrics: integer counts, no dimensionless "1", PGLib cost units instead of "$"', async () => {
+    const pglibBasis = {
+      schema_version: 'gridstorm-cost-basis/1.0',
+      kind: 'benchmark_nominal',
+      currency: null,
+      currency_year: null,
+      money_unit: 'PGLib cost units',
+      price_unit: 'PGLib cost units/MWh',
+      comparability_key: 'pglib-case14-ieee',
+      provenance: 'PGLib-OPF gencost',
+      assumptions: [],
+    }
+    stubBackend(
+      { 'cross-engine': { index: [indexRow(crossEngine)], docs: { [crossEngine.artifact.artifact_id]: crossEngine } } },
+      [{ id: 'pglib-case14-ieee', name: 'PGLib case14', cost_basis: pglibBasis }],
+    )
+    wrap(<BenchmarksPage />)
+
+    const ce = await screen.findByRole('table', { name: 'Cross-engine agreement checks' })
+    const text = ce.textContent ?? ''
+    // Counts are integers (n_compared = 20, n_gen_q_limit_violations = 3), never '20.00'.
+    expect(within(ce).getAllByText('20').length).toBeGreaterThan(0)
+    expect(text).not.toMatch(/\b\d+\.00\b/)
+    // Dimensionless tolerance unit '1' is dropped.
+    expect(text).not.toMatch(/≤ \S+ 1(?!\d)/)
+    // PGLib money is never '$': the cost-basis unit replaces it in metrics, tolerances and explanations.
+    expect(text).not.toContain('$')
+    expect(within(ce).getAllByText(/PGLib cost units\/h/).length).toBeGreaterThan(0)
+    expect(text).toContain('PGLib cost units/MWh')
   })
 
   it('builds the PyPSA table from index rows and loads summaries only when the metadata is opened', async () => {

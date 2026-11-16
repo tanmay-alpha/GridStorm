@@ -866,6 +866,9 @@ export default function StudioPage() {
             )}
           </div>
         </div>
+        {/* Below the step on mobile: shown with the placeholder, it was pushed off screen when the grid
+            list replaced it (CLS 0.19). In its own column on desktop, appearing later shifts nothing. */}
+        {!(step === 'grid' && scenarios.isPending) && (
         <aside aria-label="Scenario summary" className="flex min-w-0 flex-col gap-3 lg:sticky lg:top-3 lg:self-start">
           <Panel title="Your scenario">
             <dl className="flex flex-col gap-2" data-testid="scenario-summary">
@@ -910,6 +913,7 @@ export default function StudioPage() {
             </dl>
           </Panel>
         </aside>
+        )}
       </div>
       <Modal
         open={confirmDiscard}

@@ -20,10 +20,20 @@ import {
   type Column,
 } from '../../components/ui'
 import { NO_VALUE, formatDuration, formatTimestamp, shortHash } from '../../lib/format'
-import { downloadJson } from '../../lib/download'
+import { downloadBlob, downloadJson } from '../../lib/download'
 
+/**
+ * `fetcher` returns either the server's exact bytes (Blob, saved unchanged) or a JSON value that
+ * has no standalone endpoint (spec / manifest fields), which is serialised client-side.
+ */
 function DownloadButton({ label, fetcher, filename }: { label: string; fetcher: () => Promise<unknown>; filename: string }) {
-  const m = useMutation({ mutationFn: async () => downloadJson(filename, await fetcher()) })
+  const m = useMutation({
+    mutationFn: async () => {
+      const data = await fetcher()
+      if (data instanceof Blob) downloadBlob(filename, data)
+      else downloadJson(filename, data)
+    },
+  })
   return (
     <span className="inline-flex items-center gap-1">
       <Button size="sm" variant="ghost" onClick={() => m.mutate()} disabled={m.isPending} aria-label={`${label} (${filename})`}>
@@ -38,13 +48,16 @@ function DownloadButton({ label, fetcher, filename }: { label: string; fetcher: 
   )
 }
 
+/** Table-cell links are not inline text (WCAG 2.5.8 exception): ≥ 24 px tall on touch screens. */
+const CELL_LINK = 'pointer-coarse:inline-flex pointer-coarse:min-h-6 pointer-coarse:items-center'
+
 const jobColumns: Column<Job>[] = [
   {
     key: 'id',
     header: 'Job',
     sortValue: (j) => j.id,
     render: (j) => (
-      <Link to={`/runs/${encodeURIComponent(j.id)}`} className="font-mono text-accent underline">
+      <Link to={`/runs/${encodeURIComponent(j.id)}`} className={`font-mono text-accent underline ${CELL_LINK}`}>
         {shortHash(j.id, 8)}
       </Link>
     ),
@@ -58,7 +71,7 @@ const jobColumns: Column<Job>[] = [
     key: 'result',
     header: 'Result',
     render: (j) => j.status === 'completed' && j.result_available === false
-      ? <Link to={`/runs/${encodeURIComponent(j.id)}`} className="text-warn underline">Unavailable · re-run</Link>
+      ? <Link to={`/runs/${encodeURIComponent(j.id)}`} className={`text-warn underline ${CELL_LINK}`}>Unavailable · re-run</Link>
       : j.status === 'completed' ? 'Available' : NO_VALUE,
   },
   {
@@ -83,7 +96,7 @@ const scenarioColumns: Column<ScenarioRecord>[] = [
     header: 'Scenario',
     sortValue: (s) => s.name ?? s.spec.name,
     render: (s) => (
-      <Link to={`/studio?preset=${encodeURIComponent(s.id)}`} className="text-accent underline">
+      <Link to={`/studio?preset=${encodeURIComponent(s.id)}`} className={`text-accent underline ${CELL_LINK}`}>
         {s.name ?? s.spec.name}
       </Link>
     ),
@@ -107,7 +120,7 @@ const networkColumns: Column<NetworkSummary>[] = [
     header: 'Dataset',
     sortValue: (n) => n.name,
     render: (n) => (
-      <Link to={`/?network=${encodeURIComponent(n.id)}`} className="text-accent underline">
+      <Link to={`/?network=${encodeURIComponent(n.id)}`} className={`text-accent underline ${CELL_LINK}`}>
         {n.name}
       </Link>
     ),
@@ -161,7 +174,7 @@ const artifactColumns: Column<ArtifactIndexItem>[] = [
       <DownloadButton
         label="JSON"
         filename={`${a.engine}-${a.artifact_id}.json`}
-        fetcher={() => api.artifact(a.engine, a.artifact_id)}
+        fetcher={() => api.artifactBlob(a.engine, a.artifact_id)}
       />
     ),
   },

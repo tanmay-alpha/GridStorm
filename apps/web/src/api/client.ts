@@ -197,6 +197,9 @@ export const api = {
   simulationResultUrl: (id: string) => buildUrl(`${v1}/simulations/${enc(id)}/result`),
   /** Stored result document bytes verbatim (hash matches `X-GridStorm-Result-SHA256`). */
   simulationResultBlob: (id: string, s?: AbortSignal) => requestBlob(`${v1}/simulations/${enc(id)}/result`, undefined, s),
+  /** Artifact document bytes verbatim, as stored on the server. */
+  artifactBlob: (engine: string, artifactId: string, s?: AbortSignal) =>
+    requestBlob(`${v1}/artifacts/${enc(engine)}/${enc(artifactId)}`, undefined, s),
 }
 
 /** Normalise list endpoints that may return either a page or a bare array. */

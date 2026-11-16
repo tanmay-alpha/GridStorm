@@ -292,7 +292,8 @@ function Picker<T extends string>({
     <fieldset className="flex min-w-0 flex-col gap-1">
       <legend className="gs-label mb-1">{label}</legend>
       {options.map((o) => (
-        // The whole bordered label row (≥ 24 px tall) is the radio's hit area (WCAG 2.5.8).
+        // The whole bordered label row (≥ 24 px tall) is the radio's hit area (WCAG 2.5.8); on touch the
+        // radio itself is also 24×24 px.
         <label
           key={o.value}
           className={cn(
@@ -300,7 +301,14 @@ function Picker<T extends string>({
             o.value === value ? 'border-accent bg-accent-soft' : 'border-line hover:bg-surface-2',
           )}
         >
-          <input type="radio" className="mt-0.5 size-4 shrink-0 cursor-pointer" name={label} value={o.value} checked={o.value === value} onChange={() => onChange(o.value)} />
+          <input
+            type="radio"
+            className="mt-0.5 size-4 shrink-0 cursor-pointer pointer-coarse:mt-0 pointer-coarse:size-6"
+            name={label}
+            value={o.value}
+            checked={o.value === value}
+            onChange={() => onChange(o.value)}
+          />
           <span className="min-w-0">
             <span className="block break-words font-medium">{o.label}</span>
             <span className="block text-2xs text-fg-muted">{o.detail}</span>
