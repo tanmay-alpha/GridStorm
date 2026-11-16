@@ -65,8 +65,9 @@ RUN groupadd --system --gid 10001 gridstorm \
 WORKDIR /app
 COPY --from=builder --chown=root:root /app /app
 COPY database database
-# Datasets (data/networks) and precomputed artifacts (data/artifacts) are baked in because
-# Render's disk is ephemeral; .dockerignore admits only those two subtrees of data/.
+# Datasets (data/networks), precomputed artifacts (data/artifacts) and the curated Data
+# Observatory bundle (data/observatory, checksum-verified at load) are baked in because Render's
+# disk is ephemeral; .dockerignore admits only those three subtrees of data/ (never data/observed).
 COPY data data
 
 USER gridstorm

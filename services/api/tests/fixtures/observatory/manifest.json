@@ -1,0 +1,24 @@
+{
+ "schema_version": "gridstorm-observatory-manifest/1.0",
+ "pipeline": {
+  "command": "hand-built test fixture",
+  "version": "test"
+ },
+ "files": [
+  {
+   "path": "catalog.json",
+   "sha256": "3906f37509107bd0b5ccb514bd8677bbd39af4fc7038ca7e27a2f6e5ac9c2183",
+   "bytes": 6260
+  },
+  {
+   "path": "series/fixture-load-hourly.csv",
+   "sha256": "6c7bcfc051fad065ae884b8697721ed8a78ad472804840f0ab4751e0a3ab9005",
+   "bytes": 47722
+  },
+  {
+   "path": "series/fixture-wind-sparse.csv",
+   "sha256": "f44ca645573700ba62af887039a7ed5420f91545808f0f3b6b339f08a9f76a47",
+   "bytes": 8410
+  }
+ ]
+}

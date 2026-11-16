@@ -2,8 +2,8 @@
 
 The interface authority is [contracts.md §6](contracts.md#6-http-api--servicesapi-fastapi-base-path-apiv1).
 `gridstorm_api.main:app` exports FastAPI with typed Pydantic response/error models. Routers cover
-catalog/assets/GeoJSON/analytics, scenarios, jobs/results, comparisons/reports and precomputed
-artifacts. Pagination uses `{items,total,limit,offset}`; errors use `{error:{code,message,details}}`.
+catalog/assets/GeoJSON/analytics, scenarios, jobs/results, comparisons/reports, precomputed
+artifacts and the Data Observatory catalog. Pagination uses `{items,total,limit,offset}`; errors use `{error:{code,message,details}}`.
 OpenAPI is available at `/openapi.json`, Swagger UI at `/docs`.
 
 ## Reference data and analytics
@@ -23,6 +23,45 @@ by `services/analytics/scripts/precompute_analytics.py` into `data/networks/<id>
 The API serves those files and never imports PyPSA (it cost ~300 MB RSS, see
 `docs/benchmarks/api-memory.md`). Carrier/country filters are derived exactly from the unfiltered
 rows, otherwise 422 `analytics_filter_not_precomputed`; a missing or stale index is a 503.
+
+## Data Observatory catalog (`/api/v1/data`)
+
+`gridstorm_api.observatory.DataObservatory` serves one research-data catalog merged at runtime from
+three file-backed sources, without copying payloads ([ADR 0003](../decisions/0003-file-backed-data-observatory.md)):
+
+1. the curated bundle `data/observatory/` (`catalog.json`, `series/<id>.csv`, `manifest.json`),
+   produced by the licence-gated publication pipeline and baked into the image like `data/networks/`;
+2. one `network_model` entry per network of the `NetworkCatalog` (id `network-<network_id>`; manifest
+   licence, source, coverage; `spatial.kind = network`, no coordinates are invented; region only when
+   grounded — one bus country, the manifest coverage, or `benchmark` for schematic cases without
+   countries; `use_in_scenario` → `/studio?network=<id>` when the network runs live or has valid presets);
+3. one `precomputed_experiment` entry per Research Workbench study group of the artifact index (id
+   `study-<study id>`, linking to `/benchmarks`, `/contingency`, `/operations`, `/workbench` or, for the
+   observed-analogue presets, Crisis Studio).
+
+| Route | Purpose |
+|---|---|
+| `GET /api/v1/data/catalog` | `Page` of summaries (no `description`, `transformations`, `quality.checks`) with `category`, `provenance`, `region` (code), `source` (name) and `q` filters; `facets` over the whole catalog; `bundle` load/verification status |
+| `GET /api/v1/data/catalog/{id}` | Full entry; 404 `not_found` |
+| `GET /api/v1/data/catalog/{id}/series` | Bounded series: `start`/`end` (UTC, end exclusive; default = first documented window, else the last 31 days), > 3 years → 422 `range_too_large`; `resolution=auto` picks the finest of raw/PT3H/P1D/P7D with ≤ `max_points` (default 1500, max 2000); raw or a fixed bucket over the limit → 422 `range_too_large`; 409 `not_a_series_dataset`; 422 `unknown_series`; 503 `dataset_unverified` |
+| `GET /api/v1/data/catalog/{id}/export` | Raw CSV attachment of the same window with `#` source/licence/attribution/sha256 header; 403 `export_not_permitted` when the licence does not permit redistribution |
+
+Buckets are UTC-aligned (PT3H at 00/03/…/21 UTC, P1D at 00:00 UTC, P7D from Monday 00:00 UTC) and
+labelled by their start. A raw slot or bucket without an observed value is `null`, never 0; absent
+timestamps are not interpolated. Catalog `temporal.end_utc` and `windows[].end_utc` name the last
+covered timestamp. Responses use the shared caching helpers with `Cache-Control: public,
+max-age=300` and a strong body-hash `ETag` (the body embeds bundle version and file sha256), so a
+redeployed bundle changes every tag.
+
+The bundle is loaded lazily once per process under a lock. Every file listed in `manifest.json`
+(`files[].path/sha256/bytes`) is hashed; an unverifiable `catalog.json` or manifest drops the whole
+bundle (`bundle.status = error`), a mismatching series file marks only that dataset (`quality.checks`
+`checksum: fail`, series/export 503). Entries are validated against the `DatasetEntry` schema; a
+declared `use_in_scenario.available = true` is kept only when its network and `preset_id` exist in
+this deployment, otherwise it is downgraded with a quality warning. CSVs are parsed into `array`
+columns (8 bytes per value, NaN = missing): the 2.5 MB 3.2 bundle costs ≈ 3.4 MiB RSS, the merged
+catalog ≈ 2 MiB more. A missing `data/observatory/` leaves network and study entries available and
+does not affect `/ready`.
 
 ## Persistence and ownership
 

@@ -1,0 +1,217 @@
+{
+  "bundle_version": "2026-11-17.1",
+  "files": [
+    {
+      "bytes": 47631,
+      "path": "catalog.json",
+      "sha256": "bf286a3f42792ccd8ccca23c109ac52ac9b29769b767238d7cbb77c6b84654f3"
+    },
+    {
+      "bytes": 514964,
+      "path": "series/nasa-power-de-renewable-resource.csv",
+      "sha256": "92b02004aefed52b3a5b0d9c058f312d610be2e70deaa03a5fbe1cc92497f644"
+    },
+    {
+      "bytes": 558439,
+      "path": "series/nasa-power-de-weather.csv",
+      "sha256": "d7943b500753f7f335910d6dd96e72a2007644f622e0a564001184d7e9bbe585"
+    },
+    {
+      "bytes": 1080,
+      "path": "series/opsd-de-derived-multipliers.csv",
+      "sha256": "1fd4afdaecc8f94e60fe953714034346cbec263c630ba9477ccc10e509af85b4"
+    },
+    {
+      "bytes": 1360701,
+      "path": "series/opsd-de-load-forecast.csv",
+      "sha256": "7c9d5743d47439d26926ef229712614ce7131788e8c590ce0d1b3edc1cb6363a"
+    }
+  ],
+  "licence_gate": {
+    "nasa-power-de-renewable-resource": {
+      "berlin_ghi": {
+        "licence_id": "LicenseRef-NASA-POWER",
+        "redistribution": "permitted",
+        "source_key": "nasa-power:ALLSKY_SFC_SW_DWN"
+      },
+      "berlin_ws50m": {
+        "licence_id": "LicenseRef-NASA-POWER",
+        "redistribution": "permitted",
+        "source_key": "nasa-power:WS50M"
+      },
+      "cologne_ghi": {
+        "licence_id": "LicenseRef-NASA-POWER",
+        "redistribution": "permitted",
+        "source_key": "nasa-power:ALLSKY_SFC_SW_DWN"
+      },
+      "cologne_ws50m": {
+        "licence_id": "LicenseRef-NASA-POWER",
+        "redistribution": "permitted",
+        "source_key": "nasa-power:WS50M"
+      },
+      "hamburg_ghi": {
+        "licence_id": "LicenseRef-NASA-POWER",
+        "redistribution": "permitted",
+        "source_key": "nasa-power:ALLSKY_SFC_SW_DWN"
+      },
+      "hamburg_ws50m": {
+        "licence_id": "LicenseRef-NASA-POWER",
+        "redistribution": "permitted",
+        "source_key": "nasa-power:WS50M"
+      },
+      "munich_ghi": {
+        "licence_id": "LicenseRef-NASA-POWER",
+        "redistribution": "permitted",
+        "source_key": "nasa-power:ALLSKY_SFC_SW_DWN"
+      },
+      "munich_ws50m": {
+        "licence_id": "LicenseRef-NASA-POWER",
+        "redistribution": "permitted",
+        "source_key": "nasa-power:WS50M"
+      }
+    },
+    "nasa-power-de-weather": {
+      "berlin_t2m": {
+        "licence_id": "LicenseRef-NASA-POWER",
+        "redistribution": "permitted",
+        "source_key": "nasa-power:T2M"
+      },
+      "berlin_ws10m": {
+        "licence_id": "LicenseRef-NASA-POWER",
+        "redistribution": "permitted",
+        "source_key": "nasa-power:WS10M"
+      },
+      "cologne_t2m": {
+        "licence_id": "LicenseRef-NASA-POWER",
+        "redistribution": "permitted",
+        "source_key": "nasa-power:T2M"
+      },
+      "cologne_ws10m": {
+        "licence_id": "LicenseRef-NASA-POWER",
+        "redistribution": "permitted",
+        "source_key": "nasa-power:WS10M"
+      },
+      "hamburg_t2m": {
+        "licence_id": "LicenseRef-NASA-POWER",
+        "redistribution": "permitted",
+        "source_key": "nasa-power:T2M"
+      },
+      "hamburg_ws10m": {
+        "licence_id": "LicenseRef-NASA-POWER",
+        "redistribution": "permitted",
+        "source_key": "nasa-power:WS10M"
+      },
+      "munich_t2m": {
+        "licence_id": "LicenseRef-NASA-POWER",
+        "redistribution": "permitted",
+        "source_key": "nasa-power:T2M"
+      },
+      "munich_ws10m": {
+        "licence_id": "LicenseRef-NASA-POWER",
+        "redistribution": "permitted",
+        "source_key": "nasa-power:WS10M"
+      }
+    },
+    "opsd-de-derived-multipliers": {
+      "dunkelflaute_2015_01_20": {
+        "licence_id": "CC-BY-4.0",
+        "redistribution": "permitted",
+        "source_key": "gridstorm-derived:demand_multipliers"
+      },
+      "high_load_low_res_2017_01_24": {
+        "licence_id": "CC-BY-4.0",
+        "redistribution": "permitted",
+        "source_key": "gridstorm-derived:demand_multipliers"
+      },
+      "peak_load_2017_12_13": {
+        "licence_id": "CC-BY-4.0",
+        "redistribution": "permitted",
+        "source_key": "gridstorm-derived:demand_multipliers"
+      }
+    },
+    "opsd-de-load-forecast": {
+      "de_load_forecast": {
+        "licence_id": "CC-BY-4.0",
+        "redistribution": "permitted",
+        "source_key": "opsd:DE_load_forecast_entsoe_transparency"
+      }
+    }
+  },
+  "pipeline": {
+    "command": "cd pipelines/observed && uv run --locked python scripts/publish_observatory.py --out ../../data/observatory --opsd-csv \"$GRIDSTORM_DATA_CACHE/opsd/time_series_60min_singleindex.csv\"",
+    "name": "pipelines/observed scripts/publish_observatory.py (gridstorm_observed.publish)",
+    "verify_command": "cd pipelines/observed && uv run --locked python scripts/publish_observatory.py --out ../../data/observatory --verify",
+    "version": "gridstorm-observatory-publisher/1.0.0"
+  },
+  "schema_version": "gridstorm-observatory-manifest/1.0",
+  "sources": {
+    "committed": [
+      {
+        "path": "data/observed/opsd-de/derived-multipliers.json",
+        "sha256": "af06b0c0c7f8022d9ccc3be71c1d5210c02b6b1505c03ce6b9dbcae2f452a181"
+      },
+      {
+        "path": "data/observed/opsd-de/manifest.json",
+        "sha256": "d9d5ed6c6c1635953a603e4957764a0d90b14cc17a45f58854a6f2f502f8c7d1"
+      },
+      {
+        "path": "data/observed/analogue-results.json",
+        "sha256": "3b019655efb290edb87b0a6c89cb0f7841c9b98875ae54f416de25665f681c2e"
+      },
+      {
+        "path": "data/observed/nasa-power-de/t2m_ws10m_hourly.csv",
+        "sha256": "489bbdcdbd7859c3a2f662f443737192598cc091db3501ea38457e76c6b36377"
+      },
+      {
+        "path": "data/observed/nasa-power-de/power-hourly-requests.json",
+        "sha256": "046b98fe0a9def8385529eec2fc961082ff75149b33430c5540ef93bd7a9b652"
+      },
+      {
+        "path": "data/scenarios/observed/observed-dunkelflaute-2015-01-20.yaml",
+        "sha256": "ac7ecff0a3e79d5de32bb677854a003dc92b21c94197d1cfd69ef5716f27553d"
+      },
+      {
+        "path": "data/scenarios/observed/observed-high-load-low-res-2017-01-24.yaml",
+        "sha256": "61f299c556c04d0ab70ccc68eaafb74dd98fe376961b52eac36f6758c5067bf7"
+      },
+      {
+        "path": "data/scenarios/observed/observed-peak-load-2017-12-13.yaml",
+        "sha256": "39853b9c3cf5017b967e8562db43c0988cc51d5a1da05c91b38760efa12c45aa"
+      },
+      {
+        "path": "packages/stormspec/presets/observed-dunkelflaute-2015-01-20.yaml",
+        "sha256": "ac7ecff0a3e79d5de32bb677854a003dc92b21c94197d1cfd69ef5716f27553d"
+      },
+      {
+        "path": "packages/stormspec/presets/observed-high-load-low-res-2017-01-24.yaml",
+        "sha256": "61f299c556c04d0ab70ccc68eaafb74dd98fe376961b52eac36f6758c5067bf7"
+      },
+      {
+        "path": "packages/stormspec/presets/observed-peak-load-2017-12-13.yaml",
+        "sha256": "39853b9c3cf5017b967e8562db43c0988cc51d5a1da05c91b38760efa12c45aa"
+      }
+    ],
+    "external": [
+      {
+        "bytes": 130339665,
+        "columns_read": [
+          "DE_load_forecast_entsoe_transparency"
+        ],
+        "doi": "https://doi.org/10.25832/time_series/2020-10-06",
+        "id": "opsd-time-series-60min",
+        "retrieved_at": "2026-11-14T15:56:46+00:00",
+        "sha256": "6a7f2bc571314cbf9c321cc03437691cd4be95c3a6f075e60ff99e8035c704c8",
+        "url": "https://data.open-power-system-data.org/time_series/2020-10-06/time_series_60min_singleindex.csv",
+        "version": "2020-10-06"
+      },
+      {
+        "id": "nasa-power-hourly",
+        "note": "per-request URL, response sha256, API version and retrieval time are in the request record",
+        "request_record": "data/observed/nasa-power-de/power-hourly-requests.json",
+        "request_record_sha256": "046b98fe0a9def8385529eec2fc961082ff75149b33430c5540ef93bd7a9b652",
+        "url": "https://power.larc.nasa.gov/api/temporal/hourly/point"
+      }
+    ]
+  },
+  "total_bytes": 2482815
+}

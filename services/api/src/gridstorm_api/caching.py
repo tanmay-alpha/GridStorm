@@ -16,6 +16,8 @@ from fastapi import Request, Response
 from pydantic import TypeAdapter
 
 CACHE_CONTROL = "public, max-age=3600"
+# Data Observatory routes (contract: 5 minutes, so a redeployed bundle shows up quickly)
+DATA_CACHE_CONTROL = "public, max-age=300"
 
 
 @lru_cache(maxsize=32)
@@ -41,10 +43,11 @@ def cached_bytes(
     *,
     media_type: str = "application/json",
     headers: dict[str, str] | None = None,
+    cache_control: str = CACHE_CONTROL,
 ) -> Response:
     """200 with ``body`` + caching headers, or an empty 304 when ``If-None-Match`` matches."""
     etag = f'"{hashlib.sha256(body).hexdigest()}"'
-    out = {**(headers or {}), "ETag": etag, "Cache-Control": CACHE_CONTROL}
+    out = {**(headers or {}), "ETag": etag, "Cache-Control": cache_control}
     if _not_modified(request.headers.get("if-none-match"), etag):
         return Response(status_code=304, headers=out)
     return Response(body, media_type=media_type, headers=out)
@@ -56,6 +59,7 @@ def cached_json(
     *,
     model: Any = dict[str, Any],
     headers: dict[str, str] | None = None,
+    cache_control: str = CACHE_CONTROL,
 ) -> Response:
     """Serialize ``content`` as FastAPI's response-model fast path would, then cache it.
 
@@ -65,4 +69,4 @@ def cached_json(
     """
     adapter = _adapter(model)
     body = adapter.dump_json(adapter.validate_python(content), by_alias=True)
-    return cached_bytes(request, body, headers=headers)
+    return cached_bytes(request, body, headers=headers, cache_control=cache_control)

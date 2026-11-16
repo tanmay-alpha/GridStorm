@@ -21,6 +21,7 @@
 !database/seeds/
 !data/networks/
 !data/artifacts/
+!data/observatory/
 
 # never ship local environments, caches or secrets even inside allowed trees
 **/.venv
