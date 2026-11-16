@@ -49,7 +49,7 @@ jobs:
         working-directory: ${{ matrix.component }}
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
           cache-dependency-glob: ${{ matrix.component }}/uv.lock
@@ -81,7 +81,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v7
       - run: uvx "ruff@${RUFF_VERSION}" check scripts
       - run: uvx "ruff@${RUFF_VERSION}" format --check scripts
       - name: compare_artifacts self-test
@@ -133,7 +133,7 @@ jobs:
             echo "::notice::No Playwright config/specs in apps/web yet; e2e skipped"
           fi
       - if: steps.specs.outputs.present == 'true'
-        uses: astral-sh/setup-uv@v6
+        uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
           cache-dependency-glob: services/api/uv.lock
@@ -210,7 +210,7 @@ jobs:
           curl -fsS http://127.0.0.1:8000/api/v1/networks | head -c 600; echo
       - if: steps.df.outputs.present == 'true' && hashFiles('tests/integration/uv.lock') != ''
         name: Set up uv
-        uses: astral-sh/setup-uv@v6
+        uses: astral-sh/setup-uv@v7
       - if: steps.df.outputs.present == 'true' && hashFiles('tests/integration/uv.lock') != ''
         name: Run tests/integration (informational; no DB in this container)
         continue-on-error: true
