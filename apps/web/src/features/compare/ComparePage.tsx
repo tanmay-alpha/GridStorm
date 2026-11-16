@@ -440,8 +440,10 @@ export default function ComparePage() {
       )}
       {jobs.error ? (
         <ErrorState error={jobs.error} title="Could not load simulation jobs" onRetry={() => void jobs.refetch()} />
-      ) : jobs.isPending ? (
-        <SkeletonBlock rows={3} label="Loading jobs" />
+      ) : jobs.isPending || (!!comparisonId && comparison.isPending) ? (
+        // The picker panel and a stored comparison arrive separately; rendering whichever lands first
+        // pushed the comparison down by the panel (CLS 0.19 on mobile). Show one placeholder until both.
+        <SkeletonBlock rows={comparisonId ? 10 : 3} label={comparisonId ? 'Loading comparison' : 'Loading jobs'} />
       ) : completed.length < 2 ? (
         <EmptyState
           title={completed.length === 0 ? 'No completed runs yet' : 'Only one completed run'}
@@ -497,12 +499,12 @@ export default function ComparePage() {
         </Panel>
       )}
       {comparisonId &&
+        !jobs.isPending &&
+        !comparison.isPending &&
         (comparison.error ? (
           <ErrorState error={comparison.error} title="Could not load comparison" onRetry={() => void comparison.refetch()} />
-        ) : comparison.data ? (
-          <ComparisonView comparison={comparison.data} guide={guide} />
         ) : (
-          <SkeletonBlock rows={6} label="Loading comparison" />
+          comparison.data && <ComparisonView comparison={comparison.data} guide={guide} />
         ))}
     </div>
   )
