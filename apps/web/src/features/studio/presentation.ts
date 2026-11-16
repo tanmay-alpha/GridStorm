@@ -58,7 +58,8 @@ export function shortDescription(text: string | null | undefined, max = 140): st
 
 const factor = (v: number) => `×${Number(v.toFixed(3))}`
 
-function eventPhrase(e: StormEvent): string {
+/** Short phrase for one event, e.g. "generator gen-1 out", "demand ×1.15". */
+export function eventPhrase(e: StormEvent): string {
   switch (e.type) {
     case 'generator_outage':
       return `generator ${e.asset_id} out`

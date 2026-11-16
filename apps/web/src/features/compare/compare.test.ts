@@ -1,6 +1,38 @@
 import { describe, expect, it } from 'vitest'
 import type { BranchLoadingDelta, CostBasis } from '../../api/types'
-import { branchChange, costComparability, deltaCell, formatMetricDelta, formatMetricValue, metricLabel, metricUnitLabel, orderMetrics, topBranchChanges } from './compare'
+import {
+  branchChange,
+  costComparability,
+  deltaCell,
+  deltaTone,
+  formatMetricDelta,
+  formatMetricValue,
+  metricGroup,
+  metricLabel,
+  metricUnitLabel,
+  orderMetrics,
+  topBranchChanges,
+} from './compare'
+
+describe('metricGroup / deltaTone', () => {
+  it('separates physical, economic and total metrics', () => {
+    expect(metricGroup('unserved_energy_mwh')).toBe('physical')
+    expect(metricGroup('max_line_loading_pct')).toBe('physical')
+    expect(metricGroup('co2_emissions_t')).toBe('physical')
+    expect(metricGroup('total_system_cost_eur')).toBe('economic')
+    expect(metricGroup('mean_marginal_price_eur_per_mwh')).toBe('economic')
+    expect(metricGroup('served_load_mwh')).toBe('totals')
+    expect(metricGroup('balance_residual_max_mw')).toBe('totals')
+  })
+  it('judges only consumer-impact changes; loading and cost stay neutral', () => {
+    expect(deltaTone('unserved_energy_mwh', 25)).toBe('danger')
+    expect(deltaTone('unserved_energy_mwh', -3)).toBe('ok')
+    expect(deltaTone('unserved_energy_mwh', 0)).toBeNull()
+    expect(deltaTone('unserved_energy_mwh', null)).toBeNull()
+    expect(deltaTone('max_line_loading_pct', -51.8)).toBeNull()
+    expect(deltaTone('total_system_cost_eur', -1000)).toBeNull()
+  })
+})
 
 describe('metricLabel', () => {
   it('shows the unit exactly once (VER-014)', () => {

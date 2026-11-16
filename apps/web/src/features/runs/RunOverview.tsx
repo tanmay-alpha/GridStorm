@@ -1,36 +1,88 @@
+import { Fragment } from 'react'
 import { Link } from 'react-router'
 import type { UseQueryResult } from '@tanstack/react-query'
-import type { CostBasis, GridstormResult, Job, MetricDelta, ResultMetrics } from '../../api/types'
+import type { CostBasis, GridstormResult, Job } from '../../api/types'
 import { cn, Panel, SkeletonBlock } from '../../components/ui'
-import { formatNumber, isFiniteNumber } from '../../lib/format'
+import { formatNumber } from '../../lib/format'
 import { formatPrice, moneyUnit, resolveCostBasis } from '../../lib/money'
 import { compareUrl, type BaselinePlan } from '../compare/baseline'
 import { CompareWithBaseline } from '../compare/CompareWithBaseline'
-import { costComparability, formatMetricDelta, formatMetricValue, metricLabel, metricUnitLabel } from '../compare/compare'
+import { costComparability, formatMetricDelta, formatMetricValue, metricGroup, metricLabel, metricUnitLabel } from '../compare/compare'
 import type { HeadlineFact } from './result'
-import { costBasisTexts, horizonLabel } from './result'
+import { costBasisTexts, horizonLabel, resultMetricRows } from './result'
+
+const TONE_TEXT = { danger: 'text-danger', warn: 'text-warn', ok: 'text-ok' } as const
+
+/** One headline fact; `lg` for the primary consequences (unserved energy, demand served). */
+function FactTile({ f, size = 'md' }: { f: HeadlineFact; size?: 'md' | 'lg' }) {
+  return (
+    <div className={cn('gs-panel flex min-w-0 flex-col gap-0.5 px-3', size === 'lg' ? 'py-3' : 'py-2')} data-metric={f.key}>
+      <span className="gs-label break-words">{f.label}</span>
+      <span
+        className={cn(
+          'tabular font-semibold leading-tight break-words',
+          size === 'lg' ? 'text-2xl md:text-3xl' : 'text-lg',
+          f.tone ? TONE_TEXT[f.tone] : 'text-fg',
+        )}
+      >
+        {f.display}
+      </span>
+      {f.hint && <span className="text-2xs text-fg-subtle">{f.hint}</span>}
+    </div>
+  )
+}
 
 /** Headline fact tiles (value already formatted with its unit / cost basis). */
 export function HeadlineCards({ facts, className }: { facts: HeadlineFact[]; className?: string }) {
   return (
     <div aria-label="Key metrics" className={cn('grid gap-2', className ?? 'grid-cols-2 sm:grid-cols-3 xl:grid-cols-5')} data-testid="metrics">
       {facts.map((f) => (
-        <div key={f.key} className="gs-panel flex min-w-0 flex-col gap-0.5 px-3 py-2" data-metric={f.key}>
-          <span className="gs-label break-words">{f.label}</span>
-          <span
-            className={cn(
-              'tabular text-lg font-semibold leading-tight break-words',
-              f.tone === 'danger' && 'text-danger',
-              f.tone === 'warn' && 'text-warn',
-              f.tone === 'ok' && 'text-ok',
-              !f.tone && 'text-fg',
-            )}
-          >
-            {f.display}
-          </span>
-          {f.hint && <span className="text-2xs text-fg-subtle">{f.hint}</span>}
-        </div>
+        <FactTile key={f.key} f={f} />
       ))}
+    </div>
+  )
+}
+
+/** Lower operating cost is not evidence of a more secure grid state; shown wherever costs are compared. */
+export const COST_NOT_SECURITY =
+  'The operating cost is the optimisation objective in the dataset’s cost basis (including any load-shedding penalty). A lower cost does not mean greater operational security.'
+
+/**
+ * Run KPIs in reading order: physical consequences first (the two primary ones large), then the
+ * model economics on their own, labelled as an objective value rather than a security measure.
+ */
+export function KpiOverview({ facts }: { facts: HeadlineFact[] }) {
+  const primary = facts.filter((f) => f.key === 'unserved' || f.key === 'served')
+  const secondary = facts.filter((f) => f.key === 'congestion' || f.key === 'curtailment' || f.key === 'co2')
+  const cost = facts.find((f) => f.key === 'cost')
+  return (
+    <div aria-label="Key metrics" className="grid gap-3 xl:grid-cols-[minmax(0,2.2fr)_minmax(0,1fr)]" data-testid="metrics">
+      <section aria-labelledby="kpi-physical-h" className="flex min-w-0 flex-col gap-1.5">
+        <h3 id="kpi-physical-h" className="gs-label">
+          Physical impact
+        </h3>
+        <div className="grid grid-cols-2 gap-2">
+          {primary.map((f) => (
+            <FactTile key={f.key} f={f} size="lg" />
+          ))}
+        </div>
+        <div className={cn('grid gap-2', secondary.length > 2 ? 'grid-cols-2 sm:grid-cols-3' : 'grid-cols-2')}>
+          {secondary.map((f) => (
+            <FactTile key={f.key} f={f} />
+          ))}
+        </div>
+      </section>
+      {cost && (
+        <section aria-labelledby="kpi-economic-h" className="flex min-w-0 flex-col gap-1.5">
+          <h3 id="kpi-economic-h" className="gs-label">
+            Model economics
+          </h3>
+          <FactTile f={cost} size="lg" />
+          <p className="text-2xs leading-snug text-fg-subtle" data-testid="cost-not-security">
+            {COST_NOT_SECURITY}
+          </p>
+        </section>
+      )}
     </div>
   )
 }
@@ -55,25 +107,6 @@ export function KeyAssumptions({ result, basis }: { result: GridstormResult; bas
       </a>
     </p>
   )
-}
-
-function servedPct(m: Partial<ResultMetrics>): number | null {
-  const s = m.served_load_mwh
-  const t = m.total_load_mwh
-  return isFiniteNumber(s) && isFiniteNumber(t) && t > 0 ? (s / t) * 100 : null
-}
-
-/** Compact baseline → this run rows (same formatting rules as the Compare page). */
-function baselineRows(b: Partial<ResultMetrics>, s: Partial<ResultMetrics>): Pick<MetricDelta, 'metric' | 'unit' | 'baseline' | 'scenario'>[] {
-  const v = (x: unknown) => (isFiniteNumber(x) ? x : null)
-  return [
-    { metric: 'unserved_energy_mwh', unit: 'MWh', baseline: v(b.unserved_energy_mwh), scenario: v(s.unserved_energy_mwh) },
-    { metric: 'demand_served_pct', unit: '%', baseline: servedPct(b), scenario: servedPct(s) },
-    { metric: 'max_line_loading_pct', unit: '%', baseline: v(b.max_line_loading_pct), scenario: v(s.max_line_loading_pct) },
-    { metric: 'congested_line_count', unit: 'count', baseline: v(b.congested_line_count), scenario: v(s.congested_line_count) },
-    { metric: 'total_system_cost_eur', unit: 'EUR', baseline: v(b.total_system_cost_eur), scenario: v(s.total_system_cost_eur) },
-    { metric: 'curtailment_mwh', unit: 'MWh', baseline: v(b.curtailment_mwh), scenario: v(s.curtailment_mwh) },
-  ]
 }
 
 /** Δ table of a run against a baseline result (used on the run and mitigation pages). */
@@ -107,21 +140,30 @@ export function ChangeTable({
             </tr>
           </thead>
           <tbody>
-            {baselineRows(baseline.metrics, scenario.metrics).map((row) => {
+            {resultMetricRows(baseline.metrics, scenario.metrics).map((row) => {
               const d = formatMetricDelta(row, costs)
               const unit = metricUnitLabel(row, costs.basis ?? sBasis)
               return (
-                <tr key={row.metric} className="border-t border-line/70" data-metric={row.metric}>
-                  <td className="py-1 pr-2">{metricLabel(row.metric, unit)}</td>
-                  <td className="tabular py-1 pr-2 text-right">{formatMetricValue(row.baseline, row, bBasis)}</td>
-                  <td className="tabular py-1 pr-2 text-right">{formatMetricValue(row.scenario, row, sBasis)}</td>
-                  <td className="tabular py-1 pr-2 text-right font-semibold" title={d.absoluteNote ?? undefined}>
-                    {d.absolute}
-                  </td>
-                  <td className="tabular whitespace-nowrap py-1 text-right" title={d.relativeNote ?? undefined}>
-                    {d.relative}
-                  </td>
-                </tr>
+                <Fragment key={row.metric}>
+                  {metricGroup(row.metric) === 'economic' && (
+                    <tr className="border-t border-line/70">
+                      <th colSpan={5} scope="colgroup" className="gs-label pb-0.5 pt-2 text-left font-medium">
+                        Model economics
+                      </th>
+                    </tr>
+                  )}
+                  <tr className="border-t border-line/70" data-metric={row.metric}>
+                    <td className="py-1 pr-2">{metricLabel(row.metric, unit)}</td>
+                    <td className="tabular py-1 pr-2 text-right">{formatMetricValue(row.baseline, row, bBasis)}</td>
+                    <td className="tabular py-1 pr-2 text-right">{formatMetricValue(row.scenario, row, sBasis)}</td>
+                    <td className="tabular py-1 pr-2 text-right font-semibold" title={d.absoluteNote ?? undefined}>
+                      {d.absolute}
+                    </td>
+                    <td className="tabular whitespace-nowrap py-1 text-right" title={d.relativeNote ?? undefined}>
+                      {d.relative}
+                    </td>
+                  </tr>
+                </Fragment>
               )
             })}
           </tbody>

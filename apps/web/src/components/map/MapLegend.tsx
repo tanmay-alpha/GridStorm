@@ -13,6 +13,7 @@ export function BranchLegend({
   highlighted = false,
   levels,
   showLinks = true,
+  deltaLabel = 'Loading change (scenario − baseline)',
 }: {
   mode: BranchColorMode
   outaged?: boolean
@@ -20,6 +21,8 @@ export function BranchLegend({
   levels?: (number | null)[]
   /** Voltage mode: include the DC-link row (omit when the drawing has no links). */
   showLinks?: boolean
+  /** Delta mode: what the difference is (e.g. "Loading change (mitigated − crisis)"). */
+  deltaLabel?: string
 }) {
   const overlays: LegendItem[] = [
     ...(outaged ? [{ label: 'Out of service in scenario (dashed)', color: 'var(--gs-danger)', shape: 'line' as const }] : []),
@@ -39,7 +42,7 @@ export function BranchLegend({
   if (mode === 'delta')
     return (
       <Legend
-        title="Loading change (scenario − baseline)"
+        title={deltaLabel}
         items={[
           ...DELTA_SCALE.map(([, color, label]) => ({ label, color, shape: 'line' as const })),
           { label: 'No value in one run', color: OUTAGED_COLOR, shape: 'line' },

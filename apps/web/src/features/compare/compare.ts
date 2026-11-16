@@ -57,6 +57,41 @@ export function orderMetrics<T extends { metric: string }>(rows: readonly T[]): 
   return [...rows].sort((a, b) => rank(a.metric) - rank(b.metric) || a.metric.localeCompare(b.metric))
 }
 
+/**
+ * Reading groups of the metric table: physical consequences and network stress, model economics
+ * (money and prices, comparable only within one cost basis), and energy totals / numerical checks.
+ */
+export type MetricGroup = 'physical' | 'economic' | 'totals'
+
+const TOTALS: readonly string[] = ['served_load_mwh', 'total_load_mwh', 'storage_charge_mwh', 'storage_discharge_mwh', 'balance_residual_max_mw']
+
+export function metricGroup(metric: string): MetricGroup {
+  if (moneyFieldKind(metric)) return 'economic'
+  return TOTALS.includes(metric) ? 'totals' : 'physical'
+}
+
+/** Metrics shown as paired baseline/scenario cards above the tables, in this order (when reported). */
+export const PAIRED_METRICS: readonly string[] = [
+  'unserved_energy_mwh',
+  'peak_load_shed_mw',
+  'max_line_loading_pct',
+  'congested_line_count',
+  'total_system_cost_eur',
+]
+
+/** Metrics where an increase is unambiguously a worse outcome for consumers (Δ coloured by sign). */
+const WORSE_WHEN_HIGHER: readonly string[] = ['unserved_energy_mwh', 'peak_load_shed_mw', 'load_shed_hours']
+
+/**
+ * Tone of a metric change: only consumer-impact metrics are judged (more unserved energy is worse).
+ * Loading, congestion and cost are left neutral: lower loading can come from shed demand, and lower
+ * cost does not mean a more secure state.
+ */
+export function deltaTone(metric: string, delta: number | null): 'danger' | 'ok' | null {
+  if (!WORSE_WHEN_HIGHER.includes(metric) || delta === null || delta === 0) return null
+  return delta > 0 ? 'danger' : 'ok'
+}
+
 /** Map values from the report's branch_loading rows (delta of max loading, percentage points). */
 export function deltaValues(rows: BranchLoadingDelta[]): Record<string, number | null> {
   const out: Record<string, number | null> = {}

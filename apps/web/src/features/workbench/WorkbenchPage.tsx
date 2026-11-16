@@ -2,7 +2,7 @@ import { useMemo, type ReactNode } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { Download, ExternalLink, Play } from 'lucide-react'
 import type { ArtifactIndexItem, NetworkSummary } from '../../api/types'
-import { Badge, Button, CostBasisBadge, DataTable, EmptyState, ErrorState, KeyValue, PageHeader, Panel, SkeletonBlock, cn, type Tone } from '../../components/ui'
+import { Badge, Button, CostBasisBadge, DataTable, Disclosure, EmptyState, ErrorState, KeyValue, PageHeader, Panel, SkeletonBlock, cn, type Tone } from '../../components/ui'
 import { formatTimestamp, NO_VALUE } from '../../lib/format'
 import { resolveCostBasis } from '../../lib/money'
 import { ArtifactLoader, ArtifactSelect } from '../research/components/ArtifactPanel'
@@ -113,132 +113,117 @@ function StudyDetail({
   const scenarioId = str(artifact.scenario_id) ?? str(headerRaw.preset_id)
   const pfEngine = rec(headerRaw.power_flow_engine)
   const download = () => downloadJson(manifestFilename(entry), buildManifest({ entry, network, mode, generatedAt: new Date() }))
-  const sections: [string, string, ReactNode][] = [
+  const inputs = header?.header.inputs ?? []
+  const glance: [string, string, ReactNode][] = [
+    ['question', 'Question', <p className="text-sm text-fg">{s.summary}</p>],
     [
-      'assumptions',
-      'Scenario and assumptions',
-      <>
-        <p className="mb-2 text-sm">{s.summary}</p>
-        <QuoteList items={s.assumptions} testId="study-assumptions" />
-      </>,
+      'model',
+      'Model',
+      <p className="text-sm text-fg">
+        <span className="font-mono text-xs">{header ? `${header.header.engine} ${header.header.engine_version}`.trim() : s.engine}</span>
+        {pfEngine && (
+          <span className="block text-xs text-fg-muted">
+            power flow: {`${str(pfEngine.name) ?? NO_VALUE} ${str(pfEngine.version) ?? ''}`.trim()}
+          </span>
+        )}
+      </p>,
     ],
-    ['limitations', 'Limitations', <QuoteList items={s.limitations} testId="study-limitations" />],
+    [
+      'data',
+      'Data used',
+      <p className="text-sm text-fg">
+        {networkLabel(entry.network, network ? [network] : undefined)}
+        <span className="block text-xs text-fg-muted">
+          {inputs.length ? `${inputs.length} hashed input file${inputs.length === 1 ? '' : 's'} in the artifact header` : 'Inputs: see the artifact header'}
+        </span>
+      </p>,
+    ],
+    [
+      'mode',
+      'Live or precomputed',
+      <div className="flex flex-col gap-1">
+        <ModeBadge mode={mode} />
+        {mode && <p className="text-xs text-fg-muted">{EXECUTION_MODE_TEXT[mode].description}</p>}
+        {mode === 'live' && scenarioId && (
+          <Link
+            to={`/studio?network=${encodeURIComponent(entry.network)}&preset=${encodeURIComponent(scenarioId)}`}
+            className="inline-flex min-h-6 items-center gap-1 text-xs text-accent underline pointer-coarse:min-h-11"
+            data-testid="live-rerun"
+          >
+            <Play aria-hidden className="size-3.5" />
+            Re-run this preset live in Crisis Studio
+          </Link>
+        )}
+      </div>,
+    ],
   ]
   return (
     <div className="flex min-w-0 flex-col gap-4" data-testid="study-detail">
-      <section aria-labelledby="study-title" className="gs-panel flex flex-col gap-3 p-4">
+      <section aria-labelledby="study-title" className="gs-panel flex flex-col gap-4 p-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
             <h2 id="study-title" className="text-lg font-semibold">
               {s.title}
             </h2>
-            <p className="text-sm text-fg-muted">
-              {networkLabel(entry.network, network ? [network] : undefined)}
-              {entry.network !== MULTI_NETWORK && <span className="font-mono text-xs"> · {entry.network}</span>}
+            <p className="flex flex-wrap items-center gap-2 text-sm text-fg-muted">
+              <span>
+                {networkLabel(entry.network, network ? [network] : undefined)}
+                {entry.network !== MULTI_NETWORK && <span className="font-mono text-xs"> · {entry.network}</span>}
+              </span>
+              <Badge title="Artifact engine">{s.engine}</Badge>
+              {MONEY_METRICS[s.metrics] && <CostBasisBadge basis={basis} testId="study-cost-basis" />}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Button variant="primary" onClick={download} data-testid="download-manifest">
+            <Button variant="primary" className="pointer-coarse:h-11" onClick={download} data-testid="download-manifest">
               <Download aria-hidden className="size-4" />
               Download reproduction manifest
             </Button>
             {s.detailRoute && (
-              <Link to={s.detailRoute.path} className="text-sm text-accent underline">
+              <Link to={s.detailRoute.path} className="inline-flex min-h-8 items-center text-sm text-accent underline pointer-coarse:min-h-11">
                 {s.detailRoute.label}
               </Link>
             )}
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <ModeBadge mode={mode} />
-          <Badge title="Artifact engine">{s.engine}</Badge>
-          {MONEY_METRICS[s.metrics] && <CostBasisBadge basis={basis} testId="study-cost-basis" />}
-        </div>
-        {mode && <p className="text-xs text-fg-muted">{EXECUTION_MODE_TEXT[mode].description}</p>}
-        {mode === 'live' && scenarioId && (
-          <p className="text-sm">
-            <Link
-              to={`/studio?network=${encodeURIComponent(entry.network)}&preset=${encodeURIComponent(scenarioId)}`}
-              className="inline-flex items-center gap-1 text-accent underline"
-              data-testid="live-rerun"
-            >
-              <Play aria-hidden className="size-3.5" />
-              Re-run this preset live in Crisis Studio
-            </Link>
-          </p>
-        )}
+        <dl className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4" data-testid="study-glance">
+          {glance.map(([id, label, body]) => (
+            <div key={id} className="flex min-w-0 flex-col gap-1 rounded-lg border border-line bg-surface-2 p-3" data-glance={id}>
+              <dt className="gs-label">{label}</dt>
+              <dd className="min-w-0 break-words">{body}</dd>
+            </div>
+          ))}
+        </dl>
         {entry.results.length > 1 && (
           <ArtifactSelect label={`Published artifact (${entry.results.length})`} items={entry.results} value={artifact.artifact_id} onChange={onArtifact} />
         )}
       </section>
 
-      <Panel title="Results" id="study-results" description="Read from the published artifact; the header below identifies it." bodyClassName={RESERVE_WHILE_LOADING}>
+      <Panel title="Results obtained" id="study-results" description="Read from the published artifact; the header below identifies it. Numbers are quoted from the artifact, never typed in." bodyClassName={RESERVE_WHILE_LOADING}>
         <ArtifactLoader key={`${artifact.engine}/${artifact.artifact_id}`} engine={artifact.engine} artifactId={artifact.artifact_id} view={viewFor(artifact.kind)}>
           {(a) => <ResultsView results={studyResults(s.metrics, a.payload, { basis, siblings: entry.results })} />}
         </ArtifactLoader>
       </Panel>
 
+      <Panel title="What the results support — and what they do not" id="study-scope" description="Quoted verbatim from the study documentation (linked after each item).">
+        <div className="grid gap-4 xl:grid-cols-2">
+          <section aria-labelledby="study-assumptions-h" className="flex min-w-0 flex-col gap-2" id="study-assumptions">
+            <h3 id="study-assumptions-h" className="gs-label">
+              Assumptions the results rest on
+            </h3>
+            <QuoteList items={s.assumptions} testId="study-assumptions" />
+          </section>
+          <section aria-labelledby="study-limitations-h" className="flex min-w-0 flex-col gap-2" id="study-limitations">
+            <h3 id="study-limitations-h" className="gs-label">
+              Limitations: what the results do not show
+            </h3>
+            <QuoteList items={s.limitations} testId="study-limitations" />
+          </section>
+        </div>
+      </Panel>
+
       <div className="grid gap-4 xl:grid-cols-2">
-        {sections.map(([id, title, body]) => (
-          <Panel key={id} title={title} id={`study-${id}`}>
-            {body}
-          </Panel>
-        ))}
-        <Panel title="Engine and solver" id="study-engine">
-          <KeyValue
-            rows={[
-              ['Engine (artifact header)', header ? <span className="font-mono">{`${header.header.engine} ${header.header.engine_version}`.trim()}</span> : HEADER_MISSING],
-              ...(pfEngine ? [['Power-flow engine (header)', `${str(pfEngine.name) ?? NO_VALUE} ${str(pfEngine.version) ?? ''}`.trim()] as [string, string]] : []),
-              ['Platform (header)', header?.header.platform || NO_VALUE],
-              ['Created', header ? formatTimestamp(header.header.created_at) : NO_VALUE],
-            ]}
-          />
-          <p className="mb-1 mt-3 text-xs font-semibold">Documented environment</p>
-          <QuoteList items={s.solver} testId="study-solver" />
-        </Panel>
-        <Panel title="Dataset and network version" id="study-dataset">
-          <KeyValue
-            rows={[
-              ['Network', entry.network === MULTI_NETWORK ? 'several (see inputs)' : <span className="font-mono">{entry.network}</span>],
-              ['Network file sha256', network?.network_sha256 ? <span className="break-all font-mono">{network.network_sha256}</span> : NO_VALUE],
-              ['Source', network?.source ? `${network.source.version ?? ''} ${network.source.url ?? ''}`.trim() || NO_VALUE : NO_VALUE],
-              [
-                'Artifact inputs (sha256)',
-                header && header.header.inputs.length > 0 ? (
-                  <ul className="flex flex-col gap-0.5" data-testid="artifact-inputs">
-                    {header.header.inputs.map((i) => (
-                      <li key={i.path} className="break-all font-mono text-2xs">
-                        {i.path} <span className="text-fg-subtle">{i.sha256}</span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  NO_VALUE
-                ),
-              ],
-              ['Payload sha256', header ? <span className="break-all font-mono">{header.header.payload_sha256}</span> : NO_VALUE],
-            ]}
-          />
-          <p className="mb-1 mt-3 text-xs font-semibold">Documented dataset</p>
-          <QuoteList items={s.dataset} testId="study-dataset-quotes" />
-        </Panel>
-        <Panel title="References" id="study-references">
-          <ol className="flex list-decimal flex-col gap-1.5 pl-5 text-sm" data-testid="study-references">
-            {s.references.map((r) => (
-              <li key={r.text}>
-                {r.url ? (
-                  <a href={r.url} target="_blank" rel="noreferrer" className="text-accent underline">
-                    {r.text}
-                  </a>
-                ) : (
-                  r.text
-                )}{' '}
-                <span className="text-xs text-fg-muted">— {r.role}</span> <Cite path={r.doc} />
-              </li>
-            ))}
-          </ol>
-        </Panel>
-        <Panel title="Reproduce" id="study-reproduce">
+        <Panel title="How to reproduce" id="study-reproduce">
           <p className="text-xs text-fg-muted">
             From <span className="font-mono">{s.reproduction.cwd}</span> (documented in <Cite path={s.reproduction.doc} />):
           </p>
@@ -261,7 +246,7 @@ function StudyDetail({
           <ul className="mt-2 flex flex-col gap-1 text-xs">
             {s.docs.map((d) => (
               <li key={`${d.path}#${d.anchor ?? ''}`}>
-                <a href={`${docUrl(d.path)}${d.anchor ? `#${d.anchor}` : ''}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-accent underline">
+                <a href={`${docUrl(d.path)}${d.anchor ? `#${d.anchor}` : ''}`} target="_blank" rel="noreferrer" className="inline-flex min-h-6 items-center gap-1 text-accent underline">
                   {d.label}
                   <ExternalLink aria-hidden className="size-3" />
                   <span className="sr-only">(opens GitHub)</span>
@@ -272,7 +257,71 @@ function StudyDetail({
           <p className="mb-1 mt-3 text-xs font-semibold">Execution evidence</p>
           <QuoteList items={s.executionNotes} testId="study-execution-notes" />
         </Panel>
+        <Panel title="References" id="study-references">
+          <ol className="flex list-decimal flex-col gap-1.5 pl-5 text-sm" data-testid="study-references">
+            {s.references.map((r) => (
+              <li key={r.text}>
+                {r.url ? (
+                  <a href={r.url} target="_blank" rel="noreferrer" className="text-accent underline">
+                    {r.text}
+                  </a>
+                ) : (
+                  r.text
+                )}{' '}
+                <span className="text-xs text-fg-muted">— {r.role}</span> <Cite path={r.doc} />
+              </li>
+            ))}
+          </ol>
+        </Panel>
       </div>
+
+      <section className="flex flex-col gap-2" aria-label="Technical details">
+        <Disclosure summary="Engine and solver details" testId="study-engine">
+          <KeyValue
+            rows={[
+              ['Engine (artifact header)', header ? <span className="font-mono">{`${header.header.engine} ${header.header.engine_version}`.trim()}</span> : HEADER_MISSING],
+              ...(pfEngine ? [['Power-flow engine (header)', `${str(pfEngine.name) ?? NO_VALUE} ${str(pfEngine.version) ?? ''}`.trim()] as [string, string]] : []),
+              ['Platform (header)', header?.header.platform || NO_VALUE],
+              ['Created', header ? formatTimestamp(header.header.created_at) : NO_VALUE],
+            ]}
+          />
+          <p className="mb-1 mt-3 text-xs font-semibold">Documented environment</p>
+          <QuoteList items={s.solver} testId="study-solver" />
+        </Disclosure>
+        <Disclosure summary="Dataset, network version and input hashes" testId="study-dataset">
+          <KeyValue
+            rows={[
+              ['Network', entry.network === MULTI_NETWORK ? 'several (see inputs)' : <span className="font-mono">{entry.network}</span>],
+              ['Network file sha256', network?.network_sha256 ? <span className="break-all font-mono">{network.network_sha256}</span> : NO_VALUE],
+              ['Source', network?.source ? `${network.source.version ?? ''} ${network.source.url ?? ''}`.trim() || NO_VALUE : NO_VALUE],
+              [
+                'Artifact inputs (sha256)',
+                inputs.length > 0 ? (
+                  <ul className="flex flex-col gap-0.5" data-testid="artifact-inputs">
+                    {inputs.map((i) => (
+                      <li key={i.path} className="break-all font-mono text-2xs">
+                        {i.path} <span className="text-fg-subtle">{i.sha256}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  NO_VALUE
+                ),
+              ],
+              ['Payload sha256', header ? <span className="break-all font-mono">{header.header.payload_sha256}</span> : NO_VALUE],
+            ]}
+          />
+          <p className="mb-1 mt-3 text-xs font-semibold">Documented dataset</p>
+          <QuoteList items={s.dataset} testId="study-dataset-quotes" />
+        </Disclosure>
+        {header && (
+          <Disclosure summary="Artifact header (raw JSON)" testId="study-header-json">
+            <pre tabIndex={0} aria-label="Artifact header as published" className="max-h-80 overflow-auto font-mono text-2xs text-fg-muted">
+              {JSON.stringify(headerRaw, null, 2)}
+            </pre>
+          </Disclosure>
+        )}
+      </section>
     </div>
   )
 }

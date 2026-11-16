@@ -25,10 +25,13 @@ export function SchematicLegend({
   features,
   layers,
   mode = 'voltage',
+  deltaLabel,
 }: {
   features: MapFeatures
   layers: LayerVisibility
   mode?: BranchColorMode
+  /** Passed to the branch legend in delta mode. */
+  deltaLabel?: string
 }) {
   const facts = useMemo(() => {
     const kv = new Set<number>()
@@ -76,7 +79,7 @@ export function SchematicLegend({
           <p className="mt-1 text-2xs text-fg-subtle">Colours: Open Infrastructure Map voltage scale (below 10 kV and unknown in neutral ink); thicker = higher level.</p>
         </figure>
       ) : (
-        <BranchLegend mode={mode} />
+        <BranchLegend mode={mode} deltaLabel={deltaLabel} />
       )}
       <figure>
         <figcaption className="gs-label mb-1">Symbols</figcaption>

@@ -35,7 +35,10 @@ export function GridStep({
     onPick(networks[next]!.id, false)
   }
   return (
-    <Panel title="1 · Choose grid" description="The power-system dataset the crisis is applied to.">
+    <Panel
+      title="Step 1 · Choose the grid"
+      description="The power-system dataset the crisis is applied to. “Live solve” grids are optimised here on demand; the others open verified precomputed results only."
+    >
       <div role="radiogroup" aria-label="Grid" className="grid gap-2 sm:grid-cols-2">
         {networks.map((n, i) => {
           const live = policy.live.get(n.id)

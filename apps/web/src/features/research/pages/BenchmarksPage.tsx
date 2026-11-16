@@ -6,6 +6,7 @@ import { formatMoney, isRealCurrency, moneyUnit, resolveCostBasis } from '../../
 import { ArtifactSection } from '../components/ArtifactPanel'
 import { ArtifactMeta } from '../components/ArtifactMeta'
 import { Disclaimer } from '../components/Disclaimer'
+import { StudyGuide } from '../components/StudyGuide'
 import { LazyDetails } from '../components/LazyDetails'
 import { useArtifactCatalog, useArtifacts, useArtifactSummaries, useNetworks } from '../hooks'
 import { catalogHeader, selectArtifacts } from '../lib/indexing'
@@ -511,6 +512,7 @@ export function BenchmarksPage() {
         subtitle="Measured results from published artifacts: contingency screening accuracy and speed, probabilistic stress estimates, cross-engine agreement, AC power-flow reference validation and PyPSA preset runs."
       />
       <Disclaimer>Numbers are measurements on research test cases and the hardware listed with each artifact; they do not generalise beyond them.</Disclaimer>
+      <StudyGuide route="/benchmarks" />
       <Panel title="StormBench — DC contingency screening vs exact N-1" id="stormbench" bodyClassName={RESERVE_WHILE_LOADING}>
         <IndexGate engine="stormbench" kind="benchmark">
           {(items) => <StormBenchSection items={items} />}

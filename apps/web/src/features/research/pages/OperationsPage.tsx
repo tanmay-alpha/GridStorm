@@ -5,6 +5,7 @@ import { formatNumber, formatQuantity, NO_VALUE } from '../../../lib/format'
 import { loadingColor, LOADING_SCALE, OUTAGED_COLOR } from '../../../lib/scales'
 import { ArtifactLoader } from '../components/ArtifactPanel'
 import { Disclaimer } from '../components/Disclaimer'
+import { StudyGuide } from '../components/StudyGuide'
 import { GridSchematic, type SchematicEdge, type SchematicNode } from '../components/GridSchematic'
 import { useArtifactCatalog, useArtifactSummaries } from '../hooks'
 import { parseEpisode, rhoStats, type Episode, type EpisodeKpis } from '../lib/episode'
@@ -328,6 +329,7 @@ export function OperationsPage() {
         <strong>Simulation success ≠ operational safety.</strong> Surviving a Grid2Op episode means the simulator did not reach game over under its
         own rules on this sandbox environment; it says nothing about the safety of any real grid or control policy.
       </Disclaimer>
+      <StudyGuide route="/operations" />
       {body}
     </div>
   )
