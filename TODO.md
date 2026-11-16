@@ -19,9 +19,9 @@ Last updated: 2026-11-15
 | DEPLOYED (observed live) | 12 | API on Render, web on Vercel, live jobs, comparisons/reports, Studio + Run dashboard, line-loading replay, Explorer map, OOM fix, a11y/perf fixes, audit defect fixes, PyPSA-Eur BE live, Supabase Postgres |
 | VERIFIED (evidence recorded) | 46 | research, licensing (incl. ENTSO-E remediation), all science engines, data, CI, verification, security, a11y/perf audit, EENS wording |
 
-Live (since GridStorm 3.0, 2026-11-15): https://gridstorm.vercel.app (web from `main` `cf482f2`) · https://gridstorm-api.onrender.com (API `cf482f2`) · CI green on PR #10 head `78edabc` (run 43699511938). Earlier state: web `67354b0`, API `dd185d1`.
+Live (since round 2, 2026-11-15): https://gridstorm.vercel.app (Vercel `dpl_3sz8LAjYoaB9p5crqcQro6ndWnox`, Git integration build of `main` `127db27`) · https://gridstorm-api.onrender.com (Render `dep-dbss8mff3r2c73eogml0`, `/health` git_sha `127db27`) · CI green on PR #12 head `afc1883` (run 43725136285). Earlier: web/API `cf482f2` (3.0), `dd185d1`, `67354b0`.
 
-## Production follow-up — recovery audit, round 2 (2026-11-15, branch `fix/legacy-restore-and-polish`)
+## Production follow-up — recovery audit, round 2 (2026-11-15, PR #12 merged as `127db27`, follow-up PR #13)
 
 Baseline (before changes): `main` `68dcc09`; Render API `cf482f2` (`/ready` postgres + supabase durable); `scripts/probe_production.py` all PASS; production Playwright smoke on `main` green (run 43720944322); 9 completed jobs with lost results (HTTP 410). A fresh read-only live audit (15 routes × 3 viewports × 2 themes, 0 page errors, 0 overflow) found 1 P1, 3 P2, 14 P3 defects (LA-01…LA-17): [report](docs/audit/live-2026-11-15-round2.md). PR [#12](https://github.com/tanmay-alpha/GridStorm/pull/12).
 Statuses: `IMPLEMENTING → LOCALLY TESTED → CI VERIFIED → DEPLOYED → PROD TESTED`, or `BLOCKED` / `DOCUMENTED`.
@@ -29,14 +29,16 @@ Statuses: `IMPLEMENTING → LOCALLY TESTED → CI VERIFIED → DEPLOYED → PROD
 | ID | Task | Pri | Status | Evidence |
 |---|---|---|---|---|
 | R2-01 | Restore lost legacy blobs byte-for-byte when the original bytes still exist (`gridstorm_api.jobs.restore`) | P0 | PROD TESTED | 4 SciGRID precomputed jobs (`5dafdc1a`, `f2fc0cf3`, `5323bc95`, `c800561d`) recorded sha `e3e3494b…` = canonical payload of the artifact committed at `96f3f3a`; restored on production → HTTP 200, body sha = recorded sha = header, MD report 200. 5 live IEEE-14 results stay 410: their bytes embed solver wall time, so no recompute can reproduce them |
-| R2-02 | `/studio` CLS regression | P2 | LOCALLY TESTED | 0.0505 → 0.0002 (local build + API, 3 reps) |
-| R2-03 | Run page / Library layout shift (LA-04) | P2 | LOCALLY TESTED | run mobile 0.71 → 0.002, desktop 0.28 → 0.014, tablet → 0.025; Library mobile 0.91 → 0.002 |
-| R2-04 | Compare metric table in reading order | P3 | LOCALLY TESTED | `orderMetrics` + unit test |
-| R2-05 | Legacy comparison MD export 500 (LA-01); 500s lacked CORS → "backend unreachable" | P1 | LOCALLY TESTED | regression test rewrites a stored report to the legacy shape; 500 carries ACAO |
-| R2-06 | Downloads hash to the displayed sha (LA-02); comparison reuse (LA-09) | P2 | LOCALLY TESTED | report JSON served as canonical bytes; re-POST → 200 same id |
-| R2-08 | LA-03 legacy "EUR" assumption text; LA-05 stored-comparison view, CO₂ label; LA-07 error copy; LA-10 Benchmarks units; LA-12 timestamps / precomputed wall time; LA-15 4-sig-fig scaled money | P2/P3 | LOCALLY TESTED | unit tests in `result.test.ts`, `format.test.ts`, `client.test.ts` |
-| R2-09 | LA-06 Explorer search reset + focus; LA-08 one guide step list; LA-11 ≥ 24 px targets; LA-13 no "provenance n/a"; LA-14 plurals + custom-scenario name; LA-16 event-field aria-invalid; LA-17 themed scale bar | P3 | LOCALLY TESTED | `controls.a11y.test.tsx`, `EventEditor.test.tsx`, `presentation.test.ts`, `StudioPage.test.tsx` |
+| R2-02 | `/studio` CLS regression | P2 | PROD TESTED (desktop/tablet) | local 0.0505 → 0.0002; production 1440: 0.0002 light / 0.025 dark, 768: 0.0007. Mobile with slower requests 0.19 (summary aside appears then collapses) → fixed in PR #13 |
+| R2-03 | Run page / Library layout shift (LA-04) | P2 | PROD TESTED | production after deploy: run c328 0.0145 / 0.0319 / 0.0000 (1440 / 768 / 390), was 0.27 / 0.56 / 0.71; Library ≤ 0.0007, was 0.18 / 0.69–0.77 / 0.59; 410 run ≤ 0.0154. `/compare?comparison=` mobile 0.19 → fixed in PR #13 |
+| R2-04 | Compare metric table in reading order | P3 | DEPLOYED | `orderMetrics` + unit test |
+| R2-05 | Legacy comparison MD export 500 (LA-01); 500s lacked CORS → "backend unreachable" | P1 | PROD TESTED | `/reports/4f5661ec…?format=md` 500 → 200 (8000 B); production 404 carries `access-control-allow-origin`; Export MD downloads in the browser |
+| R2-06 | Downloads hash to the displayed sha (LA-02); comparison reuse (LA-09) | P2 | PROD TESTED (LA-02) / DEPLOYED (LA-09) | report JSON body sha = header (`30fe7e72…`); browser "Result JSON" file sha = header = job sha (`b4e6211f…`); reuse not exercised on production (no POSTs) |
+| R2-08 | LA-03 legacy "EUR" assumption text; LA-05 stored-comparison view, CO₂ label; LA-07 error copy; LA-10 Benchmarks units; LA-12 timestamps / precomputed wall time; LA-15 4-sig-fig scaled money | P2/P3 | PROD TESTED | run 458fddab shows no "EUR" outside the legacy note; KPI "2.001 M"; "CO₂ emissions"; "Compare a different pair" |
+| R2-09 | LA-06 Explorer search reset + focus; LA-08 one guide step list; LA-11 ≥ 24 px targets; LA-13 no "provenance n/a"; LA-14 plurals + custom-scenario name; LA-16 event-field aria-invalid; LA-17 themed scale bar | P3 | PROD TESTED (LA-06, 08, 11 sort headers) / DEPLOYED (rest) | search reopens empty; "step 1 of 5"; 0 sort headers < 24 px on mobile (was 16 px). Remaining < 24 px: Library job-id links (14 px) → PR #13 |
 | R2-07 | Cached geographic network switch (~250–285 ms) | P3 | DOCUMENTED | Profiled in 3.0: 39–58 ms with basemap tiles aborted; the remainder is third-party basemap tile work, not GridStorm data loading. Not changed |
+| R2-10 | PR #13: `/compare?comparison=` mobile CLS 0.19 → 0.002 (300 ms API delay, local; picker panel and comparison now render together); Studio summary aside deferred during grid loading (prod mobile 0.19 was timing-dependent, not reproduced locally); Library table-cell links ≥ 24 px on touch; Library artifact downloads keep server bytes; Benchmarks formatting tests; Workbench radios 24 px on touch | P2/P3 | LOCALLY TESTED | with 300 ms API delay all of /compare, /studio, /library ≤ 0.0083 at 390/768/1440; affected e2e 24/24. Post-deploy screenshots of #12: `docs/audit/screenshots/round2-after/` |
+| R2-11 | Dependabot GitHub Actions bumps | P3 | MERGED #2, #3, #5, #6; #1 rebasing; #4 (gitleaks v3) stale base, Dependabot unresponsive | Triage: all bumps compatible with the workflows' inputs; #4 needs a fresh CI run before merge |
 
 ## GridStorm 3.0 — science, product and research usability (started 2026-11-15)
 
