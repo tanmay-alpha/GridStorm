@@ -267,6 +267,14 @@ Pagination: `?limit=&offset=` → `{"items": [...], "total": n, "limit": n, "off
 | GET | `/api/v1/reports/{id}?format=json\|md` | reproducible report for a comparison or job |
 | GET | `/api/v1/artifacts?engine=&kind=&network_id=` | precomputed artifact index |
 | GET | `/api/v1/artifacts/{engine}/{artifact_id}` | precomputed artifact |
+| GET | `/api/v1/data/catalog?category=&provenance=&region=&source=&q=` | Data Observatory page of dataset summaries + `facets` (whole catalog) + `bundle` status; merges `data/observatory/`, one `network-<id>` entry per network, one `study-<id>` entry per research study group |
+| GET | `/api/v1/data/catalog/{id}` | full dataset entry (quality checks incl. load-time sha256 verification, transformations); 404 `not_found` |
+| GET | `/api/v1/data/catalog/{id}/series?series=&start=&end=&resolution=auto\|raw\|PT3H\|P1D\|P7D&agg=mean\|min\|max&max_points=` | bounded series (≤ 3 years, ≤ 2000 points, UTC-aligned buckets, missing = `null`); 409 `not_a_series_dataset`, 422 `range_too_large`/`unknown_series`, 503 `dataset_unverified` |
+| GET | `/api/v1/data/catalog/{id}/export?series=&start=&end=` | raw CSV attachment with `#` source/licence/attribution/sha256 header; 403 `export_not_permitted` |
+
+Data catalog routes: `Cache-Control: public, max-age=300` + body-hash `ETag`; details in
+[backend.md](backend.md#data-observatory-catalog-apiv1data), rationale in
+[ADR 0003](../decisions/0003-file-backed-data-observatory.md).
 
 Job:
 ```jsonc
