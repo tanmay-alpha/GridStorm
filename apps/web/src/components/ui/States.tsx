@@ -57,17 +57,22 @@ export function EmptyState({
   children,
   action,
   className,
+  icon,
 }: {
   title: string
   children?: ReactNode
   action?: ReactNode
   className?: string
+  /** Replaces the default inbox glyph (decorative; mark it aria-hidden). */
+  icon?: ReactNode
 }) {
   return (
     <div className={cn('flex flex-col items-center justify-center gap-2 px-4 py-8 text-center', className)}>
-      <Inbox aria-hidden className="size-6 text-fg-subtle" />
-      <p className="text-sm font-medium text-fg">{title}</p>
-      {children && <div className="max-w-md text-xs text-fg-muted">{children}</div>}
+      <span className="flex size-8 items-center justify-center rounded-full border border-line bg-surface-2 text-fg-subtle">
+        {icon ?? <Inbox aria-hidden className="size-4" />}
+      </span>
+      <p className="text-sm font-semibold text-fg">{title}</p>
+      {children && <div className="max-w-md text-xs leading-relaxed text-fg-muted">{children}</div>}
       {action}
     </div>
   )

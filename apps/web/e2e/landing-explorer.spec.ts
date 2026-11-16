@@ -5,9 +5,16 @@ import { waitForNetworkView } from './helpers/networkView'
 
 const SAMPLE = '/studio?network=pglib-case14-ieee&preset=pglib-case14-ieee-gen-1-outage&guide=1'
 
-test('overview directs a new visitor to the real IEEE14 sample', async ({ page }) => {
+test('overview directs a new visitor to the real IEEE14 sample', async ({ page, request }) => {
   await page.goto('/')
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Test its resilience.')
+  // Dataset cards and their count come from the API's network list; the preview is the real IEEE 14 drawing.
+  const networks = (await (await request.get('/api/v1/networks')).json()).items as unknown[]
+  await expect(page.getByTestId('home-dataset-card')).toHaveCount(networks.length)
+  await expect(page.getByTestId('home-dataset-count')).toContainText(`${networks.length} network models`)
+  await expect(page.getByTestId('home-grid-preview').locator('[data-bus-id]')).toHaveCount(14)
+  // No map or chart engine on the overview (MapLibre / ECharts render into canvases).
+  await expect(page.locator('.maplibregl-map, canvas')).toHaveCount(0)
   await expect(page.getByTestId('try-sample-crisis')).toHaveAttribute('href', SAMPLE)
   await page.getByTestId('try-sample-crisis').click()
   await expect(page.getByRole('complementary', { name: 'Scenario summary' })).toContainText('pglib-case14-ieee')

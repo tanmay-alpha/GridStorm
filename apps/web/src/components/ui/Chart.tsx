@@ -30,13 +30,18 @@ echarts.use([
 
 export type ChartOption = EChartsCoreOption
 
+const PALETTE_FALLBACK = ['#1d5fb8', '#c2410c', '#0f766e', '#7c3aed', '#a16207', '#be185d', '#4d7c0f', '#475569']
+
 /** Base option derived from current theme tokens; merged under the caller's option. */
 function themeBase(): ChartOption {
   const fg = cssVar('--gs-fg-muted') || '#4e5a6b'
   const line = cssVar('--gs-line') || '#d5d9e0'
   const surface = cssVar('--gs-surface') || '#fff'
   const text = cssVar('--gs-fg') || '#18202b'
+  // Categorical series colours (--gs-chart-1…8); series that set their own colour (carriers) keep it.
+  const color = PALETTE_FALLBACK.map((fallback, i) => cssVar(`--gs-chart-${i + 1}`) || fallback)
   return {
+    color,
     backgroundColor: 'transparent',
     textStyle: { color: fg, fontFamily: 'inherit', fontSize: 11 },
     grid: { left: 56, right: 16, top: 32, bottom: 32, containLabel: false },

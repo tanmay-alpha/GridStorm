@@ -4,7 +4,8 @@ import { describe, expect, it, vi } from 'vitest'
 import type { SearchEntry } from '../../components/network/assets'
 import { DEFAULT_LAYERS } from '../../components/map/layers'
 import { AssetSearch } from './AssetSearch'
-import { LayerControls } from './LayerControls'
+import { NO_FILTERS } from '../../components/map/features'
+import { FilterControls, LayerControls } from './LayerControls'
 
 describe('AssetSearch trigger', () => {
   it('is named by its visible text (WCAG 2.5.3 label-in-name) and exposes the shortcut', () => {
@@ -71,8 +72,29 @@ describe('LayerControls checkboxes', () => {
       expect(row, 'checkbox wrapped by its label row').not.toBeNull()
       expect(row!.className).toMatch(/(^|\s)min-h-6(\s|$)/)
     }
-    // Clicking anywhere on the row (here: the text) toggles the layer.
-    fireEvent.click(screen.getByText('Buses · 1'))
+    // Clicking anywhere on the row (here: the label text) toggles the layer; the count sits on the same row.
+    expect(screen.getByText('Buses').closest('label')).toHaveTextContent('Buses1')
+    fireEvent.click(screen.getByText('Buses'))
     expect(onLayers).toHaveBeenCalledWith({ ...DEFAULT_LAYERS, buses: false })
+  })
+})
+
+describe('FilterControls voltage quick filter', () => {
+  const props = { carriers: [], countries: [], carrierColor: () => '#888' }
+  it('offers one toggle per stored voltage level and sets the kV range to it', () => {
+    const onFilters = vi.fn()
+    const { rerender } = render(<FilterControls filters={NO_FILTERS} onFilters={onFilters} levels={[380, 220]} {...props} />)
+    expect(screen.getByRole('button', { name: 'All levels' })).toHaveAttribute('aria-pressed', 'true')
+    fireEvent.click(screen.getByRole('button', { name: '220 kV' }))
+    expect(onFilters).toHaveBeenCalledWith({ ...NO_FILTERS, minKv: 220, maxKv: 220 })
+    rerender(<FilterControls filters={{ ...NO_FILTERS, minKv: 220, maxKv: 220 }} onFilters={onFilters} levels={[380, 220]} {...props} />)
+    expect(screen.getByRole('button', { name: '220 kV' })).toHaveAttribute('aria-pressed', 'true')
+    // Pressing the active level again clears the range.
+    fireEvent.click(screen.getByRole('button', { name: '220 kV' }))
+    expect(onFilters).toHaveBeenLastCalledWith({ ...NO_FILTERS, minKv: null, maxKv: null })
+  })
+  it('is not shown for a single-level dataset', () => {
+    render(<FilterControls filters={NO_FILTERS} onFilters={() => {}} levels={[1]} {...props} />)
+    expect(screen.queryByTestId('voltage-quick-filter')).toBeNull()
   })
 })

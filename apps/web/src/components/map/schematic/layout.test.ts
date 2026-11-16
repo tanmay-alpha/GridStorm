@@ -154,6 +154,8 @@ describe('fitting and zoom', () => {
     expect(fitInsets(390, 420, legend)).toEqual(fitInsets(390, 420))
     // Tiny canvases cap every inset at a quarter of the dimension.
     expect(fitInsets(80, 60)).toEqual({ top: 15, right: 20, bottom: 15, left: 20 })
+    // No floating badge / controls (Explorer toolbar, overview preview): only the symbol margin.
+    expect(fitInsets(1120, 820, undefined, { badge: false, controls: false })).toEqual({ top: 41, right: 41, bottom: 53, left: 41 })
   })
   it('zooms around a fixed screen point and clamps the scale', () => {
     const v = { k: 2, tx: 10, ty: 20 }

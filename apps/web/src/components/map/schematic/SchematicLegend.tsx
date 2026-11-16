@@ -1,5 +1,6 @@
 import { useMemo, type ReactNode } from 'react'
-import { HVDC_COLOR, voltageColor } from '../../../lib/scales'
+import { HVDC_COLOR } from '../../../lib/scales'
+import { MAP_INK, deviceFill, deviceStroke, schematicVoltageColor } from './colors'
 import type { MapFeatures } from '../features'
 import type { BranchColorMode, LayerVisibility } from '../layers'
 import { BranchLegend } from '../MapLegend'
@@ -66,13 +67,13 @@ export function SchematicLegend({
           <figcaption className="gs-label mb-1">Nominal voltage (dataset v_nom)</figcaption>
           <ul className="flex flex-col gap-0.5">
             {facts.levels.map((kv) => (
-              <Row key={kv} swatch={line(voltageColor(kv))}>
+              <Row key={kv} swatch={line(schematicVoltageColor(kv))}>
                 {kv.toLocaleString('en-US')} kV
               </Row>
             ))}
-            {facts.unknownKv && <Row swatch={line(voltageColor(null))}>voltage not reported</Row>}
+            {facts.unknownKv && <Row swatch={line(schematicVoltageColor(null))}>voltage not reported</Row>}
           </ul>
-          <p className="mt-1 text-2xs text-fg-subtle">Colours: Open Infrastructure Map voltage scale; thicker = higher level.</p>
+          <p className="mt-1 text-2xs text-fg-subtle">Colours: Open Infrastructure Map voltage scale (below 10 kV and unknown in neutral ink); thicker = higher level.</p>
         </figure>
       ) : (
         <BranchLegend mode={mode} />
@@ -81,16 +82,16 @@ export function SchematicLegend({
         <figcaption className="gs-label mb-1">Symbols</figcaption>
         <ul className="flex flex-col gap-0.5">
           {layers.buses && (
-            <Row swatch={<circle r={5} fill="var(--gs-surface)" stroke="var(--gs-fg-muted)" strokeWidth={2.2} />}>Bus (ring colour = voltage)</Row>
+            <Row swatch={<circle r={5} fill="var(--gs-surface)" stroke={MAP_INK} strokeWidth={2.4} />}>Bus (ring colour = voltage)</Row>
           )}
-          {layers.lines && facts.kinds.has('line') && <Row swatch={line('var(--gs-fg-muted)')}>Line</Row>}
+          {layers.lines && facts.kinds.has('line') && <Row swatch={line(MAP_INK)}>Line</Row>}
           {layers.lines && facts.kinds.has('transformer') && (
             <Row
               swatch={
                 <>
-                  {line('var(--gs-fg-muted)')}
-                  <circle cx={-3.2} r={5} fill="var(--gs-surface)" stroke="var(--gs-fg-muted)" strokeWidth={1.6} />
-                  <circle cx={3.2} r={5} fill="none" stroke="var(--gs-fg-muted)" strokeWidth={1.6} />
+                  {line(MAP_INK)}
+                  <circle cx={-3.4} r={5} fill="var(--gs-surface)" stroke={MAP_INK} strokeWidth={1.6} />
+                  <circle cx={3.4} r={5} fill="none" stroke={MAP_INK} strokeWidth={1.6} />
                 </>
               }
             >
@@ -102,8 +103,8 @@ export function SchematicLegend({
             <Row
               swatch={
                 <>
-                  <circle r={6.5} fill="var(--gs-surface)" stroke="var(--gs-fg-muted)" strokeWidth={1.8} />
-                  <path d="M-3.6 0C-2.6 -3 -1 -3 0 0S2.6 3 3.6 0" fill="none" stroke="var(--gs-fg-muted)" strokeWidth={1.4} />
+                  <circle r={6.5} fill="var(--gs-surface)" stroke={MAP_INK} strokeWidth={1.8} />
+                  <path d="M-3.6 0C-2.6 -3 -1 -3 0 0S2.6 3 3.6 0" fill="none" stroke={MAP_INK} strokeWidth={1.4} />
                 </>
               }
             >
@@ -114,15 +115,15 @@ export function SchematicLegend({
             <Row
               swatch={
                 <>
-                  <circle r={6.5} fill="var(--gs-surface)" stroke="#7d6ad6" strokeWidth={1.8} />
-                  <path d="M-1.6 -3.8V3.8M1.6 -2V2" stroke="#7d6ad6" strokeWidth={1.6} />
+                  <circle r={6.5} style={{ fill: deviceFill('#7d6ad6'), stroke: deviceStroke('#7d6ad6') }} strokeWidth={1.8} />
+                  <path d="M-1.6 -3.8V3.8M1.6 -2V2" style={{ stroke: deviceStroke('#7d6ad6') }} strokeWidth={1.6} />
                 </>
               }
             >
               Storage unit
             </Row>
           )}
-          {layers.loads && facts.loads && <Row swatch={<path d="M-5 -5L6 0L-5 5Z" fill="var(--gs-fg-muted)" />}>Load</Row>}
+          {layers.loads && facts.loads && <Row swatch={<path d="M-5 -5L6 0L-5 5Z" fill={MAP_INK} />}>Load</Row>}
           {facts.outaged && (
             <Row
               swatch={
