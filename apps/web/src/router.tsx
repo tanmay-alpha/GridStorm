@@ -29,6 +29,8 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: page(() => import('./features/home/HomePage')) },
       { path: 'explore', element: page(() => import('./features/explorer/ExplorerPage')) },
+      { path: 'data', element: page(() => import('./features/observatory/ObservatoryPage')) },
+      { path: 'data/:datasetId', element: page(() => import('./features/observatory/DatasetPage')) },
       { path: 'studio', element: page(() => import('./features/studio/StudioPage')) },
       { path: 'runs/:id', element: page(() => import('./features/runs/RunPage')) },
       { path: 'compare', element: page(() => import('./features/compare/ComparePage')) },

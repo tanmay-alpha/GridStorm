@@ -1,4 +1,4 @@
-import { useQueries, useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQueries, useQuery } from '@tanstack/react-query'
 import { api, itemsOf } from './client'
 import type {
   CanonicalBus,
@@ -10,6 +10,8 @@ import type {
   CanonicalStorageUnit,
   CanonicalStore,
   CanonicalTransformer,
+  DataCatalogFilters,
+  DataSeriesParams,
   Job,
 } from './types'
 
@@ -29,6 +31,9 @@ export const qk = {
   artifacts: (q: object) => ['artifacts', q] as const,
   artifact: (engine: string, id: string) => ['artifact', engine, id] as const,
   comparison: (id: string) => ['comparison', id] as const,
+  dataCatalog: (f: DataCatalogFilters) => ['data-catalog', f] as const,
+  dataset: (id: string) => ['dataset', id] as const,
+  dataSeries: (id: string, p: DataSeriesParams) => ['data-series', id, p] as const,
 }
 
 export function useHealth() {
@@ -207,5 +212,48 @@ export function useArtifactIndex(q: { engine?: string; kind?: string; network_id
     queryKey: qk.artifacts(q),
     queryFn: ({ signal }) => api.artifacts(q, signal),
     select: (x) => itemsOf(x),
+  })
+}
+
+/** The observatory bundle only changes on redeploy; the API sends `Cache-Control: max-age=300`. */
+const OBSERVATORY_STALE_MS = 5 * 60_000
+
+/** Drop empty values so equivalent filters share one cache entry. */
+function compact<T extends object>(o: T): T {
+  return Object.fromEntries(
+    Object.entries(o).filter(([, v]) => v !== undefined && v !== null && v !== '' && !(Array.isArray(v) && v.length === 0)),
+  ) as T
+}
+
+/** Catalog page + facets; the previous page stays on screen while a filter change loads (no layout jump). */
+export function useDataCatalog(filters: DataCatalogFilters = {}) {
+  const f = compact(filters)
+  return useQuery({
+    queryKey: qk.dataCatalog(f),
+    queryFn: ({ signal }) => api.dataCatalog(f, signal),
+    staleTime: OBSERVATORY_STALE_MS,
+    placeholderData: keepPreviousData,
+  })
+}
+
+export function useDataset(id: string | null | undefined) {
+  return useQuery({
+    queryKey: qk.dataset(id ?? ''),
+    queryFn: ({ signal }) => api.dataset(id!, signal),
+    enabled: !!id,
+    staleTime: OBSERVATORY_STALE_MS,
+  })
+}
+
+/** Bounded series slice; pass `enabled: false` for metadata-only datasets. */
+export function useDataSeries(id: string | null | undefined, params: DataSeriesParams, enabled = true) {
+  const p = compact(params)
+  return useQuery({
+    queryKey: qk.dataSeries(id ?? '', p),
+    queryFn: ({ signal }) => api.dataSeries(id!, p, signal),
+    enabled: enabled && !!id,
+    staleTime: OBSERVATORY_STALE_MS,
+    // Keep the previous slice of the *same* dataset while a new window loads; never another dataset's values.
+    placeholderData: (prev, prevQuery) => (prevQuery?.queryKey[1] === (id ?? '') ? prev : undefined),
   })
 }

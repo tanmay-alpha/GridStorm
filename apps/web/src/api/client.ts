@@ -5,6 +5,11 @@ import type {
   AssetType,
   CanonicalGrid,
   Comparison,
+  DataCatalogFilters,
+  DataCatalogPage,
+  DataSeriesParams,
+  DataSeriesResponse,
+  DatasetEntry,
   NetworkGeojson,
   GridstormResult,
   Health,
@@ -132,6 +137,18 @@ export async function requestBlob(path: string, query?: Query, signal?: AbortSig
   return (await fetchOk(path, query, signal)).blob()
 }
 
+/** Query for the observatory series/export endpoints: series ids comma-joined, unset values omitted. */
+export function dataSeriesQuery(p: DataSeriesParams): Query {
+  return {
+    series: p.series?.length ? p.series.join(',') : undefined,
+    start: p.start,
+    end: p.end,
+    resolution: p.resolution,
+    agg: p.agg,
+    max_points: p.max_points,
+  }
+}
+
 const v1 = '/api/v1'
 const enc = encodeURIComponent
 
@@ -200,6 +217,16 @@ export const api = {
   /** Artifact document bytes verbatim, as stored on the server. */
   artifactBlob: (engine: string, artifactId: string, s?: AbortSignal) =>
     requestBlob(`${v1}/artifacts/${enc(engine)}/${enc(artifactId)}`, undefined, s),
+
+  /** Data Observatory catalog; facets always describe the full (unfiltered) catalog. */
+  dataCatalog: (f: DataCatalogFilters = {}, s?: AbortSignal) =>
+    request<DataCatalogPage>(`${v1}/data/catalog`, { query: { ...f, limit: 500 }, signal: s }),
+  dataset: (id: string, s?: AbortSignal) => request<DatasetEntry>(`${v1}/data/catalog/${enc(id)}`, { signal: s }),
+  dataSeries: (id: string, p: DataSeriesParams = {}, s?: AbortSignal) =>
+    request<DataSeriesResponse>(`${v1}/data/catalog/${enc(id)}/series`, { query: dataSeriesQuery(p), signal: s }),
+  /** CSV export (raw resolution, licence/attribution comment header); a plain link so the browser downloads it. */
+  dataExportUrl: (id: string, p: Pick<DataSeriesParams, 'series' | 'start' | 'end'> = {}) =>
+    buildUrl(`${v1}/data/catalog/${enc(id)}/export`, dataSeriesQuery(p)),
 }
 
 /** Normalise list endpoints that may return either a page or a bare array. */

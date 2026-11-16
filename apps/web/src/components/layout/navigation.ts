@@ -1,5 +1,6 @@
 export const WORKSPACE_NAV = [
   { to: '/explore', label: 'Explore', title: 'Grid Explorer' },
+  { to: '/data', label: 'Data', title: 'Data Observatory' },
   { to: '/studio', label: 'Simulate', title: 'Crisis Studio' },
   { to: '/compare', label: 'Compare', title: 'Compare & Replay' },
   { to: '/mitigation', label: 'Mitigation', title: 'Mitigation comparison' },
