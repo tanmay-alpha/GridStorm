@@ -26,14 +26,18 @@ the IEEE 14-bus loss of generator `gen-1` (`studio/flow.ts`, `GuidePanel.tsx`).
 | Step | Where | What you do |
 |---|---|---|
 | 1. Fail a generator | **Crisis Studio** | Read which generator fails, the remaining installed capacity and the investigation question. Choose *Run this crisis*, or *Open the verified result* when only the matching precomputed result is available. |
-| 2. Read the result | `/runs/<id>?guide=1` | Read the outcome and summary facts. The numbered guide links to the result, baseline comparison, brief and downloads. |
+| 2. Read the result | `/runs/<id>?guide=1` | Read the outcome sentence and the key metrics, grouped into *Physical impact* and *Model economics*. Section links (*Outcome · Brief · vs baseline · Network · Dispatch · Congestion · Reproduce & download*) jump through the page; the numbered guide links to the result, baseline comparison, brief and downloads. |
 | 3. Compare with baseline | **Compare with baseline** | Opens `/compare?a=<baseline>&b=<scenario>&auto=1&guide=1`. A compatible completed baseline is reused; otherwise *Run baseline & compare* is offered when a live baseline solve is available. `auto=1` creates the comparison on arrival. |
 | 4. Read the Grid Impact Brief | **Run / Compare** | Expand the evidence behind the mechanically derived statements; co-occurrence is not proof of cause. |
-| 5. Download evidence | **Run page → Downloads**; **Compare → Export MD/JSON** | Save result JSON, execution manifest and reports. |
+| 5. Download evidence | **Run page → Reproduce & download**; **Compare → Export comparison report** | Save result JSON, execution manifest and Markdown/JSON reports. |
 
-For custom investigations, explore a dataset in **Grid Explorer** (`/explorer`), compose a
-scenario in Studio, then compare completed runs on the same network. Saved scenarios appear
-in Studio and the Library. Compare's per-snapshot map slider replays loading through the horizon.
+For custom investigations, explore a dataset in **Grid Explorer** (`/explore`), look at the open
+data behind it in the **Data Observatory** (`/data`), compose a scenario in Studio, then compare
+completed runs on the same network. Saved scenarios appear in Studio and the Library. Compare's
+per-snapshot map views replay loading through the horizon.
+
+The header navigation is *Explore · Data · Simulate · Compare · Mitigation · Library*, plus an
+*Advanced research* menu (*Workbench, Contingency, Operations, Benchmarks, Methods*).
 
 The header shows the backend status (*API &lt;version&gt;*, *Checking backend…* or *Backend
 unreachable*). On a free-tier backend the first request after an idle period can take about a
@@ -42,15 +46,16 @@ minute while the service wakes up; the app retries unreachable requests with bac
 
 ## 2. Pages
 
-### Grid Explorer (`/explorer`)
+### Grid Explorer (`/explore`)
 
 - **Network** selector: every network in the backend catalog (`GET /api/v1/networks`); schematic
   networks are marked "— schematic".
 - **Asset search** (Ctrl+K): find buses, lines, transformers, links, generators, storage by id or
   name.
 - **Layers**: buses, lines, links, generators, storage, with counts.
-- **Filters**: *Voltage filter [kV]* (min/max, optionally including assets with unknown voltage),
-  *Carriers* (generators and storage), *Countries* (none checked = all).
+- **Filters**: *Voltage [kV]* (one-tap chips per nominal level when the dataset has two or more,
+  min/max inputs, *Include assets with unknown voltage*), *Carriers* (generators and storage),
+  *Countries* (none checked = all).
 - **Map**: geographic networks use MapLibre. IEEE 14/118 and other schematic networks use the
   dedicated SVG `components/map/schematic/SchematicView.tsx`, not a geographic basemap.
   Schematic positions have no geographic meaning. Branches are coloured by nominal voltage;
@@ -61,6 +66,47 @@ minute while the service wakes up; the app retries unreachable requests with bac
   source URL, version, upstream commit, retrieval date, attribution, `network.nc` SHA-256, snapshot
   count × resolution and period, peak/total load, supported engines, quality flags and dataset
   assumptions (from the `dataset-manifest/1.0`).
+
+### Data Observatory (`/data`, `/data/:datasetId`)
+
+One catalog of every dataset GridStorm uses or publishes (`GET /api/v1/data/catalog`): the curated
+observed/modeled/derived bundle (`data/observatory/`), one entry per network model and one per
+precomputed research study group. Data sources, licences and the publication pipeline are documented
+in [data/sources-and-licensing.md](data/sources-and-licensing.md) and
+[data/observatory-pipeline.md](data/observatory-pipeline.md).
+
+- **Browse**: dataset cards with category, provenance class, region, source, coverage and licence.
+  **Filters**: *Category*, *Provenance*, *Region*, *Source* and *Search* (free text); facet counts
+  cover the whole catalog. An empty result shows *No datasets match these filters*.
+- **Dataset page**: *Overview* (description, provenance), *Coverage* (start/end, resolution,
+  timezone UTC, published windows, missing values per series), *Quality* (each check with its
+  status; a failed check is flagged), *Locations* for point datasets (the NASA POWER request
+  coordinates; values are the reanalysis grid cell containing them, not a station), and *Use this
+  data*.
+- **Time series** workspace (series datasets only; "all times UTC"): pick series (grouped by
+  quantity and unit), a published *Window* or a *Start date (UTC)* / *End date (UTC)* range (both
+  dates included), *Resolution* and *Aggregation*. The API returns at most 3 years per request and
+  at most 2 000 points; coarser resolutions are UTC-aligned buckets labelled by their start.
+  **Missing values are drawn as breaks with a shaded span, never as 0**; each chart reports the gap
+  count. Ranges where nothing was published (for example NASA POWER between the 2015 window and
+  2017) are not covered, which is different from missing.
+- **Compare periods**: one series in two published windows, *Period A (solid)* and *Period B
+  (dashed)*, aligned by hours since each window starts (UTC); missing points are drawn as gaps.
+- **Provenance & licence** drawer: verbatim attribution, original publication (URL, DOI,
+  version, retrieval time), licence and redistribution status, transformations, bundle file and
+  sha256 checksums, documentation links. Escape closes it and returns focus to the trigger.
+- **Export CSV**: raw values of the selected series and window with a `#` header carrying source,
+  licence, attribution and sha256 (`GET /api/v1/data/catalog/{id}/export`). Export is disabled, with
+  the reason shown, when the source licence does not permit redistribution (API: HTTP 403
+  `export_not_permitted`) or when the entry has no series (metadata only).
+- **Use in a scenario** appears only when the entry declares a validated mapping to a network and
+  preset that exist in this deployment; otherwise the panel says *Not available as a scenario input*
+  and explains why (for example, a national MW series or point weather has no validated mapping to
+  a network's buses). The *Observed-analogue stress scenarios* entry opens the precomputed SciGRID-DE
+  preset `observed-dunkelflaute-2015-01-20` in Studio; network entries open Grid Explorer and Studio.
+
+Provenance labels matter here: the German load series is the ENTSO-E **day-ahead forecast**
+(`estimated`), not actual load; NASA POWER values are **reanalysis model output** (`modeled`).
 
 ### Crisis Studio (`/studio`)
 
@@ -78,8 +124,17 @@ Composes a StormSpec (`stormspec/1.0`) scenario.
 - **Execution availability**: *live* means this network permits live solves; *precomputed* requires
   a verified result with the exact scenario hash; *unavailable* means neither is possible.
   A checking state is shown while the necessary server data is loading (`flow.ts`).
-- **Scenarios**: *Presets* (shipped with the backend) and *Saved* scenarios. Picking one loads it;
-  any change marks it *edited* (*Discard edits* reverts).
+- **Scenarios**: *Presets* (shipped with the backend, `packages/stormspec/presets/`, 15 in total)
+  and *Saved* scenarios. Picking one loads it; any change marks it *edited* (*Discard edits*
+  reverts).
+- **Observed-analogue presets** (SciGRID-DE): `observed-dunkelflaute-2015-01-20`,
+  `observed-high-load-low-res-2017-01-24` and `observed-peak-load-2017-12-13` apply hourly demand
+  multipliers derived from the open ENTSO-E day-ahead load forecast and one daily renewable
+  multiplier per carrier to the network's 2011-01-01 day. `scigrid-de` is not solved live on the
+  free instance, so these run as **precomputed** results (unserved energy 2 721 / 4 731 / 4 429 MWh;
+  modeled analogue stress tests, not reconstructions —
+  [method and limitations](research/observed-analogue-scenarios.md)). They are also reachable from
+  the Data Observatory entry *Observed-analogue stress scenarios*.
 - **Scenario**: network, scenario id (lowercase letters, digits, hyphens; 3–64 chars), name,
   description. Name and description do not affect the scenario hash.
 - **Horizon**: start snapshot index and number of snapshots; the panel shows the network's snapshot
@@ -100,10 +155,11 @@ Composes a StormSpec (`stormspec/1.0`) scenario.
   outages must cover the whole horizon; a partial window is rejected with `unsupported_operation`
   (see [engineering story §2](engineering-story.md#2-why-partial-window-line-outages-are-rejected-in-lopf)).
   A scenario without events runs the network as-is and is the natural baseline.
-- **Mitigation & execution**: *Storage dispatch* (off: storage held at zero), *Allow renewable
+- **Mitigation levers** (step 3): *Storage dispatch* (off: storage held at zero), *Allow renewable
   curtailment* (off: variable renewables must produce all available power), *Load shedding* (adds
-  load-shedding generators priced at VOLL), *Value of lost load (VOLL)* [dataset money unit/MWh],
-  *Solver time limit* [s]. Engine/formulation and solver settings are shown.
+  load-shedding generators priced at VOLL), *Value of lost load (VOLL)* [dataset money unit/MWh].
+  *Advanced: solver & execution* (collapsed; defaults are reproducible) holds *Solver time limit*
+  [s] and shows the engine/formulation and solver settings.
 - **Validation**: errors and warnings from `POST /api/v1/scenarios/validate` (asset ids exist with
   the right component type, carriers exist, horizon and windows in range, multiplier ranges, engine
   capability). *Run simulation* and *Save scenario* are disabled while errors remain.
@@ -118,65 +174,93 @@ Composes a StormSpec (`stormspec/1.0`) scenario.
 
 ### Run page (`/runs/:id`)
 
-- **Summary facts**: outcome, unserved energy, demand served, congestion and operating cost;
-  a cost-basis badge identifies how monetary values must be read (`runs/result.ts`, `RunPage.tsx`).
+A completed run opens with section links: *Outcome · Brief · vs baseline · Network · Dispatch ·
+Congestion · Reproduce & download* (`RunPage.tsx`, `RunOverview.tsx`, `RunResultView.tsx`).
+
+- **Header**: scenario id, job status, scientific outcome, execution-mode badge (*live run* or
+  *precomputed*), a *reused* badge when an identical completed run was reused, job id, network and
+  creation time; *Cancel* while the job is not finished, *Compare with baseline* when it is.
+- **Outcome**: an outcome headline and sentence (e.g. *Feasible with 200 MWh unserved (77.22 % of
+  demand)*), the solver termination, and key metrics in two groups. *Physical impact*: unserved
+  energy (with peak shedding), demand served, congestion (branches at ≥ 99.9 % loading, with the
+  maximum loading), curtailment and, when the dataset has CO₂ intensities, CO₂ emissions. *Model
+  economics*: operating cost (the optimisation objective, including any load-shedding penalty) in
+  the dataset's cost basis, with the note that a lower cost does not mean greater operational
+  security. A cost-basis badge identifies how money must be read. A *Key assumptions* line
+  (engine/formulation, horizon, VOLL penalty, DC power flow) links to the full list.
+- **Diagnostics & numerical warnings** (only when something needs attention): error code/message,
+  infeasibility explanation, timeout, solver termination, result warnings (e.g. CO₂ null because
+  the dataset has no intensities — a data gap, not a zero-emission finding).
 - **Grid Impact Brief**: deterministic rules summarise the stored result, scenario and available
-  baseline/mitigation evidence. Every statement records source fields and values; no language
-  model is involved. Coinciding shedding and binding limits describe association, not causation
-  (`features/brief/brief.ts`).
+  baseline/mitigation evidence. Every statement records source fields and values (*Evidence*); no
+  language model is involved. Coinciding shedding and binding limits describe association, not
+  causation (`features/brief/brief.ts`).
+- **What changed vs baseline?**: when a compatible completed baseline run exists, a table of
+  baseline, this run, Δ and relative change (loading in percentage points; *n/a (baseline 0)* when
+  the baseline is zero).
+- **Network state**: line-loading map with a snapshot slider; branch colour = |flow| / s_nom at the
+  selected snapshot, bands 0–50 %, 50–70 %, 70–90 %, 90–99.9 %, ≥ 99.9 % (congested); dashed = out
+  of service, outlined = largest changes vs baseline, grey = no value.
+- **Dispatch**: *Generation by carrier vs demand* (stacked MW, dashed demand), *Load shedding* [MW],
+  *Storage* dispatch [MW] and state of charge [MWh] (when the network has storage), *Prices* (mean
+  nodal marginal price, LP dual, in the dataset's money unit/MWh).
+- **Congestion: branch loading**: type, id, `s_nom` [MVA], max |flow| [MW], max loading, outage
+  status — the maximum over the horizon; clicking a row selects the branch on the map. *Generator
+  dispatch* (expandable) lists energy per generator; "at limit" = output equals available capacity.
+- **Assumptions, reproducibility and downloads**: the result's *Assumptions* and cost-basis note;
+  *Downloads*: *Result JSON* (`gridstorm-result/1.0`), *Manifest* (`execution-manifest/1.0`),
+  *Report MD* / *Report JSON* (`GET /api/v1/reports/{job_id}`); *Solver and job status* (stage
+  timeline `queued → loading_network → applying_scenario → building_model → solving →
+  postprocessing → done`, polled every second — there is no percentage progress bar, because a
+  solver cannot predict its remaining time); *Dataset & sources* (network, source, version,
+  licence, attribution, dataset sha256); *Reproducibility* (engine, horizon, scenario and result
+  sha256, git commit, packages, platform, balance residual).
 - **Single-period cases**: a lone snapshot without a calendar time index is labelled
   *single period (no timestamp)*, not a fabricated date (`runs/result.ts`).
-- **Header**: scenario id, job status, scientific outcome, execution-mode badge (*live run* or
-  *precomputed*), a *reused* badge when an identical completed run was reused, *Cancel* while the
-  job is not finished, *Compare* when it is.
-- **Status**: stage timeline (`queued → loading_network → applying_scenario → building_model →
-  solving → postprocessing → done`), polled every second. There is no percentage progress bar: a
-  solver cannot predict its remaining time.
-- **Solver**: name, version, status, termination condition, objective, wall time.
-- **Diagnostics** (only when something needs attention): error code/message, infeasibility
-  explanation, timeout, solver termination, result warnings.
-- **Downloads**: *Result JSON* (`gridstorm-result/1.0`), *Manifest* (`execution-manifest/1.0`),
-  *Report MD* / *Report JSON* (`GET /api/v1/reports/{job_id}`), plus the stored artifacts with
-  size and SHA-256.
-- **Key metrics** (cards): unserved energy, peak load shed, load-shed hours, total system cost,
-  max line loading (highlighted at ≥ 99.9 %), congested branches, total load, served load,
-  curtailment, generation cost, CO₂ emissions, mean line loading. See [§3](#3-metrics-meaning-units-formulas).
-- **Charts**: generation by carrier (stacked, MW) with demand as a dashed line; load shed [MW];
-  storage dispatch [MW] and state of charge [MWh] (when the network has storage); mean nodal
-  marginal price [dataset money unit/MWh]; generation by carrier (energy, MWh).
-- **Line loading map** with a snapshot slider: colour bands 0–50 %, 50–70 %, 70–90 %,
-  90–99.9 %, ≥ 99.9 % (congested); grey = out of service / no value.
-- **Branches** table: type, id, `s_nom` [MVA], max |flow| [MW], max loading, outage status — the
-  maximum over the horizon; clicking a row highlights the branch on the map.
-- **Assumptions** (from the result) and **Engine & reproducibility**: engine name/version/
-  formulation, scenario id and hash, snapshot range, result SHA-256, balance residual.
 
-If the job did not complete, no result is shown — "No result is available for a *status* job".
+All metric fields and formulas are in [§3](#3-metrics-meaning-units-formulas) and the downloaded
+result JSON. If the job did not complete, no result is shown — "No result is available for a
+*status* job". If a stored result file is gone (HTTP 410), *Result file unavailable* offers a re-run.
 
 ### Compare & Replay (`/compare`)
 
-- **Select runs**: *Baseline run* and *Scenario run* from completed jobs; both must use the same
-  network (the API rejects other pairs). *Compare* creates a comparison (`POST /api/v1/comparisons`).
-- **Header**: provenance badge (`calculated`), links to both runs with their outcomes, *Export MD* /
-  *Export JSON* (`GET /api/v1/reports/{comparison_id}`).
+"Compare two completed runs on the same network: what changed, the Grid Impact Brief, branch
+changes, replay and exportable reports."
+
+- **Select runs** (*Compare a different pair* once a comparison is open): *Baseline run* and
+  *Scenario run* from completed jobs; both must use the same network (the API rejects other pairs).
+  *Compare* creates a comparison (`POST /api/v1/comparisons`).
+- **Pair header**: provenance badge (`calculated`), network, *1 · Baseline* and *2 · Disturbance
+  (scenario)* cards linking to both runs with their outcomes, then paired KPIs (unserved energy,
+  peak load shed, max line loading, congested line count, and total system cost marked *model
+  economics*), each as baseline → scenario with Δ.
 - **Warnings**: e.g. when a run's outcome is not `feasible`, its metrics may be empty and the
   affected deltas are null.
-- **Metric deltas**: Δ = scenario − baseline. Loading percentages use **percentage points (pp)**,
-  not relative percent change. Other relative deltas use Δ / |baseline| · 100; baseline zero is
-  shown as **n/a (baseline 0)**. Missing values are never treated as zero (`compare/compare.ts`).
-- **Cost deltas**: withheld unless the two runs share the same nonempty cost-basis
-  `comparability_key`; physical energy/loading deltas remain available.
-- **Line loading difference** map with four views: *Δ max loading over horizon [pp]*, *Δ loading
+- **Grid Impact Brief**: scenario versus baseline, derived by fixed rules from both stored results.
+- **Physical impact and network stress**: metric table, Δ = scenario − baseline. Loading
+  percentages use **percentage points (pp)**, not relative percent change. Other relative deltas use
+  Δ / |baseline| · 100; baseline zero is shown as **n/a (baseline 0)**. Missing values are never
+  treated as zero (`compare/compare.ts`).
+- **Model economics**: objective-function terms; cost deltas are withheld unless the two runs share
+  the same nonempty cost-basis `comparability_key`; physical energy/loading deltas remain available.
+- **Generation by carrier Δ** [MWh] (scenario − baseline).
+- **Network: loading difference** map; *Map shows*: *Δ max loading over horizon [pp]*, *Δ loading
   at snapshot [pp]*, *Scenario loading at snapshot [%]*, *Baseline loading at snapshot [%]*. The
-  per-snapshot views have a snapshot slider (the replay). Δ colour bands: ≤ −20, −20 to −5,
-  −5 to +5, +5 to +20, ≥ +20 percentage points; grey = no value in one run.
-- **Generation by carrier Δ** [MWh] (chart and table) and **Branch loading Δ** table (max over the
-  horizon of |loading|, sorted by |Δ|; for links, |flow| / p_nom · 100).
+  per-snapshot views have a snapshot slider (the replay); outlined = largest branch changes,
+  dashed = out of service. Δ colour bands: ≤ −20, −20 to −5, −5 to +5, +5 to +20, ≥ +20 percentage
+  points; grey = no value in one run. The branch-loading Δ table uses the max over the horizon of
+  |loading|, sorted by |Δ| (for links, |flow| / p_nom · 100).
 - **Assumptions** of the comparison.
+- **Export comparison report**: *Export MD* / *Export JSON* (`GET /api/v1/reports/{comparison_id}`),
+  built by the server: every metric with baseline, scenario, Δ and relative Δ in the declared cost
+  basis; generation by carrier, largest branch-loading changes, warnings, assumptions; scenario
+  hashes, dataset and result sha256, engine and solver of both runs.
 
 ### Mitigation comparison (`/mitigation`)
 
-The study list (`features/mitigation/studies.ts`) contains exactly:
+*Mitigation studies* lists the studies of `features/mitigation/studies.ts`; each opens at
+`/mitigation/<study id>` (`scigrid-de-dunkelflaute-storage`, `pglib-case14-ieee-loss-branch-3`,
+`pglib-case14-ieee-loss-gen-1`). The list contains exactly:
 
 | Study | What it shows |
 |---|---|
@@ -184,16 +268,23 @@ The study list (`features/mitigation/studies.ts`) contains exactly:
 | IEEE 14-bus — loss of branch-3: AC-validated corrective action | Pre-crisis, crisis and recommended-action AC states; asks whether an action clears every violation after the branch outage and bus-3 under-voltage. |
 | IEEE 14-bus — loss of generator gen-1: is any corrective action accepted? | Loss of the slack generator with insufficient remaining capacity; reports whether any candidate passes the AC acceptance rules, including an explicit no-accepted-action state. |
 
-Committed precomputed results are the default. The SciGRID study can select the latest completed
-live runs with identical scenario hashes only when all three exist; advisor studies remain
-precomputed. `/mitigation?baseline=<id>&crisis=<id>&mitigation=<id>` also compares three completed
-runs on the same network (`MitigationPage.tsx`).
+Committed precomputed results are the default. The SciGRID study shows *What each step changes*
+(Δ = later step − earlier step), a Grid Impact Brief for crisis vs baseline with the mitigation
+effect, load shedding and storage over the horizon, and the crisis vs mitigated network loading.
+It can select the latest completed live runs with identical scenario hashes only when all three
+exist. Advisor studies remain precomputed and show *1 · Before the crisis*, *2 · Crisis, no action*
+and the recommendation, a Brief and the acceptance rules.
+`/mitigation?baseline=<id>&crisis=<id>&mitigation=<id>` compares three completed runs on the same
+network (*Baseline → crisis → mitigation (live runs)*, `MitigationPage.tsx`).
 
 ### Research Workbench (`/workbench`)
 
-Select a research network, then a published study (multi-network artifacts have their own group).
-Read artifact-backed results, documented assumptions/limitations, references, engine/solver
-information and reproduction commands. Detailed research pages are linked rather than duplicated.
+*Research workbench* (under *Advanced research*): select a research network, then a published
+study (multi-network artifacts have their own group); 10 studies are listed
+(`workbench/studies.ts`). Each study shows *Results obtained* (read from the published artifact),
+*What the results support — and what they do not* (quoted from the study documentation), *How to
+reproduce*, *References*, and engine/solver information. Detailed research pages are linked
+rather than duplicated.
 
 Execution labels distinguish *live re-run available*, *precomputed only* and *offline study*.
 Even when a live re-run is available, the workbench numbers are the published precomputed artifact.
@@ -431,6 +522,10 @@ served only for `completed` jobs.
 - **Probabilistic metrics** (EENS, LOLP) depend entirely on the assumed outage probabilities.
 - **Grid2Op** episodes run on sandbox environments; survival is not evidence of operational safety.
 - **Schematic networks** have no geographic meaning.
+- **Observed data**: the German load series is the ENTSO-E day-ahead **forecast**, not actual load
+  (actual load and generation are not openly re-usable); NASA POWER values are **reanalysis model
+  output** for grid cells, not station measurements. Observed-analogue scenarios apply national
+  aggregates to the 2011 SciGRID-DE network and are analogue stress tests, not reconstructions.
 - **Free-tier hosting**: the backend may sleep when idle (≈ 1 min wake-up), runs one simulation at a
   time with a per-job time and memory limit, and rate-limits POST requests and simulations
   (see [deployment/render.md](deployment/render.md)).
