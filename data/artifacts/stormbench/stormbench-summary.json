@@ -6,8 +6,8 @@
   "engine": "stormbench",
   "engine_version": "stormbench 0.1.0 / pandapower 3.5.6",
   "network_id": "multiple",
-  "created_at": "2026-11-14T21:01:56Z",
-  "command": "uv run python ../../benchmarks/stormbench/run_benchmark.py",
+  "created_at": "2026-11-16T21:18:13Z",
+  "command": "uv run --locked python ../../benchmarks/stormbench/run_benchmark.py",
   "inputs": [
    {
     "path": "benchmarks/stormbench/cases/pglib_opf_case14_ieee.m",
@@ -36,7 +36,7 @@
   ],
   "platform": "Windows 10 AMD64, Python 3.11.15",
   "execution_mode": "precomputed",
-  "payload_sha256": "bdf122475243dbb2fe72d755467115f9e321a0366d5f3aa6f1b3505cfc1775f2"
+  "payload_sha256": "fa06282dd45f4b275d55ab539f8810ef52b00b30f4818324217a1db77ba60b77"
  },
  "payload": {
   "schema_version": "stormbench-summary/1.0",
@@ -45,6 +45,7 @@
   "cases": [
    {
     "schema_version": "stormbench-result/1.0",
+    "provenance": "calculated",
     "case": "case14_ieee",
     "source": {
      "file": "benchmarks/stormbench/cases/pglib_opf_case14_ieee.m",
@@ -101,9 +102,24 @@
      "k": 1,
      "recall_at_k": 1.0,
      "recall_at_10": 1.0,
-     "kendall_tau": 0.9883,
-     "spearman": 0.9982,
-     "n": 19
+     "kendall_tau": 1.0,
+     "spearman": 1.0,
+     "n": 19,
+     "ties": {
+      "tolerance_pct": 1e-06,
+      "screening": {
+       "tie_groups": 1,
+       "tied_pairs": 1,
+       "max_group_span_pct": 7.105e-15,
+       "tolerance_margin_pct": 1e-06
+      },
+      "reference": {
+       "tie_groups": 1,
+       "tied_pairs": 1,
+       "max_group_span_pct": 2.132e-14,
+       "tolerance_margin_pct": 1e-06
+      }
+     }
     },
     "screening_vs_ac": {
      "tp": 1,
@@ -115,9 +131,24 @@
      "k": 1,
      "recall_at_k": 1.0,
      "recall_at_10": 0.9,
-     "kendall_tau": 0.7895,
-     "spearman": 0.8789,
-     "n": 19
+     "kendall_tau": 0.7977,
+     "spearman": 0.8802,
+     "n": 19,
+     "ties": {
+      "tolerance_pct": 1e-06,
+      "screening": {
+       "tie_groups": 1,
+       "tied_pairs": 1,
+       "max_group_span_pct": 7.105e-15,
+       "tolerance_margin_pct": 1e-06
+      },
+      "reference": {
+       "tie_groups": 0,
+       "tied_pairs": 0,
+       "max_group_span_pct": 0.0,
+       "tolerance_margin_pct": 0.001493
+      }
+     }
     },
     "ac": {
      "base_converged": "converged",
@@ -130,15 +161,15 @@
     },
     "runtime": {
      "repeats": 3,
-     "screening_median_s": 0.001558,
-     "dc_exact_median_s": 0.008955,
-     "ac_exact_median_s": 0.7393
+     "screening_median_s": 0.001461,
+     "dc_exact_median_s": 0.00731,
+     "ac_exact_median_s": 0.6367
     },
     "memory": {
-     "screening_peak_tracemalloc_mib": 0.03834,
-     "dc_exact_peak_tracemalloc_mib": 0.04557,
+     "screening_peak_tracemalloc_mib": 0.03844,
+     "dc_exact_peak_tracemalloc_mib": 0.04578,
      "ac_exact_peak_tracemalloc_mib": 1.466,
-     "process_rss_end_mib": 249.8
+     "process_rss_end_mib": 249.3
     },
     "top_contingencies": [
      {
@@ -222,7 +253,6 @@
       "NUMBA_NUM_THREADS": "1"
      }
     },
-    "provenance": "calculated",
     "contingencies": [
      {
       "branch_id": "branch-1",
@@ -408,6 +438,7 @@
    },
    {
     "schema_version": "stormbench-result/1.0",
+    "provenance": "calculated",
     "case": "case30_ieee",
     "source": {
      "file": "benchmarks/stormbench/cases/pglib_opf_case30_ieee.m",
@@ -466,9 +497,24 @@
      "k": 18,
      "recall_at_k": 1.0,
      "recall_at_10": 1.0,
-     "kendall_tau": 0.995,
-     "spearman": 0.9996,
-     "n": 38
+     "kendall_tau": 1.0,
+     "spearman": 1.0,
+     "n": 38,
+     "ties": {
+      "tolerance_pct": 1e-06,
+      "screening": {
+       "tie_groups": 2,
+       "tied_pairs": 4,
+       "max_group_span_pct": 2.842e-14,
+       "tolerance_margin_pct": 1e-06
+      },
+      "reference": {
+       "tie_groups": 2,
+       "tied_pairs": 4,
+       "max_group_span_pct": 2.274e-13,
+       "tolerance_margin_pct": 1e-06
+      }
+     }
     },
     "screening_vs_ac": {
      "tp": 1,
@@ -480,9 +526,24 @@
      "k": 1,
      "recall_at_k": 1.0,
      "recall_at_10": 0.3,
-     "kendall_tau": -0.09123,
-     "spearman": -0.1319,
-     "n": 38
+     "kendall_tau": -0.09273,
+     "spearman": -0.1321,
+     "n": 38,
+     "ties": {
+      "tolerance_pct": 1e-06,
+      "screening": {
+       "tie_groups": 2,
+       "tied_pairs": 4,
+       "max_group_span_pct": 2.842e-14,
+       "tolerance_margin_pct": 1e-06
+      },
+      "reference": {
+       "tie_groups": 0,
+       "tied_pairs": 0,
+       "max_group_span_pct": 0.0,
+       "tolerance_margin_pct": 0.007553
+      }
+     }
     },
     "ac": {
      "base_converged": "converged",
@@ -495,15 +556,15 @@
     },
     "runtime": {
      "repeats": 3,
-     "screening_median_s": 0.002185,
-     "dc_exact_median_s": 0.0224,
-     "ac_exact_median_s": 1.308
+     "screening_median_s": 0.001641,
+     "dc_exact_median_s": 0.02235,
+     "ac_exact_median_s": 1.122
     },
     "memory": {
      "screening_peak_tracemalloc_mib": 0.109,
-     "dc_exact_peak_tracemalloc_mib": 0.09716,
-     "ac_exact_peak_tracemalloc_mib": 1.66,
-     "process_rss_end_mib": 250.7
+     "dc_exact_peak_tracemalloc_mib": 0.09689,
+     "ac_exact_peak_tracemalloc_mib": 1.661,
+     "process_rss_end_mib": 250.0
     },
     "top_contingencies": [
      {
@@ -587,7 +648,6 @@
       "NUMBA_NUM_THREADS": "1"
      }
     },
-    "provenance": "calculated",
     "contingencies": [
      {
       "branch_id": "branch-1",
@@ -962,6 +1022,7 @@
    },
    {
     "schema_version": "stormbench-result/1.0",
+    "provenance": "calculated",
     "case": "case57_ieee",
     "source": {
      "file": "benchmarks/stormbench/cases/pglib_opf_case57_ieee.m",
@@ -1018,9 +1079,24 @@
      "k": 12,
      "recall_at_k": 1.0,
      "recall_at_10": 1.0,
-     "kendall_tau": 0.9997,
+     "kendall_tau": 1.0,
      "spearman": 1.0,
-     "n": 79
+     "n": 79,
+     "ties": {
+      "tolerance_pct": 1e-06,
+      "screening": {
+       "tie_groups": 7,
+       "tied_pairs": 7,
+       "max_group_span_pct": 0.0,
+       "tolerance_margin_pct": 1e-06
+      },
+      "reference": {
+       "tie_groups": 7,
+       "tied_pairs": 7,
+       "max_group_span_pct": 2.842e-14,
+       "tolerance_margin_pct": 1e-06
+      }
+     }
     },
     "screening_vs_ac": {
      "tp": 12,
@@ -1032,9 +1108,24 @@
      "k": 15,
      "recall_at_k": 1.0,
      "recall_at_10": 0.9,
-     "kendall_tau": 0.9162,
+     "kendall_tau": 0.9168,
      "spearman": 0.9803,
-     "n": 78
+     "n": 78,
+     "ties": {
+      "tolerance_pct": 1e-06,
+      "screening": {
+       "tie_groups": 7,
+       "tied_pairs": 7,
+       "max_group_span_pct": 0.0,
+       "tolerance_margin_pct": 1e-06
+      },
+      "reference": {
+       "tie_groups": 4,
+       "tied_pairs": 4,
+       "max_group_span_pct": 1.592e-12,
+       "tolerance_margin_pct": 1e-06
+      }
+     }
     },
     "ac": {
      "base_converged": "converged",
@@ -1049,15 +1140,15 @@
     },
     "runtime": {
      "repeats": 3,
-     "screening_median_s": 0.003066,
-     "dc_exact_median_s": 0.06353,
-     "ac_exact_median_s": 2.977
+     "screening_median_s": 0.002883,
+     "dc_exact_median_s": 0.04886,
+     "ac_exact_median_s": 1.816
     },
     "memory": {
      "screening_peak_tracemalloc_mib": 0.3704,
-     "dc_exact_peak_tracemalloc_mib": 0.2785,
+     "dc_exact_peak_tracemalloc_mib": 0.2781,
      "ac_exact_peak_tracemalloc_mib": 2.016,
-     "process_rss_end_mib": 252.9
+     "process_rss_end_mib": 251.8
     },
     "top_contingencies": [
      {
@@ -1141,7 +1232,6 @@
       "NUMBA_NUM_THREADS": "1"
      }
     },
-    "provenance": "calculated",
     "contingencies": [
      {
       "branch_id": "branch-1",
@@ -1867,6 +1957,7 @@
    },
    {
     "schema_version": "stormbench-result/1.0",
+    "provenance": "calculated",
     "case": "case118_ieee",
     "source": {
      "file": "benchmarks/stormbench/cases/pglib_opf_case118_ieee.m",
@@ -1931,9 +2022,24 @@
      "k": 123,
      "recall_at_k": 1.0,
      "recall_at_10": 1.0,
-     "kendall_tau": 0.9771,
-     "spearman": 0.9912,
-     "n": 177
+     "kendall_tau": 1.0,
+     "spearman": 1.0,
+     "n": 177,
+     "ties": {
+      "tolerance_pct": 1e-06,
+      "screening": {
+       "tie_groups": 5,
+       "tied_pairs": 1435,
+       "max_group_span_pct": 9.948e-14,
+       "tolerance_margin_pct": 1e-06
+      },
+      "reference": {
+       "tie_groups": 5,
+       "tied_pairs": 1435,
+       "max_group_span_pct": 3.268e-13,
+       "tolerance_margin_pct": 1e-06
+      }
+     }
     },
     "screening_vs_ac": {
      "tp": 28,
@@ -1945,9 +2051,24 @@
      "k": 28,
      "recall_at_k": 0.5714,
      "recall_at_10": 0.7,
-     "kendall_tau": 0.2864,
-     "spearman": 0.3971,
-     "n": 176
+     "kendall_tau": 0.297,
+     "spearman": 0.4049,
+     "n": 176,
+     "ties": {
+      "tolerance_pct": 1e-06,
+      "screening": {
+       "tie_groups": 5,
+       "tied_pairs": 1435,
+       "max_group_span_pct": 9.948e-14,
+       "tolerance_margin_pct": 1e-06
+      },
+      "reference": {
+       "tie_groups": 3,
+       "tied_pairs": 3,
+       "max_group_span_pct": 8.527e-14,
+       "tolerance_margin_pct": 9.893e-07
+      }
+     }
     },
     "ac": {
      "base_converged": "converged",
@@ -1962,15 +2083,15 @@
     },
     "runtime": {
      "repeats": 3,
-     "screening_median_s": 0.004321,
-     "dc_exact_median_s": 0.1433,
-     "ac_exact_median_s": 6.575
+     "screening_median_s": 0.004147,
+     "dc_exact_median_s": 0.09181,
+     "ac_exact_median_s": 4.828
     },
     "memory": {
      "screening_peak_tracemalloc_mib": 1.602,
      "dc_exact_peak_tracemalloc_mib": 1.178,
-     "ac_exact_peak_tracemalloc_mib": 2.767,
-     "process_rss_end_mib": 256.3
+     "ac_exact_peak_tracemalloc_mib": 2.765,
+     "process_rss_end_mib": 255.3
     },
     "top_contingencies": [
      {
@@ -2054,7 +2175,6 @@
       "NUMBA_NUM_THREADS": "1"
      }
     },
-    "provenance": "calculated",
     "contingencies": [
      {
       "branch_id": "branch-1",
@@ -3734,6 +3854,7 @@
    },
    {
     "schema_version": "stormbench-result/1.0",
+    "provenance": "calculated",
     "case": "case300_ieee",
     "source": {
      "file": "benchmarks/stormbench/cases/pglib_opf_case300_ieee.m",
@@ -3876,9 +3997,24 @@
      "k": 39,
      "recall_at_k": 1.0,
      "recall_at_10": 1.0,
-     "kendall_tau": 0.9907,
-     "spearman": 0.9988,
-     "n": 322
+     "kendall_tau": 1.0,
+     "spearman": 1.0,
+     "n": 322,
+     "ties": {
+      "tolerance_pct": 1e-06,
+      "screening": {
+       "tie_groups": 16,
+       "tied_pairs": 690,
+       "max_group_span_pct": 1.041e-06,
+       "tolerance_margin_pct": 4.694e-07
+      },
+      "reference": {
+       "tie_groups": 16,
+       "tied_pairs": 690,
+       "max_group_span_pct": 1.041e-06,
+       "tolerance_margin_pct": 4.694e-07
+      }
+     }
     },
     "screening_vs_ac": {
      "tp": 25,
@@ -3890,9 +4026,24 @@
      "k": 35,
      "recall_at_k": 0.9143,
      "recall_at_10": 0.7,
-     "kendall_tau": 0.6962,
-     "spearman": 0.8062,
-     "n": 306
+     "kendall_tau": 0.6985,
+     "spearman": 0.8059,
+     "n": 306,
+     "ties": {
+      "tolerance_pct": 1e-06,
+      "screening": {
+       "tie_groups": 15,
+       "tied_pairs": 618,
+       "max_group_span_pct": 1.041e-06,
+       "tolerance_margin_pct": 4.694e-07
+      },
+      "reference": {
+       "tie_groups": 6,
+       "tied_pairs": 8,
+       "max_group_span_pct": 5.803e-07,
+       "tolerance_margin_pct": 1.164e-07
+      }
+     }
     },
     "ac": {
      "base_converged": "converged",
@@ -3922,15 +4073,15 @@
     },
     "runtime": {
      "repeats": 3,
-     "screening_median_s": 0.0157,
-     "dc_exact_median_s": 0.4301,
-     "ac_exact_median_s": 16.22
+     "screening_median_s": 0.01163,
+     "dc_exact_median_s": 0.2679,
+     "ac_exact_median_s": 10.86
     },
     "memory": {
      "screening_peak_tracemalloc_mib": 6.597,
-     "dc_exact_peak_tracemalloc_mib": 4.322,
+     "dc_exact_peak_tracemalloc_mib": 4.326,
      "ac_exact_peak_tracemalloc_mib": 4.114,
-     "process_rss_end_mib": 227.9
+     "process_rss_end_mib": 202.3
     },
     "top_contingencies": [
      {
@@ -4014,7 +4165,6 @@
       "NUMBA_NUM_THREADS": "1"
      }
     },
-    "provenance": "calculated",
     "contingencies": [
      {
       "branch_id": "branch-1",
@@ -7719,6 +7869,7 @@
    },
    {
     "schema_version": "stormbench-result/1.0",
+    "provenance": "calculated",
     "case": "case1354_pegase",
     "source": {
      "file": "benchmarks/stormbench/cases/pglib_opf_case1354_pegase.m",
@@ -8335,9 +8486,24 @@
      "k": 1157,
      "recall_at_k": 1.0,
      "recall_at_10": 1.0,
-     "kendall_tau": 0.978,
-     "spearman": 0.995,
-     "n": 1430
+     "kendall_tau": 1.0,
+     "spearman": 1.0,
+     "n": 1430,
+     "ties": {
+      "tolerance_pct": 1e-06,
+      "screening": {
+       "tie_groups": 74,
+       "tied_pairs": 37221,
+       "max_group_span_pct": 8.519e-07,
+       "tolerance_margin_pct": 2.752e-08
+      },
+      "reference": {
+       "tie_groups": 74,
+       "tied_pairs": 37221,
+       "max_group_span_pct": 8.519e-07,
+       "tolerance_margin_pct": 2.752e-08
+      }
+     }
     },
     "screening_vs_ac": {
      "tp": 196,
@@ -8349,9 +8515,24 @@
      "k": 200,
      "recall_at_k": 0.745,
      "recall_at_10": 0.8,
-     "kendall_tau": 0.2247,
-     "spearman": 0.3097,
-     "n": 1427
+     "kendall_tau": 0.2278,
+     "spearman": 0.3111,
+     "n": 1427,
+     "ties": {
+      "tolerance_pct": 1e-06,
+      "screening": {
+       "tie_groups": 74,
+       "tied_pairs": 37221,
+       "max_group_span_pct": 8.519e-07,
+       "tolerance_margin_pct": 2.752e-08
+      },
+      "reference": {
+       "tie_groups": 86,
+       "tied_pairs": 457,
+       "max_group_span_pct": 2.921e-06,
+       "tolerance_margin_pct": 3.018e-08
+      }
+     }
     },
     "ac": {
      "base_converged": "converged",
@@ -8368,15 +8549,15 @@
     },
     "runtime": {
      "repeats": 3,
-     "screening_median_s": 0.3718,
-     "dc_exact_median_s": 5.2,
-     "ac_exact_median_s": 93.46
+     "screening_median_s": 0.3788,
+     "dc_exact_median_s": 4.34,
+     "ac_exact_median_s": 84.05
     },
     "memory": {
      "screening_peak_tracemalloc_mib": 141.0,
      "dc_exact_peak_tracemalloc_mib": 89.77,
-     "ac_exact_peak_tracemalloc_mib": 7.965,
-     "process_rss_end_mib": 337.1
+     "ac_exact_peak_tracemalloc_mib": 7.96,
+     "process_rss_end_mib": 339.1
     },
     "top_contingencies": [
      {
@@ -8460,7 +8641,6 @@
       "NUMBA_NUM_THREADS": "1"
      }
     },
-    "provenance": "calculated",
     "contingencies": [
      {
       "branch_id": "branch-1",
