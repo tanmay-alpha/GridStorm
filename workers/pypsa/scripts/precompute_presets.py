@@ -195,8 +195,8 @@ def _fmt(x, nd=1) -> str:
 
 def _write_benchmark_md(path: Path, entries: list[dict]) -> None:
     rows = [
-        "| Preset | Network | Outcome | Objective (cost-basis units) | Unserved (MWh) | Solver wall (s) "
-        "| run_scenario wall (s) | Peak RSS (MB) |",
+        "| Preset | Network | Outcome | Objective (cost-basis units) | Unserved (MWh) "
+        "| Solver wall (s) | run_scenario wall (s) | Peak RSS (MB) |",
         "|---|---|---|---:|---:|---:|---:|---:|",
     ]
     plat = cpu = method = None

@@ -4,7 +4,7 @@
     "at": "2026-11-16T20:53:29.154Z",
     "web": "https://gridstorm.vercel.app",
     "api": "https://gridstorm-api.onrender.com",
-    "api_git_sha": "127db2755b834d52139bbeaa988f0b37263d3379",
+    "backend_commit": "127db2755b834d52139bbeaa988f0b37263d3379",
     "web_entry_assets": [
       "/assets/index-CFVBxCSl.js",
       "/assets/jsx-runtime-Wy9s6hX0.js",

@@ -18,7 +18,7 @@ test('Crisis Studio honours live_execution=false: precomputed preset runs, unava
   await page.goto('/studio?preset=scigrid-de-baseline')
   const notice = page.getByTestId('live-execution-notice')
   await expect(notice).toContainText('Live solves disabled for scigrid-de')
-  await expect(notice).toContainText('6 of 6 presets for this grid have a precomputed result')
+  await expect(notice).toContainText('9 of 9 presets for this grid have a precomputed result')
   await page.getByTestId('step-crisis').click()
   await expect(page.locator('[data-preset-id="scigrid-de-baseline"]').getByTestId('preset-execution')).toHaveText(
     'verified precomputed result',

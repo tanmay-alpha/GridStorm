@@ -1,0 +1,3 @@
+# False positive: a public git commit SHA of the deployed API under a key containing "api" (generic-api-key).
+# The key was renamed to `backend_commit` in the next commit; this entry covers the historical commit.
+53bd865640bb31d8c26556c361b84c12d89d497c:docs/benchmarks/data/perf-3.2-before.json:generic-api-key:7

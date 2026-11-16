@@ -330,7 +330,7 @@ const meta = {
   at: new Date().toISOString(),
   web: WEB,
   api: API,
-  api_git_sha: health?.git_sha ?? null,
+  backend_commit: health?.git_sha ?? null,
   web_entry_assets: webAssets,
   reps: REPS,
   api_reps: API_REPS,
@@ -346,7 +346,7 @@ const meta = {
 
 const fmt = (v) => (v == null ? '—' : String(v))
 const md = []
-md.push(`Measured ${meta.at} · web ${WEB} · API ${API} (git_sha ${fmt(meta.api_git_sha?.slice(0, 7))}) · medians of ${REPS} (browser) / ${API_REPS} (API)`)
+md.push(`Measured ${meta.at} · web ${WEB} · API ${API} (backend commit ${fmt(meta.backend_commit?.slice(0, 7))}) · medians of ${REPS} (browser) / ${API_REPS} (API)`)
 for (const vk of VIEWPORT_KEYS) {
   const v = VIEWPORTS[vk]
   md.push('', `**${vk}** ${v.viewport.width}×${v.viewport.height}, CPU ${v.cpu}×`, '')
