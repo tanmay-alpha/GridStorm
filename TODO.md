@@ -8,7 +8,7 @@ PypsaEurBuilder, StormRisk, CrossEngine, SimBenchAC, StormML) · C Frontend (Fro
 D Data (DataPipelines, Research, ObservedEvents, ExplorerPort, DocsWriter) · E Backend/Infra (Backend,
 CIDevOps) · F Verification (Verifier) · I Integration owner.
 
-Last updated: 2026-11-15
+Last updated: 2026-11-17
 
 ## Progress dashboard
 
@@ -20,6 +20,28 @@ Last updated: 2026-11-15
 | VERIFIED (evidence recorded) | 46 | research, licensing (incl. ENTSO-E remediation), all science engines, data, CI, verification, security, a11y/perf audit, EENS wording |
 
 Live (since 2026-11-16): https://gridstorm.vercel.app (Vercel Git build of `main` `b7af5e4`, PR #13) · https://gridstorm-api.onrender.com (`/health` git_sha `127db27`, PR #12; #13 changed web/docs only, so Render's build filter correctly skipped it) · CI green on PR #12 (run 43725136285) and PR #13 (27/27); production browser smoke on `main` green (run 43890735975); `scripts/probe_production.py` all PASS. Earlier: web/API `cf482f2` (3.0), `dd185d1`, `67354b0`.
+
+## GridStorm 3.2 — data observatory, scientific reliability, product polish (started 2026-11-17)
+
+Branch `release/gridstorm-3.2` from `main` `387f584`. Separate count; **not** part of earlier tallies.
+Statuses: `BACKLOG → IMPLEMENTING → LOCALLY TESTED → CI VERIFIED → DEPLOYED → PROD TESTED`, or `BLOCKED` / `DOCUMENTED`.
+Owners: I coordinator · A Science · B DesignShell + Workflows (UI) · C DataPipeline + DbInventory · D ObservatoryApi · E ObservatoryUi + Docs · F Verifier.
+Baseline (2026-11-17): live web Vercel `387f584` (READY), live API Render `/health` git_sha `127db27`; main CI run 43891187831 green;
+production browser smoke 43890735975 green; scheduled scientific run 43868756005 **failed** (StormBench MISMATCH). UI baseline: `docs/audit/screenshots/round2-after/` (production, 2026-11-16).
+
+| ID | Task | Pri | Owner | Status | Acceptance criteria | Evidence |
+|---|---|---|---|---|---|---|
+| G32-01 | StormBench reproducibility: root cause of Kendall τ / Spearman drift, tie-aware rank statistics, regenerated references, regression tests | P0 | A | LOCALLY TESTED | Root cause documented; statistics invariant to round-off; `scientific.yml` green on a fresh runner | Root cause: severities equal in exact arithmetic differ by 1e-14…1e-13 pp across platforms (OpenBLAS `DYNAMIC_ARCH` kernel choice; reproduced locally with `OPENBLAS_CORETYPE=Sandybridge` → case30 τ 0.997861); their order decided τ/ρ. Fix: tie groups within `TOL_PCT` = 1e-6 pp (single linkage, order-invariant) before τ-b/ρ/recall@k; new `ties` field. Screening-vs-DC τ = ρ = 1 on all 6 cases (was 0.978–0.9997); AC τ shifts ≤ 0.011. 29 tests (12 new); `regenerate_reference.sh stormbench` MATCH under 1/8 threads and Sandybridge kernel. [docs](docs/benchmarks/stormbench.md#reproducibility-and-ties) |
+| G32-02 | Production data inventory (Supabase tables, rows, storage, RLS, indexes) | P0 | C | BLOCKED (DB) / DOCUMENTED (API) | `docs/data/production-inventory.md` with measured coverage matrix and classified gaps | API-observable inventory measured (12 public jobs, 7 results sha-verified, 5 HTTP 410; 55 precomputed artifacts); DB/Storage sections blocked: shell `SUPABASE_DB_*` are placeholders, Render CLI token expired, Supabase env intentionally unlinked from Vercel (POST-06). Read-only script `scripts/inventory/production_inventory.py` ready. [inventory](docs/data/production-inventory.md) |
+| G32-03 | Curated observed-data publication pipeline (licence-gated bundle, manifests, quality reports); deploy path includes it | P0 | C + D | LOCALLY TESTED | Only permitted series published; checksums verified at load; source change triggers publication check + API redeploy | `5f94920`: bundle 2.49 MB (5 entries), licence gate refuses actual load/generation/capacities, `--verify` + `observatory.yml`; `.dockerignore`/Render buildFilter include `data/observatory/`; Docker `-m 512m` image serves catalog (RSS +~7 MiB); pipeline tests 92 (38 → 92) |
+| G32-04 | Data catalog API (`/api/v1/data/catalog…`: list, detail, bounded series, export) | P1 | D | LOCALLY TESTED | Bounded, paginated, cached, typed errors; tests | `5f94920`: 38 new tests; API suite 203 passed / 2 skipped (was 165/2); 3 observed-analogue scenarios served as precomputed SciGRID-DE presets (unserved 2721.0 / 4731.5 / 4429.3 MWh = analogue-results); pypsa regeneration 16/16 MATCH. [ADR 0003](docs/decisions/0003-file-backed-data-observatory.md) |
+| G32-05 | Data Observatory UI (`/data`, `/data/:id`) | P1 | E | LOCALLY TESTED | Browse/filter, coverage + quality, provenance drawer, UTC charts with gaps, export, validated "use in scenario" | `ba0cafa`: 45 vitest, hermetic e2e 3 passed; screenshots `docs/audit/screenshots/3.2-after/observatory-*` (3 viewports × 2 themes, CLS ≤ 0.0021, no overflow) |
+| G32-06 | New source done well: NASA POWER hourly (UTC) weather + renewable resource for the analogue windows; EIA evaluated | P1 | C | LOCALLY TESTED | Source scoring matrix; UTC requested explicitly; reanalysis labelled modeled-not-station | 8 requests with `time-standard=UTC` (API v2.10.4; MERRA-2 + CERES SYN1deg), 4 cities × (2015-01-17..23 + all 2017), T2M/WS10M/WS50M/GHI; T2M/WS10M match the older extract 4 032/4 032; EIA evaluated + deferred (keyless request 403 `API_KEY_MISSING`; US BA demand has no validated mapping to these networks). [sources](docs/data/sources-and-licensing.md) |
+| G32-07 | Visual redesign: design tokens, home, Grid Explorer, schematic | P1 | B | IMPLEMENTING | Before/after screenshots at 5 viewports × 2 themes; no CLS regression | |
+| G32-08 | Workflow redesign: Studio, Results, Compare/Mitigation, Research Workbench | P1 | B | IMPLEMENTING | Conclusions above the fold; no fabricated values; mobile preserved | |
+| G32-09 | README redesign, user guide, architecture/data docs | P1 | E | BACKLOG | Real screenshots; routes/counts verified | |
+| G32-10 | Performance before/after (data workflows, bundle, API) | P2 | F | BACKLOG | Same script before/after | |
+| G32-11 | Independent verification + release (CI, scientific, e2e, a11y, prod smoke) | P0 | F + I | BACKLOG | All gates green; deployed SHAs recorded | |
 
 ## Production follow-up — recovery audit, round 2 (2026-11-15, PR #12 merged as `127db27`, follow-up PR #13)
 
