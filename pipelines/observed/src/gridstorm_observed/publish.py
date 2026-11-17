@@ -8,6 +8,9 @@ Entries (``DatasetEntry``, ``gridstorm-observatory/1.0``; contract in
 * ``nasa-power-de-weather`` / ``nasa-power-de-renewable-resource``: NASA POWER hourly UTC T2M,
   WS10M / WS50M, ALLSKY_SFC_SW_DWN at four German city grid cells (the 2015 stress window and
   calendar year 2017, which contains both 2017 stress windows);
+* ``nasa-power-de-daily``: GridStorm's daily means of complete UTC days of the same four
+  parameters and points, computed from yearly hourly UTC requests over the load-forecast
+  coverage 2015-01-01..2020-09-30;
 * ``opsd-de-derived-multipliers``: the observed-analogue hourly demand multipliers;
 * ``observed-analogue-scenarios``: metadata for the three StormSpec scenarios and their
   precomputed results.
@@ -29,11 +32,11 @@ from pathlib import Path
 import pandas as pd
 import yaml
 
-from . import bundle, licence, power_hourly, sources
+from . import bundle, licence, power_daily, power_hourly, sources
 from .bundle import Series, Table, check
 
 PIPELINE_VERSION = "gridstorm-observatory-publisher/1.0.0"
-BUNDLE_VERSION = "2026-11-17.1"
+BUNDLE_VERSION = "2026-11-17.2"
 REPO_BLOB = "https://github.com/tanmay-alpha/GridStorm/blob/main/"
 COMMAND = (
     "cd pipelines/observed && uv run --locked python scripts/publish_observatory.py "
@@ -66,6 +69,7 @@ WEATHER_ID = "nasa-power-de-weather"
 RESOURCE_ID = "nasa-power-de-renewable-resource"
 DERIVED_ID = "opsd-de-derived-multipliers"
 ANALOGUE_ID = "observed-analogue-scenarios"
+DAILY_ID = "nasa-power-de-daily"
 
 OPSD_START = datetime(2015, 1, 1, tzinfo=UTC)
 OPSD_END = datetime(2020, 9, 30, 23, tzinfo=UTC)
@@ -94,6 +98,7 @@ class Inputs:
     power_cache: Path | None = None
     previous: Path | None = None
     power_record: Path = power_hourly.RECORD_PATH
+    power_daily_record: Path = power_daily.RECORD_PATH
     bundle_version: str = BUNDLE_VERSION
 
 
@@ -534,15 +539,8 @@ def _old_extract_check(table: Table) -> dict:
     return check("consistent_with_previous_extract", status, detail)
 
 
-def power_entries(record: dict, tables: dict[str, Table], record_sha: str) -> list[Built]:
-    reqs = record["requests"]
-    versions = sorted({r["api"]["version"] for r in reqs})
-    header_sources = sorted({s for r in reqs for s in r["header_sources"]})
-    retrieved = sorted(r["retrieved_at"] for r in reqs if r["retrieved_at"])
-    last = retrieved[-1] if retrieved else None
-    accessed = last[:10].replace("-", "/") if last else "unknown date"
-    expected = power_expected()
-    points = [
+def power_points() -> list[dict]:
+    return [
         {
             "id": p.id,
             "name": p.name,
@@ -554,6 +552,23 @@ def power_entries(record: dict, tables: dict[str, Table], record_sha: str) -> li
         }
         for p in sources.POWER_POINTS
     ]
+
+
+def _power_provenance(reqs: list[dict]) -> tuple[list[str], list[str], str | None, str]:
+    """API versions, header sources, last retrieval time and the access date (YYYY/MM/DD)."""
+    versions = sorted({r["api"]["version"] for r in reqs})
+    header_sources = sorted({s for r in reqs for s in r["header_sources"]})
+    retrieved = sorted(r["retrieved_at"] for r in reqs if r["retrieved_at"])
+    last = retrieved[-1] if retrieved else None
+    accessed = last[:10].replace("-", "/") if last else "unknown date"
+    return versions, header_sources, last, accessed
+
+
+def power_entries(record: dict, tables: dict[str, Table], record_sha: str) -> list[Built]:
+    reqs = record["requests"]
+    versions, header_sources, last, accessed = _power_provenance(reqs)
+    expected = power_expected()
+    points = power_points()
     attribution = (
         "The data was obtained from National Aeronautics and Space Administration (NASA) Langley "
         "Research Center's Prediction Of Worldwide Energy Resources (POWER) project funded through "
@@ -758,6 +773,360 @@ def load_power(inputs: Inputs) -> tuple[dict, str, dict[str, Table], str]:
         how = "carried forward from the previous bundle (raw responses not cached)"
     check_power_record(record, by_point)
     return record, record_sha, power_tables(by_point, params), how
+
+
+# --- NASA POWER daily means of UTC days -----------------------------------------------------
+
+DAILY_META = {
+    "T2M": (
+        "2 m air temperature, daily mean",
+        "°C",
+        "air temperature at 2 m (mean of the 24 hourly values of the UTC day)",
+    ),
+    "WS10M": (
+        "10 m wind speed, daily mean",
+        "m/s",
+        "wind speed at 10 m (mean of the 24 hourly values of the UTC day)",
+    ),
+    "WS50M": (
+        "50 m wind speed, daily mean",
+        "m/s",
+        "wind speed at 50 m (mean of the 24 hourly values of the UTC day)",
+    ),
+    "ALLSKY_SFC_SW_DWN": (
+        "all-sky GHI, daily mean irradiance",
+        "W/m²",
+        "all-sky surface shortwave downward irradiance, GHI: mean irradiance over the UTC day "
+        "(mean of the 24 hourly Wh/m² values = W/m²; × 24 h = daily insolation in Wh/m²)",
+    ),
+}
+#: Plausible ranges of German daily means (wider than any observed daily mean).
+DAILY_RANGES = {
+    "T2M": (-35.0, 40.0),
+    "WS10M": (0.0, 40.0),
+    "WS50M": (0.0, 50.0),
+    "ALLSKY_SFC_SW_DWN": (0.0, 450.0),
+}
+
+
+def daily_series() -> list[Series]:
+    out = []
+    for p in sources.POWER_POINTS:
+        for param in power_hourly.PARAMETERS:
+            label, unit, quantity = DAILY_META[param]
+            out.append(
+                Series(
+                    id=f"{p.id}_{POWER_META[param][0]}",
+                    label=f"{p.name}: {label} ({param})",
+                    unit=unit,
+                    quantity=quantity,
+                    location_id=p.id,
+                    decimals=power_daily.DECIMALS,
+                    source_key=f"{licence.POWER_SOURCE}:{param}",
+                )
+            )
+    return out
+
+
+def daily_table(by_point: dict[str, dict[str, dict]]) -> Table:
+    """Daily means of complete UTC days (:mod:`power_daily` rule) on the full coverage grid,
+    held at the published precision so a carried-forward table is identical."""
+    grid = power_daily.days()
+
+    def published(v: float | None) -> float | None:
+        return None if v is None else float(bundle.fmt_num(v, power_daily.DECIMALS))
+
+    cols = {}
+    for s in daily_series():
+        col = by_point[s.location_id][_param_of(s.id)]
+        cols[s.id] = [published(v) for v in power_daily.daily_means(col, grid)]
+    return Table(grid, cols)
+
+
+def check_daily_record(
+    record: dict, table: Table, by_point: dict[str, dict[str, dict]] | None = None
+) -> None:
+    """The record lists exactly the pipeline's yearly requests; each request's daily means (and,
+    given the hourly values, its hourly values) hash to the record; incomplete days match."""
+    if [r["url"] for r in record["requests"]] != [r.url for r in power_daily.requests()]:
+        raise ValueError("daily request record does not list the pipeline's yearly requests")
+    if by_point is not None:
+        check_power_record(record, by_point)
+    idx = {t: i for i, t in enumerate(table.timestamps)}
+    for rec in record["requests"]:
+        grid = power_daily.request_days(rec["start"], rec["end"])
+        missing = [d for d in grid if d not in idx]
+        if missing:
+            raise ValueError(f"daily table lacks {len(missing)} days of {rec['start']}")
+        daily = {
+            p: [table.values[f"{rec['point']}_{POWER_META[p][0]}"][idx[d]] for d in grid]
+            for p in power_hourly.PARAMETERS
+        }
+        incomplete = {
+            p: [f"{d:%Y-%m-%d}" for d, v in zip(grid, daily[p], strict=True) if v is None]
+            for p in power_hourly.PARAMETERS
+        }
+        if (
+            power_daily.daily_digest(rec["point"], daily, grid) != rec["daily_values_sha256"]
+            or incomplete != rec["incomplete_days"]
+        ):
+            raise ValueError(
+                f"POWER daily means for {rec['point']} {rec['start']}..{rec['end']} differ from "
+                "the committed request record"
+            )
+
+
+def load_power_daily(inputs: Inputs) -> tuple[dict, str, Table, str]:
+    path = inputs.power_daily_record
+    if not path.exists():
+        raise FileNotFoundError(f"{path} missing: run with --fetch-nasa first")
+    record = json.loads(path.read_text("utf-8"))
+    record_sha = _sha_file(path)
+    cache = inputs.power_cache
+    by_point = power_hourly.load_cached(record, cache) if cache and cache.exists() else None
+    if by_point is not None:
+        table = daily_table(by_point)
+        how = "re-derived from cached raw POWER responses (sha256 = daily request record)"
+    else:
+        table = _previous_table(inputs, DAILY_ID)[0]
+        how = "carried forward from the previous bundle (raw responses not cached)"
+    check_daily_record(record, table, by_point)
+    return record, record_sha, table, how
+
+
+def _daily_vs_hourly_check(table: Table, hourly: dict[str, Table]) -> dict:
+    """Daily means recomputed from the published hourly entries must equal the daily entry."""
+    by_point = tables_to_points([hourly[WEATHER_ID], hourly[RESOURCE_ID]])
+    covered = set(hourly[WEATHER_ID].timestamps)
+    days = [d for d in table.timestamps if d in covered and d + timedelta(hours=23) in covered]
+    idx = {t: i for i, t in enumerate(table.timestamps)}
+    n = same = 0
+    worst = 0.0
+    for s in daily_series():
+        col = by_point[s.location_id][_param_of(s.id)]
+        for d in days:
+            got = table.values[s.id][idx[d]]
+            want = power_daily.day_mean(col, d)
+            n += 1
+            if bundle.fmt_num(got, s.decimals) == bundle.fmt_num(want, s.decimals):
+                same += 1
+            elif got is not None and want is not None:
+                worst = max(worst, abs(got - want))
+    detail = (
+        f"{same}/{n} daily means (on the {len(days)} UTC days also covered by {WEATHER_ID} and "
+        f"{RESOURCE_ID}) equal the means recomputed from those hourly entries"
+    )
+    if same != n:
+        detail += f"; max abs difference {worst:.2f} (different POWER responses)"
+    return check("consistent_with_hourly_entries", "pass" if same == n else "warn", detail)
+
+
+def daily_entry(
+    record: dict, table: Table, record_sha: str, hourly: dict[str, Table], record_path: Path
+) -> Built:
+    reqs = record["requests"]
+    versions, header_sources, last, accessed = _power_provenance(reqs)
+    grid = power_daily.days()
+    series = daily_series()
+    rec = licence.gate(series[0].source_key)
+    params = power_hourly.PARAMETERS
+    years = sorted({r["start"][:4] for r in reqs})
+    fills = {p: sum(r["fill_values_replaced"][p] for r in reqs) for p in params}
+    incomplete = {p: sum(len(r["incomplete_days"][p]) for r in reqs) for p in params}
+    short = [
+        f"{r['point']} {r['start']}..{r['end']}"
+        for r in reqs
+        if r["hours"] != 24 * len(power_daily.request_days(r["start"], r["end"]))
+    ]
+    midnight = all((t.hour, t.minute, t.second) == (0, 0, 0) for t in table.timestamps)
+    span = f"{grid[0]:%Y-%m-%d}..{grid[-1]:%Y-%m-%d}"
+    checks = [
+        check(
+            "time_standard_utc",
+            "pass"
+            if all(r["time_standard"] == "UTC" and "time-standard=UTC" in r["url"] for r in reqs)
+            else "fail",
+            f"{len(reqs)} hourly requests with time-standard=UTC; every response header says UTC; "
+            "NASA's daily endpoint (non-UTC days) is not used",
+        ),
+        check(
+            "values_match_request_record",
+            "pass",
+            f"daily means of all {len(reqs)} requests hash to the daily_values_sha256 in "
+            f"{_rel(record_path)} (and, when the raw responses are cached, their hourly values "
+            "to values_sha256)",
+        ),
+        check(
+            "api_version",
+            "pass",
+            f"POWER Hourly API {', '.join(versions)}; header sources {', '.join(header_sources)}",
+        ),
+        check(
+            "requested_hours",
+            "pass" if not short else "warn",
+            f"every response has 24 hourly values per requested UTC day ({len(reqs)} requests: "
+            f"{len(sources.POWER_POINTS)} points × calendar years {years[0]}–{years[-1]}, "
+            f"{span})"
+            if not short
+            else f"responses with fewer hours than 24 × days: {', '.join(short)}",
+        ),
+        check(
+            "fill_values",
+            "pass",
+            "fill value -999 treated as missing before aggregation: "
+            + ", ".join(f"{p} {fills[p]} h" for p in params),
+        ),
+        check(
+            "complete_day_rule",
+            "pass" if not any(incomplete.values()) else "warn",
+            f"{power_daily.RULE}; incomplete days left empty (of {len(grid)} days × "
+            f"{len(sources.POWER_POINTS)} points): "
+            + ", ".join(f"{p} {incomplete[p]}" for p in params),
+        ),
+        check(
+            "utc_day_boundaries",
+            "pass" if midnight else "fail",
+            "every row is a UTC day start (00:00:00Z) and its value aggregates the POWER UTC "
+            "hour labels 00..23 of that date (no local-time or solar-time day)",
+        ),
+        check(
+            "coverage_matches_load_forecast",
+            "pass"
+            if (grid[0], grid[-1] + timedelta(hours=23)) == (OPSD_START, OPSD_END)
+            else "fail",
+            f"UTC days {span} = the UTC calendar days of {OPSD_ID}",
+        ),
+    ]
+    checks += bundle.grid_checks(table, grid, bundle.DAY)
+    for param in params:
+        lo, hi = DAILY_RANGES[param]
+        sel = [s for s in series if _param_of(s.id) == param]
+        checks.append(bundle.range_check(table, sel, lo, hi, f"plausible_range_{param.lower()}"))
+    checks.append(_daily_vs_hourly_check(table, hourly))
+    warnings = [
+        "Modeled grid-cell values (reanalysis / satellite-derived), not station measurements.",
+        "Daily means computed by GridStorm from POWER's hourly UTC values, not NASA's daily "
+        "product (whose days are not UTC days). A day with any missing hour is left empty.",
+        "ALLSKY_SFC_SW_DWN is a daily mean irradiance in W/m², not an energy: multiply by 24 h "
+        "for the daily insolation in Wh/m².",
+        f"Same UTC days as {OPSD_ID} (whose P1D view uses the same UTC day buckets): compare "
+        "seasonal and year-to-year patterns only; weather at four grid cells neither explains "
+        "nor predicts national demand here (no causal claim).",
+        "POWER documents hourly average values labelled YYYYMMDDHH (UTC); the alignment of the "
+        "averaging interval within the hour was not verified, so a UTC day may be offset by up "
+        "to one hour.",
+    ]
+    attribution = (
+        "The data was obtained from National Aeronautics and Space Administration (NASA) Langley "
+        "Research Center's Prediction Of Worldwide Energy Resources (POWER) project funded through "
+        "the NASA Earth Science Division. The data was obtained from the POWER Project's Hourly "
+        f"{', '.join(versions)} version on {accessed}. Modified by GridStorm: hourly UTC values of "
+        "four city grid cells averaged to UTC-day means (all 24 hours required, otherwise empty); "
+        f"fill value -999 treated as missing; rounded to {power_daily.DECIMALS} decimals; nothing "
+        "interpolated. No endorsement by NASA is implied."
+    )
+    entry = _entry(
+        id=DAILY_ID,
+        title="NASA POWER daily weather and resource means, four German cities, 2015–2020 "
+        "(UTC days)",
+        summary="Daily means of UTC days, computed by GridStorm from hourly UTC values, of 2 m "
+        "temperature, 10 m / 50 m wind and all-sky GHI at Berlin, Hamburg, Cologne and Munich "
+        "grid cells; same coverage as the load forecast (2015-01-01 to 2020-09-30).",
+        description=(
+            "Daily means of `T2M` (°C), `WS10M` and `WS50M` (m/s) and `ALLSKY_SFC_SW_DWN` "
+            "(all-sky GHI as mean irradiance, W/m²) **computed by GridStorm** from NASA POWER "
+            "hourly values requested with `time-standard=UTC`: the value of day D is the mean of "
+            "the 24 hours D 00:00–23:00 UTC and is written only when all 24 are present (fill "
+            "value -999 = missing; nothing interpolated). NASA's own daily product is not used "
+            "because its days are not UTC days.\n\n"
+            "**Reanalysis, not station data**: temperature and wind are MERRA-2 reanalysis "
+            "(0.5° × 0.625° grid cells), GHI is CERES SYN1deg satellite-derived (1° × 1°). Each "
+            "series samples the grid cell containing the city centre coordinates; it is not a "
+            "measurement in the city.\n\n"
+            f"Coverage equals `{OPSD_ID}` (UTC days 2015-01-01..2020-09-30), so weather and "
+            "the day-ahead demand forecast can be viewed side by side across seasons and years "
+            "(e.g. winter cold spells against daily demand at P1D). The comparison is "
+            "descriptive: no causal or predictive relationship is claimed or validated. Hourly "
+            f"detail for the stress windows and 2017 is in `{WEATHER_ID}` and `{RESOURCE_ID}`."
+        ),
+        category="weather_reanalysis",
+        provenance="modeled",
+        data_nature="MERRA-2 reanalysis and CERES SYN1deg irradiance via NASA POWER, averaged "
+        "to UTC days by GridStorm (grid-cell values, not station data)",
+        region={"code": "DE", "name": "Germany (4 city grid cells)", "kind": "points"},
+        source={
+            "name": "NASA POWER Hourly API (point, community RE, time-standard=UTC); daily means "
+            "by GridStorm",
+            "publisher": "NASA Langley Research Center, POWER Project; aggregation: GridStorm",
+            "url": sources.POWER_HOURLY_URL,
+            "version": ", ".join(versions),
+            "doi": None,
+            "retrieved_at": last,
+            "source_sha256": record_sha,
+            "license": {
+                "id": rec.licence_id,
+                "name": rec.licence_name,
+                "url": rec.licence_url,
+                "redistribution": rec.redistribution,
+            },
+            "attribution": attribution,
+        },
+        temporal={
+            "start_utc": bundle.fmt_utc(grid[0]),
+            "end_utc": bundle.fmt_utc(grid[-1]),
+            "resolution": "P1D",
+            "timezone": "UTC",
+            "windows": stress_windows(),
+        },
+        spatial={"kind": "points", "points": power_points()},
+        series=[s.public() for s in series],
+        quality=_quality(table, grid, checks, warnings),
+        transformations=[
+            {
+                "step": "request",
+                "description": f"{len(reqs)} sequential hourly point requests (4 points × "
+                f"calendar years {years[0]}–{years[-1]}, the last ending {grid[-1]:%Y-%m-%d}), "
+                "parameters T2M, WS10M, WS50M, ALLSKY_SFC_SW_DWN, community RE, format JSON, "
+                "time-standard=UTC",
+            },
+            {
+                "step": "record",
+                "description": "URL, response sha256, API version, header sources, fill counts, "
+                "canonical hourly-values sha256, daily-means sha256 and incomplete days per "
+                f"request in {_rel(record_path)}",
+            },
+            {
+                "step": "parse",
+                "description": "YYYYMMDDHH (UTC) -> UTC hour; -999 -> missing",
+            },
+            {"step": "aggregate", "description": power_daily.RULE},
+            {
+                "step": "write",
+                "description": f"wide CSV, one column per point and parameter, "
+                f"{power_daily.DECIMALS} decimals; row timestamp = UTC day start (00:00:00Z)",
+            },
+        ],
+        transformation_version=f"{DAILY_ID}/1.0.0",
+        artifact=None,
+        links={
+            "network_id": None,
+            "scenario_ids": _scenario_ids(),
+            "study_route": None,
+            "docs": [DOC_SOURCES, DOC_PIPELINE, DOC_ANALOGUES],
+        },
+        use_in_scenario={
+            "available": False,
+            "network_id": None,
+            "preset_id": None,
+            "route": None,
+            "rationale": "Daily point weather means have no validated mapping to a network "
+            "input (GridStorm has no validated weather-to-availability or weather-to-demand "
+            "model). To run observed conditions in Studio, use the precomputed observed-analogue "
+            f"presets on scigrid-de (e.g. {ANALOGUE_PRESET}); see {ANALOGUE_ID}.",
+        },
+        exportable=True,
+    )
+    return Built(entry, series, table)
 
 
 # --- derived multipliers and analogue scenarios ---------------------------------------------
@@ -1132,6 +1501,11 @@ def build_bundle(inputs: Inputs) -> Result:
     record, record_sha, tables, how = load_power(inputs)
     notes.append(f"{WEATHER_ID}, {RESOURCE_ID}: {how}")
     built += power_entries(record, tables, record_sha)
+    daily_record, daily_sha, table_daily, how_daily = load_power_daily(inputs)
+    notes.append(f"{DAILY_ID}: {how_daily}")
+    built.append(
+        daily_entry(daily_record, table_daily, daily_sha, tables, inputs.power_daily_record)
+    )
     built.append(derived_entry(opsd_manifest))
     built.append(analogue_entry(opsd_manifest))
     notes.append(f"{DERIVED_ID}, {ANALOGUE_ID}: re-derived from committed inputs")
@@ -1188,6 +1562,7 @@ def make_manifest(files: dict[str, bytes], gate: dict, inputs: Inputs, opsd_mani
         RESULTS_PATH,
         OLD_EXTRACT_PATH,
         inputs.power_record,
+        inputs.power_daily_record,
         *sorted(sources.SCENARIO_OUT_DIR.glob("*.yaml")),
         *sorted(PRESET_DIR.glob("observed-*.yaml")),
     ]
@@ -1220,6 +1595,15 @@ def make_manifest(files: dict[str, bytes], gate: dict, inputs: Inputs, opsd_mani
                     "request_record_sha256": _sha_file(inputs.power_record),
                     "note": "per-request URL, response sha256, API version and retrieval time are "
                     "in the request record",
+                },
+                {
+                    "id": "nasa-power-hourly-for-daily-means",
+                    "url": sources.POWER_HOURLY_URL,
+                    "request_record": _rel(inputs.power_daily_record),
+                    "request_record_sha256": _sha_file(inputs.power_daily_record),
+                    "note": "yearly hourly UTC requests behind nasa-power-de-daily; per-request "
+                    "URL, response sha256, API version, retrieval time, daily-means sha256 and "
+                    "incomplete days are in the request record",
                 },
             ],
             "committed": [{"path": _rel(p), "sha256": _sha_file(p)} for p in committed],
@@ -1321,6 +1705,7 @@ def verify(out: Path, inputs: Inputs) -> tuple[list[str], list[str]]:
         power_cache=inputs.power_cache,
         previous=out,
         power_record=inputs.power_record,
+        power_daily_record=inputs.power_daily_record,
         bundle_version=catalog["bundle_version"],
     )
     try:

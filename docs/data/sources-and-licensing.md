@@ -1,8 +1,8 @@
 # Data sources and licensing
 
-Status: 2026-11-17, GridStorm 3.2 (TODO G32-03, G32-06). Covers every shipped network
+Status: 2026-11-17, GridStorm 3.3 (TODO G32-03, G32-06, G33-04). Covers every shipped network
 (`data/networks/*/manifest.json`) and every dataset in the Data Observatory bundle
-(`data/observatory/`, bundle `2026-11-17.1`). Checksums below are those of that bundle; the
+(`data/observatory/`, bundle `2026-11-17.2`). Checksums below are those of that bundle; the
 authoritative values are always the manifests (`data/observatory/manifest.json`,
 `data/networks/<id>/manifest.json`). How the bundle is built and verified:
 [observatory-pipeline.md](observatory-pipeline.md). Claims marked **[INFERENCE]** are reasoning,
@@ -62,6 +62,8 @@ Full per-file checksums and the cost basis of each network are in its manifest a
 | Transformation version | `opsd-de-load-forecast/1.0.0` | `nasa-power-de-weather/1.0.0` | `nasa-power-de-renewable-resource/1.0.0` | `opsd-de-derived-multipliers/1.0.0` | `observed-analogue-scenarios/1.0.0` |
 | Published artifact sha256 | `7c9d5743d47439d26926ef229712614ce7131788e8c590ce0d1b3edc1cb6363a` (1 360 701 B) | `d7943b500753f7f335910d6dd96e72a2007644f622e0a564001184d7e9bbe585` (558 439 B) | `92b02004aefed52b3a5b0d9c058f312d610be2e70deaa03a5fbe1cc92497f644` (514 964 B) | `1fd4afdaecc8f94e60fe953714034346cbec263c630ba9477ccc10e509af85b4` (1 080 B) | none (metadata-only) |
 
+The sixth bundle entry, `nasa-power-de-daily`, is described in §2.4.
+
 ### 2.1 What is not published, and why
 
 The OPSD CSV also contains German actual load (Reg. 543/2013 Art. 6.1.a), actual wind/solar
@@ -97,6 +99,11 @@ forecast does not reconstruct actual load.
   NASA-led mission are licensed as Creative Commons Zero (CC0)", asks that NASA be acknowledged and
   forbids implying endorsement. **[INFERENCE]** POWER pages mark no restriction, so the CC0 default
   applies; the bundle records the licence as `LicenseRef-NASA-POWER` rather than asserting CC0.
+- **NASA POWER daily means** (`nasa-power-de-daily`): the same two sentences with the Hourly
+  version `v2.10.4` and access date `2026/11/17`, then "Modified by GridStorm: hourly UTC values of
+  four city grid cells averaged to UTC-day means (all 24 hours required, otherwise empty); fill
+  value -999 treated as missing; rounded to 2 decimals; nothing interpolated. No endorsement by
+  NASA is implied."
 
 ### 2.3 NASA POWER source facts (verified 2026-11-17)
 
@@ -112,6 +119,34 @@ forecast does not reconstruct actual load.
   Response headers list sources `MERRA2`, `SYN1DEG`, `POWER`; HTTP header `x-app-version: v2.10.4`.
 - Hour labels are POWER's `YYYYMMDDHH` in UTC, written as hour start. The alignment of the
   averaging interval within the hour is not stated on the pages read and was not verified.
+- NASA's daily point endpoint is not used for `nasa-power-de-daily`: its days are not UTC days
+  (the hourly API's own default is local solar time), so a NASA daily value would not line up with
+  the UTC days of the load forecast. GridStorm averages UTC hours itself (§2.4).
+
+### 2.4 `nasa-power-de-daily` (GridStorm 3.3, TODO G33-04)
+
+| Field | `nasa-power-de-daily` |
+|---|---|
+| Source name | NASA POWER Hourly API (point, community RE), `T2M`, `WS10M`, `WS50M`, `ALLSKY_SFC_SW_DWN`; daily means computed by GridStorm |
+| Original URL | <https://power.larc.nasa.gov/api/temporal/hourly/point> (24 request URLs in `data/observed/nasa-power-de/power-daily-requests.json`) |
+| Publisher | NASA LaRC POWER Project; aggregation: GridStorm (`pipelines/observed`, `gridstorm_observed.power_daily`) |
+| Licence | same as the hourly POWER entries (`LicenseRef-NASA-POWER`; licence-gate keys `nasa-power:<PARAM>`, unchanged allow-list) |
+| Redistribution | permitted (acknowledgement; no endorsement); `exportable: true` |
+| Source version | Hourly API v2.10.4 (all 24 responses; header sources `MERRA2`, `SYN1DEG`, `POWER`) |
+| Retrieval | 24 sequential GET requests, one per point per calendar year 2015..2020 (2020 ends 2020-09-30), 1.5 s pause between downloads, no key, no HTTP error or rate limit; 20 fetched 2026-11-17T11:29:26Z..11:30:30Z, the four 2017 URLs identical to the hourly entries' and reused from their responses (retrieved 2026-11-16T21:02Z); 14 662 837 response bytes in total, kept outside the repo in `<cache>/nasa-power/` |
+| Data type / provenance | `weather_reanalysis`, **`modeled`**: MERRA-2 reanalysis (T2M, WS10M, WS50M; 0.5° × 0.625°) and CERES SYN1deg Ed4.2 satellite-derived GHI (1° × 1°); grid-cell samples at the city coordinates, **not station data** |
+| Geographic scope | the 4 grid cells of the hourly entries (Berlin 52.52/13.405, Hamburg 53.551/9.994, Cologne 50.938/6.96, Munich 48.137/11.575) |
+| Date range (UTC, inclusive) | UTC days 2015-01-01..2020-09-30 (`end_utc` 2020-09-30T00:00:00Z = last day start) = the coverage of `opsd-de-load-forecast` |
+| Temporal resolution | P1D (row timestamp = UTC day start 00:00:00Z) |
+| Time standard | requests `time-standard=UTC`; every response header says UTC; day D = POWER hour labels D 00..D 23 UTC (no local or solar day) |
+| Units | °C (T2M); m/s (WS10M, WS50M); W/m² (GHI as **mean irradiance** of the day = mean of the hourly Wh/m² values; × 24 h = daily insolation in Wh/m², not converted) |
+| Aggregation rule | arithmetic mean of the 24 hourly values of the UTC day, written only if all 24 are present (fill −999 or an absent hour → empty day); 2 decimals; nothing interpolated |
+| Missing-value policy | empty cell = missing; incomplete days are counted in the `complete_day_rule` check: 0 of 2 100 days × 4 points for every parameter; 0 fill values in 201 600 hourly values per parameter (50 400 h × 4 points) |
+| Quality indicators | 100 % complete (2 100 rows × 16 series); daily UTC grid; ranges (observed min/max): T2M −11.87..31.64 °C, WS10M 0.89..13.49 m/s, WS50M 1.16..17.95 m/s, GHI 3.86..357.2 W/m²; 5 952/5 952 means on the 372 days also covered hourly equal the means of the hourly entries |
+| Relation to the load forecast | same UTC days as `opsd-de-load-forecast` (its P1D view uses the same UTC day buckets): compare seasons and years side by side; descriptive only, no causal or predictive claim; `use_in_scenario.available = false` (scenario use of observed days: the observed-analogue presets) |
+| Source checksum (sha256) | request record `9c2fbbf18d745f09456c32f0fa894fa6612ed0352f44dca25a771e8a082ef136` (pins 24 response hashes, hourly `values_sha256` and `daily_values_sha256` per request) |
+| Transformation version | `nasa-power-de-daily/1.0.0` |
+| Published artifact sha256 | `b3227e885a4dce6831b93da0b84c939f374e07938e8f8a767112c4f3d0fb077e` (227 042 B) |
 
 ## 3. Candidate-source scoring matrix
 

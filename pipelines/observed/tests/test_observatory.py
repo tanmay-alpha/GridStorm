@@ -5,14 +5,14 @@ from __future__ import annotations
 import csv
 import json
 import shutil
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime, timedelta, timezone
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 import pytest
 
-from gridstorm_observed import bundle, licence, opsd, power_hourly, publish, sources
+from gridstorm_observed import bundle, licence, opsd, power_daily, power_hourly, publish, sources
 
 BUNDLE = sources.DATA_DIR / "observatory"
 CATALOG = json.loads((BUNDLE / "catalog.json").read_text("utf-8"))
@@ -99,6 +99,28 @@ def test_build_refuses_a_restricted_series(monkeypatch):
     monkeypatch.setattr(publish, "opsd_series", forged)
     with pytest.raises(licence.LicenceError):
         publish.build_bundle(_carry_inputs())
+
+
+def test_build_refuses_a_restricted_daily_series(monkeypatch):
+    original = publish.daily_series
+
+    def forged():
+        series = original()
+        series[-1].source_key = "opsd:DE_load_actual_entsoe_transparency"
+        return series
+
+    monkeypatch.setattr(publish, "daily_series", forged)
+    with pytest.raises(licence.LicenceError):
+        publish.build_bundle(_carry_inputs())
+
+
+def test_daily_series_pass_the_gate_with_nasa_power_keys():
+    gate = MANIFEST["licence_gate"][publish.DAILY_ID]
+    assert len(gate) == 4 * len(power_hourly.PARAMETERS)
+    for sid, g in gate.items():
+        param = g["source_key"].removeprefix(f"{licence.POWER_SOURCE}:")
+        assert param in power_hourly.PARAMETERS, sid
+        assert licence.gate(g["source_key"]).redistribution == "permitted"
 
 
 def test_published_bundle_is_licence_clean():
@@ -216,13 +238,14 @@ def test_entries_are_schema_valid_and_honest():
         publish.OPSD_ID,
         publish.WEATHER_ID,
         publish.RESOURCE_ID,
+        publish.DAILY_ID,
         publish.DERIVED_ID,
         publish.ANALOGUE_ID,
     }
     for e in CATALOG["entries"]:
         assert bundle.validate_entry(e) == [], e["id"]
         assert e["category"] not in ("network_model", "precomputed_experiment")
-    for eid in (publish.WEATHER_ID, publish.RESOURCE_ID):
+    for eid in (publish.WEATHER_ID, publish.RESOURCE_ID, publish.DAILY_ID):
         e = ENTRIES[eid]
         assert e["provenance"] == "modeled" and "not station" in e["data_nature"]
         assert all(p["grid_note"] for p in e["spatial"]["points"])
@@ -237,9 +260,43 @@ def test_entries_are_schema_valid_and_honest():
     assert use["available"] is True and use["network_id"] == "scigrid-de"
     assert use["preset_id"] in analogue["links"]["scenario_ids"]
     assert use["route"] == f"/studio?network=scigrid-de&preset={use['preset_id']}"
-    for eid in (publish.OPSD_ID, publish.WEATHER_ID, publish.RESOURCE_ID, publish.DERIVED_ID):
+    for eid in (
+        publish.OPSD_ID,
+        publish.WEATHER_ID,
+        publish.RESOURCE_ID,
+        publish.DAILY_ID,
+        publish.DERIVED_ID,
+    ):
         assert ENTRIES[eid]["use_in_scenario"]["available"] is False
         assert publish.ANALOGUE_ID in ENTRIES[eid]["use_in_scenario"]["rationale"]
+
+
+def test_daily_entry_covers_the_load_forecast_on_utc_days():
+    daily, forecast = ENTRIES[publish.DAILY_ID], ENTRIES[publish.OPSD_ID]
+    assert daily["category"] == "weather_reanalysis"
+    assert daily["temporal"]["resolution"] == "P1D"
+    assert daily["temporal"]["start_utc"] == forecast["temporal"]["start_utc"]
+    assert daily["temporal"]["end_utc"] == "2020-09-30T00:00:00Z"
+    assert forecast["temporal"]["end_utc"] == "2020-09-30T23:00:00Z"
+    assert daily["artifact"]["rows"] == len(power_daily.days()) == 2100
+    assert daily["artifact"]["bytes"] <= 600_000
+    ghi = [s for s in daily["series"] if s["id"].endswith("_ghi")]
+    assert len(ghi) == 4 and all(s["unit"] == "W/m²" for s in ghi)
+    text = daily["description"]
+    for phrase in ("not station data", "computed by GridStorm", "UTC", publish.OPSD_ID, "causal"):
+        assert phrase in text, phrase
+    checks = {c["name"]: c["status"] for c in daily["quality"]["checks"]}
+    for name in (
+        "time_standard_utc",
+        "utc_day_boundaries",
+        "daily_utc_grid",
+        "coverage_matches_load_forecast",
+        "consistent_with_hourly_entries",
+    ):
+        assert checks[name] == "pass", name
+    assert checks["complete_day_rule"] in ("pass", "warn")
+    _, table = bundle.read_csv((BUNDLE / daily["artifact"]["path"]).read_bytes())
+    assert table.timestamps == power_daily.days()
 
 
 def test_studio_presets_are_byte_identical_to_the_scenarios():
@@ -270,6 +327,23 @@ def test_power_requests_are_utc_and_recorded():
         assert len(rec["response_sha256"]) == 64 and rec["retrieved_at"]
 
 
+def test_daily_requests_are_yearly_hourly_utc_and_recorded():
+    record = json.loads(power_daily.RECORD_PATH.read_text("utf-8"))
+    reqs = power_daily.requests()
+    assert len(reqs) == 4 * 6 and len(record["requests"]) == len(reqs)
+    assert power_daily.ranges()[0] == ("20150101", "20151231")
+    assert power_daily.ranges()[-1] == ("20200101", "20200930")
+    for rec, req in zip(record["requests"], reqs, strict=True):
+        assert rec["url"] == req.url and rec["url"].startswith(sources.POWER_HOURLY_URL + "?")
+        assert "time-standard=UTC" in rec["url"] and "/daily/" not in rec["url"]
+        assert rec["time_standard"] == "UTC" and rec["fill_value"] == -999.0
+        assert len(rec["response_sha256"]) == 64 and rec["retrieved_at"]
+        assert rec["api"]["version"] and len(rec["daily_values_sha256"]) == 64
+        days = power_daily.request_days(rec["start"], rec["end"])
+        assert rec["days"] == len(days) and rec["start"][:4] == rec["end"][:4]
+        assert set(rec["incomplete_days"]) == set(power_hourly.PARAMETERS)
+
+
 # --- quality --------------------------------------------------------------------------------
 
 
@@ -292,6 +366,79 @@ def test_quality_keeps_missing_as_null_and_counts_completeness():
     assert checks["gaps"]["status"] == "warn"
     with pytest.raises(ValueError):
         bundle.table_quality(bundle.Table([_ts(2018, 1, 1)], {"a": [1.0]}), grid)
+
+
+def _hours(day: datetime, values: list[float | None]) -> dict[datetime, float | None]:
+    return {day + timedelta(hours=h): v for h, v in enumerate(values)}
+
+
+def test_daily_mean_uses_exactly_the_24_utc_hours_of_the_day():
+    day = _ts(2017, 3, 26)  # CET -> CEST switch: still 24 UTC hours
+    col = _hours(day, [float(h) for h in range(24)])
+    col[day - timedelta(hours=1)] = 1000.0  # previous UTC day's last hour
+    col[day + timedelta(hours=24)] = 1000.0  # next UTC day's first hour
+    assert power_daily.day_mean(col, day) == sum(range(24)) / 24
+    assert power_daily.daily_means(col, [day]) == [11.5]
+
+
+@pytest.mark.parametrize("gap", [0, 13, 23])
+def test_daily_mean_of_a_partial_day_is_missing(gap):
+    day = _ts(2017, 1, 1)
+    full = _hours(day, [1.0] * 24)
+    missing = dict(full)
+    missing[day + timedelta(hours=gap)] = None  # fill value -999 after parse_response
+    absent = {t: v for t, v in full.items() if t != day + timedelta(hours=gap)}
+    assert power_daily.day_mean(full, day) == 1.0
+    assert power_daily.day_mean(missing, day) is None
+    assert power_daily.day_mean(absent, day) is None
+
+
+def test_daily_days_reject_non_utc_day_starts():
+    assert power_daily.days()[0] == _ts(2015, 1, 1)
+    assert power_daily.days()[-1] == _ts(2020, 9, 30)
+    with pytest.raises(ValueError):
+        power_daily.days(_ts(2017, 1, 1, 1), _ts(2017, 1, 2))
+    cet = timezone(timedelta(hours=1))
+    with pytest.raises(ValueError):
+        power_daily.days(datetime(2017, 1, 1, tzinfo=cet), datetime(2017, 1, 2, tzinfo=cet))
+
+
+def _power_doc(day: datetime, hours: int, fill_at: int | None = None) -> bytes:
+    values = {}
+    for h in range(hours):
+        t = day + timedelta(hours=h)
+        values[f"{t:%Y%m%d%H}"] = -999.0 if h == fill_at else round(0.5 + h / 10, 2)
+    doc = {
+        "header": {"time_standard": "UTC", "fill_value": -999.0},
+        "properties": {"parameter": {p: dict(values) for p in power_hourly.PARAMETERS}},
+    }
+    return json.dumps(doc).encode()
+
+
+def test_daily_summary_counts_incomplete_days_and_is_deterministic():
+    day = _ts(2017, 1, 1)
+    grid = power_daily.days(day, day + timedelta(days=1))
+    _, cols = power_hourly.parse_response(_power_doc(day, 48, fill_at=30))
+    first = power_daily.daily_summary("berlin", cols, grid)
+    assert first == power_daily.daily_summary("berlin", cols, grid)
+    assert first["days"] == 2
+    assert first["incomplete_days"] == {p: ["2017-01-02"] for p in power_hourly.PARAMETERS}
+    _, other = power_hourly.parse_response(_power_doc(day, 48))
+    second = power_daily.daily_summary("berlin", other, grid)
+    assert second["incomplete_days"] == {p: [] for p in power_hourly.PARAMETERS}
+    assert second["daily_values_sha256"] != first["daily_values_sha256"]
+    # day 1 is identical in both responses, so the published value is the same
+    first_day = power_daily.daily_means(cols["T2M"], grid)[0]
+    assert first_day == power_daily.daily_means(other["T2M"], grid)[0] is not None
+
+
+def test_daily_grid_checks_use_days():
+    grid = power_daily.days(_ts(2017, 1, 1), _ts(2017, 1, 4))
+    table = bundle.Table(grid, {"a": [1.0, None, None, 2.0]})
+    checks = {c["name"]: c for c in bundle.grid_checks(table, grid, bundle.DAY)}
+    assert checks["daily_utc_grid"]["status"] == "pass"
+    assert checks["gaps"]["detail"].endswith("a: 2017-01-02T00:00:00Z +2 d")
+    assert bundle.missing_runs(grid, table.values["a"], bundle.DAY) == [(grid[1], 2)]
 
 
 @pytest.mark.parametrize(
@@ -458,6 +605,14 @@ def test_verify_detects_resigned_power_values(copy):
     _rehash(copy)
     errors, _ = publish.verify(copy, _carry_inputs(copy))
     assert any("request record" in e for e in errors), errors
+
+
+def test_verify_detects_resigned_daily_values(copy):
+    path = copy / "series" / f"{publish.DAILY_ID}.csv"
+    _replace(path, "2015-01-01T00:00:00Z,0.96,", "2015-01-01T00:00:00Z,0.97,")
+    _rehash(copy)
+    errors, _ = publish.verify(copy, _carry_inputs(copy))
+    assert any("daily means" in e and "request record" in e for e in errors), errors
 
 
 def test_verify_detects_resigned_derived_values(copy):

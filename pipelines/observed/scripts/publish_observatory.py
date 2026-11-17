@@ -10,8 +10,9 @@ Run from ``pipelines/observed``::
 ``--power-cache`` to ``<cache>/nasa-power`` (``<cache>`` = ``$GRIDSTORM_DATA_CACHE`` or
 ``<repo>/../upstream/_data_cache``). A missing source is not an error: that entry's series is
 carried forward from the existing bundle and re-checked. ``--fetch-nasa`` downloads the POWER
-responses that are not cached yet (sequentially, with a pause) and rewrites the committed request
-record. ``--verify`` re-hashes the bundle, validates every entry, re-runs the licence gate and
+responses that are not cached yet (hourly windows and the yearly requests behind the daily means;
+sequentially, with a pause) and rewrites both committed request records. ``--verify`` re-hashes
+the bundle, validates every entry, re-runs the licence gate and
 re-derives the bundle from the available inputs, requiring byte equality; exit status 1 on any
 error.
 """
@@ -22,7 +23,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from gridstorm_observed import bundle, power_hourly, publish, sources
+from gridstorm_observed import bundle, power_daily, power_hourly, publish, sources
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -65,6 +66,9 @@ def main(argv: list[str] | None = None) -> int:
         record = power_hourly.fetch(power_cache)
         power_hourly.RECORD_PATH.write_bytes(bundle.dump_json(record))
         print(f"POWER request record written: {power_hourly.RECORD_PATH}")
+        daily = power_daily.fetch(power_cache)
+        power_daily.RECORD_PATH.write_bytes(bundle.dump_json(daily))
+        print(f"POWER daily-means request record written: {power_daily.RECORD_PATH}")
 
     result = publish.build_bundle(inputs)
     publish.write_bundle(out, result.files)

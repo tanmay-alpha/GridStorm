@@ -22,6 +22,7 @@ UTC_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
 ID_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 SERIES_ID_RE = re.compile(r"^[a-z0-9]+(?:_[a-z0-9]+)*$")
 HOUR = timedelta(hours=1)
+DAY = timedelta(days=1)
 
 CATEGORIES = (
     "network_model",
@@ -59,10 +60,15 @@ def fmt_utc(ts: datetime) -> str:
 
 def hourly_range(start: datetime, end: datetime) -> list[datetime]:
     """Inclusive hourly grid ``start .. end``."""
+    return step_range(start, end, HOUR)
+
+
+def step_range(start: datetime, end: datetime, step: timedelta) -> list[datetime]:
+    """Inclusive grid ``start .. end`` with a fixed ``step``."""
     out, t = [], start
     while t <= end:
         out.append(t)
-        t += HOUR
+        t += step
     return out
 
 
@@ -173,14 +179,16 @@ def check(name: str, status: str, detail: str) -> dict:
     return {"name": name, "status": status, "detail": detail}
 
 
-def missing_runs(stamps: list[datetime], col: list[float | None]) -> list[tuple[datetime, int]]:
-    """Runs of consecutive missing hours as ``(first_hour, length)``."""
+def missing_runs(
+    stamps: list[datetime], col: list[float | None], step: timedelta = HOUR
+) -> list[tuple[datetime, int]]:
+    """Runs of consecutive missing rows (``step`` apart) as ``(first_row, length)``."""
     runs: list[tuple[datetime, int]] = []
     start: datetime | None = None
     n = 0
     prev: datetime | None = None
     for ts, v in zip(stamps, col, strict=True):
-        if v is None and start is not None and prev is not None and ts - prev == HOUR:
+        if v is None and start is not None and prev is not None and ts - prev == step:
             n += 1
         elif v is None:
             if start is not None:
@@ -220,8 +228,11 @@ def table_quality(table: Table, expected: list[datetime]) -> dict:
     }
 
 
-def grid_checks(table: Table, expected: list[datetime]) -> list[dict]:
-    """Hourly-grid, duplicate and gap checks on the published table."""
+def grid_checks(table: Table, expected: list[datetime], step: timedelta = HOUR) -> list[dict]:
+    """Grid (hourly or daily), duplicate and gap checks on the published table."""
+    if step not in (HOUR, DAY):
+        raise ValueError(f"unsupported grid step {step}")
+    grid, unit, suffix = ("hourly", "hours", "h") if step == HOUR else ("daily", "days", "d")
     out = []
     dupes = len(table.timestamps) - len(set(table.timestamps))
     out.append(
@@ -234,16 +245,16 @@ def grid_checks(table: Table, expected: list[datetime]) -> list[dict]:
     on_grid = table.timestamps == expected
     out.append(
         check(
-            "hourly_utc_grid",
+            f"{grid}_utc_grid",
             "pass" if on_grid else "fail",
-            f"{len(table.timestamps)} rows on the expected hourly UTC grid of "
-            f"{len(expected)} hours" + ("" if on_grid else " (mismatch)"),
+            f"{len(table.timestamps)} rows on the expected {grid} UTC grid of "
+            f"{len(expected)} {unit}" + ("" if on_grid else " (mismatch)"),
         )
     )
     gaps = []
     for sid, col in table.values.items():
-        for first, n in missing_runs(table.timestamps, col):
-            gaps.append(f"{sid}: {fmt_utc(first)} +{n} h")
+        for first, n in missing_runs(table.timestamps, col, step):
+            gaps.append(f"{sid}: {fmt_utc(first)} +{n} {suffix}")
     out.append(
         check(
             "gaps",

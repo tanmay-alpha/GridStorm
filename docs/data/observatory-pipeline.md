@@ -1,14 +1,15 @@
 # Data Observatory pipeline: produce, verify, publish, roll back
 
-Status: 2026-11-17, GridStorm 3.2 (TODO G32-03). Code: `pipelines/observed/`
-(`gridstorm_observed.licence`, `.bundle`, `.power_hourly`, `.publish`;
+Status: 2026-11-17, GridStorm 3.3 (TODO G32-03, G33-04). Code: `pipelines/observed/`
+(`gridstorm_observed.licence`, `.bundle`, `.power_hourly`, `.power_daily`, `.publish`;
 `scripts/publish_observatory.py`). Sources and licences:
 [sources-and-licensing.md](sources-and-licensing.md).
 
 ## 1. What the bundle is
 
 `data/observatory/` is a small, committed, licence-gated bundle (target < 3 MB; bundle
-`2026-11-17.1` is 2 490 754 bytes) that the API bakes into its image, like `data/networks/`.
+`2026-11-17.2` is 2 739 791 bytes, of which `nasa-power-de-daily.csv` is 227 042; bundle
+`2026-11-17.1` was 2 490 754) that the API bakes into its image, like `data/networks/`.
 The API merges it with one `network_model` entry per network and one `precomputed_experiment`
 entry per study group; those two categories are never in the bundle.
 
@@ -16,22 +17,25 @@ entry per study group; those two categories are never in the bundle.
 data/observatory/
   .gitattributes   "* -text": git never rewrites line endings (bytes are sha256-pinned)
   catalog.json     {"schema_version": "gridstorm-observatory/1.0", "bundle_version", "entries": [DatasetEntry]}
-  series/<id>.csv  wide CSV: utc,<series_id>,...; utc = YYYY-MM-DDTHH:MM:SSZ (hour start), strictly increasing
+  series/<id>.csv  wide CSV: utc,<series_id>,...; utc = YYYY-MM-DDTHH:MM:SSZ (period start:
+                   hour start for PT1H, 00:00:00Z day start for P1D), strictly increasing
   manifest.json    pipeline + version + command, source checksums, licence-gate records,
                    files[{path, sha256, bytes}] for every file except itself, total_bytes
 ```
 
 Conventions: empty CSV cell = missing (never 0); fixed decimals per series with trailing zeros
 removed; LF, UTF-8; JSON with sorted keys and 2-space indent; `temporal.end_utc` and
-`windows[].end_utc` are **inclusive** (last covered hour start). Nothing reads the clock: the only
-times in the bundle are recorded source retrieval times. Rows that were never requested (NASA
-POWER between 2015-01-23 and 2017-01-01) are absent, which means "not covered", not "missing".
+`windows[].end_utc` are **inclusive** (last covered period start: hour for PT1H entries, UTC day
+start for the P1D entry). Nothing reads the clock: the only times in the bundle are recorded source
+retrieval times. Rows that were never requested (hourly NASA POWER between 2015-01-23 and
+2017-01-01) are absent, which means "not covered", not "missing".
 
 | Entry | Category / provenance | Series | Rows |
 |---|---|---|---|
 | `opsd-de-load-forecast` | historical_demand / estimated | `de_load_forecast` (MW) | 50 400 (24 missing) |
 | `nasa-power-de-weather` | weather_reanalysis / modeled | `<city>_t2m`, `<city>_ws10m` × 4 | 8 928 |
 | `nasa-power-de-renewable-resource` | renewable_resource / modeled | `<city>_ws50m`, `<city>_ghi` × 4 | 8 928 |
+| `nasa-power-de-daily` | weather_reanalysis / modeled | `<city>_t2m`, `_ws10m`, `_ws50m`, `_ghi` × 4: GridStorm daily means of complete UTC days (P1D), 2015-01-01..2020-09-30 | 2 100 (0 incomplete days) |
 | `opsd-de-derived-multipliers` | derived_research / modeled | one hour-of-day demand multiplier column per stress day, on the SciGRID-DE model day 2011-01-01 | 24 |
 | `observed-analogue-scenarios` | synthetic_scenario_input / modeled | metadata only; `use_in_scenario` → precomputed Studio preset `observed-dunkelflaute-2015-01-20` | — |
 
@@ -55,6 +59,8 @@ uv sync --locked
 # First time / new NASA request set: fetch missing POWER responses (sequential, 1.5 s pause) and
 # rewrite data/observed/nasa-power-de/power-hourly-requests.json
 uv run --locked python scripts/publish_observatory.py --out ../../data/observatory --fetch-nasa
+# (rewrites power-hourly-requests.json and power-daily-requests.json; responses already cached
+# are reused, so only new request URLs touch the API)
 # Normal rebuild (all sources from the cache)
 uv run --locked python scripts/publish_observatory.py --out ../../data/observatory \
     --opsd-csv "$GRIDSTORM_DATA_CACHE/opsd/time_series_60min_singleindex.csv"
@@ -68,9 +74,13 @@ Inputs:
   `data/observed/opsd-de/manifest.json` `source.sha256`. Only `utc_timestamp`,
   `cet_cest_timestamp` and the forecast column are read.
 - **NASA POWER responses**: `<cache>/nasa-power/` (raw JSON, outside the repo), pinned by the
-  committed request record (URL, response sha256 and bytes, API version, header sources, fill
-  counts, `values_sha256` of the canonical values, `retrieved_at`). The record is the only place
-  retrieval times come from.
+  committed request records (URL, response sha256 and bytes, API version, header sources, fill
+  counts, `values_sha256` of the canonical values, `retrieved_at`). The records are the only place
+  retrieval times come from. `power-hourly-requests.json` holds the 8 stress-window/2017 requests
+  of the hourly entries; `power-daily-requests.json` holds the 24 yearly requests (4 points ×
+  2015..2020, the 2020 one ending 2020-09-30; the four 2017 URLs are the same as the hourly ones
+  and reuse their cached responses) behind `nasa-power-de-daily`, plus per request
+  `daily_values_sha256` (canonical published daily means), `days` and `incomplete_days`.
 - **Committed inputs**: `data/observed/opsd-de/{derived-multipliers.json,manifest.json}`,
   `data/observed/analogue-results.json`, `data/scenarios/observed/*.yaml`,
   `packages/stormspec/presets/observed-*.yaml` (must be byte-identical to the scenario YAMLs;
@@ -85,11 +95,33 @@ re-derived from source and which were carried forward. After writing, the script
 Change the bundle version (`publish.BUNDLE_VERSION`, or `--bundle-version YYYY-MM-DD.N`) whenever
 the published content changes.
 
+### 3.1 Daily means (`nasa-power-de-daily`)
+
+`gridstorm_observed.power_daily`: the value of UTC day D is the arithmetic mean (`math.fsum` / 24)
+of the 24 POWER hourly values labelled D 00..D 23 UTC; it is written (2 decimals) only if all 24
+are present (fill −999 or an absent hour → the day is empty, counted in the
+`complete_day_rule` check; bundle `2026-11-17.2`: 0 incomplete days). NASA's daily endpoint is not
+used because its days are not UTC days. Requests are hourly with `time-standard=UTC`, one per
+point per calendar year, sequential with a 1.5 s pause; an HTTP error (e.g. 429) aborts before
+any record is written, so no partial year can be published. Regenerate after a pipeline change
+(responses cached) or from scratch:
+
+```bash
+cd pipelines/observed
+uv run --locked python scripts/publish_observatory.py --out ../../data/observatory --fetch-nasa \
+    --opsd-csv "$GRIDSTORM_DATA_CACHE/opsd/time_series_60min_singleindex.csv"
+uv run --locked python scripts/publish_observatory.py --out ../../data/observatory --verify
+```
+
+Without the raw responses the daily CSV is carried forward and its values must hash to each
+request's `daily_values_sha256`; with them, the hourly values must also hash to `values_sha256`.
+The entry also cross-checks the 372 UTC days covered by the hourly entries (identical means).
+
 ## 4. Verify
 
 ```bash
 cd pipelines/observed
-uv run --locked pytest -q                                      # 92 tests (38 existing + 54 observatory)
+uv run --locked pytest -q                                      # 104 tests (38 existing + 66 observatory)
 uv run --locked python scripts/publish_observatory.py --out ../../data/observatory --verify
 ```
 
@@ -114,13 +146,15 @@ without it a consistently re-signed edit of `opsd-de-load-forecast.csv` is not d
 therefore restores or downloads the sha256-pinned CSV (below).
 
 `tests/test_observatory.py` covers the gate (allow-list, forged allow-list, unknown keys, build
-refusal), the reconstruction test (with the OPSD cache: published forecast = source forecast; an
-oracle affine fit to actual load still misses by > 1 GW RMS, by > 500 MW in most hours and on each
-stress day), determinism (two builds byte-identical and equal to the committed bundle; from raw
-sources when cached), manifest coverage, quality maths (missing kept null, completeness, gaps),
-UTC parsing (offset/local forms rejected, DST fixture), and tamper detection (unsigned byte edit,
-re-signed NASA/derived/metadata edits, restricted series, unlisted file, preset drift, re-signed
-forecast edit with the source).
+refusal incl. a forged daily series), the reconstruction test (with the OPSD cache: published
+forecast = source forecast; an oracle affine fit to actual load still misses by > 1 GW RMS, by
+> 500 MW in most hours and on each stress day), determinism (two builds byte-identical and equal to
+the committed bundle; from raw sources when cached), manifest coverage, quality maths (missing kept
+null, completeness, gaps, daily grid), UTC parsing (offset/local forms rejected, DST fixture), the
+daily rule (exactly the 24 UTC hours of the day incl. a DST-switch day, a partial day → empty,
+non-UTC day starts rejected, incomplete-day counting and digest determinism, yearly request
+record), and tamper detection (unsigned byte edit, re-signed NASA hourly/daily/derived/metadata
+edits, restricted series, unlisted file, preset drift, re-signed forecast edit with the source).
 
 ## 5. CI and publication
 
@@ -136,8 +170,10 @@ forecast edit with the source).
   `render.yaml`), so merging a bundle change to `main` triggers the API redeploy; a change elsewhere
   in this pipeline without a bundle change does not. At startup the API re-hashes every file
   against `manifest.json` and serves a dataset's series only if it verifies (503 otherwise).
-- After deploy: `GET /api/v1/data/catalog` lists the five bundle entries plus the composed network
-  and experiment entries; spot-check `/api/v1/data/catalog/opsd-de-load-forecast/series`.
+- After deploy: `GET /api/v1/data/catalog` lists the six bundle entries plus the composed network
+  and experiment entries; spot-check `/api/v1/data/catalog/opsd-de-load-forecast/series` and
+  `/api/v1/data/catalog/nasa-power-de-daily/series`. Loading bundle `2026-11-17.2` in-process
+  costs about 4.7 MB RSS (1.2 MB more than `2026-11-17.1`; measured 2026-11-17 with psutil).
 
 ## 6. Roll back
 
