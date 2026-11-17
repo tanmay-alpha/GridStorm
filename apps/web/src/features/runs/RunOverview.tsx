@@ -21,7 +21,7 @@ function FactTile({ f, size = 'md' }: { f: HeadlineFact; size?: 'md' | 'lg' }) {
       <span
         className={cn(
           'tabular font-semibold leading-tight break-words',
-          size === 'lg' ? 'text-2xl md:text-3xl' : 'text-lg',
+          size === 'lg' ? 'text-2xl' : 'text-lg',
           f.tone ? TONE_TEXT[f.tone] : 'text-fg',
         )}
       >
@@ -56,7 +56,8 @@ export function KpiOverview({ facts }: { facts: HeadlineFact[] }) {
   const secondary = facts.filter((f) => f.key === 'congestion' || f.key === 'curtailment' || f.key === 'co2')
   const cost = facts.find((f) => f.key === 'cost')
   return (
-    <div aria-label="Key metrics" className="grid gap-3 xl:grid-cols-[minmax(0,2.2fr)_minmax(0,1fr)]" data-testid="metrics">
+    <div aria-label="Key metrics" className="@container" data-testid="metrics">
+      <div className="grid gap-3 @2xl:grid-cols-[minmax(0,2.2fr)_minmax(0,1fr)]">
       <section aria-labelledby="kpi-physical-h" className="flex min-w-0 flex-col gap-1.5">
         <h3 id="kpi-physical-h" className="gs-label">
           Physical impact
@@ -83,6 +84,7 @@ export function KpiOverview({ facts }: { facts: HeadlineFact[] }) {
           </p>
         </section>
       )}
+      </div>
     </div>
   )
 }
@@ -207,7 +209,14 @@ export function BaselineChange({
     )
   else if (baseline.error)
     body = <p className="text-xs text-warn">The baseline run’s result could not be loaded; open the full comparison instead.</p>
-  else if (!baseline.data) body = <SkeletonBlock rows={4} label="Loading baseline result" />
+  // Reserve about the change table's height: below xl this panel sits above the brief, so a short
+  // skeleton replaced by the table shifted the page (CLS).
+  else if (!baseline.data)
+    body = (
+      <div className="min-h-[17rem]">
+        <SkeletonBlock rows={7} label="Loading baseline result" />
+      </div>
+    )
   else
     body = (
       <div className="flex flex-col gap-2">

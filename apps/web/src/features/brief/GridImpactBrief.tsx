@@ -1,3 +1,4 @@
+import { useId, useState } from 'react'
 import { AlertTriangle, CheckCircle2, Info, XCircle } from 'lucide-react'
 import { Badge, cn } from '../../components/ui'
 import { formatNumber, NO_VALUE } from '../../lib/format'
@@ -29,16 +30,36 @@ function evidenceValue(e: BriefEvidence): string {
 /**
  * Renders a Grid Impact Brief: ordered statements, each with the exact fields and values it was
  * derived from (expand "Evidence"). Deterministic rules over stored data; no language model.
+ * `initialCount` shows the first N statements with a "Show all" toggle (the rest stay in the DOM,
+ * hidden); `showHeadline={false}` when the page already prints the same headline (run banner).
  */
-export function GridImpactBrief({ brief, className, compact = false }: { brief: Brief; className?: string; compact?: boolean }) {
+export function GridImpactBrief({
+  brief,
+  className,
+  compact = false,
+  initialCount,
+  showHeadline = true,
+}: {
+  brief: Brief
+  className?: string
+  compact?: boolean
+  initialCount?: number
+  showHeadline?: boolean
+}) {
+  const [expanded, setExpanded] = useState(false)
+  const listId = useId()
+  const collapsible = initialCount !== undefined && brief.statements.length > initialCount + 1
+  const shown = collapsible && !expanded ? initialCount : brief.statements.length
   return (
     <div className={cn('flex flex-col gap-2', className)} data-testid="grid-impact-brief">
-      <p className="text-sm font-semibold text-fg" data-testid="brief-headline">
-        {brief.headline}
-      </p>
-      <ol className="flex flex-col gap-1.5" aria-label="Brief statements">
-        {brief.statements.map((s) => (
-          <li key={s.id} className="flex gap-2 text-sm leading-snug" data-statement={s.id} data-tone={s.tone}>
+      {showHeadline && (
+        <p className="text-sm font-semibold text-fg" data-testid="brief-headline">
+          {brief.headline}
+        </p>
+      )}
+      <ol className="flex flex-col gap-1.5" aria-label="Brief statements" id={listId}>
+        {brief.statements.map((s, i) => (
+          <li key={s.id} className="flex gap-2 text-sm leading-snug" data-statement={s.id} data-tone={s.tone} hidden={i >= shown}>
             {ICON[s.tone]}
             <div className="min-w-0 flex-1">
               <span className="sr-only">{TONE_LABEL[s.tone]}: </span>
@@ -66,6 +87,18 @@ export function GridImpactBrief({ brief, className, compact = false }: { brief: 
           </li>
         ))}
       </ol>
+      {collapsible && (
+        <button
+          type="button"
+          className="-my-1 self-start py-1 text-xs font-medium text-accent underline-offset-2 hover:underline"
+          aria-expanded={expanded}
+          aria-controls={listId}
+          onClick={() => setExpanded((x) => !x)}
+          data-testid="brief-toggle"
+        >
+          {expanded ? `Show the first ${initialCount} statements` : `Show all ${brief.statements.length} statements (${brief.statements.length - initialCount!} more)`}
+        </button>
+      )}
       {!compact && (
         <ul className="mt-1 list-disc border-t border-line pt-1.5 pl-4 text-2xs text-fg-subtle" aria-label="Brief caveats">
           {brief.caveats.map((c) => (

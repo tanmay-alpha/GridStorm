@@ -58,7 +58,7 @@ test('real API: explorer, validation, live simulations, comparison, replay and e
     await expect(page).toHaveURL(/\/runs\//)
     runs.push(page.url().split('/runs/')[1])
     await expect(page.getByTestId('metrics')).toBeVisible({ timeout: 120_000 })
-    await expect(page.getByTestId('chart-generation').locator('canvas')).toBeVisible()
+    await expect(page.getByTestId('single-period-summary')).toContainText(/\[MW\][\s\S]*NG\s*[\d,.]+[\s\S]*Demand\s*259/)
     await expect(page.getByTestId('job-status')).toHaveAttribute('data-status', 'completed')
     await expect(page.getByTestId('stage-timeline')).toContainText('done')
     const download = page.waitForEvent('download')

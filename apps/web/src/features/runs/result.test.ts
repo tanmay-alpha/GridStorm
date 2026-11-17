@@ -1,6 +1,23 @@
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { costBasisTexts, generationOption, headlineFacts, horizonLabel, isIntegrityError, isResultUnavailable, outcomeSummary, priceOption, SINGLE_PERIOD, snapshotLabels } from './result'
-import type { CostBasis, GridstormResult, SolverInfo } from '../../api/types'
+import {
+  costBasisTexts,
+  generationOption,
+  headlineFacts,
+  horizonLabel,
+  isIntegrityError,
+  isResultUnavailable,
+  isSinglePeriod,
+  outcomeSummary,
+  predatesDurableStorage,
+  priceOption,
+  recomputationsOf,
+  SINGLE_PERIOD,
+  singlePeriodSummary,
+  snapshotLabels,
+  unavailableDetails,
+} from './result'
+import type { CostBasis, GridstormResult, Job, SolverInfo } from '../../api/types'
 
 import { ApiError } from '../../api/client'
 

@@ -49,15 +49,34 @@ test('run page answers what happened, then one click compares with the baseline 
   await expect(summary).not.toContainText(/\bEUR\b/)
   await expect(summary.getByTestId('key-assumptions')).toContainText('single period (no timestamp)')
   const brief = page.getByTestId('grid-impact-brief')
-  await expect(brief.getByTestId('brief-headline')).toHaveText(/^Feasible with 200 MWh unserved/)
+  // The brief's headline is the banner's outcome sentence (printed once).
+  await expect(summary.getByTestId('outcome-sentence')).toHaveText(/^Feasible with 200 MWh unserved/)
+  await expect(brief.getByTestId('brief-headline')).toHaveCount(0)
   await expect(brief.locator('[data-statement="outage"]')).toContainText('generator gen-1')
   await expect(page.getByTestId('guide-steps').locator('[aria-current="step"]')).toHaveAttribute('data-step', 'compare')
   // "What changed vs baseline?" is answered on the run page itself.
   await expect(page.getByTestId('change-table')).toContainText('n/a (baseline 0)')
-  // Above the fold at 1440×900: outcome, facts and the brief.
-  for (const el of [summary, brief]) expect((await el.boundingBox())!.y).toBeLessThan(900)
+  // One snapshot: a compact dispatch summary instead of one-point charts.
+  const single = page.getByTestId('single-period-summary')
+  await expect(single.locator('[data-carrier="NG"]')).toContainText('59')
+  await expect(single.locator('[data-row="load-shed"]')).toContainText('200')
+  await expect(page.getByTestId('chart-generation')).toHaveCount(0)
+  // Above the fold at 1440×900: outcome, facts and what changed vs baseline; the brief starts on it.
+  for (const el of [summary, page.getByTestId('change-table'), brief]) expect((await el.boundingBox())!.y).toBeLessThan(900)
+  const changeBox = (await page.getByTestId('change-table').boundingBox())!
+  expect(changeBox.y + changeBox.height).toBeLessThan(900)
   await waitForNetworkView(page, 'pglib-case14-ieee')
   await shot(page, 'run-case14-gen1-outage-desktop-fold')
+  // Legend collapsed by default, one click away; the scale key is docked under the map.
+  await expect(page.locator('#network-state').getByTestId('map-legend')).not.toHaveAttribute('open', '')
+  await expect(page.locator('#network-state').getByTestId('branch-scale-key')).toContainText('≥ 99.9 % (congested)')
+  await page.locator('#network-state').getByTestId('map-legend').locator('summary').click()
+  await expect(page.locator('#network-state').getByTestId('schematic-legend')).toBeVisible()
+  // Downloads: what each file is, and visible feedback after a click.
+  const saved = page.waitForEvent('download')
+  await page.getByTestId('download-result').click()
+  expect((await saved).suggestedFilename()).toBe(`gridstorm-result-${outage}.json`)
+  await expect(page.getByTestId('download-status')).toContainText('matches the stored checksum')
 
   await page.getByTestId('compare-baseline').click()
   await expect(page).toHaveURL(/\/compare\?.*a=.*b=.*guide=1/)

@@ -26,13 +26,13 @@ import {
 } from '../../components/ui'
 import { formatDelta, formatNumber, formatQuantity, formatRelativeChange, NO_VALUE } from '../../lib/format'
 import { resolveCostBasis } from '../../lib/money'
-import { downloadBlob, downloadText } from '../../lib/download'
+import { DownloadList } from '../runs/DownloadList'
 import { buildBrief } from '../brief/brief'
 import { GridImpactBrief } from '../brief/GridImpactBrief'
 import { CostBasisNote } from '../runs/CostBasis'
 import { COST_NOT_SECURITY } from '../runs/RunOverview'
 import { GuideSteps, GUIDE_STUDIO_URL } from '../runs/GuideSteps'
-import { branchLoadingAt, isResultUnavailable, outagedKeys, snapshotLabels } from '../runs/result'
+import { branchLoadingAt, isResultUnavailable, outagedKeys, recomputationsOf, snapshotLabels } from '../runs/result'
 import { compareUrl } from './baseline'
 import { PairedKpis } from './PairedKpis'
 import { useBaselinePlan } from './useBaselinePlan'
@@ -133,14 +133,36 @@ function ComparisonView({ comparison, guide }: { comparison: Comparison; guide: 
   const scenario = useResult(comparison.scenario_job_id, true)
   const [view, setView] = useState<MapView>('delta_max')
   const [t, setT] = useState(0)
-  // JSON is saved as the server's exact bytes so its sha256 matches X-GridStorm-Report-SHA256.
-  const export_ = useMutation({
-    mutationFn: async (format: 'json' | 'md') => {
-      if (format === 'json') downloadBlob(`gridstorm-comparison-${comparison.id}.json`, await api.reportJsonBlob(comparison.id))
-      else downloadText(`gridstorm-comparison-${comparison.id}.md`, await api.reportMarkdown(comparison.id), 'text/markdown')
-    },
-  })
-  const resultsGone = isResultUnavailable(baseline.error) || isResultUnavailable(scenario.error)
+  const jobs = useJobs()
+  const baselineLost = isResultUnavailable(baseline.error)
+  const scenarioLost = isResultUnavailable(scenario.error)
+  const resultsGone = baselineLost || scenarioLost
+  // Completed recomputations (API `recomputed_from_job_id`) of a lost side; linked, never substituted.
+  const usable = (id: string) => recomputationsOf(jobs.data, id).find((j) => j.status === 'completed' && j.result_available !== false) ?? null
+  const baselineRe = baselineLost ? usable(comparison.baseline_job_id) : null
+  const scenarioRe = scenarioLost ? usable(comparison.scenario_job_id) : null
+  const recomputedPair =
+    resultsGone && (!baselineLost || baselineRe) && (!scenarioLost || scenarioRe)
+      ? compareUrl(baselineRe?.id ?? comparison.baseline_job_id, scenarioRe?.id ?? comparison.scenario_job_id, { auto: true })
+      : null
+  // Inline in the badge row so the 410 arriving after the report does not shift the page.
+  const lostNote = (lost: boolean, re: Job | null) =>
+    lost && (
+      <>
+        <span data-testid="pair-result-lost">
+          <Badge tone="warn">result file lost (HTTP 410)</Badge>
+        </span>
+        {re && (
+          <span className="text-2xs text-fg-muted">
+            recomputed as{' '}
+            <Link className="font-mono text-accent underline" to={`/runs/${encodeURIComponent(re.id)}`}>
+              {re.id.slice(0, 8)}
+            </Link>{' '}
+            (new solve, not used here)
+          </span>
+        )}
+      </>
+    )
 
   const series = useMemo(() => (baseline.data && scenario.data ? { b: baseline.data, s: scenario.data } : null), [baseline.data, scenario.data])
   const bBasis = resolveCostBasis(baseline.data, network.data)
@@ -201,6 +223,7 @@ function ComparisonView({ comparison, guide }: { comparison: Comparison; guide: 
             <span className="flex flex-wrap items-center gap-1.5">
               <OutcomeBadge outcome={rep.baseline.outcome} />
               <code className="font-mono text-2xs text-fg-subtle">{rep.baseline.job_id.slice(0, 8)}</code>
+              {lostNote(baselineLost, baselineRe)}
             </span>
           </li>
           <li aria-hidden className="hidden items-center justify-center text-fg-subtle md:flex">
@@ -214,6 +237,7 @@ function ComparisonView({ comparison, guide }: { comparison: Comparison; guide: 
             <span className="flex flex-wrap items-center gap-1.5">
               <OutcomeBadge outcome={rep.scenario.outcome} />
               <code className="font-mono text-2xs text-fg-subtle">{rep.scenario.job_id.slice(0, 8)}</code>
+              {lostNote(scenarioLost, scenarioRe)}
             </span>
           </li>
         </ol>
@@ -227,7 +251,6 @@ function ComparisonView({ comparison, guide }: { comparison: Comparison; guide: 
           (baseline → crisis → mitigation).
         </p>
       </section>
-      {export_.error && <ErrorState error={export_.error} title="Report export failed" />}
       {rep.warnings.length > 0 && (
         <ul role="alert" className="list-disc rounded border border-warn/40 bg-warn-soft py-2 pl-6 pr-2 text-xs text-warn">
           {rep.warnings.map((w) => (
@@ -239,12 +262,26 @@ function ComparisonView({ comparison, guide }: { comparison: Comparison; guide: 
       <div className="grid gap-3 xl:grid-cols-2">
         <Panel title="Grid Impact Brief" id="brief" description="Scenario versus baseline, derived by fixed rules from both stored results.">
           {brief ? (
-            <GridImpactBrief brief={brief} />
+            <GridImpactBrief brief={brief} initialCount={5} />
           ) : resultsGone ? (
-            <p className="text-xs text-warn" data-testid="brief-results-unavailable">
-              The brief needs both runs’ result files, and {failedResults(isResultUnavailable(baseline.error), isResultUnavailable(scenario.error))}{' '}
-              {isResultUnavailable(baseline.error) && isResultUnavailable(scenario.error) ? 'are' : 'is'} no longer stored (HTTP 410); re-run from the run pages linked above. The metric changes come from the comparison report, which is stored separately and remains valid.
-            </p>
+            <div className="flex flex-col gap-1.5 text-xs" data-testid="brief-results-unavailable">
+              <p className="text-warn">
+                The brief needs both runs’ result files, and {failedResults(baselineLost, scenarioLost)} {baselineLost && scenarioLost ? 'are' : 'is'} no
+                longer stored (HTTP 410): the bytes were lost from artifact storage. The metric changes above come from the comparison report, which
+                is stored separately and remains valid.
+              </p>
+              {recomputedPair ? (
+                <p className="text-fg-muted">
+                  Every lost run has a completed recomputation.{' '}
+                  <Link className="text-accent underline" to={recomputedPair} data-testid="compare-recomputed">
+                    Compare the recomputed runs
+                  </Link>{' '}
+                  for a full brief (a new comparison of new solves; this stored report is unchanged).
+                </p>
+              ) : (
+                <p className="text-fg-muted">Open the run pages linked above to see what survives and to recompute a run as a new job.</p>
+              )}
+            </div>
           ) : baseline.error || scenario.error ? (
             <p className="text-xs text-warn">
               The brief needs both stored results; {failedResults(!!baseline.error, !!scenario.error)} could not be loaded.
@@ -333,7 +370,7 @@ function ComparisonView({ comparison, guide }: { comparison: Comparison; guide: 
                 mode={view === 'delta_max' || view === 'delta_t' ? 'delta' : 'loading'}
                 outaged={outaged}
                 highlighted={highlighted}
-                className="h-[360px]"
+                className="h-[340px] sm:h-[420px] xl:h-[480px]"
                 ariaLabel="Map of line loading differences between scenario and baseline"
               />
             </div>
@@ -366,19 +403,33 @@ function ComparisonView({ comparison, guide }: { comparison: Comparison; guide: 
           </ul>
         </Panel>
         <Panel title="Export comparison report" id="downloads" description={`Built by the server from the stored comparison${guide ? ' — last step of the guided demo' : ''}.`}>
-          <ul className="mb-3 flex list-disc flex-col gap-0.5 pl-4 text-xs text-fg-muted">
-            <li>Every metric with baseline, scenario, Δ and relative Δ, money in the declared cost basis.</li>
-            <li>Generation by carrier, the largest branch-loading changes, the warnings and the assumptions.</li>
-            <li>Reproducibility: scenario hashes, dataset and result sha256, engine and solver of both runs.</li>
-          </ul>
-          <div className="flex flex-wrap gap-1.5">
-            <Button size="sm" className="pointer-coarse:h-11" onClick={() => export_.mutate('md')} disabled={export_.isPending} data-testid="export-md">
-              <FileText aria-hidden className="size-3.5" /> Export MD
-            </Button>
-            <Button size="sm" className="pointer-coarse:h-11" onClick={() => export_.mutate('json')} disabled={export_.isPending} data-testid="export-json">
-              <FileJson aria-hidden className="size-3.5" /> Export JSON
-            </Button>
-          </div>
+          <DownloadList
+            items={[
+              {
+                testId: 'export-md',
+                label: (
+                  <>
+                    <FileText aria-hidden className="size-3.5" /> Export MD
+                  </>
+                ),
+                description: 'Readable report: every metric with baseline, scenario, Δ and relative Δ in the cost basis; generation and curtailment by carrier, the largest branch-loading changes, assumptions and reproducibility hashes of both runs.',
+                filename: `gridstorm-comparison-${comparison.id}.md`,
+                fetch: async () => new Blob([await api.reportMarkdown(comparison.id)], { type: 'text/markdown' }),
+              },
+              {
+                testId: 'export-json',
+                label: (
+                  <>
+                    <FileJson aria-hidden className="size-3.5" /> Export JSON
+                  </>
+                ),
+                description: 'The stored comparison report as machine-readable JSON, byte-identical to the server copy.',
+                filename: `gridstorm-comparison-${comparison.id}.json`,
+                sha256: comparison.report_sha256 ?? null,
+                fetch: () => api.reportJsonBlob(comparison.id),
+              },
+            ]}
+          />
           <p className="mt-2 text-2xs text-fg-subtle">
             Money columns in the report keep legacy <code>_eur</code> field names; they are denominated in the cost basis shown above, not in euros unless that basis says so.
           </p>

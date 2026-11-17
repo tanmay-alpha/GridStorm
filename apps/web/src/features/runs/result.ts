@@ -414,3 +414,78 @@ export function isResultUnavailable(err: unknown): err is ApiError {
 export function isIntegrityError(err: unknown): err is ApiError {
   return err instanceof ApiError && err.status === 500 && err.code === 'artifact_integrity_error'
 }
+
+/**
+ * First production job whose result was verified on durable artifact storage (POST-01, job
+ * `34424ec2`, created 2026-11-15 01:18:43 UTC). Results of earlier jobs were written to the API
+ * host's ephemeral disk (issue #8); those that answer HTTP 410 lost their bytes there.
+ */
+export const DURABLE_STORAGE_SINCE = '2026-11-15T01:18:43Z'
+
+/** The job predates durable artifact storage (its 410 is the known ephemeral-disk loss). */
+export function predatesDurableStorage(job: Pick<Job, 'created_at'>): boolean {
+  const t = Date.parse(job.created_at ?? '')
+  return Number.isFinite(t) && t < Date.parse(DURABLE_STORAGE_SINCE)
+}
+
+/** Jobs recomputed from `id` (API `recomputed_from_job_id`), newest first. */
+export function recomputationsOf(jobs: readonly Job[] | undefined, id: string): Job[] {
+  return (jobs ?? []).filter((j) => j.recomputed_from_job_id === id).sort((a, b) => (b.created_at ?? '').localeCompare(a.created_at ?? ''))
+}
+
+/** Details of an HTTP 410 `artifact_unavailable` body that the UI relies on (all optional). */
+export function unavailableDetails(err: unknown): { recoverable: boolean | null; lostSha256: string | null } {
+  if (!isResultUnavailable(err)) return { recoverable: null, lostSha256: null }
+  const d = err.details
+  return {
+    recoverable: typeof d.recoverable === 'boolean' ? d.recoverable : null,
+    lostSha256: typeof d.result_sha256 === 'string' ? d.result_sha256 : null,
+  }
+}
+
+export interface SinglePeriodSummary {
+  /** "single period (no timestamp)" or the snapshot time. */
+  label: string
+  /** Snapshot weighting [h] (energy = power × hours). */
+  hours: number | null
+  /** Dispatch per carrier [MW], largest first; carriers as reported (zero included, missing = null). */
+  carriers: { carrier: string; mw: number | null }[]
+  /** Sum of the finite carrier values; null when none is reported. */
+  generationMw: number | null
+  demandMw: number | null
+  shedMw: number | null
+  storageMw: number | null
+  /** Mean nodal price as reported in the series, plus min/max over the buses' LP duals. */
+  price: { mean: number | null; min: number | null; max: number | null; buses: number }
+}
+
+/** True when the horizon is exactly one snapshot (PGLib cases, PyPSA `now`). */
+export function isSinglePeriod(r: Pick<GridstormResult, 'snapshots'>): boolean {
+  return r.snapshots.length === 1
+}
+
+/** The single snapshot's values, read from the same result series the charts plot; nothing derived but sums and extremes. */
+export function singlePeriodSummary(r: GridstormResult): SinglePeriodSummary {
+  const at0 = (xs: (number | null)[] | undefined) => (xs && isFiniteNumber(xs[0]) ? xs[0] : null)
+  const gen = r.series.generation_by_carrier_mw ?? {}
+  const carriers = Object.keys(gen)
+    .map((carrier) => ({ carrier, mw: at0(gen[carrier]) }))
+    .sort((a, b) => (b.mw ?? -Infinity) - (a.mw ?? -Infinity) || a.carrier.localeCompare(b.carrier))
+  const finite = carriers.filter((c) => c.mw !== null)
+  const prices = (r.assets.buses ?? []).map((b) => at0(b.marginal_price_eur_per_mwh)).filter((p): p is number => p !== null)
+  return {
+    label: snapshotLabels(r)[0] ?? NO_VALUE,
+    hours: at0(r.snapshot_weightings_h),
+    carriers,
+    generationMw: finite.length ? finite.reduce((s, c) => s + c.mw!, 0) : null,
+    demandMw: at0(r.series.load_mw),
+    shedMw: at0(r.series.load_shed_mw),
+    storageMw: at0(r.series.storage_dispatch_mw),
+    price: {
+      mean: at0(r.series.mean_marginal_price_eur_per_mwh),
+      min: prices.length ? Math.min(...prices) : null,
+      max: prices.length ? Math.max(...prices) : null,
+      buses: prices.length,
+    },
+  }
+}

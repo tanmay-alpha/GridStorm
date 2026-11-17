@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import { BranchLegend } from './MapLegend'
+import { BranchLegend, BranchScaleKey } from './MapLegend'
 
 describe('BranchLegend delta title', () => {
   it('defaults to scenario − baseline', () => {

@@ -8,6 +8,7 @@ import { NO_VALUE, formatNumber, formatQuantity, isFiniteNumber, shortHash } fro
 import { moneyUnit, priceUnit } from '../../lib/money'
 import { cssVar, useTheme } from '../../lib/theme'
 import { CostBasisNote } from './CostBasis'
+import { SinglePeriodSummary } from './SinglePeriodSummary'
 import {
   CONGESTED_PCT,
   branchLoadingAt,
@@ -16,6 +17,7 @@ import {
   generatorRows,
   hasData,
   horizonLabel,
+  isSinglePeriod,
   loadShedOption,
   priceOption,
   snapshotLabels,
@@ -71,9 +73,10 @@ const generatorColumns: Column<GeneratorRow>[] = [
 ]
 
 /**
- * Main and supporting sections of a completed run: network state map with snapshot controls,
- * dispatch/load series (storage and prices when reported), the congestion table, then assumptions,
- * downloads and the traceability details (`evidence` = downloads and job details from the page).
+ * Sections of a completed run below the first screen: the brief (passed in) next to the dispatch
+ * (a compact table for single-snapshot results, the stacked chart otherwise), the network state map
+ * next to the congestion table, load/storage/price charts for multi-snapshot results, then
+ * assumptions, downloads and the traceability details (`evidence` = downloads and job details).
  */
 export function RunResultView({
   job,
@@ -83,6 +86,7 @@ export function RunResultView({
   outaged,
   highlighted,
   evidence,
+  brief,
 }: {
   job: Job
   result: GridstormResult
@@ -91,6 +95,7 @@ export function RunResultView({
   outaged: string[]
   highlighted: string[]
   evidence?: ReactNode
+  brief?: ReactNode
 }) {
   const { theme } = useTheme()
   const [t, setT] = useState(0)
@@ -138,9 +143,24 @@ export function RunResultView({
   const packages = pkgs && typeof pkgs === 'object' ? Object.entries(pkgs).map(([k, v]) => `${k} ${String(v)}`).join(', ') : null
   const texts = useMemo(() => costBasisTexts(result, basis), [result, basis])
 
+  const single = isSinglePeriod(result)
+
   return (
     <>
-      <div className="grid gap-3 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
+      <div className="grid items-start gap-3 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
+        {brief}
+        {single ? (
+          <Panel title="Dispatch, load shedding and prices" id="dispatch" description="Single-period result: the values of its one snapshot.">
+            <SinglePeriodSummary result={result} basis={basis} carrierColors={carrierColors} />
+          </Panel>
+        ) : (
+          <Panel title="Generation by carrier vs demand" id="dispatch" description="Stacked dispatch [MW]; dashed line = demand.">
+            <Chart option={genOpt} ariaLabel="Stacked generation by carrier in MW with demand overlaid" testId="chart-generation" height={300} />
+          </Panel>
+        )}
+      </div>
+
+      <div className="grid items-start gap-3 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
         <Panel
           title="Network state"
           id="network-state"
@@ -168,7 +188,7 @@ export function RunResultView({
                 highlighted={highlighted}
                 selected={selected}
                 onSelect={setSelected}
-                className="h-[340px]"
+                className="h-[340px] sm:h-[420px] xl:h-[500px]"
                 ariaLabel={`Line loading map at ${labels[tt] ?? 'the selected snapshot'}`}
               />
             )}
@@ -180,54 +200,52 @@ export function RunResultView({
             )}
           </div>
         </Panel>
-        <Panel title="Generation by carrier vs demand" id="dispatch" description="Stacked dispatch [MW]; dashed line = demand.">
-          <Chart option={genOpt} ariaLabel="Stacked generation by carrier in MW with demand overlaid" testId="chart-generation" height={300} />
+        <Panel
+          title={`Congestion: branch loading (${rows.length} branches)`}
+          id="congestion"
+          description={`${congestedCount} at ≥ ${CONGESTED_PCT} % loading. Maximum over the horizon; click a row to select it on the map.`}
+        >
+          <DataTable
+            columns={branchColumns}
+            rows={rows}
+            rowKey={(r) => r.key}
+            caption="Branch loading summary"
+            initialSort={{ key: 'loading', dir: 'desc' }}
+            pageSize={10}
+            selectedKey={selected ? `${selected.kind}:${selected.id}` : null}
+            onRowClick={(r) => setSelected({ kind: r.kind, id: r.id })}
+          />
         </Panel>
       </div>
 
-      <div className={cn('grid gap-3', hasStorage && hasPrices ? 'md:grid-cols-2 xl:grid-cols-3' : hasStorage || hasPrices ? 'md:grid-cols-2' : '')}>
-        <Panel title="Load shedding" description="Load shed [MW] per snapshot.">
-          {hasShed ? (
-            <Chart option={shedOpt} ariaLabel="Load shed in MW per snapshot" testId="chart-load-shed" />
-          ) : (
-            <p className="py-2 text-xs text-fg-muted" data-testid="no-load-shed">
-              {s.load_shed_mw?.some(isFiniteNumber) ? 'No load was shed in this run.' : 'Load-shedding series not reported.'}
-            </p>
-          )}
-          {absentSeries.length > 0 && (
-            <p className="mt-2 border-t border-line pt-2 text-2xs text-fg-subtle" data-testid="series-absent">
-              {absentSeries.join(' ')}
-            </p>
-          )}
-        </Panel>
-        {hasStorage && (
-          <Panel title="Storage" description="Aggregate dispatch [MW] and state of charge [MWh].">
-            <Chart option={storeOpt} ariaLabel="Storage dispatch in MW and state of charge in MWh" testId="chart-storage" />
+      {!single && (
+        <div className={cn('grid gap-3', hasStorage && hasPrices ? 'md:grid-cols-2 xl:grid-cols-3' : hasStorage || hasPrices ? 'md:grid-cols-2' : '')}>
+          <Panel title="Load shedding" description="Load shed [MW] per snapshot.">
+            {hasShed ? (
+              <Chart option={shedOpt} ariaLabel="Load shed in MW per snapshot" testId="chart-load-shed" />
+            ) : (
+              <p className="py-2 text-xs text-fg-muted" data-testid="no-load-shed">
+                {s.load_shed_mw?.some(isFiniteNumber) ? 'No load was shed in this run.' : 'Load-shedding series not reported.'}
+              </p>
+            )}
+            {absentSeries.length > 0 && (
+              <p className="mt-2 border-t border-line pt-2 text-2xs text-fg-subtle" data-testid="series-absent">
+                {absentSeries.join(' ')}
+              </p>
+            )}
           </Panel>
-        )}
-        {hasPrices && (
-          <Panel title="Prices" description={`Mean nodal marginal price (LP dual) [${priceUnit(basis)}].`}>
-            <Chart option={priceOpt} ariaLabel="Mean marginal price per MWh in the dataset cost basis" testId="chart-prices" />
-          </Panel>
-        )}
-      </div>
-
-      <Panel
-        title={`Congestion: branch loading (${rows.length} branches)`}
-        id="congestion"
-        description={`${congestedCount} at ≥ ${CONGESTED_PCT} % loading. Maximum over the horizon; click a row to select it on the map.`}
-      >
-        <DataTable
-          columns={branchColumns}
-          rows={rows}
-          rowKey={(r) => r.key}
-          caption="Branch loading summary"
-          initialSort={{ key: 'loading', dir: 'desc' }}
-          pageSize={10}
-          selectedKey={selected ? `${selected.kind}:${selected.id}` : null}
-          onRowClick={(r) => setSelected({ kind: r.kind, id: r.id })}
-        />
-      </Panel>
+          {hasStorage && (
+            <Panel title="Storage" description="Aggregate dispatch [MW] and state of charge [MWh].">
+              <Chart option={storeOpt} ariaLabel="Storage dispatch in MW and state of charge in MWh" testId="chart-storage" />
+            </Panel>
+          )}
+          {hasPrices && (
+            <Panel title="Prices" description={`Mean nodal marginal price (LP dual) [${priceUnit(basis)}].`}>
+              <Chart option={priceOpt} ariaLabel="Mean marginal price per MWh in the dataset cost basis" testId="chart-prices" />
+            </Panel>
+          )}
+        </div>
+      )}
       <Disclosure summary={`Generator dispatch (${gens.length} generators)`} testId="generators-details">
         <p className="mb-2 text-xs text-fg-muted">Energy over the horizon; “at limit” = output equals available capacity.</p>
         <DataTable columns={generatorColumns} rows={gens} rowKey={(r) => r.id} caption="Generator dispatch summary" initialSort={{ key: 'energy', dir: 'desc' }} pageSize={15} />
