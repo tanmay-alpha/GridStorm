@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router'
 import { Dialog } from 'radix-ui'
 import { Menu, Moon, Sun, X, Zap } from 'lucide-react'
@@ -73,6 +73,9 @@ function NavItems({ onNavigate, vertical, research = false }: { onNavigate?: () 
 
 export function AppLayout() {
   const [menuOpen, setMenuOpen] = useState(false)
+  // The research dropdown is a native <details>; close it once a link in it is followed so the open
+  // panel does not linger over the next page's content.
+  const researchMenu = useRef<HTMLDetailsElement>(null)
   const location = useLocation()
   const nav = NAV.find((x) => location.pathname.startsWith(x.to))
   useDocumentTitle(location.pathname === '/' ? 'Overview' : nav?.title ?? null)
@@ -94,9 +97,17 @@ export function AppLayout() {
         </NavLink>
         <nav aria-label="Main" className="ml-2 hidden min-w-0 flex-1 items-center gap-4 lg:flex">
           <div aria-label="Main workspace"><NavItems /></div>
-          <details className="relative">
+          <details ref={researchMenu} className="relative">
             <summary className={cn('flex min-h-11 cursor-pointer items-center rounded-lg px-3 text-sm text-fg-muted hover:bg-surface-2', RESEARCH_NAV.some((n) => location.pathname.startsWith(n.to)) && 'bg-accent-soft text-accent')}>Advanced research</summary>
-            <div className="gs-panel absolute right-0 top-full mt-2 min-w-48 p-2 shadow-xl"><NavItems research vertical /></div>
+            <div className="gs-panel absolute right-0 top-full mt-2 min-w-48 p-2 shadow-xl">
+              <NavItems
+                research
+                vertical
+                onNavigate={() => {
+                  if (researchMenu.current) researchMenu.current.open = false
+                }}
+              />
+            </div>
           </details>
         </nav>
         <div className="ml-auto flex min-w-0 items-center gap-2">
