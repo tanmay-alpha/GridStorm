@@ -12,7 +12,7 @@ Last updated: 2026-11-17
 
 ## Progress dashboard
 
-**Original implementation scope:** 58/58 tasks complete (46 VERIFIED + 12 DEPLOYED). **Post-launch production recovery (2026-11-15):** 12 of 13 items deployed and tested on production (P0 artifact loss fixed and verified across a controlled restart); 1 cosmetic backlog item.
+**Original implementation scope:** 58/58 tasks complete (46 VERIFIED + 12 DEPLOYED). **Post-launch production recovery (2026-11-15):** 12 of 13 items deployed and tested on production (P0 artifact loss fixed and verified across a controlled restart); POST-13 closed as documented on 2026-11-17; re-verified on production `f8b3c28` the same day (see that section). **GridStorm 3.2:** see below.
 
 | State | Count | Tasks |
 |---|---|---|
@@ -103,7 +103,9 @@ Evidence: [production audit](docs/audit/production-2026-11-15.md) · [draft UX P
 These items are **not** included in the original 58/58 delivery count.
 
 Statuses for this section: `BACKLOG → IMPLEMENTING → LOCALLY TESTED → CI VERIFIED → DEPLOYED → PROD TESTED`, or `BLOCKED`.
-Integration branch: `release/production-recovery` (PR #7 head + recovery work). Coordinator: I.
+Integration branch: `release/production-recovery` (PR #7 head + recovery work). Coordinator: I. PR #7 merged and issue #8 closed on 2026-11-15.
+
+**Re-verification against the production-recovery brief (2026-11-17, production `f8b3c28`):** `GET /api/v1/simulations/2d47898b…/result` → 410 (disclosed, recomputed as `458fddab`); `scripts/probe_production.py` all PASS after the 3.2 redeploy (instance replaced; 7 older results still sha-verified from Supabase Storage). One bounded live IEEE-14 solve (`pglib-case14-ieee-gen-1-outage`, `reuse: false`) → job `14735bbd`, HiGHS 1.16.0 `optimal`, 200 MWh unserved, objective 2 001 372.90 PGLib cost units, balance residual 0 MW; downloaded result bytes hash to `x-gridstorm-result-sha256` `f78a5bbb…`; comparison `746d4e14` vs baseline `458fddab`, JSON report body sha = `X-GridStorm-Report-SHA256` `f4c601eb…`, MD report 200 (8 697 B; the header identifies the canonical JSON report, by design). Only open item from that brief: Supabase DB/RLS re-audit, blocked on credentials (G32-02).
 
 | ID | Task | Pri | Owner | Deps | Status | Acceptance criteria / evidence |
 |---|---|---|---|---|---|---|
@@ -120,7 +122,7 @@ Integration branch: `release/production-recovery` (PR #7 head + recovery work). 
 | POST-10 | Scientific invariant regression suite | P1 | B/Science | — | PROD TESTED | 161 offline tests; live network test passes on retrievable live results |
 | POST-11 | Percentage-point units for absolute deltas of % metrics | P2 | C/UXWorkflow + I | — | DEPLOYED | `delta_unit: "pp"` (API), UI "pp"; unit + hermetic e2e tests |
 | POST-12 | Cosmetic: PGLib single-snapshot label shows PyPSA default `now` in replay | P3 | C | — | PROD TESTED (via G3-03) | Show "single period (no timestamp)" for networks without a time index |
-| POST-13 | Transient mobile horizontal overflow seen once on `/library` cold load in CI (Linux, 390 px) | P3 | C | — | IMPLEMENTING | Not reproducible locally or in the Linux Playwright image; header status pill made shrinkable + regression spec; prod assertion now names offending elements; next run 11/11 green. Close after 3 consecutive green scheduled runs |
+| POST-13 | Transient mobile horizontal overflow seen once on `/library` cold load in CI (Linux, 390 px) | P3 | C | — | DOCUMENTED (closed) | Not reproducible locally or in the Linux Playwright image; header status pill made shrinkable + regression spec. The workflow has no schedule, so the "3 consecutive green scheduled runs" criterion became 3 consecutive green runs: 8 consecutive green `production-browser.yml` runs 2026-11-16…17 (latest 44009033246 on `f8b3c28`), plus 0/90 overflow checks in the 3.2 verification |
 
 ## Phase 0 — Research, audit, baseline
 
