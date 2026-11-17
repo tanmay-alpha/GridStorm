@@ -24,7 +24,14 @@ followed from the findings (`0004_client_role_least_privilege.sql`, § RLS and g
 | `0001_core_schema.sql` | `e2bb722c…` | 2026-11-14 23:38 UTC | identical |
 | `0002_row_level_security.sql` | `6ef76be6…` | 2026-11-14 23:38 UTC | identical |
 | `0003_job_indexes_and_client_grants.sql` | `2f82904e…` | 2026-11-15 00:34 UTC | identical |
-| `0004_client_role_least_privilege.sql` | new in 3.3 | see TODO G33-01 | — |
+| `0004_client_role_least_privilege.sql` | new in 3.3 | 2026-11-17 (after PR #15 CI 27/27) via `python -m gridstorm_api.db.migrate` | recorded in `schema_migrations` |
+
+After 0004 on production: tables with any `anon` INSERT/UPDATE/DELETE privilege 12 → 0; `anon` and
+`authenticated` lose SELECT on `simulation_jobs.worker_id` / `heartbeat_at` (a direct read as `anon`
+fails with `InsufficientPrivilege`) and keep every other column (`select count(id)` → 14);
+`authenticated` keeps its owner-scoped write grants; the default ACL for new `postgres`-owned tables
+gives `anon` only `rm`. API unaffected: `/ready` database ok, job GET 200, `probe_production.py` 30
+PASS lines, no failure.
 
 ## Tables, rows, size
 
