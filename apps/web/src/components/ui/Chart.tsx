@@ -1,32 +1,8 @@
-import { useEffect, useRef } from 'react'
-import * as echarts from 'echarts/core'
-import { BarChart, HeatmapChart, LineChart, ScatterChart } from 'echarts/charts'
-import {
-  DataZoomComponent,
-  GridComponent,
-  LegendComponent,
-  MarkLineComponent,
-  TooltipComponent,
-  VisualMapComponent,
-} from 'echarts/components'
-import { CanvasRenderer } from 'echarts/renderers'
-import type { EChartsCoreOption } from 'echarts/core'
+import { useEffect, useRef, useState } from 'react'
+import type { ECharts, EChartsCoreOption } from 'echarts/core'
 import { cssVar, useTheme } from '../../lib/theme'
+import { loadChartRuntime } from './chartLoader'
 import { cn } from './cn'
-
-echarts.use([
-  LineChart,
-  BarChart,
-  ScatterChart,
-  HeatmapChart,
-  GridComponent,
-  TooltipComponent,
-  LegendComponent,
-  DataZoomComponent,
-  MarkLineComponent,
-  VisualMapComponent,
-  CanvasRenderer,
-])
 
 export type ChartOption = EChartsCoreOption
 
@@ -81,25 +57,38 @@ export function Chart({
   testId?: string
 }) {
   const ref = useRef<HTMLDivElement>(null)
-  const chartRef = useRef<echarts.ECharts | null>(null)
+  const [chart, setChart] = useState<ECharts | null>(null)
+  const [failed, setFailed] = useState(false)
   const { theme } = useTheme()
 
   useEffect(() => {
-    if (!ref.current) return
-    const chart = echarts.init(ref.current, undefined, { renderer: 'canvas' })
-    chartRef.current = chart
-    const ro = new ResizeObserver(() => chart.resize())
-    ro.observe(ref.current)
+    const el = ref.current
+    if (!el) return
+    let disposed = false
+    let instance: ECharts | null = null
+    let ro: ResizeObserver | null = null
+    loadChartRuntime().then(
+      ({ initChart }) => {
+        if (disposed) return
+        const c = initChart(el)
+        instance = c
+        ro = new ResizeObserver(() => c.resize())
+        ro.observe(el)
+        setChart(c)
+      },
+      () => {
+        if (!disposed) setFailed(true)
+      },
+    )
     return () => {
-      ro.disconnect()
-      chart.dispose()
-      chartRef.current = null
+      disposed = true
+      ro?.disconnect()
+      instance?.dispose()
     }
   }, [])
 
   useEffect(() => {
-    const chart = chartRef.current
-    if (!chart) return
+    if (!chart || chart.isDisposed()) return
     const base = themeBase() as Record<string, unknown>
     const user = option as Record<string, unknown>
     chart.setOption(
@@ -115,7 +104,7 @@ export function Chart({
       },
       { notMerge: true },
     )
-  }, [option, theme, ariaLabel])
+  }, [chart, option, theme, ariaLabel])
 
   return (
     <div
@@ -125,6 +114,8 @@ export function Chart({
       data-testid={testId}
       className={cn('w-full min-w-0', className)}
       style={{ height }}
-    />
+    >
+      {failed && <p className="p-4 text-xs text-fg-muted">Chart engine could not be loaded — reload the page to retry.</p>}
+    </div>
   )
 }

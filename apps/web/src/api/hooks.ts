@@ -45,8 +45,15 @@ export function useHealth() {
   })
 }
 
+/**
+ * Network list/details and the artifact index are immutable per API deployment (`Cache-Control:
+ * public, max-age=3600`): keep them fresh for the same hour instead of the 30 s default, so revisiting
+ * a route does not refetch and re-render them.
+ */
+const CATALOG_STALE_MS = 60 * 60_000
+
 export function useNetworks() {
-  return useQuery({ queryKey: qk.networks, queryFn: ({ signal }) => api.networks(signal), select: (p) => p.items })
+  return useQuery({ queryKey: qk.networks, queryFn: ({ signal }) => api.networks(signal), select: (p) => p.items, staleTime: CATALOG_STALE_MS })
 }
 
 export function useNetwork(id: string | null | undefined) {
@@ -54,6 +61,7 @@ export function useNetwork(id: string | null | undefined) {
     queryKey: qk.network(id ?? ''),
     queryFn: ({ signal }) => api.network(id!, signal),
     enabled: !!id,
+    staleTime: CATALOG_STALE_MS,
   })
 }
 
@@ -212,6 +220,7 @@ export function useArtifactIndex(q: { engine?: string; kind?: string; network_id
     queryKey: qk.artifacts(q),
     queryFn: ({ signal }) => api.artifacts(q, signal),
     select: (x) => itemsOf(x),
+    staleTime: CATALOG_STALE_MS,
   })
 }
 

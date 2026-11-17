@@ -3,6 +3,7 @@ import { createBrowserRouter } from 'react-router'
 import { AppLayout } from './components/layout/AppLayout'
 import { RouteError } from './components/layout/RouteError'
 import { SkeletonBlock } from './components/ui'
+import { preloadChartRuntime } from './components/ui/chartLoader'
 
 function page(load: () => Promise<{ default: ComponentType }>): ReactNode {
   const C = lazy(load)
@@ -19,6 +20,14 @@ function page(load: () => Promise<{ default: ComponentType }>): ReactNode {
   )
 }
 
+/** For routes that draw charts: fetch the chart engine in parallel with the route chunk, not after the data. */
+function withCharts<T>(load: () => Promise<T>): () => Promise<T> {
+  return () => {
+    preloadChartRuntime()
+    return load()
+  }
+}
+
 const research = () => import('./features/research')
 
 export const router = createBrowserRouter([
@@ -30,16 +39,16 @@ export const router = createBrowserRouter([
       { index: true, element: page(() => import('./features/home/HomePage')) },
       { path: 'explore', element: page(() => import('./features/explorer/ExplorerPage')) },
       { path: 'data', element: page(() => import('./features/observatory/ObservatoryPage')) },
-      { path: 'data/:datasetId', element: page(() => import('./features/observatory/DatasetPage')) },
+      { path: 'data/:datasetId', element: page(withCharts(() => import('./features/observatory/DatasetPage'))) },
       { path: 'studio', element: page(() => import('./features/studio/StudioPage')) },
-      { path: 'runs/:id', element: page(() => import('./features/runs/RunPage')) },
-      { path: 'compare', element: page(() => import('./features/compare/ComparePage')) },
-      { path: 'mitigation', element: page(() => import('./features/mitigation/MitigationPage')) },
-      { path: 'mitigation/:studyId', element: page(() => import('./features/mitigation/MitigationPage')) },
+      { path: 'runs/:id', element: page(withCharts(() => import('./features/runs/RunPage'))) },
+      { path: 'compare', element: page(withCharts(() => import('./features/compare/ComparePage'))) },
+      { path: 'mitigation', element: page(withCharts(() => import('./features/mitigation/MitigationPage'))) },
+      { path: 'mitigation/:studyId', element: page(withCharts(() => import('./features/mitigation/MitigationPage'))) },
       { path: 'library', element: page(() => import('./features/library/LibraryPage')) },
       { path: 'contingency', element: page(() => research().then((m) => ({ default: m.ContingencyPage }))) },
-      { path: 'operations', element: page(() => research().then((m) => ({ default: m.OperationsPage }))) },
-      { path: 'benchmarks', element: page(() => research().then((m) => ({ default: m.BenchmarksPage }))) },
+      { path: 'operations', element: page(withCharts(() => research().then((m) => ({ default: m.OperationsPage })))) },
+      { path: 'benchmarks', element: page(withCharts(() => research().then((m) => ({ default: m.BenchmarksPage })))) },
       { path: 'methods', element: page(() => research().then((m) => ({ default: m.MethodsPage }))) },
       { path: 'workbench', element: page(() => import('./features/workbench').then((m) => ({ default: m.WorkbenchPage }))) },
       { path: '*', element: page(() => import('./components/layout/NotFound')) },
