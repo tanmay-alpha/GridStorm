@@ -96,9 +96,9 @@ The full walkthrough, every page and every metric formula are in the [user guide
 
 The Data Observatory (`/data`, API `/api/v1/data/catalog…`, new in 3.2) merges three file-backed
 sources at runtime ([ADR 0003](docs/decisions/0003-file-backed-data-observatory.md)): a curated,
-licence-gated bundle in [`data/observatory/`](data/observatory/) (bundle `2026-11-17.1`, 5 entries,
-about 2.5 MB, every file sha256-verified at load), one entry per network model (5) and one entry per
-precomputed study group (11), 21 catalog entries in total. Series are served in UTC with missing
+licence-gated bundle in [`data/observatory/`](data/observatory/) (bundle `2026-11-17.2`, 6 entries,
+about 2.7 MB, every file sha256-verified at load), one entry per network model (5) and one entry per
+precomputed study group (11), 22 catalog entries in total. Series are served in UTC with missing
 values kept as gaps (never 0), at most 3 years per request; CSV export is refused (HTTP 403) when the
 source licence does not permit redistribution. *Use in scenario* is offered only where a validated
 mapping to a network exists.
@@ -110,6 +110,7 @@ mapping to a network exists.
 | `opsd-de-load-forecast` | historical demand / estimated | ENTSO-E day-ahead total load forecast for Germany via [Open Power System Data](https://doi.org/10.25832/time_series/2020-10-06) (2020-10-06) | CC-BY-4.0 | Germany, hourly, 2015-01-01 – 2020-09-30 |
 | `nasa-power-de-weather` | weather reanalysis / modeled | [NASA POWER](https://power.larc.nasa.gov/) hourly API v2.10.4 (`time-standard=UTC`): T2M, WS10M | NASA open data | 4 grid cells (Berlin, Hamburg, Cologne, Munich), hourly, 2015-01-17 – 23 and all of 2017 |
 | `nasa-power-de-renewable-resource` | renewable resource / modeled | NASA POWER: WS50M (MERRA-2), GHI (CERES SYN1deg) | NASA open data | as above |
+| `nasa-power-de-daily` | weather reanalysis / modeled | NASA POWER hourly API (`time-standard=UTC`), daily means of the 24 UTC hours computed by GridStorm: T2M, WS10M, WS50M, GHI | NASA open data | 4 grid cells, daily, 2015-01-01 – 2020-09-30 (same coverage as the load forecast) |
 | `opsd-de-derived-multipliers` | derived research / modeled | GridStorm hour-of-day demand multipliers from the forecast | CC-BY-4.0 | 24 hours on the SciGRID-DE model day 2011-01-01 |
 | `observed-analogue-scenarios` | scenario input / modeled | GridStorm observed-analogue scenarios (metadata only, not exportable) | mixed, derived-only | three stress days: 2015-01-20, 2017-01-24, 2017-12-13 |
 
@@ -320,7 +321,7 @@ marker selection as CI); in `apps/web`, `npm run typecheck`, `npm run lint`, `np
   - German demand comes from the ENTSO-E **day-ahead load forecast**, not actual load: actual load and generation are not on ENTSO-E's free re-use list. Even an oracle rescaling of the forecast misses actual load by more than 1 GW in the worst hour of each stress day.
   - Observed-analogue scenarios apply national aggregates to the 2011 SciGRID-DE topology and demand pattern; they are analogue stress tests, not reconstructions of the observed days.
   - US EIA data was evaluated and **deferred**: the API requires a key, and US balancing-authority demand has no validated mapping to the shipped networks.
-  - The production inventory documents what is measurable through the public API; its **Supabase database and Storage sections are blocked** pending database credentials ([inventory](docs/data/production-inventory.md)).
+  - The production inventory (database, Storage, RLS, grants, quotas) was measured read-only on 2026-11-17 ([inventory](docs/data/production-inventory.md)); its findings led to migration `0004` (no `anon` write grants, worker internals not client-readable).
 
 ## Attribution and licensing
 

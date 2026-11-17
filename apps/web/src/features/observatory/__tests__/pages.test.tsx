@@ -5,11 +5,17 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import DatasetPage from '../DatasetPage'
 import { Markdown } from '../Markdown'
 import ObservatoryPage from '../ObservatoryPage'
+import type { DatasetEntry } from '../../../api/types'
+import captured from './analogue-fixtures.json'
 import { catalogPage, ENTRIES, NASA, nasaSeriesResponse } from './fixtures'
 
 vi.mock('../../../components/ui/Chart', () => ({
   Chart: ({ ariaLabel, testId }: { ariaLabel: string; testId?: string }) => <div role="img" aria-label={ariaLabel} data-testid={testId} />,
 }))
+
+/** The real observed-analogue catalog entry and its presets/artifacts, captured from the local API. */
+const ANALOGUE = captured.entry as unknown as DatasetEntry
+const CSV = '# dataset: fixture\n# license: NASA-POWER\nutc,t2m_berlin\n2015-01-17T00:00:00Z,2.51\n2015-01-17T01:00:00Z,\n2015-01-17T02:00:00Z,1.9\n'
 
 function stubBackend() {
   vi.stubGlobal(
@@ -18,9 +24,16 @@ function stubBackend() {
       const url = new URL(input, 'http://localhost')
       const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } })
       if (url.pathname === '/api/v1/data/catalog') return json(catalogPage(url.searchParams))
-      const m = url.pathname.match(/^\/api\/v1\/data\/catalog\/([^/]+)(\/series)?$/)
-      const entry = m && ENTRIES.find((e) => e.id === decodeURIComponent(m[1]!))
+      if (url.pathname === '/api/v1/scenarios') return json(captured.scenarios)
+      if (url.pathname === '/api/v1/artifacts') return json(captured.artifacts)
+      if (url.pathname === '/api/v1/networks') return json(captured.networks)
+      const m = url.pathname.match(/^\/api\/v1\/data\/catalog\/([^/]+)(\/series|\/export)?$/)
+      const entry = m && [...ENTRIES, ANALOGUE].find((e) => e.id === decodeURIComponent(m[1]!))
       if (!entry) return json({ error: { code: 'not_found', message: `unknown dataset ${url.pathname}` } }, 404)
+      if (m[2] === '/export')
+        return url.searchParams.get('start') === '2017-12-10T00:00:00Z'
+          ? json({ error: { code: 'range_too_large', message: 'requested range exceeds 3 years' } }, 422)
+          : new Response(CSV, { headers: { 'Content-Type': 'text/csv', 'Content-Disposition': `attachment; filename="${entry.id}_2015-01-17.csv"` } })
       if (m[2]) return json(nasaSeriesResponse(url.searchParams))
       return json(entry)
     }),
@@ -162,6 +175,71 @@ describe('Dataset detail', () => {
   it('reports an unknown dataset as not found', async () => {
     renderAt('/data/nope')
     expect(await screen.findByText('Dataset “nope” not found')).toBeInTheDocument()
+  })
+
+  it('explains manifest quality flags of network entries in words, code kept visible', async () => {
+    renderAt('/data/network-pglib-case14-ieee')
+    const warnings = await screen.findByTestId('dataset-warnings')
+    expect(warnings).toHaveTextContent('One operating point only: a single 1-hour snapshot, no time series.')
+    expect(warnings).toHaveTextContent('they are not EUR and are not converted')
+    expect(within(warnings).getAllByTestId('quality-flag-code').map((c) => c.textContent)).toEqual(['single_snapshot', 'cost_currency_not_eur', 'some_future_flag'])
+    expect(warnings).not.toHaveTextContent('quality flag:')
+  })
+
+  it('connects each stress window to its precomputed preset, derivation, result and actions', async () => {
+    renderAt('/data/observed-analogue-scenarios')
+    const cards = await screen.findAllByTestId('stress-window')
+    expect(cards.map((c) => c.getAttribute('data-scenario'))).toEqual([
+      'observed-dunkelflaute-2015-01-20',
+      'observed-high-load-low-res-2017-01-24',
+      'observed-peak-load-2017-12-13',
+    ])
+    const first = cards[0]!
+    await waitFor(() => expect(within(first).getByTestId('stress-derivation')).toHaveTextContent('reference day 2015-01-01'))
+    expect(within(first).getByTestId('stress-derivation')).toHaveTextContent('Wind Onshore × 0.05 · Wind Offshore × 0.1 · Solar × 0.25')
+    expect(within(first).getByTestId('stress-derivation')).toHaveTextContent('lowest daily-mean wind+solar capacity factor')
+    await waitFor(() => expect(within(first).getByTestId('stress-unserved')).toHaveTextContent('2,721.0 MWh'))
+    expect(within(cards[1]!).getByTestId('stress-unserved')).toHaveTextContent('4,731.5 MWh')
+    expect(within(cards[2]!).getByTestId('stress-unserved')).toHaveTextContent('4,429.3 MWh')
+    expect(first).toHaveTextContent('0.0 MWh in the baseline preset scigrid-de-baseline')
+    // Precomputed only: scigrid-de is not solved live, the preset hash has a stored result.
+    await waitFor(() => expect(within(first).getByTestId('stress-execution')).toHaveAttribute('data-availability', 'precomputed'))
+    expect(within(first).getByTestId('open-analogue-studio')).toHaveAttribute('href', '/studio?network=scigrid-de&preset=observed-dunkelflaute-2015-01-20')
+    expect(within(first).getByTestId('analogue-method').getAttribute('href')).toContain('docs/research/observed-analogue-scenarios.md')
+    expect(within(first).getByTestId('analogue-workbench')).toHaveAttribute(
+      'href',
+      '/workbench?network=scigrid-de&study=pypsa-presets&artifact=observed-dunkelflaute-2015-01-20',
+    )
+    // No series on this entry: nothing to show in a chart.
+    expect(within(first).queryByTestId('show-stress-window')).not.toBeInTheDocument()
+    expect(screen.getByTestId('baseline-studio')).toHaveAttribute('href', '/studio?network=scigrid-de&preset=scigrid-de-baseline')
+  })
+
+  it('reports the saved file, its rows and licence after an export, or the API error', async () => {
+    const created = vi.fn(() => 'blob:x')
+    vi.stubGlobal('URL', Object.assign(URL, { createObjectURL: created, revokeObjectURL: vi.fn() }))
+    renderAt(`/data/${NASA.id}`)
+    fireEvent.click(await screen.findByTestId('export-csv'))
+    await waitFor(() =>
+      expect(screen.getByTestId('export-status')).toHaveTextContent(`Saved ${NASA.id}_2015-01-17.csv · 3 rows · licence ${NASA.source.license.id}`),
+    )
+    expect(created).toHaveBeenCalledTimes(1)
+    fireEvent.change(screen.getByTestId('window-select'), { target: { value: 'window:2' } })
+    await waitFor(() => expect(screen.getByTestId('export-status')).toHaveTextContent(''))
+    fireEvent.click(screen.getByTestId('export-csv'))
+    await waitFor(() => expect(screen.getByTestId('export-status')).toHaveTextContent('Export failed: requested range exceeds 3 years'))
+  })
+})
+
+describe('Dataset discovery cards', () => {
+  it('link networks and studies to the pages that use them', async () => {
+    renderAt('/data')
+    const links = await screen.findAllByTestId('dataset-card-page')
+    expect(links.map((l) => [l.textContent, l.getAttribute('href')])).toEqual([
+      ['Open in Grid Explorer — IEEE 14-bus (PGLib)', '/explore?network=pglib-case14-ieee'],
+      ['Open in Crisis Studio — Observed-analogue study (fixture)', '/studio?network=scigrid-de'],
+    ])
+    expect(screen.getByRole('navigation', { name: 'Jump to a category' })).toHaveTextContent('Network models')
   })
 })
 

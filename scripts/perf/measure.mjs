@@ -23,18 +23,23 @@
 // discarded warm-up navigation per viewport. desktop = 1440x900 DPR 1, no throttling; mobile = 390x844
 // DPR 3, touch, 4x CPU slowdown via CDP Emulation.setCPUThrottlingRate (no network throttling).
 // Times are ms from navigation start (performance time origin).
-//   LCP        last largest-contentful-paint entry when the page settles.
+//   LCP        last largest-contentful-paint entry when the page settles; lcp_element describes its element
+//              (tag, test id / id, classes, first 60 characters of text) in the per-sample JSON.
 //   CLS        web-vitals definition: largest session window (gap < 1 s, window <= 5 s) of layout shifts
 //              without recent input; cls_total = plain sum (the metric used in the 3.0 / round-2 notes).
 //   grid_ms    first time a *visible* grid drawing is ready: `[data-testid=network-schematic][data-ready=true]`
 //              or `[data-testid=network-map][data-map-ready=true]` (selectors of the e2e specs), polled
 //              every 50 ms in the page. null = not drawn within the timeout (routes without a grid: n/a).
+//   content_ms first time the route's own content exists (an `h1` in the document: every page renders one;
+//              the lazy-route Suspense skeleton does not), polled every 50 ms.
 //   js_kb      transferred bytes (encoded body + headers, Playwright request.sizes()) of script responses.
 //   requests   all finished requests until settled; api = requests to the API origin (fan-out), with the
-//              distinct API paths listed in the JSON.
+//              distinct API paths and every API URL (path + query, in request order) in the JSON.
 //   long_tasks total duration (and count) of PerformanceObserver `longtask` entries until settled.
-//   settled    page load, then the grid (routes that draw one), then network idle (500 ms quiet, capped
-//              at 20 s; basemap tiles can keep a geographic map busy) and 500 ms for late shifts.
+//   settled    page load, then the route content (h1, 30 s cap; added in 3.3: at 4x CPU the entry chunk can
+//              execute for > 500 ms without network activity, so network idle alone could fire before the
+//              lazy route chunk was even requested), then the grid (routes that draw one), then network idle
+//              (500 ms quiet, capped at 20 s; basemap tiles can keep a geographic map busy) and 500 ms for late shifts.
 // API latency: Node fetch (keep-alive), wall time to the full body, `--api-reps` samples per endpoint
 // after one /health "first request" sample (cold only if the Render instance was asleep; reported).
 // 404 endpoints/routes are recorded, not treated as failures (older builds lack /data).
@@ -177,10 +182,21 @@ const ROUTES = [
 const skipped = dataId ? [] : [{ key: 'data-detail', reason: `no dataset id (GET /api/v1/data/catalog -> ${catalogStatus})` }]
 
 const INIT = (gridSelector) => {
-  window.__perf = { lcp: null, shifts: [], longTasks: [], gridAt: null }
+  window.__perf = { lcp: null, lcpElement: null, shifts: [], longTasks: [], gridAt: null, contentAt: null }
   const p = window.__perf
+  const describe = (el) => {
+    if (!el) return null
+    const id = el.getAttribute('data-testid') ?? el.id
+    const cls = typeof el.className === 'string' ? el.className.split(/\s+/).slice(0, 4).join('.') : ''
+    const r = el.getBoundingClientRect()
+    const text = (el.textContent ?? '').trim().replace(/\s+/g, ' ').slice(0, 60)
+    return `${el.tagName.toLowerCase()}${id ? `[${id}]` : ''}${cls ? `.${cls}` : ''} ${Math.round(r.width)}x${Math.round(r.height)} "${text}"`
+  }
   new PerformanceObserver((l) => {
-    for (const e of l.getEntries()) p.lcp = e.startTime
+    for (const e of l.getEntries()) {
+      p.lcp = e.startTime
+      p.lcpElement = describe(e.element) ?? (e.url ? `image ${e.url}` : null)
+    }
   }).observe({ type: 'largest-contentful-paint', buffered: true })
   new PerformanceObserver((l) => {
     for (const e of l.getEntries()) if (!e.hadRecentInput) p.shifts.push([e.startTime, e.value])
@@ -193,11 +209,12 @@ const INIT = (gridSelector) => {
     /* unsupported */
   }
   const poll = setInterval(() => {
+    if (p.contentAt == null && document.querySelector('h1')) p.contentAt = performance.now()
+    if (p.gridAt != null) return
     for (const el of document.querySelectorAll(gridSelector)) {
       const visible = el.checkVisibility ? el.checkVisibility() : el.offsetParent !== null
       if (visible && el.getBoundingClientRect().width > 0) {
         p.gridAt = performance.now()
-        clearInterval(poll)
         return
       }
     }
@@ -206,6 +223,7 @@ const INIT = (gridSelector) => {
 }
 
 const apiOrigin = new URL(API).origin
+const API_PATH = /^\/(api\/|health$|ready$)/
 const browser = await chromium.launch()
 const rows = []
 for (const vk of VIEWPORT_KEYS) {
@@ -243,6 +261,7 @@ for (const vk of VIEWPORT_KEYS) {
       try {
         const resp = await page.goto(WEB + route.path, { waitUntil: 'load', timeout: 90_000 })
         docStatus = resp?.status() ?? null
+        await page.waitForFunction(() => window.__perf.contentAt != null, null, { timeout: 30_000 }).catch(() => {})
         if (route.grid)
           await page.waitForFunction(() => window.__perf.gridAt != null, null, { timeout: 60_000 }).catch(() => {})
         await page.waitForLoadState('networkidle', { timeout: 20_000 }).catch(() => {})
@@ -276,9 +295,11 @@ for (const vk of VIEWPORT_KEYS) {
           cls = Math.max(cls, win)
         }
       }
+      // A same-origin API (local `vite preview` proxy: --api = --web) is told apart by its paths.
       const apiReqs = reqs.filter((r) => {
         const u = new URL(r.url)
-        return u.origin === apiOrigin || (u.origin === new URL(WEB).origin && u.pathname.startsWith('/api/'))
+        if (u.origin !== apiOrigin && u.origin !== new URL(WEB).origin) return false
+        return u.origin !== new URL(WEB).origin || API_PATH.test(u.pathname)
       })
       rows.push({
         viewport: vk,
@@ -289,7 +310,9 @@ for (const vk of VIEWPORT_KEYS) {
         not_found: m ? /page not found/i.test(m.title) : null,
         nav_error: navError,
         fcp_ms: round(m?.fcp),
+        content_ms: round(m?.contentAt),
         lcp_ms: round(m?.lcp),
+        lcp_element: m?.lcpElement ?? null,
         cls: round(cls, 4),
         cls_total: round(clsTotal, 4),
         grid_ms: round(m?.gridAt),
@@ -299,6 +322,10 @@ for (const vk of VIEWPORT_KEYS) {
         failed_requests: reqs.filter((r) => r.failed).length,
         api_requests: apiReqs.length,
         api_paths: [...new Set(apiReqs.map((r) => new URL(r.url).pathname))].sort(),
+        api_urls: apiReqs.map((r) => {
+          const u = new URL(r.url)
+          return u.pathname + u.search
+        }),
         long_tasks_ms: m ? round(m.longTasks.reduce((a, d) => a + d, 0)) : null,
         long_tasks: m ? m.longTasks.length : null,
         settled_ms: settled,
@@ -311,7 +338,7 @@ for (const vk of VIEWPORT_KEYS) {
 }
 await browser.close()
 
-const KEYS = ['fcp_ms', 'lcp_ms', 'cls', 'cls_total', 'grid_ms', 'js_kb', 'total_kb', 'requests', 'api_requests', 'long_tasks_ms', 'long_tasks', 'settled_ms']
+const KEYS = ['fcp_ms', 'content_ms', 'lcp_ms', 'cls', 'cls_total', 'grid_ms', 'js_kb', 'total_kb', 'requests', 'api_requests', 'long_tasks_ms', 'long_tasks', 'settled_ms']
 const summary = []
 for (const vk of VIEWPORT_KEYS)
   for (const route of ROUTES) {
@@ -350,12 +377,12 @@ md.push(`Measured ${meta.at} · web ${WEB} · API ${API} (backend commit ${fmt(m
 for (const vk of VIEWPORT_KEYS) {
   const v = VIEWPORTS[vk]
   md.push('', `**${vk}** ${v.viewport.width}×${v.viewport.height}, CPU ${v.cpu}×`, '')
-  md.push('| Route | HTTP | LCP ms | CLS (total) | Grid ms | JS KB | Total KB | Requests (API) | Long tasks ms (n) | Settled ms |')
-  md.push('|---|---|---:|---:|---:|---:|---:|---:|---:|---:|')
+  md.push('| Route | HTTP | Content ms | LCP ms | CLS (total) | Grid ms | JS KB | Total KB | Requests (API) | Long tasks ms (n) | Settled ms |')
+  md.push('|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|')
   for (const s of summary.filter((x) => x.viewport === vk)) {
     const grid = s.expects_grid ? (s.grid_ms == null ? 'not drawn' : fmt(s.grid_ms)) + (s.grid_missing_reps ? ` (${s.grid_missing_reps} miss)` : '') : 'n/a'
     md.push(
-      `| \`${s.path}\` | ${fmt(s.doc_status)}${s.not_found ? ' (app 404)' : ''} | ${fmt(s.lcp_ms)} | ${fmt(s.cls)} (${fmt(s.cls_total)}) | ${grid} | ${fmt(s.js_kb)} | ${fmt(s.total_kb)} | ${fmt(s.requests)} (${fmt(s.api_requests)}) | ${fmt(s.long_tasks_ms)} (${fmt(s.long_tasks)}) | ${fmt(s.settled_ms)} |`,
+      `| \`${s.path}\` | ${fmt(s.doc_status)}${s.not_found ? ' (app 404)' : ''} | ${fmt(s.content_ms)} | ${fmt(s.lcp_ms)} | ${fmt(s.cls)} (${fmt(s.cls_total)}) | ${grid} | ${fmt(s.js_kb)} | ${fmt(s.total_kb)} | ${fmt(s.requests)} (${fmt(s.api_requests)}) | ${fmt(s.long_tasks_ms)} (${fmt(s.long_tasks)}) | ${fmt(s.settled_ms)} |`,
     )
   }
 }

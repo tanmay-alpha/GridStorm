@@ -3,12 +3,22 @@ import { MarkAreaComponent } from 'echarts/components'
 import type { DataSeriesResponse } from '../../api/types'
 import type { ChartOption } from '../../components/ui'
 import { effectiveResolution, escapeHtml, gapRuns, timeTooltip, toTimePoints, tooltipValue, type QuantityGroup } from './series'
-import { durationMs } from './vocabulary'
+import { durationMs, resolutionLabel } from './vocabulary'
 
-// Shaded "no data" spans; the shared Chart registers only MarkLine.
+// Shaded "no data" spans and stress-day highlights; the shared Chart registers only MarkLine.
 echarts.use([MarkAreaComponent])
 
 const GAP_FILL = 'rgba(128, 128, 128, 0.16)'
+// Amber tint with a dashed edge: readable on light and dark surfaces, distinct from the grey gaps.
+const HIGHLIGHT_FILL = 'rgba(217, 119, 6, 0.14)'
+const HIGHLIGHT_EDGE = 'rgba(217, 119, 6, 0.7)'
+
+/** A labelled time span to shade (e.g. an observed stress day), [startMs, endMs) in UTC. */
+export interface ChartHighlight {
+  startMs: number
+  endMs: number
+  label: string
+}
 
 /** Point indexes whose neighbours are both missing: drawn as dots, since a line needs two points. */
 export function isolatedPoints(values: (number | null)[]): Set<number> {
@@ -30,9 +40,9 @@ const TIME_LABELS = { year: '{yyyy}', month: '{MMM} {yyyy}', day: '{MMM} {d}', h
 /**
  * One chart per quantity group: UTC time axis, a y-axis in the group's unit, gaps kept as breaks
  * (`connectNulls: false`) and shaded as "no data" spans one bucket wide wherever any plotted series
- * is missing a value.
+ * is missing a value. `highlights` inside the plotted range are shaded amber and labelled.
  */
-export function timeSeriesOption(group: QuantityGroup, r: DataSeriesResponse): ChartOption {
+export function timeSeriesOption(group: QuantityGroup, r: DataSeriesResponse, highlights: ChartHighlight[] = []): ChartOption {
   const step = durationMs(effectiveResolution(r)) ?? 0
   const series = group.series
     .map((info) => r.series.find((s) => s.id === info.id))
@@ -40,12 +50,28 @@ export function timeSeriesOption(group: QuantityGroup, r: DataSeriesResponse): C
   // A slot is "no data" when any series lacks it: one shared overlay, drawn under the first series.
   const anyMissing = r.timestamps.map((_, i) => (series.some((s) => !Number.isFinite(s.values[i] as number)) ? null : 0))
   const gaps = gapRuns(r.timestamps, anyMissing)
+  const first = Date.parse(r.timestamps[0] ?? '')
+  const last = Date.parse(r.timestamps.at(-1) ?? '') + step
+  const shown = highlights.filter((h) => h.endMs > first && h.startMs < last)
+  const areas = [
+    ...gaps.map((g) => [{ xAxis: Date.parse(g.start_utc) }, { xAxis: Date.parse(g.end_utc) + step }]),
+    ...shown.map((h) => [
+      {
+        name: h.label,
+        xAxis: h.startMs,
+        itemStyle: { color: HIGHLIGHT_FILL, borderColor: HIGHLIGHT_EDGE, borderWidth: 1, borderType: 'dashed' },
+        label: { show: true, position: 'insideTop', fontSize: 10, lineHeight: 13, formatter: h.label },
+      },
+      { xAxis: h.endMs },
+    ]),
+  ]
+  const bucket = r.resolution === 'raw' ? null : `${resolutionLabel(r.resolution)} ${r.aggregation ?? 'aggregate'}`
   return {
     useUTC: true,
     animation: false,
     grid: { left: 64, right: 20, top: 40, bottom: 48 },
     legend: { top: 0 },
-    tooltip: { trigger: 'axis', formatter: timeTooltip(group.unit) },
+    tooltip: { trigger: 'axis', formatter: timeTooltip(group.unit, bucket) },
     xAxis: {
       type: 'time',
       name: 'Time (UTC)',
@@ -67,12 +93,12 @@ export function timeSeriesOption(group: QuantityGroup, r: DataSeriesResponse): C
         symbolSize: (_v: unknown, p: { dataIndex: number }) => (iso.has(p.dataIndex) ? 5 : 0),
         lineStyle: { width: 1.5 },
         markArea:
-          i === 0 && gaps.length
+          i === 0 && areas.length
             ? {
                 silent: true,
                 itemStyle: { color: GAP_FILL },
                 label: { show: false },
-                data: gaps.map((g) => [{ xAxis: Date.parse(g.start_utc) }, { xAxis: Date.parse(g.end_utc) + step }]),
+                data: areas,
               }
             : undefined,
       }

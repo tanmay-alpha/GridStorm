@@ -47,6 +47,12 @@ test('run page draws no map until coordinate_kind is known, then exactly one geo
   await page.waitForTimeout(1_000)
   await expect(page.locator('.maplibregl-map')).toHaveCount(1)
   await expect(page.getByTestId('network-schematic')).toHaveCount(0)
+  // Multi-snapshot result (24 h): the time-series charts stay; no single-period summary.
+  await expect(page.getByTestId('chart-generation').locator('canvas')).toBeVisible()
+  await expect(page.getByTestId('single-period-summary')).toHaveCount(0)
+  // Geographic map: legend collapsed by default, scale key docked under the map.
+  await expect(page.getByTestId('map-legend')).not.toHaveAttribute('open', '')
+  await expect(page.getByTestId('branch-scale-key')).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Something went wrong' })).toHaveCount(0)
   expect(errors).toEqual([])
 })

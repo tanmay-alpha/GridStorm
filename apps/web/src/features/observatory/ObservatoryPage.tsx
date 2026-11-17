@@ -154,9 +154,22 @@ export default function ObservatoryPage() {
         </EmptyState>
       ) : (
         <div className="flex flex-col gap-6" aria-busy={catalog.isFetching || undefined} data-testid="dataset-sections">
+          {groups.length > 1 && (
+            <nav aria-label="Jump to a category" className="-mb-2 flex flex-wrap gap-1.5" data-testid="category-nav">
+              {groups.map((g) => (
+                <a
+                  key={g.category}
+                  href={`#cat-${g.category}`}
+                  className="inline-flex min-h-7 items-center gap-1 rounded-full border border-line-strong px-2.5 text-xs text-fg-muted hover:bg-surface-2 hover:text-fg pointer-coarse:min-h-11"
+                >
+                  {categoryLabel(g.category)} <span className="tabular text-fg-subtle">{g.items.length}</span>
+                </a>
+              ))}
+            </nav>
+          )}
           {groups.map((g) => (
-            <section key={g.category} aria-labelledby={`cat-${g.category}`} data-testid="category-section" data-category={g.category}>
-              <div className="mb-2 flex flex-wrap items-baseline gap-x-2">
+            <section key={g.category} aria-labelledby={`cat-${g.category}`} className="scroll-mt-4" data-testid="category-section" data-category={g.category}>
+              <div className="mb-2 flex flex-col gap-0.5">
                 <h2 id={`cat-${g.category}`} className="text-base font-semibold tracking-tight text-fg">
                   {categoryLabel(g.category)} <span className="font-normal text-fg-subtle">({g.items.length})</span>
                 </h2>

@@ -1,6 +1,379 @@
 {
-  "bundle_version": "2026-11-17.1",
+  "bundle_version": "2026-11-17.2",
   "entries": [
+    {
+      "artifact": {
+        "bytes": 227042,
+        "path": "series/nasa-power-de-daily.csv",
+        "rows": 2100,
+        "sha256": "b3227e885a4dce6831b93da0b84c939f374e07938e8f8a767112c4f3d0fb077e"
+      },
+      "category": "weather_reanalysis",
+      "data_nature": "MERRA-2 reanalysis and CERES SYN1deg irradiance via NASA POWER, averaged to UTC days by GridStorm (grid-cell values, not station data)",
+      "description": "Daily means of `T2M` (°C), `WS10M` and `WS50M` (m/s) and `ALLSKY_SFC_SW_DWN` (all-sky GHI as mean irradiance, W/m²) **computed by GridStorm** from NASA POWER hourly values requested with `time-standard=UTC`: the value of day D is the mean of the 24 hours D 00:00–23:00 UTC and is written only when all 24 are present (fill value -999 = missing; nothing interpolated). NASA's own daily product is not used because its days are not UTC days.\n\n**Reanalysis, not station data**: temperature and wind are MERRA-2 reanalysis (0.5° × 0.625° grid cells), GHI is CERES SYN1deg satellite-derived (1° × 1°). Each series samples the grid cell containing the city centre coordinates; it is not a measurement in the city.\n\nCoverage equals `opsd-de-load-forecast` (UTC days 2015-01-01..2020-09-30), so weather and the day-ahead demand forecast can be viewed side by side across seasons and years (e.g. winter cold spells against daily demand at P1D). The comparison is descriptive: no causal or predictive relationship is claimed or validated. Hourly detail for the stress windows and 2017 is in `nasa-power-de-weather` and `nasa-power-de-renewable-resource`.",
+      "exportable": true,
+      "id": "nasa-power-de-daily",
+      "links": {
+        "docs": [
+          {
+            "href": "https://github.com/tanmay-alpha/GridStorm/blob/main/docs/data/sources-and-licensing.md",
+            "label": "Sources and licensing"
+          },
+          {
+            "href": "https://github.com/tanmay-alpha/GridStorm/blob/main/docs/data/observatory-pipeline.md",
+            "label": "Observatory pipeline"
+          },
+          {
+            "href": "https://github.com/tanmay-alpha/GridStorm/blob/main/docs/research/observed-analogue-scenarios.md",
+            "label": "Observed-analogue scenarios"
+          }
+        ],
+        "network_id": null,
+        "scenario_ids": [
+          "observed-dunkelflaute-2015-01-20",
+          "observed-high-load-low-res-2017-01-24",
+          "observed-peak-load-2017-12-13"
+        ],
+        "study_route": null
+      },
+      "provenance": "modeled",
+      "quality": {
+        "checks": [
+          {
+            "detail": "24 hourly requests with time-standard=UTC; every response header says UTC; NASA's daily endpoint (non-UTC days) is not used",
+            "name": "time_standard_utc",
+            "status": "pass"
+          },
+          {
+            "detail": "daily means of all 24 requests hash to the daily_values_sha256 in data/observed/nasa-power-de/power-daily-requests.json (and, when the raw responses are cached, their hourly values to values_sha256)",
+            "name": "values_match_request_record",
+            "status": "pass"
+          },
+          {
+            "detail": "POWER Hourly API v2.10.4; header sources MERRA2, POWER, SYN1DEG",
+            "name": "api_version",
+            "status": "pass"
+          },
+          {
+            "detail": "every response has 24 hourly values per requested UTC day (24 requests: 4 points × calendar years 2015–2020, 2015-01-01..2020-09-30)",
+            "name": "requested_hours",
+            "status": "pass"
+          },
+          {
+            "detail": "fill value -999 treated as missing before aggregation: T2M 0 h, WS10M 0 h, WS50M 0 h, ALLSKY_SFC_SW_DWN 0 h",
+            "name": "fill_values",
+            "status": "pass"
+          },
+          {
+            "detail": "value of UTC day D = arithmetic mean of the 24 hourly values labelled D 00..23 UTC; written only if all 24 are present (fill value -999 = missing), otherwise empty; no interpolation; incomplete days left empty (of 2100 days × 4 points): T2M 0, WS10M 0, WS50M 0, ALLSKY_SFC_SW_DWN 0",
+            "name": "complete_day_rule",
+            "status": "pass"
+          },
+          {
+            "detail": "every row is a UTC day start (00:00:00Z) and its value aggregates the POWER UTC hour labels 00..23 of that date (no local-time or solar-time day)",
+            "name": "utc_day_boundaries",
+            "status": "pass"
+          },
+          {
+            "detail": "UTC days 2015-01-01..2020-09-30 = the UTC calendar days of opsd-de-load-forecast",
+            "name": "coverage_matches_load_forecast",
+            "status": "pass"
+          },
+          {
+            "detail": "0 duplicate UTC timestamps",
+            "name": "no_duplicate_timestamps",
+            "status": "pass"
+          },
+          {
+            "detail": "2100 rows on the expected daily UTC grid of 2100 days",
+            "name": "daily_utc_grid",
+            "status": "pass"
+          },
+          {
+            "detail": "no missing values",
+            "name": "gaps",
+            "status": "pass"
+          },
+          {
+            "detail": "all values within [-35, 40] (observed min -11.87, max 31.64)",
+            "name": "plausible_range_t2m",
+            "status": "pass"
+          },
+          {
+            "detail": "all values within [0, 40] (observed min 0.89, max 13.49)",
+            "name": "plausible_range_ws10m",
+            "status": "pass"
+          },
+          {
+            "detail": "all values within [0, 50] (observed min 1.16, max 17.95)",
+            "name": "plausible_range_ws50m",
+            "status": "pass"
+          },
+          {
+            "detail": "all values within [0, 450] (observed min 3.86, max 357.2)",
+            "name": "plausible_range_allsky_sfc_sw_dwn",
+            "status": "pass"
+          },
+          {
+            "detail": "5952/5952 daily means (on the 372 UTC days also covered by nasa-power-de-weather and nasa-power-de-renewable-resource) equal the means recomputed from those hourly entries",
+            "name": "consistent_with_hourly_entries",
+            "status": "pass"
+          }
+        ],
+        "completeness_pct": 100.0,
+        "expected_rows": 2100,
+        "missing_policy": "kept-as-null",
+        "missing_values": {
+          "berlin_ghi": 0,
+          "berlin_t2m": 0,
+          "berlin_ws10m": 0,
+          "berlin_ws50m": 0,
+          "cologne_ghi": 0,
+          "cologne_t2m": 0,
+          "cologne_ws10m": 0,
+          "cologne_ws50m": 0,
+          "hamburg_ghi": 0,
+          "hamburg_t2m": 0,
+          "hamburg_ws10m": 0,
+          "hamburg_ws50m": 0,
+          "munich_ghi": 0,
+          "munich_t2m": 0,
+          "munich_ws10m": 0,
+          "munich_ws50m": 0
+        },
+        "rows": 2100,
+        "warnings": [
+          "Modeled grid-cell values (reanalysis / satellite-derived), not station measurements.",
+          "Daily means computed by GridStorm from POWER's hourly UTC values, not NASA's daily product (whose days are not UTC days). A day with any missing hour is left empty.",
+          "ALLSKY_SFC_SW_DWN is a daily mean irradiance in W/m², not an energy: multiply by 24 h for the daily insolation in Wh/m².",
+          "Same UTC days as opsd-de-load-forecast (whose P1D view uses the same UTC day buckets): compare seasonal and year-to-year patterns only; weather at four grid cells neither explains nor predicts national demand here (no causal claim).",
+          "POWER documents hourly average values labelled YYYYMMDDHH (UTC); the alignment of the averaging interval within the hour was not verified, so a UTC day may be offset by up to one hour."
+        ]
+      },
+      "region": {
+        "code": "DE",
+        "kind": "points",
+        "name": "Germany (4 city grid cells)"
+      },
+      "series": [
+        {
+          "id": "berlin_t2m",
+          "label": "Berlin: 2 m air temperature, daily mean (T2M)",
+          "location_id": "berlin",
+          "quantity": "air temperature at 2 m (mean of the 24 hourly values of the UTC day)",
+          "unit": "°C"
+        },
+        {
+          "id": "berlin_ws10m",
+          "label": "Berlin: 10 m wind speed, daily mean (WS10M)",
+          "location_id": "berlin",
+          "quantity": "wind speed at 10 m (mean of the 24 hourly values of the UTC day)",
+          "unit": "m/s"
+        },
+        {
+          "id": "berlin_ws50m",
+          "label": "Berlin: 50 m wind speed, daily mean (WS50M)",
+          "location_id": "berlin",
+          "quantity": "wind speed at 50 m (mean of the 24 hourly values of the UTC day)",
+          "unit": "m/s"
+        },
+        {
+          "id": "berlin_ghi",
+          "label": "Berlin: all-sky GHI, daily mean irradiance (ALLSKY_SFC_SW_DWN)",
+          "location_id": "berlin",
+          "quantity": "all-sky surface shortwave downward irradiance, GHI: mean irradiance over the UTC day (mean of the 24 hourly Wh/m² values = W/m²; × 24 h = daily insolation in Wh/m²)",
+          "unit": "W/m²"
+        },
+        {
+          "id": "hamburg_t2m",
+          "label": "Hamburg: 2 m air temperature, daily mean (T2M)",
+          "location_id": "hamburg",
+          "quantity": "air temperature at 2 m (mean of the 24 hourly values of the UTC day)",
+          "unit": "°C"
+        },
+        {
+          "id": "hamburg_ws10m",
+          "label": "Hamburg: 10 m wind speed, daily mean (WS10M)",
+          "location_id": "hamburg",
+          "quantity": "wind speed at 10 m (mean of the 24 hourly values of the UTC day)",
+          "unit": "m/s"
+        },
+        {
+          "id": "hamburg_ws50m",
+          "label": "Hamburg: 50 m wind speed, daily mean (WS50M)",
+          "location_id": "hamburg",
+          "quantity": "wind speed at 50 m (mean of the 24 hourly values of the UTC day)",
+          "unit": "m/s"
+        },
+        {
+          "id": "hamburg_ghi",
+          "label": "Hamburg: all-sky GHI, daily mean irradiance (ALLSKY_SFC_SW_DWN)",
+          "location_id": "hamburg",
+          "quantity": "all-sky surface shortwave downward irradiance, GHI: mean irradiance over the UTC day (mean of the 24 hourly Wh/m² values = W/m²; × 24 h = daily insolation in Wh/m²)",
+          "unit": "W/m²"
+        },
+        {
+          "id": "cologne_t2m",
+          "label": "Cologne: 2 m air temperature, daily mean (T2M)",
+          "location_id": "cologne",
+          "quantity": "air temperature at 2 m (mean of the 24 hourly values of the UTC day)",
+          "unit": "°C"
+        },
+        {
+          "id": "cologne_ws10m",
+          "label": "Cologne: 10 m wind speed, daily mean (WS10M)",
+          "location_id": "cologne",
+          "quantity": "wind speed at 10 m (mean of the 24 hourly values of the UTC day)",
+          "unit": "m/s"
+        },
+        {
+          "id": "cologne_ws50m",
+          "label": "Cologne: 50 m wind speed, daily mean (WS50M)",
+          "location_id": "cologne",
+          "quantity": "wind speed at 50 m (mean of the 24 hourly values of the UTC day)",
+          "unit": "m/s"
+        },
+        {
+          "id": "cologne_ghi",
+          "label": "Cologne: all-sky GHI, daily mean irradiance (ALLSKY_SFC_SW_DWN)",
+          "location_id": "cologne",
+          "quantity": "all-sky surface shortwave downward irradiance, GHI: mean irradiance over the UTC day (mean of the 24 hourly Wh/m² values = W/m²; × 24 h = daily insolation in Wh/m²)",
+          "unit": "W/m²"
+        },
+        {
+          "id": "munich_t2m",
+          "label": "Munich: 2 m air temperature, daily mean (T2M)",
+          "location_id": "munich",
+          "quantity": "air temperature at 2 m (mean of the 24 hourly values of the UTC day)",
+          "unit": "°C"
+        },
+        {
+          "id": "munich_ws10m",
+          "label": "Munich: 10 m wind speed, daily mean (WS10M)",
+          "location_id": "munich",
+          "quantity": "wind speed at 10 m (mean of the 24 hourly values of the UTC day)",
+          "unit": "m/s"
+        },
+        {
+          "id": "munich_ws50m",
+          "label": "Munich: 50 m wind speed, daily mean (WS50M)",
+          "location_id": "munich",
+          "quantity": "wind speed at 50 m (mean of the 24 hourly values of the UTC day)",
+          "unit": "m/s"
+        },
+        {
+          "id": "munich_ghi",
+          "label": "Munich: all-sky GHI, daily mean irradiance (ALLSKY_SFC_SW_DWN)",
+          "location_id": "munich",
+          "quantity": "all-sky surface shortwave downward irradiance, GHI: mean irradiance over the UTC day (mean of the 24 hourly Wh/m² values = W/m²; × 24 h = daily insolation in Wh/m²)",
+          "unit": "W/m²"
+        }
+      ],
+      "source": {
+        "attribution": "The data was obtained from National Aeronautics and Space Administration (NASA) Langley Research Center's Prediction Of Worldwide Energy Resources (POWER) project funded through the NASA Earth Science Division. The data was obtained from the POWER Project's Hourly v2.10.4 version on 2026/11/17. Modified by GridStorm: hourly UTC values of four city grid cells averaged to UTC-day means (all 24 hours required, otherwise empty); fill value -999 treated as missing; rounded to 2 decimals; nothing interpolated. No endorsement by NASA is implied.",
+        "doi": null,
+        "license": {
+          "id": "LicenseRef-NASA-POWER",
+          "name": "NASA open data (no use restriction marked) + POWER referencing guide",
+          "redistribution": "permitted",
+          "url": "https://www.earthdata.nasa.gov/engage/open-data-services-software-policies/data-use-guidance"
+        },
+        "name": "NASA POWER Hourly API (point, community RE, time-standard=UTC); daily means by GridStorm",
+        "publisher": "NASA Langley Research Center, POWER Project; aggregation: GridStorm",
+        "retrieved_at": "2026-11-17T11:30:30+00:00",
+        "source_sha256": "9c2fbbf18d745f09456c32f0fa894fa6612ed0352f44dca25a771e8a082ef136",
+        "url": "https://power.larc.nasa.gov/api/temporal/hourly/point",
+        "version": "v2.10.4"
+      },
+      "spatial": {
+        "kind": "points",
+        "points": [
+          {
+            "grid_note": "Coordinates as requested from the POWER point API (city centre). POWER returns the source grid cell containing them: MERRA-2 0.5° × 0.625° for T2M/WS10M/WS50M; CERES SYN1deg 1° × 1° for ALLSKY_SFC_SW_DWN. Not a station.",
+            "id": "berlin",
+            "lat": 52.52,
+            "lon": 13.405,
+            "name": "Berlin"
+          },
+          {
+            "grid_note": "Coordinates as requested from the POWER point API (city centre). POWER returns the source grid cell containing them: MERRA-2 0.5° × 0.625° for T2M/WS10M/WS50M; CERES SYN1deg 1° × 1° for ALLSKY_SFC_SW_DWN. Not a station.",
+            "id": "hamburg",
+            "lat": 53.551,
+            "lon": 9.994,
+            "name": "Hamburg"
+          },
+          {
+            "grid_note": "Coordinates as requested from the POWER point API (city centre). POWER returns the source grid cell containing them: MERRA-2 0.5° × 0.625° for T2M/WS10M/WS50M; CERES SYN1deg 1° × 1° for ALLSKY_SFC_SW_DWN. Not a station.",
+            "id": "cologne",
+            "lat": 50.938,
+            "lon": 6.96,
+            "name": "Cologne"
+          },
+          {
+            "grid_note": "Coordinates as requested from the POWER point API (city centre). POWER returns the source grid cell containing them: MERRA-2 0.5° × 0.625° for T2M/WS10M/WS50M; CERES SYN1deg 1° × 1° for ALLSKY_SFC_SW_DWN. Not a station.",
+            "id": "munich",
+            "lat": 48.137,
+            "lon": 11.575,
+            "name": "Munich"
+          }
+        ]
+      },
+      "summary": "Daily means of UTC days, computed by GridStorm from hourly UTC values, of 2 m temperature, 10 m / 50 m wind and all-sky GHI at Berlin, Hamburg, Cologne and Munich grid cells; same coverage as the load forecast (2015-01-01 to 2020-09-30).",
+      "temporal": {
+        "end_utc": "2020-09-30T00:00:00Z",
+        "resolution": "P1D",
+        "start_utc": "2015-01-01T00:00:00Z",
+        "timezone": "UTC",
+        "windows": [
+          {
+            "end_utc": "2015-01-23T23:00:00Z",
+            "label": "Dunkelflaute 2015-01-20 ±3 d",
+            "start_utc": "2015-01-17T00:00:00Z"
+          },
+          {
+            "end_utc": "2017-01-27T23:00:00Z",
+            "label": "High load / low renewables 2017-01-24 ±3 d",
+            "start_utc": "2017-01-21T00:00:00Z"
+          },
+          {
+            "end_utc": "2017-12-16T23:00:00Z",
+            "label": "Peak load 2017-12-13 ±3 d",
+            "start_utc": "2017-12-10T00:00:00Z"
+          }
+        ]
+      },
+      "title": "NASA POWER daily weather and resource means, four German cities, 2015–2020 (UTC days)",
+      "transformation_version": "nasa-power-de-daily/1.0.0",
+      "transformations": [
+        {
+          "description": "24 sequential hourly point requests (4 points × calendar years 2015–2020, the last ending 2020-09-30), parameters T2M, WS10M, WS50M, ALLSKY_SFC_SW_DWN, community RE, format JSON, time-standard=UTC",
+          "step": "request"
+        },
+        {
+          "description": "URL, response sha256, API version, header sources, fill counts, canonical hourly-values sha256, daily-means sha256 and incomplete days per request in data/observed/nasa-power-de/power-daily-requests.json",
+          "step": "record"
+        },
+        {
+          "description": "YYYYMMDDHH (UTC) -> UTC hour; -999 -> missing",
+          "step": "parse"
+        },
+        {
+          "description": "value of UTC day D = arithmetic mean of the 24 hourly values labelled D 00..23 UTC; written only if all 24 are present (fill value -999 = missing), otherwise empty; no interpolation",
+          "step": "aggregate"
+        },
+        {
+          "description": "wide CSV, one column per point and parameter, 2 decimals; row timestamp = UTC day start (00:00:00Z)",
+          "step": "write"
+        }
+      ],
+      "use_in_scenario": {
+        "available": false,
+        "network_id": null,
+        "preset_id": null,
+        "rationale": "Daily point weather means have no validated mapping to a network input (GridStorm has no validated weather-to-availability or weather-to-demand model). To run observed conditions in Studio, use the precomputed observed-analogue presets on scigrid-de (e.g. observed-dunkelflaute-2015-01-20); see observed-analogue-scenarios.",
+        "route": null
+      }
+    },
     {
       "artifact": {
         "bytes": 514964,

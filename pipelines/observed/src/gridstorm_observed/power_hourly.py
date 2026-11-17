@@ -106,21 +106,34 @@ def values_digest(point_id: str, cols: dict[str, dict[datetime, float | None]]) 
     return hashlib.sha256(("\n".join(lines) + "\n").encode()).hexdigest()
 
 
-def fetch(cache: Path, *, pause_s: float = PAUSE_S) -> dict:
-    """Download every request (sequentially, skipping cached files) and return a new record."""
+def download_all(reqs: list[Request], cache: Path, *, pause_s: float = PAUSE_S) -> list[Path]:
+    """Download the uncached responses of ``reqs`` sequentially, pausing between downloads.
+
+    Each new file gets a ``.retrieved_at`` sidecar (the only clock read of the pipeline). Any
+    HTTP error (e.g. 429 rate limiting) propagates: no request record is written then.
+    """
     cache.mkdir(parents=True, exist_ok=True)
-    entries = []
-    for n, req in enumerate(requests()):
+    paths = []
+    downloaded = 0
+    for req in reqs:
         dest = req.cache_path(cache)
         if not dest.exists():
-            if n:
+            if downloaded:
                 time.sleep(pause_s)
             sources.download(req.url, dest)
+            downloaded += 1
             fetched = datetime.now(UTC).replace(microsecond=0).isoformat()
             meta_path = dest.with_suffix(".retrieved_at")
             meta_path.write_text(fetched + "\n", encoding="utf-8")
-        entries.append(record_entry(req, dest))
-    return make_record(entries)
+        paths.append(dest)
+    return paths
+
+
+def fetch(cache: Path, *, pause_s: float = PAUSE_S) -> dict:
+    """Download every request (sequentially, skipping cached files) and return a new record."""
+    reqs = requests()
+    paths = download_all(reqs, cache, pause_s=pause_s)
+    return make_record([record_entry(r, p) for r, p in zip(reqs, paths, strict=True)])
 
 
 def record_entry(req: Request, path: Path) -> dict:

@@ -154,9 +154,9 @@ export function clampRange(
   return { start: iso(lo), end: iso(hi) }
 }
 
-/** Tooltip value: number with unit, or an explicit "no data" for a gap (never 0). */
+/** Tooltip value: number with unit, or an explicit "missing" for a gap (never 0). */
 export function tooltipValue(v: number | null | undefined, unit: string): string {
-  if (!isFiniteNumber(v)) return 'no data'
+  if (!isFiniteNumber(v)) return 'missing'
   const n = formatNumber(v)
   return unit ? `${n} ${unit}` : n
 }
@@ -177,8 +177,11 @@ export function escapeHtml(s: string): string {
   return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!)
 }
 
-/** Axis tooltip for one quantity group: UTC time header, then one row per series with its unit. */
-export function timeTooltip(unit: string) {
+/**
+ * Axis tooltip for one quantity group: UTC time header (with the bucket, e.g. "1 day mean", when the
+ * values are aggregated), then one row per series with its unit or "missing".
+ */
+export function timeTooltip(unit: string, bucket: string | null = null) {
   return (raw: unknown): string => {
     const params = (Array.isArray(raw) ? raw : [raw]) as TooltipParam[]
     const first = params[0]?.value
@@ -187,7 +190,8 @@ export function timeTooltip(unit: string) {
       const v = Array.isArray(p.value) ? (p.value[1] as number | null) : null
       return `${p.marker ?? ''}${escapeHtml(p.seriesName ?? '')}: <b>${escapeHtml(tooltipValue(v, unit))}</b>`
     })
-    return [`<b>${utcLabel(t)}</b>`, ...rows].join('<br/>')
+    const head = `<b>${utcLabel(t)}</b>${bucket ? ` · ${escapeHtml(bucket)} from this time` : ''}`
+    return [head, ...rows].join('<br/>')
   }
 }
 

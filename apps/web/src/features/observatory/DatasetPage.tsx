@@ -1,7 +1,8 @@
+import { useState, type MouseEvent } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router'
 import { ArrowLeft, Download, Map as MapIcon, FlaskConical, PlayCircle } from 'lucide-react'
 import { api, ApiError } from '../../api/client'
-import { useDataset } from '../../api/hooks'
+import { useDataCatalog, useDataset, useScenarios } from '../../api/hooks'
 import type { DatasetEntry, QualityStatus } from '../../api/types'
 import {
   Badge,
@@ -18,18 +19,39 @@ import {
   ScientificNotice,
   type Tone,
 } from '../../components/ui'
+import { cn } from '../../components/ui/cn'
+import { downloadBlob } from '../../lib/download'
 import { formatNumber, NO_VALUE } from '../../lib/format'
+import { describeWarning } from '../../lib/qualityFlags'
 import { useDocumentTitle } from '../../lib/title'
+import { QualityFlagLine } from '../explorer/DatasetInfo'
+import { useExecutionPolicy } from '../studio/useExecutionPolicy'
 import { Markdown } from './Markdown'
 import { PeriodComparison } from './PeriodComparison'
 import { ProvenanceDrawer } from './ProvenanceDrawer'
 import { SeriesWorkspace } from './SeriesWorkspace'
-import { categoryLabel, coverageLabel, exportBlockedReason, resolutionLabel, utcDateTime } from './vocabulary'
+import { StressScenarios } from './StressScenarios'
+import { categoryLabel, coverageLabel, exportBlockedReason, resolutionLabel, utcDate, utcDateTime } from './vocabulary'
 import { readWorkspace, writeWorkspace, type WorkspaceState } from './workspace'
 
 const CHECK_TONE: Record<QualityStatus, Tone> = { pass: 'ok', warn: 'warn', fail: 'danger' }
 
+/** Message of an API error body (`{error: {message}}`), else the HTTP status. */
+async function exportError(res: Response): Promise<string> {
+  try {
+    const body: unknown = await res.json()
+    const err = body && typeof body === 'object' && 'error' in body ? body.error : null
+    if (err && typeof err === 'object' && 'message' in err && typeof err.message === 'string') return err.message
+  } catch {
+    // Not JSON: fall through to the status line.
+  }
+  return `HTTP ${res.status}`
+}
+
+type ExportStatus = { href: string; kind: 'busy' | 'ok' | 'error'; text: string }
+
 function ExportControl({ d, state }: { d: DatasetEntry; state: WorkspaceState }) {
+  const [status, setStatus] = useState<ExportStatus | null>(null)
   const blocked = exportBlockedReason(d)
   if (blocked)
     return (
@@ -44,12 +66,53 @@ function ExportControl({ d, state }: { d: DatasetEntry; state: WorkspaceState })
       </span>
     )
   const href = api.dataExportUrl(d.id, { series: state.series, start: state.start, end: state.end })
+  const shown = status?.href === href ? status : null
+  // Fetch the file to report what was saved (name, rows, licence) or why it failed; modified clicks
+  // (new tab, save as) keep the plain link behaviour.
+  const onClick = async (e: MouseEvent<HTMLAnchorElement>) => {
+    if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+    e.preventDefault()
+    setStatus({ href, kind: 'busy', text: 'Preparing CSV…' })
+    try {
+      const res = await fetch(href)
+      if (!res.ok) return setStatus({ href, kind: 'error', text: `Export failed: ${await exportError(res)}` })
+      const blob = await res.blob()
+      const filename = /filename="?([^";]+)"?/.exec(res.headers.get('Content-Disposition') ?? '')?.[1] ?? `${d.id}.csv`
+      // Data rows: everything except the "#" licence/provenance header and the column header line.
+      const rows = Math.max(0, (await blob.text()).split(/\r?\n/).filter((l) => l && !l.startsWith('#')).length - 1)
+      downloadBlob(filename, blob)
+      setStatus({ href, kind: 'ok', text: `Saved ${filename} · ${rows.toLocaleString('en-US')} rows · licence ${d.source.license.id}` })
+    } catch {
+      setStatus({ href, kind: 'error', text: 'Export failed: the API could not be reached.' })
+    }
+  }
   return (
-    // Fallback name only: the API's Content-Disposition filename (dataset + UTC window) takes precedence.
-    <LinkButton size="sm" variant="primary" href={href} download={`${d.id}.csv`} data-testid="export-csv" title="Raw values for the selected series and window, with a licence/attribution/sha256 header">
-      <Download aria-hidden className="size-3.5" />
-      Export CSV
-    </LinkButton>
+    <span className="inline-flex max-w-md flex-col items-start gap-0.5 md:items-end">
+      {/* Fallback name only: the API's Content-Disposition filename (dataset + UTC window) takes precedence. */}
+      <LinkButton
+        size="sm"
+        variant="primary"
+        href={href}
+        download={`${d.id}.csv`}
+        onClick={(e) => void onClick(e)}
+        aria-describedby="export-status"
+        data-testid="export-csv"
+        title="Raw values for the selected series and window, with a licence/attribution/sha256 header"
+      >
+        <Download aria-hidden className="size-3.5" />
+        Export CSV
+      </LinkButton>
+      {/* One reserved line, so the result message never moves the page. */}
+      <span
+        id="export-status"
+        role="status"
+        className={cn('block min-h-4 max-w-full truncate text-2xs md:text-right', shown?.kind === 'error' ? 'font-medium text-danger' : 'text-fg-muted')}
+        title={shown?.text}
+        data-testid="export-status"
+      >
+        {shown?.text ?? ''}
+      </span>
+    </span>
   )
 }
 
@@ -183,6 +246,42 @@ function ActionsPanel({ d }: { d: DatasetEntry }) {
   )
 }
 
+/**
+ * Other series of the same region whose UTC coverage overlaps this one (e.g. daily weather next to
+ * the load forecast), for context only: listing them implies no causal relation. Last in the sidebar,
+ * so its late arrival (one catalog request) moves nothing below it.
+ */
+function RelatedSeries({ d }: { d: DatasetEntry }) {
+  const catalog = useDataCatalog({})
+  const t = d.temporal
+  if (!t || !d.region || d.series.length === 0) return null
+  const lo = Date.parse(t.start_utc)
+  const hi = Date.parse(t.end_utc)
+  const overlap = (x: { start_utc: string; end_utc: string }) => Math.min(hi, Date.parse(x.end_utc)) - Math.max(lo, Date.parse(x.start_utc))
+  const related = (catalog.data?.items ?? [])
+    .filter((x) => x.id !== d.id && x.series.length > 0 && x.region?.code === d.region!.code && x.category !== d.category && x.temporal && overlap(x.temporal) > 0)
+    .sort((a, b) => overlap(b.temporal!) - overlap(a.temporal!) || a.title.localeCompare(b.title))
+    .slice(0, 3)
+  if (related.length === 0) return null
+  return (
+    <Panel title="Context datasets" id="obs-related" description="Same region, overlapping UTC coverage" bodyClassName="flex flex-col gap-2 text-xs">
+      <ul className="flex flex-col gap-1.5" data-testid="related-series">
+        {related.map((x) => (
+          <li key={x.id}>
+            <Link to={`/data/${encodeURIComponent(x.id)}`} className="font-medium text-accent underline underline-offset-2">
+              {x.title}
+            </Link>
+            <span className="tabular block text-2xs text-fg-muted">
+              {categoryLabel(x.category)} · {utcDate(x.temporal!.start_utc)} → {utcDate(x.temporal!.end_utc)} · {resolutionLabel(x.temporal!.resolution)}
+            </span>
+          </li>
+        ))}
+      </ul>
+      <p className="text-2xs text-fg-subtle">Listed for context (e.g. seasonal weather); no causal link between the series is implied.</p>
+    </Panel>
+  )
+}
+
 /** Accessible list of source request points; only for `spatial.kind === 'points'` with real coordinates. */
 function PointsPanel({ d }: { d: DatasetEntry }) {
   const points = (d.spatial.points ?? []).filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lon))
@@ -222,6 +321,12 @@ function DatasetView({ d }: { d: DatasetEntry }) {
   const state = readWorkspace(params, d)
   const hasSeries = d.series.length > 0 && !!d.artifact && !!d.temporal
   const onChange = (patch: Partial<WorkspaceState>) => setParams((p) => writeWorkspace(p, patch), { replace: true })
+  const showWindow = (patch: Partial<WorkspaceState>) => {
+    onChange(patch)
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    document.getElementById('obs-series')?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })
+  }
+  const warnings = d.quality.warnings.map(describeWarning)
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 p-4 md:p-6" data-testid="dataset-page" data-dataset={d.id}>
       <Link to="/data" className="inline-flex min-h-6 w-fit items-center gap-1 text-xs text-fg-muted hover:text-fg">
@@ -239,13 +344,17 @@ function DatasetView({ d }: { d: DatasetEntry }) {
           </>
         }
       />
-      {d.quality.warnings.length === 1 ? (
-        <ScientificNotice kind="warning" title={d.quality.warnings[0]} testId="dataset-warnings" />
-      ) : d.quality.warnings.length > 1 ? (
-        <ScientificNotice kind="warning" title={`${d.quality.warnings.length} quality warnings for this dataset`} testId="dataset-warnings">
-          <ul className="flex list-disc flex-col gap-0.5 pl-4">
-            {d.quality.warnings.map((w) => (
-              <li key={w}>{w}</li>
+      {warnings.length === 1 ? (
+        <ScientificNotice kind="warning" title={warnings[0]!.sentence ?? warnings[0]!.code ?? ''} testId="dataset-warnings">
+          {warnings[0]!.sentence && warnings[0]!.code && <code className="font-mono text-2xs text-fg-muted">{warnings[0]!.code}</code>}
+        </ScientificNotice>
+      ) : warnings.length > 1 ? (
+        <ScientificNotice kind="warning" title={`${warnings.length} quality warnings for this dataset`} testId="dataset-warnings">
+          <ul className="flex list-disc flex-col gap-1 pl-4">
+            {warnings.map((w, i) => (
+              <li key={d.quality.warnings[i]} className="break-words">
+                <QualityFlagLine text={w} />
+              </li>
             ))}
           </ul>
         </ScientificNotice>
@@ -267,16 +376,20 @@ function DatasetView({ d }: { d: DatasetEntry }) {
           {hasSeries ? (
             <>
               <SeriesWorkspace d={d} state={state} onChange={onChange} />
+              <StressScenarios d={d} onWindow={showWindow} />
               <PeriodComparison d={d} />
             </>
           ) : (
-            <Panel title="Time series" id="obs-series">
-              <EmptyState title="No time series in this entry">
-                {d.category === 'network_model'
-                  ? 'Network models are topologies and parameters; open them in the Grid Explorer.'
-                  : 'This entry is described here; its data are served by the linked GridStorm view.'}
-              </EmptyState>
-            </Panel>
+            <>
+              <StressScenarios d={d} onWindow={null} />
+              <Panel title="Time series" id="obs-series">
+                <EmptyState title="No time series in this entry">
+                  {d.category === 'network_model'
+                    ? 'Network models are topologies and parameters; open them in the Grid Explorer.'
+                    : 'This entry is described here; its data are served by the linked GridStorm view.'}
+                </EmptyState>
+              </Panel>
+            </>
           )}
         </div>
         <div className="flex min-w-0 flex-col gap-4">
@@ -284,6 +397,7 @@ function DatasetView({ d }: { d: DatasetEntry }) {
           <CoveragePanel d={d} />
           <QualityPanel d={d} />
           <PointsPanel d={d} />
+          <RelatedSeries d={d} />
         </div>
       </div>
     </div>
@@ -293,6 +407,10 @@ function DatasetView({ d }: { d: DatasetEntry }) {
 export default function DatasetPage() {
   const { datasetId } = useParams()
   const q = useDataset(datasetId)
+  // Requested in parallel with the dataset (small, shared with Crisis Studio), so the stress-window
+  // scenarios render together with the page instead of growing it afterwards.
+  useScenarios()
+  useExecutionPolicy()
   useDocumentTitle(q.data ? `${q.data.title} · Data Observatory` : null)
   if (q.isPending)
     return (

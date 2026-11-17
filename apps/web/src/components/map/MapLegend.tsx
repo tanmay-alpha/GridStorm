@@ -63,3 +63,26 @@ export function BranchLegend({
     />
   )
 }
+
+/**
+ * One-line colour key of the loading / delta scale, docked under an embedded result map so the
+ * colours read without opening the full legend (which also lists symbols and overlays).
+ */
+export function BranchScaleKey({ mode, deltaLabel = 'Loading change (scenario − baseline)' }: { mode: 'loading' | 'delta'; deltaLabel?: string }) {
+  const scale = mode === 'loading' ? LOADING_SCALE : DELTA_SCALE
+  return (
+    <figure className="flex flex-wrap items-center gap-x-3 gap-y-1 text-2xs text-fg-muted" data-testid="branch-scale-key">
+      <figcaption className="gs-label">{mode === 'loading' ? 'Line loading (|flow| / s_nom)' : deltaLabel}</figcaption>
+      <ul className="flex flex-wrap items-center gap-x-3 gap-y-1">
+        {[...scale.map(([, color, label]) => ({ color, label })), { color: OUTAGED_COLOR, label: mode === 'loading' ? 'out of service / no value' : 'no value in one run' }].map(
+          (it) => (
+            <li key={it.label} className="inline-flex items-center gap-1 whitespace-nowrap">
+              <span aria-hidden className="inline-block h-[3px] w-3.5 rounded-full" style={{ background: it.color }} />
+              {it.label}
+            </li>
+          ),
+        )}
+      </ul>
+    </figure>
+  )
+}

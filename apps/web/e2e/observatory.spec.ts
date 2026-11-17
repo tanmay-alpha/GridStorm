@@ -1,7 +1,18 @@
 import { expect, test, type BrowserContext, type Page } from '@playwright/test'
+import { readFileSync } from 'node:fs'
 import { mkdir } from 'node:fs/promises'
 import path from 'node:path'
+import type { DatasetEntry } from '../src/api/types'
 import { catalogPage, ENTRIES, NASA, nasaSeriesResponse } from '../src/features/observatory/__tests__/fixtures'
+
+/** Observed-analogue entry, presets, artifact index and networks captured from the local API (see its _comment). */
+const captured: { entry: DatasetEntry; scenarios: unknown; artifacts: unknown; networks: unknown } = JSON.parse(
+  readFileSync(new URL('../src/features/observatory/__tests__/analogue-fixtures.json', import.meta.url), 'utf8'),
+)
+const ANALOGUE = captured.entry
+/** The NASA fixture linked to the same presets. */
+const NASA_LINKED: DatasetEntry = { ...NASA, id: 'nasa-linked-fixture', links: { ...NASA.links, scenario_ids: ANALOGUE.links.scenario_ids, docs: ANALOGUE.links.docs } }
+const DETAIL_ONLY = [ANALOGUE, NASA_LINKED]
 
 /**
  * Data Observatory. The journey test is hermetic: every /api/v1/data request is served from the
@@ -15,13 +26,17 @@ async function mockObservatory(page: Page | BrowserContext) {
     route.fulfill({ status: 404, json: { error: { code: 'not_found', message: 'not mocked in observatory.spec', details: {} } } }),
   )
   await page.route('**/health', (route) => route.fulfill({ json: { status: 'ok', version: 'e2e', git_sha: null } }))
+  // Presets, simulation artifact index and network list of scigrid-de, captured from the local API.
+  await page.route(/\/api\/v1\/scenarios(\?.*)?$/, (route) => route.fulfill({ json: captured.scenarios }))
+  await page.route(/\/api\/v1\/artifacts(\?.*)?$/, (route) => route.fulfill({ json: captured.artifacts }))
+  await page.route(/\/api\/v1\/networks(\?.*)?$/, (route) => route.fulfill({ json: captured.networks }))
   await page.route('**/api/v1/data/**', async (route) => {
     const url = new URL(route.request().url())
     if (url.pathname === '/api/v1/data/catalog') return route.fulfill({ json: catalogPage(url.searchParams) })
     const m = url.pathname.match(/^\/api\/v1\/data\/catalog\/([^/]+)(?:\/(series|export))?$/)
-    const entry = m && ENTRIES.find((e) => e.id === decodeURIComponent(m[1]!))
+    const entry = m && [...ENTRIES, ...DETAIL_ONLY].find((e) => e.id === decodeURIComponent(m[1]!))
     if (!m || !entry) return route.fulfill({ status: 404, json: { error: { code: 'not_found', message: url.pathname, details: {} } } })
-    if (m[2] === 'series') return route.fulfill({ json: nasaSeriesResponse(url.searchParams) })
+    if (m[2] === 'series') return route.fulfill({ json: { ...nasaSeriesResponse(url.searchParams), dataset_id: entry.id } })
     if (m[2] === 'export') {
       const r = nasaSeriesResponse(url.searchParams)
       const csv = [`# source: ${NASA.source.name}`, `utc,${r.series.map((s) => s.id).join(',')}`, ...r.timestamps.map((t, i) => [t, ...r.series.map((s) => s.values[i] ?? '')].join(','))].join('\n')
@@ -108,12 +123,50 @@ test('browse → filter → open dataset → chart → provenance drawer → exp
   expect(href.searchParams.get('series')).toBe('t2m_berlin,t2m_hamburg,ws10m_berlin,ws10m_hamburg')
   const [download] = await Promise.all([page.waitForEvent('download'), exportLink.click()])
   expect(download.suggestedFilename()).toBe(`${NASA.id}.csv`)
+  await expect(page.getByTestId('export-status')).toHaveText(new RegExp(`^Saved ${NASA.id}\\.csv · \\d+ rows · licence ${NASA.source.license.id}$`))
 
   // A licence-restricted dataset: export disabled with the reason; no locations table.
   await page.goto('/data/fixture-opsd-de-load')
   await expect(page.getByTestId('export-csv')).toBeDisabled()
   await expect(page.getByTestId('export-blocked')).toContainText('Only derived values may be redistributed')
   await expect(page.getByTestId('points-table')).toHaveCount(0)
+  expect(errors).toEqual([])
+})
+
+test('historical window → stress day highlight → modeled crisis scenario (hermetic)', async ({ page }) => {
+  const errors: string[] = []
+  page.on('pageerror', (e) => errors.push(e.message))
+  await mockObservatory(page)
+  await page.goto(`/data/${NASA_LINKED.id}`)
+  // The stress day inside the first published window is shaded and named next to the chart.
+  await expect(page.getByTestId('series-chart-group')).toHaveCount(2)
+  await expect(page.getByTestId('stress-day-key').first()).toContainText('in view: 2015-01-20 (UTC)')
+  await expect(page.getByTestId('series-chart').first()).toHaveAttribute('aria-label', /Shaded amber: Stress day 2015-01-20 \(UTC\)/)
+  // Period presets beyond the published windows, within the API bounds.
+  const period = page.getByTestId('window-select')
+  await expect(period.locator('option')).toContainText(['Dunkelflaute, January 2015', 'Last 31 days of coverage', 'Whole coverage (weekly means)'])
+
+  // Each window → its preset, derivation, stored result and actions.
+  const cards = page.getByTestId('stress-window')
+  await expect(cards).toHaveCount(3)
+  await expect(cards.nth(0).getByTestId('stress-unserved')).toHaveText('2,721.0 MWh')
+  await expect(cards.nth(1).getByTestId('stress-unserved')).toHaveText('4,731.5 MWh')
+  await expect(cards.nth(2).getByTestId('stress-unserved')).toHaveText('4,429.3 MWh')
+  await expect(cards.nth(0).getByTestId('stress-execution')).toHaveAttribute('data-availability', 'precomputed')
+  await expect(page.getByTestId('stress-not-direct')).toContainText('not fed into a network directly')
+  await expect(cards.nth(2).getByTestId('open-analogue-studio')).toHaveAttribute('href', '/studio?network=scigrid-de&preset=observed-peak-load-2017-12-13')
+  await expect(page.getByTestId('compare-baseline-steps')).toContainText('Compare with baseline')
+
+  // "Show this window" moves the chart to the peak-load window; its stress day is highlighted.
+  await cards.nth(2).getByTestId('show-stress-window').click()
+  await expect(page.getByTestId('series-status')).toContainText('2017-12-10 00:00 UTC → 2017-12-16 23:00 UTC')
+  await expect(page.getByTestId('stress-day-key').first()).toContainText('in view: 2017-12-13 (UTC)')
+  await expect(period).toHaveValue('window:2')
+
+  // The metadata-only analogue entry lists the same three scenarios without a chart action.
+  await page.goto(`/data/${ANALOGUE.id}`)
+  await expect(page.getByTestId('stress-window')).toHaveCount(3)
+  await expect(page.getByTestId('show-stress-window')).toHaveCount(0)
   expect(errors).toEqual([])
 })
 
@@ -126,6 +179,9 @@ for (const [name, width, height] of [['tablet', 768, 1024], ['mobile', 390, 844]
     await noHorizontalOverflow(page)
     await page.goto(`/data/${NASA.id}`)
     await expect(page.getByTestId('series-chart-group')).toHaveCount(2)
+    await noHorizontalOverflow(page)
+    await page.goto(`/data/${NASA_LINKED.id}`)
+    await expect(page.getByTestId('stress-window')).toHaveCount(3)
     await noHorizontalOverflow(page)
   })
 }

@@ -1,10 +1,15 @@
 {
-  "bundle_version": "2026-11-17.1",
+  "bundle_version": "2026-11-17.2",
   "files": [
     {
-      "bytes": 47631,
+      "bytes": 66132,
       "path": "catalog.json",
-      "sha256": "bf286a3f42792ccd8ccca23c109ac52ac9b29769b767238d7cbb77c6b84654f3"
+      "sha256": "34e27be8fa739759e1f1a2ddab4c2857baa267c7ed8d78d16156154631381edd"
+    },
+    {
+      "bytes": 227042,
+      "path": "series/nasa-power-de-daily.csv",
+      "sha256": "b3227e885a4dce6831b93da0b84c939f374e07938e8f8a767112c4f3d0fb077e"
     },
     {
       "bytes": 514964,
@@ -28,6 +33,88 @@
     }
   ],
   "licence_gate": {
+    "nasa-power-de-daily": {
+      "berlin_ghi": {
+        "licence_id": "LicenseRef-NASA-POWER",
+        "redistribution": "permitted",
+        "source_key": "nasa-power:ALLSKY_SFC_SW_DWN"
+      },
+      "berlin_t2m": {
+        "licence_id": "LicenseRef-NASA-POWER",
+        "redistribution": "permitted",
+        "source_key": "nasa-power:T2M"
+      },
+      "berlin_ws10m": {
+        "licence_id": "LicenseRef-NASA-POWER",
+        "redistribution": "permitted",
+        "source_key": "nasa-power:WS10M"
+      },
+      "berlin_ws50m": {
+        "licence_id": "LicenseRef-NASA-POWER",
+        "redistribution": "permitted",
+        "source_key": "nasa-power:WS50M"
+      },
+      "cologne_ghi": {
+        "licence_id": "LicenseRef-NASA-POWER",
+        "redistribution": "permitted",
+        "source_key": "nasa-power:ALLSKY_SFC_SW_DWN"
+      },
+      "cologne_t2m": {
+        "licence_id": "LicenseRef-NASA-POWER",
+        "redistribution": "permitted",
+        "source_key": "nasa-power:T2M"
+      },
+      "cologne_ws10m": {
+        "licence_id": "LicenseRef-NASA-POWER",
+        "redistribution": "permitted",
+        "source_key": "nasa-power:WS10M"
+      },
+      "cologne_ws50m": {
+        "licence_id": "LicenseRef-NASA-POWER",
+        "redistribution": "permitted",
+        "source_key": "nasa-power:WS50M"
+      },
+      "hamburg_ghi": {
+        "licence_id": "LicenseRef-NASA-POWER",
+        "redistribution": "permitted",
+        "source_key": "nasa-power:ALLSKY_SFC_SW_DWN"
+      },
+      "hamburg_t2m": {
+        "licence_id": "LicenseRef-NASA-POWER",
+        "redistribution": "permitted",
+        "source_key": "nasa-power:T2M"
+      },
+      "hamburg_ws10m": {
+        "licence_id": "LicenseRef-NASA-POWER",
+        "redistribution": "permitted",
+        "source_key": "nasa-power:WS10M"
+      },
+      "hamburg_ws50m": {
+        "licence_id": "LicenseRef-NASA-POWER",
+        "redistribution": "permitted",
+        "source_key": "nasa-power:WS50M"
+      },
+      "munich_ghi": {
+        "licence_id": "LicenseRef-NASA-POWER",
+        "redistribution": "permitted",
+        "source_key": "nasa-power:ALLSKY_SFC_SW_DWN"
+      },
+      "munich_t2m": {
+        "licence_id": "LicenseRef-NASA-POWER",
+        "redistribution": "permitted",
+        "source_key": "nasa-power:T2M"
+      },
+      "munich_ws10m": {
+        "licence_id": "LicenseRef-NASA-POWER",
+        "redistribution": "permitted",
+        "source_key": "nasa-power:WS10M"
+      },
+      "munich_ws50m": {
+        "licence_id": "LicenseRef-NASA-POWER",
+        "redistribution": "permitted",
+        "source_key": "nasa-power:WS50M"
+      }
+    },
     "nasa-power-de-renewable-resource": {
       "berlin_ghi": {
         "licence_id": "LicenseRef-NASA-POWER",
@@ -167,6 +254,10 @@
         "sha256": "046b98fe0a9def8385529eec2fc961082ff75149b33430c5540ef93bd7a9b652"
       },
       {
+        "path": "data/observed/nasa-power-de/power-daily-requests.json",
+        "sha256": "9c2fbbf18d745f09456c32f0fa894fa6612ed0352f44dca25a771e8a082ef136"
+      },
+      {
         "path": "data/scenarios/observed/observed-dunkelflaute-2015-01-20.yaml",
         "sha256": "ac7ecff0a3e79d5de32bb677854a003dc92b21c94197d1cfd69ef5716f27553d"
       },
@@ -210,8 +301,15 @@
         "request_record": "data/observed/nasa-power-de/power-hourly-requests.json",
         "request_record_sha256": "046b98fe0a9def8385529eec2fc961082ff75149b33430c5540ef93bd7a9b652",
         "url": "https://power.larc.nasa.gov/api/temporal/hourly/point"
+      },
+      {
+        "id": "nasa-power-hourly-for-daily-means",
+        "note": "yearly hourly UTC requests behind nasa-power-de-daily; per-request URL, response sha256, API version, retrieval time, daily-means sha256 and incomplete days are in the request record",
+        "request_record": "data/observed/nasa-power-de/power-daily-requests.json",
+        "request_record_sha256": "9c2fbbf18d745f09456c32f0fa894fa6612ed0352f44dca25a771e8a082ef136",
+        "url": "https://power.larc.nasa.gov/api/temporal/hourly/point"
       }
     ]
   },
-  "total_bytes": 2482815
+  "total_bytes": 2728358
 }

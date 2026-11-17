@@ -45,7 +45,7 @@ test('capture staged studio, results and baseline comparison in both themes at t
       await page.goto(`/runs/${ids[1]}`)
       await expect(page.getByTestId('metrics')).toBeVisible()
       await waitForNetworkView(page, 'pglib-case14-ieee')
-      await expect(page.getByTestId('chart-generation').locator('canvas')).toBeVisible()
+      await expect(page.getByTestId('single-period-summary')).toContainText(/\[MW\][\s\S]*NG\s*[\d,.]+[\s\S]*Demand\s*259/)
       await expect(page.getByTestId('compare-baseline')).toHaveAttribute('href', `/compare?a=${ids[0]}&b=${ids[1]}`)
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
       await page.screenshot({ path: resolve(directory, `run-${width}x${height}-${theme}.png`) })

@@ -286,6 +286,9 @@ class StudyGroup:
     docs: tuple[tuple[str, str], ...]
     only_prefix: str | None = None
     exclude_prefix: str | None = None
+    # Research Workbench study id when it differs from the group id (the analogue artifacts are
+    # PyPSA results listed under the Workbench's `pypsa-presets` study).
+    workbench_study: str | None = None
 
     def matches(self, item: dict[str, Any]) -> bool:
         aid = item["artifact_id"]
@@ -439,6 +442,7 @@ STUDY_GROUPS: tuple[StudyGroup, ...] = (
         "/studio?network=scigrid-de",
         (("Observed-analogue scenarios", ANALOGUE_DOC),),
         only_prefix=ANALOGUE_PREFIX,
+        workbench_study="pypsa-presets",
     ),
 )
 
@@ -681,7 +685,12 @@ def experiment_entry(
             "scenario_ids": scenario_ids,
             "study_route": group.route,
             "docs": [_doc(label, path) for label, path in group.docs]
-            + [{"label": "Research Workbench", "href": f"/workbench?study={group.id}"}],
+            + [
+                {
+                    "label": "Research Workbench",
+                    "href": f"/workbench?study={group.workbench_study or group.id}",
+                }
+            ],
         },
         "use_in_scenario": use,
         "exportable": False,

@@ -1,0 +1,1198 @@
+{
+  "aggregation": {
+    "decimals": 2,
+    "end_utc": "2020-09-30T00:00:00Z",
+    "rule": "value of UTC day D = arithmetic mean of the 24 hourly values labelled D 00..23 UTC; written only if all 24 are present (fill value -999 = missing), otherwise empty; no interpolation",
+    "start_utc": "2015-01-01T00:00:00Z"
+  },
+  "api_url": "https://power.larc.nasa.gov/api/temporal/hourly/point",
+  "community": "RE",
+  "parameters": [
+    "T2M",
+    "WS10M",
+    "WS50M",
+    "ALLSKY_SFC_SW_DWN"
+  ],
+  "points": [
+    {
+      "id": "berlin",
+      "lat": 52.52,
+      "lon": 13.405,
+      "name": "Berlin"
+    },
+    {
+      "id": "hamburg",
+      "lat": 53.551,
+      "lon": 9.994,
+      "name": "Hamburg"
+    },
+    {
+      "id": "cologne",
+      "lat": 50.938,
+      "lon": 6.96,
+      "name": "Cologne"
+    },
+    {
+      "id": "munich",
+      "lat": 48.137,
+      "lon": 11.575,
+      "name": "Munich"
+    }
+  ],
+  "requests": [
+    {
+      "api": {
+        "name": "POWER Hourly API",
+        "version": "v2.10.4"
+      },
+      "daily_values_sha256": "133cc28589c38e2d5d4ad03f69bba4e3894d68984a09266ad47c2ed64be3733c",
+      "days": 365,
+      "end": "20151231",
+      "fill_value": -999.0,
+      "fill_values_replaced": {
+        "ALLSKY_SFC_SW_DWN": 0,
+        "T2M": 0,
+        "WS10M": 0,
+        "WS50M": 0
+      },
+      "header_sources": [
+        "MERRA2",
+        "SYN1DEG",
+        "POWER"
+      ],
+      "hours": 8760,
+      "incomplete_days": {
+        "ALLSKY_SFC_SW_DWN": [],
+        "T2M": [],
+        "WS10M": [],
+        "WS50M": []
+      },
+      "longnames": {
+        "ALLSKY_SFC_SW_DWN": "All Sky Surface Shortwave Downward Irradiance",
+        "T2M": "Temperature at 2 Meters",
+        "WS10M": "Wind Speed at 10 Meters",
+        "WS50M": "Wind Speed at 50 Meters"
+      },
+      "point": "berlin",
+      "response_bytes": 636958,
+      "response_sha256": "c30caa7a1aa815551243f81ddb99f19194fcd72b3bc39ec50ccd0b5cf52e25e7",
+      "retrieved_at": "2026-11-17T11:29:26+00:00",
+      "start": "20150101",
+      "time_standard": "UTC",
+      "units": {
+        "ALLSKY_SFC_SW_DWN": "Wh/m^2",
+        "T2M": "C",
+        "WS10M": "m/s",
+        "WS50M": "m/s"
+      },
+      "url": "https://power.larc.nasa.gov/api/temporal/hourly/point?parameters=T2M%2CWS10M%2CWS50M%2CALLSKY_SFC_SW_DWN&community=RE&longitude=13.405&latitude=52.52&start=20150101&end=20151231&format=JSON&time-standard=UTC",
+      "values_sha256": "676bb1dbe917aeb93862e22e9f203e66d42e70209bd7b5687539736852bbb1fd"
+    },
+    {
+      "api": {
+        "name": "POWER Hourly API",
+        "version": "v2.10.4"
+      },
+      "daily_values_sha256": "406c07070a18ba6886faf19a81f4cbc818ec220fdfb7604a2825ca55242691f1",
+      "days": 365,
+      "end": "20151231",
+      "fill_value": -999.0,
+      "fill_values_replaced": {
+        "ALLSKY_SFC_SW_DWN": 0,
+        "T2M": 0,
+        "WS10M": 0,
+        "WS50M": 0
+      },
+      "header_sources": [
+        "MERRA2",
+        "SYN1DEG",
+        "POWER"
+      ],
+      "hours": 8760,
+      "incomplete_days": {
+        "ALLSKY_SFC_SW_DWN": [],
+        "T2M": [],
+        "WS10M": [],
+        "WS50M": []
+      },
+      "longnames": {
+        "ALLSKY_SFC_SW_DWN": "All Sky Surface Shortwave Downward Irradiance",
+        "T2M": "Temperature at 2 Meters",
+        "WS10M": "Wind Speed at 10 Meters",
+        "WS50M": "Wind Speed at 50 Meters"
+      },
+      "point": "hamburg",
+      "response_bytes": 636978,
+      "response_sha256": "ba1d28454a8b7474c37fd59ab0a9884c052334d875a2af2f561b551f68830102",
+      "retrieved_at": "2026-11-17T11:29:29+00:00",
+      "start": "20150101",
+      "time_standard": "UTC",
+      "units": {
+        "ALLSKY_SFC_SW_DWN": "Wh/m^2",
+        "T2M": "C",
+        "WS10M": "m/s",
+        "WS50M": "m/s"
+      },
+      "url": "https://power.larc.nasa.gov/api/temporal/hourly/point?parameters=T2M%2CWS10M%2CWS50M%2CALLSKY_SFC_SW_DWN&community=RE&longitude=9.994&latitude=53.551&start=20150101&end=20151231&format=JSON&time-standard=UTC",
+      "values_sha256": "b0d485ddbdc23be15db2f44e1ae348014b88a8e5379acb796d4edc097278f744"
+    },
+    {
+      "api": {
+        "name": "POWER Hourly API",
+        "version": "v2.10.4"
+      },
+      "daily_values_sha256": "2fc701595f9fc6463d64beae6497b9718e7143d29654014d95080e58b16b7cc0",
+      "days": 365,
+      "end": "20151231",
+      "fill_value": -999.0,
+      "fill_values_replaced": {
+        "ALLSKY_SFC_SW_DWN": 0,
+        "T2M": 0,
+        "WS10M": 0,
+        "WS50M": 0
+      },
+      "header_sources": [
+        "MERRA2",
+        "SYN1DEG",
+        "POWER"
+      ],
+      "hours": 8760,
+      "incomplete_days": {
+        "ALLSKY_SFC_SW_DWN": [],
+        "T2M": [],
+        "WS10M": [],
+        "WS50M": []
+      },
+      "longnames": {
+        "ALLSKY_SFC_SW_DWN": "All Sky Surface Shortwave Downward Irradiance",
+        "T2M": "Temperature at 2 Meters",
+        "WS10M": "Wind Speed at 10 Meters",
+        "WS50M": "Wind Speed at 50 Meters"
+      },
+      "point": "cologne",
+      "response_bytes": 636996,
+      "response_sha256": "e215172164df5e1f44477031f844adf36b147f58d262a592ccefc5cdccebf8fb",
+      "retrieved_at": "2026-11-17T11:29:33+00:00",
+      "start": "20150101",
+      "time_standard": "UTC",
+      "units": {
+        "ALLSKY_SFC_SW_DWN": "Wh/m^2",
+        "T2M": "C",
+        "WS10M": "m/s",
+        "WS50M": "m/s"
+      },
+      "url": "https://power.larc.nasa.gov/api/temporal/hourly/point?parameters=T2M%2CWS10M%2CWS50M%2CALLSKY_SFC_SW_DWN&community=RE&longitude=6.96&latitude=50.938&start=20150101&end=20151231&format=JSON&time-standard=UTC",
+      "values_sha256": "7b9e1d9572470ad47b2137184fdc36b36a7fe2b03f1b520c6e66b80b69d9bce9"
+    },
+    {
+      "api": {
+        "name": "POWER Hourly API",
+        "version": "v2.10.4"
+      },
+      "daily_values_sha256": "ae38d2a43fd69d2e0187d86756c3378ff1bcabb61d57eea051913f854768766b",
+      "days": 365,
+      "end": "20151231",
+      "fill_value": -999.0,
+      "fill_values_replaced": {
+        "ALLSKY_SFC_SW_DWN": 0,
+        "T2M": 0,
+        "WS10M": 0,
+        "WS50M": 0
+      },
+      "header_sources": [
+        "MERRA2",
+        "SYN1DEG",
+        "POWER"
+      ],
+      "hours": 8760,
+      "incomplete_days": {
+        "ALLSKY_SFC_SW_DWN": [],
+        "T2M": [],
+        "WS10M": [],
+        "WS50M": []
+      },
+      "longnames": {
+        "ALLSKY_SFC_SW_DWN": "All Sky Surface Shortwave Downward Irradiance",
+        "T2M": "Temperature at 2 Meters",
+        "WS10M": "Wind Speed at 10 Meters",
+        "WS50M": "Wind Speed at 50 Meters"
+      },
+      "point": "munich",
+      "response_bytes": 636650,
+      "response_sha256": "c4a15ee3ddfb2ea1ee28102494714586d2fd1d51f0c85871ed8ef04cf5d86f39",
+      "retrieved_at": "2026-11-17T11:29:37+00:00",
+      "start": "20150101",
+      "time_standard": "UTC",
+      "units": {
+        "ALLSKY_SFC_SW_DWN": "Wh/m^2",
+        "T2M": "C",
+        "WS10M": "m/s",
+        "WS50M": "m/s"
+      },
+      "url": "https://power.larc.nasa.gov/api/temporal/hourly/point?parameters=T2M%2CWS10M%2CWS50M%2CALLSKY_SFC_SW_DWN&community=RE&longitude=11.575&latitude=48.137&start=20150101&end=20151231&format=JSON&time-standard=UTC",
+      "values_sha256": "fb96c13da486b700dd247b32fb21235d9675b5c0260fab08b039f851cdb4c583"
+    },
+    {
+      "api": {
+        "name": "POWER Hourly API",
+        "version": "v2.10.4"
+      },
+      "daily_values_sha256": "a03bfaab218a1059ea155fe040c943c3e8132a5adc756386f875853313468f6e",
+      "days": 366,
+      "end": "20161231",
+      "fill_value": -999.0,
+      "fill_values_replaced": {
+        "ALLSKY_SFC_SW_DWN": 0,
+        "T2M": 0,
+        "WS10M": 0,
+        "WS50M": 0
+      },
+      "header_sources": [
+        "MERRA2",
+        "SYN1DEG",
+        "POWER"
+      ],
+      "hours": 8784,
+      "incomplete_days": {
+        "ALLSKY_SFC_SW_DWN": [],
+        "T2M": [],
+        "WS10M": [],
+        "WS50M": []
+      },
+      "longnames": {
+        "ALLSKY_SFC_SW_DWN": "All Sky Surface Shortwave Downward Irradiance",
+        "T2M": "Temperature at 2 Meters",
+        "WS10M": "Wind Speed at 10 Meters",
+        "WS50M": "Wind Speed at 50 Meters"
+      },
+      "point": "berlin",
+      "response_bytes": 638457,
+      "response_sha256": "6adebab60be61601af5e9c34899364a06abe02076c3d71fd6caa2d645ecbeeec",
+      "retrieved_at": "2026-11-17T11:29:40+00:00",
+      "start": "20160101",
+      "time_standard": "UTC",
+      "units": {
+        "ALLSKY_SFC_SW_DWN": "Wh/m^2",
+        "T2M": "C",
+        "WS10M": "m/s",
+        "WS50M": "m/s"
+      },
+      "url": "https://power.larc.nasa.gov/api/temporal/hourly/point?parameters=T2M%2CWS10M%2CWS50M%2CALLSKY_SFC_SW_DWN&community=RE&longitude=13.405&latitude=52.52&start=20160101&end=20161231&format=JSON&time-standard=UTC",
+      "values_sha256": "190f8482ab67324e6171517206b88e362ae96a083329e9f2fe8a341d35d7be08"
+    },
+    {
+      "api": {
+        "name": "POWER Hourly API",
+        "version": "v2.10.4"
+      },
+      "daily_values_sha256": "0159755b963f423db7d4121b3372a8e7542292f25d74e5d7044f77697582f312",
+      "days": 366,
+      "end": "20161231",
+      "fill_value": -999.0,
+      "fill_values_replaced": {
+        "ALLSKY_SFC_SW_DWN": 0,
+        "T2M": 0,
+        "WS10M": 0,
+        "WS50M": 0
+      },
+      "header_sources": [
+        "MERRA2",
+        "SYN1DEG",
+        "POWER"
+      ],
+      "hours": 8784,
+      "incomplete_days": {
+        "ALLSKY_SFC_SW_DWN": [],
+        "T2M": [],
+        "WS10M": [],
+        "WS50M": []
+      },
+      "longnames": {
+        "ALLSKY_SFC_SW_DWN": "All Sky Surface Shortwave Downward Irradiance",
+        "T2M": "Temperature at 2 Meters",
+        "WS10M": "Wind Speed at 10 Meters",
+        "WS50M": "Wind Speed at 50 Meters"
+      },
+      "point": "hamburg",
+      "response_bytes": 638448,
+      "response_sha256": "42204d88d2ce7926031fefa63504b5442d92a0ce7b762fd3b2b327d7369c9a5a",
+      "retrieved_at": "2026-11-17T11:29:43+00:00",
+      "start": "20160101",
+      "time_standard": "UTC",
+      "units": {
+        "ALLSKY_SFC_SW_DWN": "Wh/m^2",
+        "T2M": "C",
+        "WS10M": "m/s",
+        "WS50M": "m/s"
+      },
+      "url": "https://power.larc.nasa.gov/api/temporal/hourly/point?parameters=T2M%2CWS10M%2CWS50M%2CALLSKY_SFC_SW_DWN&community=RE&longitude=9.994&latitude=53.551&start=20160101&end=20161231&format=JSON&time-standard=UTC",
+      "values_sha256": "aaa1b8e9870d1c8db66fce7964fe5384b9484f7b318a329df575be8981547263"
+    },
+    {
+      "api": {
+        "name": "POWER Hourly API",
+        "version": "v2.10.4"
+      },
+      "daily_values_sha256": "07669a6afba2f13d9f17b6f08a897ef03338a97ae9e94570c25167e3ce5744cd",
+      "days": 366,
+      "end": "20161231",
+      "fill_value": -999.0,
+      "fill_values_replaced": {
+        "ALLSKY_SFC_SW_DWN": 0,
+        "T2M": 0,
+        "WS10M": 0,
+        "WS50M": 0
+      },
+      "header_sources": [
+        "MERRA2",
+        "SYN1DEG",
+        "POWER"
+      ],
+      "hours": 8784,
+      "incomplete_days": {
+        "ALLSKY_SFC_SW_DWN": [],
+        "T2M": [],
+        "WS10M": [],
+        "WS50M": []
+      },
+      "longnames": {
+        "ALLSKY_SFC_SW_DWN": "All Sky Surface Shortwave Downward Irradiance",
+        "T2M": "Temperature at 2 Meters",
+        "WS10M": "Wind Speed at 10 Meters",
+        "WS50M": "Wind Speed at 50 Meters"
+      },
+      "point": "cologne",
+      "response_bytes": 638258,
+      "response_sha256": "474aac65de04041c61e27f720f3a78749f28d8ceffdf375884ad6e9ca48cf599",
+      "retrieved_at": "2026-11-17T11:29:46+00:00",
+      "start": "20160101",
+      "time_standard": "UTC",
+      "units": {
+        "ALLSKY_SFC_SW_DWN": "Wh/m^2",
+        "T2M": "C",
+        "WS10M": "m/s",
+        "WS50M": "m/s"
+      },
+      "url": "https://power.larc.nasa.gov/api/temporal/hourly/point?parameters=T2M%2CWS10M%2CWS50M%2CALLSKY_SFC_SW_DWN&community=RE&longitude=6.96&latitude=50.938&start=20160101&end=20161231&format=JSON&time-standard=UTC",
+      "values_sha256": "9adbe81d0cf746bdeb3b581cf96b0399afbd33392955a809f9e0dc3b70c856d8"
+    },
+    {
+      "api": {
+        "name": "POWER Hourly API",
+        "version": "v2.10.4"
+      },
+      "daily_values_sha256": "96cbd2858d7a11465dfd5bd95a5f29bcff06c2b0788d874706fb308fee39912c",
+      "days": 366,
+      "end": "20161231",
+      "fill_value": -999.0,
+      "fill_values_replaced": {
+        "ALLSKY_SFC_SW_DWN": 0,
+        "T2M": 0,
+        "WS10M": 0,
+        "WS50M": 0
+      },
+      "header_sources": [
+        "MERRA2",
+        "SYN1DEG",
+        "POWER"
+      ],
+      "hours": 8784,
+      "incomplete_days": {
+        "ALLSKY_SFC_SW_DWN": [],
+        "T2M": [],
+        "WS10M": [],
+        "WS50M": []
+      },
+      "longnames": {
+        "ALLSKY_SFC_SW_DWN": "All Sky Surface Shortwave Downward Irradiance",
+        "T2M": "Temperature at 2 Meters",
+        "WS10M": "Wind Speed at 10 Meters",
+        "WS50M": "Wind Speed at 50 Meters"
+      },
+      "point": "munich",
+      "response_bytes": 637827,
+      "response_sha256": "3d728aa0f6d9700dea0a4e824793e9d482cce4a9390ca12ed076a1269b5fcde6",
+      "retrieved_at": "2026-11-17T11:29:50+00:00",
+      "start": "20160101",
+      "time_standard": "UTC",
+      "units": {
+        "ALLSKY_SFC_SW_DWN": "Wh/m^2",
+        "T2M": "C",
+        "WS10M": "m/s",
+        "WS50M": "m/s"
+      },
+      "url": "https://power.larc.nasa.gov/api/temporal/hourly/point?parameters=T2M%2CWS10M%2CWS50M%2CALLSKY_SFC_SW_DWN&community=RE&longitude=11.575&latitude=48.137&start=20160101&end=20161231&format=JSON&time-standard=UTC",
+      "values_sha256": "718844945d697703eddd1f1362e44085bbe2f2b9cc4f21c643c3767954c82cdc"
+    },
+    {
+      "api": {
+        "name": "POWER Hourly API",
+        "version": "v2.10.4"
+      },
+      "daily_values_sha256": "1e42e5ff4fa498bc5498c532b0b247f4fd60813877e92a8149e4f697991996e9",
+      "days": 365,
+      "end": "20171231",
+      "fill_value": -999.0,
+      "fill_values_replaced": {
+        "ALLSKY_SFC_SW_DWN": 0,
+        "T2M": 0,
+        "WS10M": 0,
+        "WS50M": 0
+      },
+      "header_sources": [
+        "MERRA2",
+        "SYN1DEG",
+        "POWER"
+      ],
+      "hours": 8760,
+      "incomplete_days": {
+        "ALLSKY_SFC_SW_DWN": [],
+        "T2M": [],
+        "WS10M": [],
+        "WS50M": []
+      },
+      "longnames": {
+        "ALLSKY_SFC_SW_DWN": "All Sky Surface Shortwave Downward Irradiance",
+        "T2M": "Temperature at 2 Meters",
+        "WS10M": "Wind Speed at 10 Meters",
+        "WS50M": "Wind Speed at 50 Meters"
+      },
+      "point": "berlin",
+      "response_bytes": 637249,
+      "response_sha256": "1d02a7afbe0fbadbeb4af80a84105768f924cba284ee5e03e3bd5d07a7332423",
+      "retrieved_at": "2026-11-16T21:02:31+00:00",
+      "start": "20170101",
+      "time_standard": "UTC",
+      "units": {
+        "ALLSKY_SFC_SW_DWN": "Wh/m^2",
+        "T2M": "C",
+        "WS10M": "m/s",
+        "WS50M": "m/s"
+      },
+      "url": "https://power.larc.nasa.gov/api/temporal/hourly/point?parameters=T2M%2CWS10M%2CWS50M%2CALLSKY_SFC_SW_DWN&community=RE&longitude=13.405&latitude=52.52&start=20170101&end=20171231&format=JSON&time-standard=UTC",
+      "values_sha256": "17ffd5a821663912108f7856a1f5f0a32ba02b5d76034b7de0f3eeb517eb6a3b"
+    },
+    {
+      "api": {
+        "name": "POWER Hourly API",
+        "version": "v2.10.4"
+      },
+      "daily_values_sha256": "01136aee1a1cb7971649cf514f3bb100ac6b6a87a23df1422d68a91b52f990e5",
+      "days": 365,
+      "end": "20171231",
+      "fill_value": -999.0,
+      "fill_values_replaced": {
+        "ALLSKY_SFC_SW_DWN": 0,
+        "T2M": 0,
+        "WS10M": 0,
+        "WS50M": 0
+      },
+      "header_sources": [
+        "MERRA2",
+        "SYN1DEG",
+        "POWER"
+      ],
+      "hours": 8760,
+      "incomplete_days": {
+        "ALLSKY_SFC_SW_DWN": [],
+        "T2M": [],
+        "WS10M": [],
+        "WS50M": []
+      },
+      "longnames": {
+        "ALLSKY_SFC_SW_DWN": "All Sky Surface Shortwave Downward Irradiance",
+        "T2M": "Temperature at 2 Meters",
+        "WS10M": "Wind Speed at 10 Meters",
+        "WS50M": "Wind Speed at 50 Meters"
+      },
+      "point": "hamburg",
+      "response_bytes": 637001,
+      "response_sha256": "3ec27eb8512253e70bce3fce6c638659c22f50e43b92356e725139ec3cb8b2a6",
+      "retrieved_at": "2026-11-16T21:02:35+00:00",
+      "start": "20170101",
+      "time_standard": "UTC",
+      "units": {
+        "ALLSKY_SFC_SW_DWN": "Wh/m^2",
+        "T2M": "C",
+        "WS10M": "m/s",
+        "WS50M": "m/s"
+      },
+      "url": "https://power.larc.nasa.gov/api/temporal/hourly/point?parameters=T2M%2CWS10M%2CWS50M%2CALLSKY_SFC_SW_DWN&community=RE&longitude=9.994&latitude=53.551&start=20170101&end=20171231&format=JSON&time-standard=UTC",
+      "values_sha256": "9e76491f63425ef587b0d51858ca55104806713c1cd9cee42547533e0d32e30f"
+    },
+    {
+      "api": {
+        "name": "POWER Hourly API",
+        "version": "v2.10.4"
+      },
+      "daily_values_sha256": "016201f6f487a9737ba446c3219ba6c2115309366be055a01f06de4d06d2e5b0",
+      "days": 365,
+      "end": "20171231",
+      "fill_value": -999.0,
+      "fill_values_replaced": {
+        "ALLSKY_SFC_SW_DWN": 0,
+        "T2M": 0,
+        "WS10M": 0,
+        "WS50M": 0
+      },
+      "header_sources": [
+        "MERRA2",
+        "SYN1DEG",
+        "POWER"
+      ],
+      "hours": 8760,
+      "incomplete_days": {
+        "ALLSKY_SFC_SW_DWN": [],
+        "T2M": [],
+        "WS10M": [],
+        "WS50M": []
+      },
+      "longnames": {
+        "ALLSKY_SFC_SW_DWN": "All Sky Surface Shortwave Downward Irradiance",
+        "T2M": "Temperature at 2 Meters",
+        "WS10M": "Wind Speed at 10 Meters",
+        "WS50M": "Wind Speed at 50 Meters"
+      },
+      "point": "cologne",
+      "response_bytes": 636988,
+      "response_sha256": "a080155f2c2e5820f1656ef26d131d7eabf9da9df87614f1417541d8c40679e7",
+      "retrieved_at": "2026-11-16T21:02:40+00:00",
+      "start": "20170101",
+      "time_standard": "UTC",
+      "units": {
+        "ALLSKY_SFC_SW_DWN": "Wh/m^2",
+        "T2M": "C",
+        "WS10M": "m/s",
+        "WS50M": "m/s"
+      },
+      "url": "https://power.larc.nasa.gov/api/temporal/hourly/point?parameters=T2M%2CWS10M%2CWS50M%2CALLSKY_SFC_SW_DWN&community=RE&longitude=6.96&latitude=50.938&start=20170101&end=20171231&format=JSON&time-standard=UTC",
+      "values_sha256": "f792900ae18e500554cf2b4f2283f5bca4392607f96dfa94fcb5c04461a6a088"
+    },
+    {
+      "api": {
+        "name": "POWER Hourly API",
+        "version": "v2.10.4"
+      },
+      "daily_values_sha256": "51b400d4518669fdbebfac91cfbae4438ddddaf3336f8bcc910abfb30afa004f",
+      "days": 365,
+      "end": "20171231",
+      "fill_value": -999.0,
+      "fill_values_replaced": {
+        "ALLSKY_SFC_SW_DWN": 0,
+        "T2M": 0,
+        "WS10M": 0,
+        "WS50M": 0
+      },
+      "header_sources": [
+        "MERRA2",
+        "SYN1DEG",
+        "POWER"
+      ],
+      "hours": 8760,
+      "incomplete_days": {
+        "ALLSKY_SFC_SW_DWN": [],
+        "T2M": [],
+        "WS10M": [],
+        "WS50M": []
+      },
+      "longnames": {
+        "ALLSKY_SFC_SW_DWN": "All Sky Surface Shortwave Downward Irradiance",
+        "T2M": "Temperature at 2 Meters",
+        "WS10M": "Wind Speed at 10 Meters",
+        "WS50M": "Wind Speed at 50 Meters"
+      },
+      "point": "munich",
+      "response_bytes": 636515,
+      "response_sha256": "23a91d0077bea7f9115390e6ba7401170b9e81e7988dbbddb2ce615ced386975",
+      "retrieved_at": "2026-11-16T21:02:44+00:00",
+      "start": "20170101",
+      "time_standard": "UTC",
+      "units": {
+        "ALLSKY_SFC_SW_DWN": "Wh/m^2",
+        "T2M": "C",
+        "WS10M": "m/s",
+        "WS50M": "m/s"
+      },
+      "url": "https://power.larc.nasa.gov/api/temporal/hourly/point?parameters=T2M%2CWS10M%2CWS50M%2CALLSKY_SFC_SW_DWN&community=RE&longitude=11.575&latitude=48.137&start=20170101&end=20171231&format=JSON&time-standard=UTC",
+      "values_sha256": "9fc18ed0c1580d6f913211ad9085c3e17fb3b2301aa8f8f505dd63a44b2672da"
+    },
+    {
+      "api": {
+        "name": "POWER Hourly API",
+        "version": "v2.10.4"
+      },
+      "daily_values_sha256": "17f5ef639c1fbaef9eaed36d7481e5f0ad9e027ec5296c3de51d282cce136253",
+      "days": 365,
+      "end": "20181231",
+      "fill_value": -999.0,
+      "fill_values_replaced": {
+        "ALLSKY_SFC_SW_DWN": 0,
+        "T2M": 0,
+        "WS10M": 0,
+        "WS50M": 0
+      },
+      "header_sources": [
+        "MERRA2",
+        "SYN1DEG",
+        "POWER"
+      ],
+      "hours": 8760,
+      "incomplete_days": {
+        "ALLSKY_SFC_SW_DWN": [],
+        "T2M": [],
+        "WS10M": [],
+        "WS50M": []
+      },
+      "longnames": {
+        "ALLSKY_SFC_SW_DWN": "All Sky Surface Shortwave Downward Irradiance",
+        "T2M": "Temperature at 2 Meters",
+        "WS10M": "Wind Speed at 10 Meters",
+        "WS50M": "Wind Speed at 50 Meters"
+      },
+      "point": "berlin",
+      "response_bytes": 637448,
+      "response_sha256": "0b6a299e16c123c5a402e7891a0d7ccd894a65cb8c9fcff27c319190d30d6d08",
+      "retrieved_at": "2026-11-17T11:29:54+00:00",
+      "start": "20180101",
+      "time_standard": "UTC",
+      "units": {
+        "ALLSKY_SFC_SW_DWN": "Wh/m^2",
+        "T2M": "C",
+        "WS10M": "m/s",
+        "WS50M": "m/s"
+      },
+      "url": "https://power.larc.nasa.gov/api/temporal/hourly/point?parameters=T2M%2CWS10M%2CWS50M%2CALLSKY_SFC_SW_DWN&community=RE&longitude=13.405&latitude=52.52&start=20180101&end=20181231&format=JSON&time-standard=UTC",
+      "values_sha256": "5ae57c602fe7ee177091fb35a433fda473ea61429dc3f9ce1e44548025245bac"
+    },
+    {
+      "api": {
+        "name": "POWER Hourly API",
+        "version": "v2.10.4"
+      },
+      "daily_values_sha256": "0c372d133d770f2e44c0b203d73656da92ca3500cf700f35fa0352b4f14166ad",
+      "days": 365,
+      "end": "20181231",
+      "fill_value": -999.0,
+      "fill_values_replaced": {
+        "ALLSKY_SFC_SW_DWN": 0,
+        "T2M": 0,
+        "WS10M": 0,
+        "WS50M": 0
+      },
+      "header_sources": [
+        "MERRA2",
+        "SYN1DEG",
+        "POWER"
+      ],
+      "hours": 8760,
+      "incomplete_days": {
+        "ALLSKY_SFC_SW_DWN": [],
+        "T2M": [],
+        "WS10M": [],
+        "WS50M": []
+      },
+      "longnames": {
+        "ALLSKY_SFC_SW_DWN": "All Sky Surface Shortwave Downward Irradiance",
+        "T2M": "Temperature at 2 Meters",
+        "WS10M": "Wind Speed at 10 Meters",
+        "WS50M": "Wind Speed at 50 Meters"
+      },
+      "point": "hamburg",
+      "response_bytes": 637331,
+      "response_sha256": "9ae86e1a36199fa29217a08a537d45ad1212fff3afd4851209beffecbcc9b39b",
+      "retrieved_at": "2026-11-17T11:29:57+00:00",
+      "start": "20180101",
+      "time_standard": "UTC",
+      "units": {
+        "ALLSKY_SFC_SW_DWN": "Wh/m^2",
+        "T2M": "C",
+        "WS10M": "m/s",
+        "WS50M": "m/s"
+      },
+      "url": "https://power.larc.nasa.gov/api/temporal/hourly/point?parameters=T2M%2CWS10M%2CWS50M%2CALLSKY_SFC_SW_DWN&community=RE&longitude=9.994&latitude=53.551&start=20180101&end=20181231&format=JSON&time-standard=UTC",
+      "values_sha256": "551281a60baa2eb123e0368ae535f8f9515c382ada5f69f9e4182bedc6adbee8"
+    },
+    {
+      "api": {
+        "name": "POWER Hourly API",
+        "version": "v2.10.4"
+      },
+      "daily_values_sha256": "30d67ecc3561a5bf71f5eddd697700167efe01837879b8f95ee81bbcc3fa4b47",
+      "days": 365,
+      "end": "20181231",
+      "fill_value": -999.0,
+      "fill_values_replaced": {
+        "ALLSKY_SFC_SW_DWN": 0,
+        "T2M": 0,
+        "WS10M": 0,
+        "WS50M": 0
+      },
+      "header_sources": [
+        "MERRA2",
+        "SYN1DEG",
+        "POWER"
+      ],
+      "hours": 8760,
+      "incomplete_days": {
+        "ALLSKY_SFC_SW_DWN": [],
+        "T2M": [],
+        "WS10M": [],
+        "WS50M": []
+      },
+      "longnames": {
+        "ALLSKY_SFC_SW_DWN": "All Sky Surface Shortwave Downward Irradiance",
+        "T2M": "Temperature at 2 Meters",
+        "WS10M": "Wind Speed at 10 Meters",
+        "WS50M": "Wind Speed at 50 Meters"
+      },
+      "point": "cologne",
+      "response_bytes": 637382,
+      "response_sha256": "5edc18d1800714b8f7ca7d6b4e28dfeb862ace66aee76dda156d33a1ef120c6e",
+      "retrieved_at": "2026-11-17T11:30:00+00:00",
+      "start": "20180101",
+      "time_standard": "UTC",
+      "units": {
+        "ALLSKY_SFC_SW_DWN": "Wh/m^2",
+        "T2M": "C",
+        "WS10M": "m/s",
+        "WS50M": "m/s"
+      },
+      "url": "https://power.larc.nasa.gov/api/temporal/hourly/point?parameters=T2M%2CWS10M%2CWS50M%2CALLSKY_SFC_SW_DWN&community=RE&longitude=6.96&latitude=50.938&start=20180101&end=20181231&format=JSON&time-standard=UTC",
+      "values_sha256": "3624ac4d08961e3b355b866e66bddb28f1a3dc83489d487cc754d8f9c3b6f576"
+    },
+    {
+      "api": {
+        "name": "POWER Hourly API",
+        "version": "v2.10.4"
+      },
+      "daily_values_sha256": "87247dd82684a9b9648aa0e3c7a4f88b97d434d9689938199e192148629fb7c1",
+      "days": 365,
+      "end": "20181231",
+      "fill_value": -999.0,
+      "fill_values_replaced": {
+        "ALLSKY_SFC_SW_DWN": 0,
+        "T2M": 0,
+        "WS10M": 0,
+        "WS50M": 0
+      },
+      "header_sources": [
+        "MERRA2",
+        "SYN1DEG",
+        "POWER"
+      ],
+      "hours": 8760,
+      "incomplete_days": {
+        "ALLSKY_SFC_SW_DWN": [],
+        "T2M": [],
+        "WS10M": [],
+        "WS50M": []
+      },
+      "longnames": {
+        "ALLSKY_SFC_SW_DWN": "All Sky Surface Shortwave Downward Irradiance",
+        "T2M": "Temperature at 2 Meters",
+        "WS10M": "Wind Speed at 10 Meters",
+        "WS50M": "Wind Speed at 50 Meters"
+      },
+      "point": "munich",
+      "response_bytes": 636922,
+      "response_sha256": "d4ebbe530e7d7ab91af95664fb94b753d242876d1e37f00c5cee0f7d4e5147b0",
+      "retrieved_at": "2026-11-17T11:30:04+00:00",
+      "start": "20180101",
+      "time_standard": "UTC",
+      "units": {
+        "ALLSKY_SFC_SW_DWN": "Wh/m^2",
+        "T2M": "C",
+        "WS10M": "m/s",
+        "WS50M": "m/s"
+      },
+      "url": "https://power.larc.nasa.gov/api/temporal/hourly/point?parameters=T2M%2CWS10M%2CWS50M%2CALLSKY_SFC_SW_DWN&community=RE&longitude=11.575&latitude=48.137&start=20180101&end=20181231&format=JSON&time-standard=UTC",
+      "values_sha256": "71f5d3e2970906ca483af576dfe4bc59cc11d2aca54a0d1d6c8e36212f668079"
+    },
+    {
+      "api": {
+        "name": "POWER Hourly API",
+        "version": "v2.10.4"
+      },
+      "daily_values_sha256": "15d7299ceb7dac398c70ef3627a0183be2e0ce4da435181be5bd5a80b4c54a9e",
+      "days": 365,
+      "end": "20191231",
+      "fill_value": -999.0,
+      "fill_values_replaced": {
+        "ALLSKY_SFC_SW_DWN": 0,
+        "T2M": 0,
+        "WS10M": 0,
+        "WS50M": 0
+      },
+      "header_sources": [
+        "MERRA2",
+        "SYN1DEG",
+        "POWER"
+      ],
+      "hours": 8760,
+      "incomplete_days": {
+        "ALLSKY_SFC_SW_DWN": [],
+        "T2M": [],
+        "WS10M": [],
+        "WS50M": []
+      },
+      "longnames": {
+        "ALLSKY_SFC_SW_DWN": "All Sky Surface Shortwave Downward Irradiance",
+        "T2M": "Temperature at 2 Meters",
+        "WS10M": "Wind Speed at 10 Meters",
+        "WS50M": "Wind Speed at 50 Meters"
+      },
+      "point": "berlin",
+      "response_bytes": 636798,
+      "response_sha256": "ac81a1d23e2e6c2161841fb26fd44f7509281a2ed0543561bf76cec0b028811b",
+      "retrieved_at": "2026-11-17T11:30:08+00:00",
+      "start": "20190101",
+      "time_standard": "UTC",
+      "units": {
+        "ALLSKY_SFC_SW_DWN": "Wh/m^2",
+        "T2M": "C",
+        "WS10M": "m/s",
+        "WS50M": "m/s"
+      },
+      "url": "https://power.larc.nasa.gov/api/temporal/hourly/point?parameters=T2M%2CWS10M%2CWS50M%2CALLSKY_SFC_SW_DWN&community=RE&longitude=13.405&latitude=52.52&start=20190101&end=20191231&format=JSON&time-standard=UTC",
+      "values_sha256": "5cab4ef05a7d69b32cdaddbfa16dae1a3aea7e678c0415ba5a30d13ee4d7fd30"
+    },
+    {
+      "api": {
+        "name": "POWER Hourly API",
+        "version": "v2.10.4"
+      },
+      "daily_values_sha256": "90ad31623a95d511dbfe2ee0dd63c61e81e091fda89cced41d5b2c500c5aaea4",
+      "days": 365,
+      "end": "20191231",
+      "fill_value": -999.0,
+      "fill_values_replaced": {
+        "ALLSKY_SFC_SW_DWN": 0,
+        "T2M": 0,
+        "WS10M": 0,
+        "WS50M": 0
+      },
+      "header_sources": [
+        "MERRA2",
+        "SYN1DEG",
+        "POWER"
+      ],
+      "hours": 8760,
+      "incomplete_days": {
+        "ALLSKY_SFC_SW_DWN": [],
+        "T2M": [],
+        "WS10M": [],
+        "WS50M": []
+      },
+      "longnames": {
+        "ALLSKY_SFC_SW_DWN": "All Sky Surface Shortwave Downward Irradiance",
+        "T2M": "Temperature at 2 Meters",
+        "WS10M": "Wind Speed at 10 Meters",
+        "WS50M": "Wind Speed at 50 Meters"
+      },
+      "point": "hamburg",
+      "response_bytes": 637005,
+      "response_sha256": "0253ae235ac542aab8d4451bf9e4a9801e229cb5ce1e9b1adb3baa38c2227e2d",
+      "retrieved_at": "2026-11-17T11:30:10+00:00",
+      "start": "20190101",
+      "time_standard": "UTC",
+      "units": {
+        "ALLSKY_SFC_SW_DWN": "Wh/m^2",
+        "T2M": "C",
+        "WS10M": "m/s",
+        "WS50M": "m/s"
+      },
+      "url": "https://power.larc.nasa.gov/api/temporal/hourly/point?parameters=T2M%2CWS10M%2CWS50M%2CALLSKY_SFC_SW_DWN&community=RE&longitude=9.994&latitude=53.551&start=20190101&end=20191231&format=JSON&time-standard=UTC",
+      "values_sha256": "70bb8c5a48b6fcccdc99f9b9f566f9ef903e99b3ef35aff7cd4d8012217239a8"
+    },
+    {
+      "api": {
+        "name": "POWER Hourly API",
+        "version": "v2.10.4"
+      },
+      "daily_values_sha256": "789d3825820db821211f23f7c38cbea7643e9b1e042ca3f0edd755dbb388836d",
+      "days": 365,
+      "end": "20191231",
+      "fill_value": -999.0,
+      "fill_values_replaced": {
+        "ALLSKY_SFC_SW_DWN": 0,
+        "T2M": 0,
+        "WS10M": 0,
+        "WS50M": 0
+      },
+      "header_sources": [
+        "MERRA2",
+        "SYN1DEG",
+        "POWER"
+      ],
+      "hours": 8760,
+      "incomplete_days": {
+        "ALLSKY_SFC_SW_DWN": [],
+        "T2M": [],
+        "WS10M": [],
+        "WS50M": []
+      },
+      "longnames": {
+        "ALLSKY_SFC_SW_DWN": "All Sky Surface Shortwave Downward Irradiance",
+        "T2M": "Temperature at 2 Meters",
+        "WS10M": "Wind Speed at 10 Meters",
+        "WS50M": "Wind Speed at 50 Meters"
+      },
+      "point": "cologne",
+      "response_bytes": 637101,
+      "response_sha256": "cade07b2ec4243ce6e19cbc0885fc2e749d2af903b52c92069b598eba7330de3",
+      "retrieved_at": "2026-11-17T11:30:14+00:00",
+      "start": "20190101",
+      "time_standard": "UTC",
+      "units": {
+        "ALLSKY_SFC_SW_DWN": "Wh/m^2",
+        "T2M": "C",
+        "WS10M": "m/s",
+        "WS50M": "m/s"
+      },
+      "url": "https://power.larc.nasa.gov/api/temporal/hourly/point?parameters=T2M%2CWS10M%2CWS50M%2CALLSKY_SFC_SW_DWN&community=RE&longitude=6.96&latitude=50.938&start=20190101&end=20191231&format=JSON&time-standard=UTC",
+      "values_sha256": "c74f565ffc8e18b051e800f3a6b35beb0ac37882e0db7b2d2bf609bdccf1b7bf"
+    },
+    {
+      "api": {
+        "name": "POWER Hourly API",
+        "version": "v2.10.4"
+      },
+      "daily_values_sha256": "24739bf7a4b96a16369fe1334e04a0e106ed7b076e5a3f3dbbd2c538ce509671",
+      "days": 365,
+      "end": "20191231",
+      "fill_value": -999.0,
+      "fill_values_replaced": {
+        "ALLSKY_SFC_SW_DWN": 0,
+        "T2M": 0,
+        "WS10M": 0,
+        "WS50M": 0
+      },
+      "header_sources": [
+        "MERRA2",
+        "SYN1DEG",
+        "POWER"
+      ],
+      "hours": 8760,
+      "incomplete_days": {
+        "ALLSKY_SFC_SW_DWN": [],
+        "T2M": [],
+        "WS10M": [],
+        "WS50M": []
+      },
+      "longnames": {
+        "ALLSKY_SFC_SW_DWN": "All Sky Surface Shortwave Downward Irradiance",
+        "T2M": "Temperature at 2 Meters",
+        "WS10M": "Wind Speed at 10 Meters",
+        "WS50M": "Wind Speed at 50 Meters"
+      },
+      "point": "munich",
+      "response_bytes": 636381,
+      "response_sha256": "f2eb14f4af2c1ee96cf17f2b74c04c158898a3f243e311e13252b7b49d164649",
+      "retrieved_at": "2026-11-17T11:30:17+00:00",
+      "start": "20190101",
+      "time_standard": "UTC",
+      "units": {
+        "ALLSKY_SFC_SW_DWN": "Wh/m^2",
+        "T2M": "C",
+        "WS10M": "m/s",
+        "WS50M": "m/s"
+      },
+      "url": "https://power.larc.nasa.gov/api/temporal/hourly/point?parameters=T2M%2CWS10M%2CWS50M%2CALLSKY_SFC_SW_DWN&community=RE&longitude=11.575&latitude=48.137&start=20190101&end=20191231&format=JSON&time-standard=UTC",
+      "values_sha256": "29397484d8565b32ecc6ef169bbc68d06c1eb6b4e31c5650cc41284ff4c7cc64"
+    },
+    {
+      "api": {
+        "name": "POWER Hourly API",
+        "version": "v2.10.4"
+      },
+      "daily_values_sha256": "49119749e9ea64fd0003b4833dcae6d4734b9d8acd702e7ef73630a629486294",
+      "days": 274,
+      "end": "20200930",
+      "fill_value": -999.0,
+      "fill_values_replaced": {
+        "ALLSKY_SFC_SW_DWN": 0,
+        "T2M": 0,
+        "WS10M": 0,
+        "WS50M": 0
+      },
+      "header_sources": [
+        "MERRA2",
+        "SYN1DEG",
+        "POWER"
+      ],
+      "hours": 6576,
+      "incomplete_days": {
+        "ALLSKY_SFC_SW_DWN": [],
+        "T2M": [],
+        "WS10M": [],
+        "WS50M": []
+      },
+      "longnames": {
+        "ALLSKY_SFC_SW_DWN": "All Sky Surface Shortwave Downward Irradiance",
+        "T2M": "Temperature at 2 Meters",
+        "WS10M": "Wind Speed at 10 Meters",
+        "WS50M": "Wind Speed at 50 Meters"
+      },
+      "point": "berlin",
+      "response_bytes": 479453,
+      "response_sha256": "d13e4ef57b717741421c0ca76b42dd560d0cd93b1967ff54df9a4095f149ef7f",
+      "retrieved_at": "2026-11-17T11:30:21+00:00",
+      "start": "20200101",
+      "time_standard": "UTC",
+      "units": {
+        "ALLSKY_SFC_SW_DWN": "Wh/m^2",
+        "T2M": "C",
+        "WS10M": "m/s",
+        "WS50M": "m/s"
+      },
+      "url": "https://power.larc.nasa.gov/api/temporal/hourly/point?parameters=T2M%2CWS10M%2CWS50M%2CALLSKY_SFC_SW_DWN&community=RE&longitude=13.405&latitude=52.52&start=20200101&end=20200930&format=JSON&time-standard=UTC",
+      "values_sha256": "54dc53651227fac8d2caef70faefd3acf78ce54427cd87a7edeb6b25857785b8"
+    },
+    {
+      "api": {
+        "name": "POWER Hourly API",
+        "version": "v2.10.4"
+      },
+      "daily_values_sha256": "407334e42809d1e135838526ee4bc8c92fcc344da95b66b097360418929271ed",
+      "days": 274,
+      "end": "20200930",
+      "fill_value": -999.0,
+      "fill_values_replaced": {
+        "ALLSKY_SFC_SW_DWN": 0,
+        "T2M": 0,
+        "WS10M": 0,
+        "WS50M": 0
+      },
+      "header_sources": [
+        "MERRA2",
+        "SYN1DEG",
+        "POWER"
+      ],
+      "hours": 6576,
+      "incomplete_days": {
+        "ALLSKY_SFC_SW_DWN": [],
+        "T2M": [],
+        "WS10M": [],
+        "WS50M": []
+      },
+      "longnames": {
+        "ALLSKY_SFC_SW_DWN": "All Sky Surface Shortwave Downward Irradiance",
+        "T2M": "Temperature at 2 Meters",
+        "WS10M": "Wind Speed at 10 Meters",
+        "WS50M": "Wind Speed at 50 Meters"
+      },
+      "point": "hamburg",
+      "response_bytes": 479648,
+      "response_sha256": "fb76d8265deed8cdb37f079654ba08c630bcd5c7276fec9b0b08c853d2bef081",
+      "retrieved_at": "2026-11-17T11:30:24+00:00",
+      "start": "20200101",
+      "time_standard": "UTC",
+      "units": {
+        "ALLSKY_SFC_SW_DWN": "Wh/m^2",
+        "T2M": "C",
+        "WS10M": "m/s",
+        "WS50M": "m/s"
+      },
+      "url": "https://power.larc.nasa.gov/api/temporal/hourly/point?parameters=T2M%2CWS10M%2CWS50M%2CALLSKY_SFC_SW_DWN&community=RE&longitude=9.994&latitude=53.551&start=20200101&end=20200930&format=JSON&time-standard=UTC",
+      "values_sha256": "48313d74e96794701ebc62746ad1d7f366f3528a5809764c88a35e6b64cafab5"
+    },
+    {
+      "api": {
+        "name": "POWER Hourly API",
+        "version": "v2.10.4"
+      },
+      "daily_values_sha256": "d8ec8cb8df7558f9029f10e21a193fdac1a3703dd08bc435d52a3329eeb71cef",
+      "days": 274,
+      "end": "20200930",
+      "fill_value": -999.0,
+      "fill_values_replaced": {
+        "ALLSKY_SFC_SW_DWN": 0,
+        "T2M": 0,
+        "WS10M": 0,
+        "WS50M": 0
+      },
+      "header_sources": [
+        "MERRA2",
+        "SYN1DEG",
+        "POWER"
+      ],
+      "hours": 6576,
+      "incomplete_days": {
+        "ALLSKY_SFC_SW_DWN": [],
+        "T2M": [],
+        "WS10M": [],
+        "WS50M": []
+      },
+      "longnames": {
+        "ALLSKY_SFC_SW_DWN": "All Sky Surface Shortwave Downward Irradiance",
+        "T2M": "Temperature at 2 Meters",
+        "WS10M": "Wind Speed at 10 Meters",
+        "WS50M": "Wind Speed at 50 Meters"
+      },
+      "point": "cologne",
+      "response_bytes": 479924,
+      "response_sha256": "15b901febf6fe21b53f87bcd7d24b98f05e4b45ebb3746f68ce486388acd443c",
+      "retrieved_at": "2026-11-17T11:30:27+00:00",
+      "start": "20200101",
+      "time_standard": "UTC",
+      "units": {
+        "ALLSKY_SFC_SW_DWN": "Wh/m^2",
+        "T2M": "C",
+        "WS10M": "m/s",
+        "WS50M": "m/s"
+      },
+      "url": "https://power.larc.nasa.gov/api/temporal/hourly/point?parameters=T2M%2CWS10M%2CWS50M%2CALLSKY_SFC_SW_DWN&community=RE&longitude=6.96&latitude=50.938&start=20200101&end=20200930&format=JSON&time-standard=UTC",
+      "values_sha256": "0664af0093a77c978b66b982122a0ce64d0e0584e438b35a5e627eb0dafea288"
+    },
+    {
+      "api": {
+        "name": "POWER Hourly API",
+        "version": "v2.10.4"
+      },
+      "daily_values_sha256": "79f9b3b817e92d683d824dc44735c118b73129cb59bf1b5c6527fa9390d8d487",
+      "days": 274,
+      "end": "20200930",
+      "fill_value": -999.0,
+      "fill_values_replaced": {
+        "ALLSKY_SFC_SW_DWN": 0,
+        "T2M": 0,
+        "WS10M": 0,
+        "WS50M": 0
+      },
+      "header_sources": [
+        "MERRA2",
+        "SYN1DEG",
+        "POWER"
+      ],
+      "hours": 6576,
+      "incomplete_days": {
+        "ALLSKY_SFC_SW_DWN": [],
+        "T2M": [],
+        "WS10M": [],
+        "WS50M": []
+      },
+      "longnames": {
+        "ALLSKY_SFC_SW_DWN": "All Sky Surface Shortwave Downward Irradiance",
+        "T2M": "Temperature at 2 Meters",
+        "WS10M": "Wind Speed at 10 Meters",
+        "WS50M": "Wind Speed at 50 Meters"
+      },
+      "point": "munich",
+      "response_bytes": 479119,
+      "response_sha256": "b86a3973aec7207ff59e23da5c61e6d2e919268145de50cc77ed5bd869f3073f",
+      "retrieved_at": "2026-11-17T11:30:30+00:00",
+      "start": "20200101",
+      "time_standard": "UTC",
+      "units": {
+        "ALLSKY_SFC_SW_DWN": "Wh/m^2",
+        "T2M": "C",
+        "WS10M": "m/s",
+        "WS50M": "m/s"
+      },
+      "url": "https://power.larc.nasa.gov/api/temporal/hourly/point?parameters=T2M%2CWS10M%2CWS50M%2CALLSKY_SFC_SW_DWN&community=RE&longitude=11.575&latitude=48.137&start=20200101&end=20200930&format=JSON&time-standard=UTC",
+      "values_sha256": "4047088795c6284e715ad14414e548864c351faeaff9cb2201ad450d07f4194f"
+    }
+  ],
+  "schema_version": "gridstorm-power-daily-requests/1.0",
+  "time_standard": "UTC"
+}

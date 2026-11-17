@@ -246,7 +246,7 @@ function TripleView({
             values={values}
             mode={view === 'delta' ? 'delta' : 'loading'}
             outaged={outaged}
-            className="h-[380px]"
+            className="h-[340px] sm:h-[440px] xl:h-[520px]"
             ariaLabel="Map of branch loading in the mitigation study"
             deltaLabel="Loading change (mitigated − crisis)"
           />

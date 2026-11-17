@@ -2,21 +2,35 @@ import { useId, useMemo, useState, type FormEvent } from 'react'
 import { useDataSeries } from '../../api/hooks'
 import { ApiError } from '../../api/client'
 import type { DataSeriesResponse, DatasetEntry } from '../../api/types'
-import { Badge, Button, Chart, CheckboxField, EmptyState, ErrorState, LoadingState, Panel, SelectField } from '../../components/ui'
+import { Badge, Button, Chart, EmptyState, ErrorState, LoadingState, Panel, SelectField } from '../../components/ui'
+import { cn } from '../../components/ui/cn'
 import { formatNumber, isFiniteNumber } from '../../lib/format'
-import { timeSeriesOption } from './charts'
+import { stressLinks } from './analogues'
+import { timeSeriesOption, type ChartHighlight } from './charts'
 import {
   clampRange,
   dateInputToIso,
   effectiveResolution,
   endToDateInput,
+  exclusiveEnd,
   groupByQuantity,
   isoToDateInput,
   responseGaps,
   type QuantityGroup,
 } from './series'
 import { resolutionLabel, utcDateTime } from './vocabulary'
-import { AGGREGATIONS, matchingWindow, RESOLUTIONS, windowRange, type WorkspaceState } from './workspace'
+import {
+  AGGREGATIONS,
+  contiguousCoverage,
+  MAX_RANGE_MS,
+  matchingPreset,
+  matchingWindow,
+  rangePresets,
+  RESOLUTIONS,
+  windowRange,
+  yearsWithData,
+  type WorkspaceState,
+} from './workspace'
 
 const CHART_HEIGHT = 280
 
@@ -116,8 +130,10 @@ function DateRangeForm({
   )
 }
 
-function GroupChart({ group, r }: { group: QuantityGroup; r: DataSeriesResponse }) {
-  const option = useMemo(() => timeSeriesOption(group, r), [group, r])
+function GroupChart({ group, r, highlights }: { group: QuantityGroup; r: DataSeriesResponse; highlights: ChartHighlight[] }) {
+  const option = useMemo(() => timeSeriesOption(group, r, highlights), [group, r, highlights])
+  const step = Date.parse(r.timestamps[1] ?? '') - Date.parse(r.timestamps[0] ?? '') || 0
+  const shown = highlights.filter((h) => h.endMs > Date.parse(r.timestamps[0] ?? '') && h.startMs <= Date.parse(r.timestamps.at(-1) ?? '') + step)
   const gaps = responseGaps(r)
   const rows = group.series.map((info) => {
     const s = r.series.find((x) => x.id === info.id)
@@ -147,8 +163,18 @@ function GroupChart({ group, r }: { group: QuantityGroup; r: DataSeriesResponse 
         option={option}
         height={CHART_HEIGHT}
         testId="series-chart"
-        ariaLabel={`Line chart of ${group.label}${unit} for ${rows.map((x) => x.info.label).join(', ')}, ${utcDateTime(r.timestamps[0])} to ${utcDateTime(r.timestamps.at(-1))}, ${resolutionLabel(effectiveResolution(r))} buckets; ${missing} missing points shown as gaps.`}
+        ariaLabel={`Line chart of ${group.label}${unit} for ${rows.map((x) => x.info.label).join(', ')}, ${utcDateTime(r.timestamps[0])} to ${utcDateTime(r.timestamps.at(-1))}, ${resolutionLabel(effectiveResolution(r))} buckets; ${missing} missing points shown as gaps.${shown.length ? ` Shaded amber: ${shown.map((h) => h.label.replace('\n', ' ')).join('; ')}.` : ''}`}
       />
+      {/* One line whenever the dataset has stress days, so changing the period never shifts the layout. */}
+      {highlights.length > 0 && (
+        <p className="flex items-center gap-1.5 text-2xs text-fg-muted" data-testid="stress-day-key">
+          <span aria-hidden className="inline-block h-3 w-4 shrink-0 rounded-sm border border-dashed border-[rgba(217,119,6,0.7)] bg-[rgba(217,119,6,0.14)]" />
+          <span>
+            Amber band: observed stress day replayed as a modeled scenario · in view:{' '}
+            {shown.length > 0 ? shown.map((h) => h.label.split('\n')[1]).join(', ') : 'none'}
+          </span>
+        </p>
+      )}
       <div className="overflow-x-auto" role="region" aria-label={`${group.label} summary (table)`} tabIndex={0}>
         <table className="w-full border-collapse text-xs">
           <caption className="sr-only">
@@ -203,9 +229,26 @@ export function SeriesWorkspace({
     { series: state.series, start: state.start, end: state.end, resolution: state.resolution, agg: state.agg },
     state.series.length > 0,
   )
+  // Coverage with holes (e.g. NASA POWER: one week of 2015, all of 2017): one daily-mean probe of
+  // the first series tells which calendar years hold data, so no preset opens an empty year.
+  const t = d.temporal
+  const coverageEnd = t ? exclusiveEnd(t.end_utc, t.resolution) : null
+  const probeYears = !!t && !!coverageEnd && !contiguousCoverage(d) && Date.parse(coverageEnd) - Date.parse(t.start_utc) <= MAX_RANGE_MS
+  const probe = useDataSeries(
+    d.id,
+    { series: d.series[0] ? [d.series[0].id] : [], start: t?.start_utc, end: coverageEnd, resolution: 'P1D', agg: 'mean' },
+    probeYears && d.series.length > 0,
+  )
+  const probed = probe.data && probe.data.dataset_id === d.id && !probe.isPlaceholderData ? probe.data : undefined
+  const presets = useMemo(() => rangePresets(d, probed ? yearsWithData(probed) : null), [d, probed])
+  const highlights = useMemo<ChartHighlight[]>(() => {
+    const days = new Map(stressLinks(d).map((l) => [l.day, l]))
+    return [...days.values()].map((l) => ({ startMs: l.dayStartMs, endMs: l.dayEndMs, label: `Stress day\n${l.day} (UTC)` }))
+  }, [d])
   const windows = d.temporal?.windows ?? []
   const w = matchingWindow(d, state.start, state.end)
-  const windowValue = w >= 0 ? String(w) : state.start ? 'custom' : 'default'
+  const preset = matchingPreset(presets, state)
+  const periodValue = w >= 0 ? `window:${w}` : preset ? preset.key : state.start ? 'custom' : 'default'
   const r = q.data && q.data.dataset_id === d.id ? q.data : undefined
   const selectedGroups = groups
     .map((g) => ({ ...g, series: g.series.filter((s) => selected.has(s.id)) }))
@@ -225,20 +268,26 @@ export function SeriesWorkspace({
     >
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <SelectField
-          label="Window"
-          value={windowValue}
+          label="Period"
+          value={periodValue}
           testId="window-select"
+          hint="Published windows first, then date presets"
           onChange={(v) => {
-            if (v === 'default') onChange({ start: null, end: null })
-            else if (v !== 'custom') {
-              const win = windows[Number(v)]
-              if (win) onChange(windowRange(d, win))
+            if (v === 'default') return onChange({ start: null, end: null })
+            if (v.startsWith('window:')) {
+              const win = windows[Number(v.slice('window:'.length))]
+              // A weekly preset's resolution would leave a few points in a one-week window.
+              if (win) onChange({ ...windowRange(d, win), resolution: state.resolution === 'P7D' ? 'auto' : state.resolution })
+              return
             }
+            const p = presets.find((x) => x.key === v)
+            if (p) onChange({ start: p.start, end: p.end, resolution: p.resolution })
           }}
           options={[
-            ...windows.map((x, i) => ({ value: String(i), label: x.label })),
-            ...(windows.length ? [] : [{ value: 'default', label: 'Last 31 days of coverage (API default)' }]),
-            ...(windowValue === 'custom' ? [{ value: 'custom', label: 'Custom date range' }] : []),
+            ...windows.map((x, i) => ({ value: `window:${i}`, label: x.label })),
+            ...(periodValue === 'default' ? [{ value: 'default', label: 'API default window' }] : []),
+            ...presets.map((p) => ({ value: p.key, label: p.label })),
+            ...(periodValue === 'custom' ? [{ value: 'custom', label: 'Custom date range' }] : []),
           ]}
         />
         <SelectField
@@ -259,17 +308,34 @@ export function SeriesWorkspace({
       </div>
       {d.temporal && <DateRangeForm d={d} state={state} onApply={(start, end) => onChange({ start, end })} />}
 
+      {/* Compact toggle chips: the picker stays short on phones, so the chart is not pushed far down. */}
       <fieldset className="flex flex-col gap-2" data-testid="series-picker">
-        <legend className="gs-label mb-1">Series (grouped by quantity and unit)</legend>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <legend className="gs-label mb-1">
+          Series ({state.series.length} of {d.series.length} shown, grouped by quantity and unit)
+        </legend>
+        <div className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2 xl:grid-cols-3">
           {groups.map((g) => (
-            <div key={g.key} role="group" aria-label={`${g.label} [${g.unit}]`} className="flex flex-col gap-2.5 rounded border border-line p-2">
+            <div key={g.key} role="group" aria-label={`${g.label} [${g.unit}]`} className="flex min-w-0 flex-col gap-1.5">
               <p className="text-xs font-semibold text-fg">
                 {g.label} <span className="font-normal text-fg-muted">[{g.unit || 'unitless'}]</span>
               </p>
-              {g.series.map((s) => (
-                <CheckboxField key={s.id} label={s.label} checked={selected.has(s.id)} onChange={(on) => toggle(s.id, on)} />
-              ))}
+              <div className="flex flex-wrap gap-1.5">
+                {g.series.map((s) => {
+                  const on = selected.has(s.id)
+                  return (
+                    <label
+                      key={s.id}
+                      className={cn(
+                        'inline-flex min-h-7 max-w-full cursor-pointer items-center gap-1.5 rounded-full border px-2.5 text-xs transition-colors pointer-coarse:min-h-11',
+                        on ? 'border-accent bg-accent-soft text-fg' : 'border-line-strong text-fg-muted hover:bg-surface-2 hover:text-fg',
+                      )}
+                    >
+                      <input type="checkbox" className="size-3.5 shrink-0 accent-[var(--gs-accent)]" checked={on} onChange={(e) => toggle(s.id, e.target.checked)} />
+                      <span className="truncate">{s.label}</span>
+                    </label>
+                  )
+                })}
+              </div>
             </div>
           ))}
         </div>
@@ -301,7 +367,7 @@ export function SeriesWorkspace({
         <div className="flex flex-col gap-6" aria-busy={q.isFetching || undefined}>
           {q.error && <ErrorState error={q.error} title="Could not load the new selection; showing the previous one" />}
           {selectedGroups.map((g) => (
-            <GroupChart key={g.key} group={g} r={r} />
+            <GroupChart key={g.key} group={g} r={r} highlights={highlights} />
           ))}
         </div>
       ) : null}

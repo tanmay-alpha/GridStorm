@@ -1,7 +1,7 @@
 import { useMemo, type ReactNode } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Ban, Download, FileJson, FileText, RotateCcw } from 'lucide-react'
+import { Ban, Download, FileJson, FileText } from 'lucide-react'
 import { api, ApiError } from '../../api/client'
 import { qk, TERMINAL_STATUSES, useAssetTable, useJob, useJobArtifacts, useNetwork, useResult, useScenario } from '../../api/hooks'
 import type { CostBasis, GridstormResult, Job, JobStage, ResultMetrics, SolverInfo } from '../../api/types'
@@ -24,14 +24,15 @@ import {
 } from '../../components/ui'
 import { NO_VALUE, formatDuration, formatQuantity, formatTimestamp, shortHash } from '../../lib/format'
 import { formatMoney, resolveCostBasis } from '../../lib/money'
-import { downloadBlob, downloadJson, downloadText } from '../../lib/download'
 import { useDocumentTitle } from '../../lib/title'
 import { buildBrief, headlineOf } from '../brief/brief'
 import { GridImpactBrief } from '../brief/GridImpactBrief'
 import { compareUrl } from '../compare/baseline'
 import { CompareWithBaseline } from '../compare/CompareWithBaseline'
 import { useBaselinePlan } from '../compare/useBaselinePlan'
+import { DownloadList, type DownloadItem } from './DownloadList'
 import { GuideSteps, GUIDE_STUDIO_URL } from './GuideSteps'
+import { ResultUnavailable } from './ResultUnavailable'
 import { BaselineChange, KeyAssumptions, KpiOverview } from './RunOverview'
 import { RunResultView } from './RunResultView'
 import {
@@ -114,48 +115,83 @@ function Diagnostics({ job, result, basis }: { job: Job; result: GridstormResult
 
 function Downloads({ job, result }: { job: Job; result: GridstormResult | undefined }) {
   const artifacts = useJobArtifacts(job.id, job.status === 'completed' && job.result_available !== false && !!result)
-  // JSON documents are saved as the server's exact bytes so their sha256 matches the hash shown below.
-  const report = useMutation({
-    mutationFn: async (format: 'result' | 'json' | 'md') => {
-      if (format === 'result') downloadBlob(`gridstorm-result-${job.id}.json`, await api.simulationResultBlob(job.id))
-      else if (format === 'json') downloadBlob(`gridstorm-run-${job.id}-report.json`, await api.reportJsonBlob(job.id))
-      else downloadText(`gridstorm-run-${job.id}-report.md`, await api.reportMarkdown(job.id), 'text/markdown')
+  const stored = artifacts.data?.find((a) => a.kind === 'result')
+  const others = artifacts.data?.filter((a) => a.kind !== 'result') ?? []
+  const unavailable = result ? undefined : job.status === 'completed' ? 'Not available: needs the stored result file.' : 'Available once the run has completed.'
+  // JSON documents are saved as the server's exact bytes so their sha256 matches the hash shown.
+  const items: DownloadItem[] = [
+    {
+      testId: 'download-result',
+      label: (
+        <>
+          <Download aria-hidden className="size-3.5" /> Result JSON
+        </>
+      ),
+      description: 'Complete model result (gridstorm-result): every series, asset value and assumption, as stored by the server.',
+      filename: `gridstorm-result-${job.id}.json`,
+      bytes: stored?.bytes ?? null,
+      sha256: job.result_sha256 ?? stored?.sha256 ?? null,
+      disabled: !result,
+      unavailable,
+      fetch: () => api.simulationResultBlob(job.id),
     },
-  })
+    {
+      testId: 'download-manifest',
+      label: (
+        <>
+          <FileJson aria-hidden className="size-3.5" /> Manifest
+        </>
+      ),
+      description: 'Execution manifest copied out of the result: engine, solver and package versions, platform, git commit, command, dataset and scenario hashes.',
+      filename: `gridstorm-manifest-${job.id}.json`,
+      disabled: !result?.manifest,
+      unavailable: result && !result.manifest ? 'This result has no execution manifest.' : unavailable,
+      fetch: async () => new Blob([`${JSON.stringify(result!.manifest, null, 2)}\n`], { type: 'application/json' }),
+    },
+    {
+      testId: 'download-report-md',
+      label: (
+        <>
+          <FileText aria-hidden className="size-3.5" /> Report MD
+        </>
+      ),
+      description: 'Readable run report built by the server: metrics in the cost basis, generation by carrier, assumptions and reproducibility hashes.',
+      filename: `gridstorm-run-${job.id}-report.md`,
+      disabled: !result,
+      unavailable,
+      fetch: async () => new Blob([await api.reportMarkdown(job.id)], { type: 'text/markdown' }),
+    },
+    {
+      testId: 'download-report-json',
+      label: (
+        <>
+          <FileJson aria-hidden className="size-3.5" /> Report JSON
+        </>
+      ),
+      description: 'The same run report as machine-readable JSON (also lists the result warnings).',
+      filename: `gridstorm-run-${job.id}-report.json`,
+      disabled: !result,
+      unavailable,
+      fetch: () => api.reportJsonBlob(job.id),
+    },
+  ]
   return (
     <Panel title="Downloads" id="downloads">
       <div className="flex flex-col gap-2">
-        <div className="flex flex-wrap gap-1.5">
-          <Button size="sm" disabled={!result || report.isPending} onClick={() => report.mutate('result')} data-testid="download-result">
-            <Download aria-hidden className="size-3.5" /> Result JSON
-          </Button>
-          <Button
-            size="sm"
-            disabled={!result?.manifest}
-            onClick={() => result?.manifest && downloadJson(`gridstorm-manifest-${job.id}.json`, result.manifest)}
-            data-testid="download-manifest"
-          >
-            <FileJson aria-hidden className="size-3.5" /> Manifest
-          </Button>
-          <Button size="sm" disabled={!result || report.isPending} onClick={() => report.mutate('md')} data-testid="download-report-md">
-            <FileText aria-hidden className="size-3.5" /> Report MD
-          </Button>
-          <Button size="sm" disabled={!result || report.isPending} onClick={() => report.mutate('json')} data-testid="download-report-json">
-            <FileJson aria-hidden className="size-3.5" /> Report JSON
-          </Button>
-        </div>
-        {report.error && <ErrorState error={report.error} title="Download failed" />}
-        {artifacts.data && artifacts.data.length > 0 && (
-          <ul className="flex flex-col gap-0.5 text-2xs text-fg-muted">
-            {artifacts.data.map((a) => (
-              <li key={`${a.kind}-${a.sha256}`}>
-                <span className="font-semibold text-fg">{a.kind}</span> · {formatQuantity(a.bytes / 1024, '', { digits: 1 })} KiB ·{' '}
+        <DownloadList items={items} />
+        {others.length > 0 && (
+          <p className="text-2xs text-fg-subtle">
+            Also stored with this job (not downloadable here):{' '}
+            {others.map((a, i) => (
+              <span key={`${a.kind}-${a.sha256}`}>
+                {i > 0 && '; '}
+                {a.kind} · {formatQuantity(a.bytes / 1024, '', { digits: 1 })} KiB ·{' '}
                 <code className="font-mono" title={a.sha256}>
                   sha256 {shortHash(a.sha256, 16)}
                 </code>
-              </li>
+              </span>
             ))}
-          </ul>
+          </p>
         )}
       </div>
     </Panel>
@@ -186,19 +222,24 @@ const BANNER_BORDER: Record<OutcomeSummary['tone'], string> = {
   neutral: 'border-l-line-strong',
 }
 
-/** Outcome banner: what happened in one sentence, then the KPIs (physical first) and key assumptions. */
+/**
+ * Outcome banner: what happened in one sentence, then the KPIs (physical first) and key assumptions.
+ * `storedMetrics`: the result file is gone and the KPIs come from the job's separately stored metrics row.
+ */
 function RunSummary({
   job,
   summary,
   metrics,
   basis,
   result,
+  storedMetrics = false,
 }: {
   job: Job
   summary: OutcomeSummary
   metrics: Partial<ResultMetrics> | undefined
   basis: CostBasis | null
   result: GridstormResult | undefined
+  storedMetrics?: boolean
 }) {
   return (
     <section
@@ -224,6 +265,13 @@ function RunSummary({
         </div>
         {metrics && <CostBasisBadge basis={basis} />}
       </div>
+      {metrics && storedMetrics && (
+        <p className="text-xs text-fg-muted" data-testid="stored-metrics-note">
+          <span className="gs-label mr-1">Surviving metrics</span>
+          These values are the job’s stored metrics row, kept in the database separately from the lost result file. They are the
+          numbers this run reported when it finished; they were not recomputed.
+        </p>
+      )}
       {metrics && <KpiOverview facts={headlineFacts(metrics, basis)} />}
       {result && <KeyAssumptions result={result} basis={basis} />}
     </section>
@@ -232,10 +280,10 @@ function RunSummary({
 
 const SECTIONS: [string, string][] = [
   ['#run-summary', 'Outcome'],
-  ['#brief', 'Brief'],
   ['#baseline-change', 'vs baseline'],
-  ['#network-state', 'Network'],
+  ['#brief', 'Brief'],
   ['#dispatch', 'Dispatch'],
+  ['#network-state', 'Network'],
   ['#congestion', 'Congestion'],
   ['#evidence', 'Reproduce & download'],
 ]
@@ -298,16 +346,12 @@ function CompletedRun({
   return (
     <>
       <OnThisPage />
-      <RunSummary job={job} summary={summary} metrics={result.metrics} basis={basis} result={result} />
-      <Diagnostics job={job} result={result} basis={basis} />
-      <div className="grid gap-3 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
-        <Panel
-          title="Grid Impact Brief"
-          id="brief"
-          description="What happened and what it coincides with — derived by fixed rules from this run’s stored data (expand Evidence)."
-        >
-          <GridImpactBrief brief={brief} />
-        </Panel>
+      {/* First screen: outcome + KPIs next to "what changed vs baseline"; the brief and maps follow. */}
+      <div className="grid items-start gap-3 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
+        <div className="flex min-w-0 flex-col gap-3">
+          <RunSummary job={job} summary={summary} metrics={result.metrics} basis={basis} result={result} />
+          <Diagnostics job={job} result={result} basis={basis} />
+        </div>
         <BaselineChange job={job} result={result} plan={plan} baseline={baseline} network={network.data} guide={guide} />
       </div>
       <RunResultView
@@ -318,6 +362,15 @@ function CompletedRun({
         outaged={outaged}
         highlighted={highlighted}
         evidence={evidence}
+        brief={
+          <Panel
+            title="Grid Impact Brief"
+            id="brief"
+            description="What the outcome above coincides with — derived by fixed rules from this run’s stored data (expand Evidence)."
+          >
+            <GridImpactBrief brief={brief} showHeadline={false} initialCount={5} />
+          </Panel>
+        }
       />
     </>
   )
@@ -331,12 +384,18 @@ export default function RunPage() {
   const job = useJob(id)
   const queryClient = useQueryClient()
   const done = job.data?.status === 'completed'
-  const result = useResult(id, done && job.data?.result_available !== false)
+  // Also fetched when the job list already says result_available = false: the 410 body tells whether
+  // this deployment can recompute it.
+  const result = useResult(id, done)
   const network = useNetwork(job.data?.network_id)
+  // A lost result's page lists its recomputations (from the job list); wait for it so the panel
+  // renders once instead of growing (CLS). Same key as useJobs(), so the panel reads the cache.
+  const unavailableNow = done && (job.data?.result_available === false || isResultUnavailable(result.error))
+  const jobList = useQuery({ queryKey: qk.jobs, queryFn: ({ signal }) => api.simulations(200, 0, signal), enabled: unavailableNow })
   const storedMetrics = useQuery({
     queryKey: ['run-metrics', id],
     queryFn: ({ signal }) => api.simulationMetrics(id!, signal),
-    enabled: done && (job.data?.result_available === false || isResultUnavailable(result.error)),
+    enabled: unavailableNow,
   })
   const rerun = useMutation({
     mutationFn: () => api.recomputeSimulation(id!),
@@ -394,7 +453,7 @@ export default function RunPage() {
   // A completed run lays out summary, result and status panels around the result document (or the
   // stored metrics when it is gone); rendering them before it lands pushed the status panels off
   // screen (CLS 0.28 desktop, 0.71 mobile). Wait for it, then render the page once.
-  const settling = done && (unavailable ? storedMetrics.isPending : !result.error && !result.data)
+  const settling = done && (unavailable ? storedMetrics.isPending || result.isPending || jobList.isPending : !result.error && !result.data)
 
   return (
     <div className="mx-auto flex max-w-[1500px] flex-col gap-3 p-3 md:p-4">
@@ -420,6 +479,15 @@ export default function RunPage() {
                 reused result
               </Badge>
             )}
+            {j.recomputed_from_job_id && (
+              <Link
+                to={`/runs/${encodeURIComponent(j.recomputed_from_job_id)}`}
+                className="text-xs text-accent underline"
+                data-testid="recomputed-from"
+              >
+                recomputation of run {j.recomputed_from_job_id.slice(0, 8)}
+              </Link>
+            )}
           </>
         }
         actions={
@@ -433,6 +501,7 @@ export default function RunPage() {
           </>
         }
       />
+      {done && j.result_available !== false && <PrefetchBriefInputs job={j} />}
       {guide && <GuideStepsForRun job={j} ready={showResult} />}
       {cancel.error && <ErrorState error={cancel.error} title="Cancel failed" />}
       {settling ? (
@@ -457,21 +526,17 @@ export default function RunPage() {
         />
       ) : (
         <>
-          <RunSummary job={j} summary={summary} metrics={headlineMetrics} basis={basis} result={undefined} />
+          <RunSummary job={j} summary={summary} metrics={headlineMetrics} basis={basis} result={undefined} storedMetrics={unavailable && !!headlineMetrics} />
           {done &&
             (unavailable ? (
-              <Panel title="Result file unavailable" className="border-warn/50" id="result-unavailable">
-                <div role="alert" data-testid="result-artifact-missing" className="flex flex-col gap-2 text-sm text-fg">
-                  <p>This simulation completed, but its detailed result file is no longer available.</p>
-                  <p className="text-xs text-fg-muted">
-                    The job record remains available. Numerical series cannot be recovered from metadata alone; re-run the stored scenario to generate a new result.
-                  </p>
-                  <Button size="sm" onClick={() => rerun.mutate()} disabled={rerun.isPending}>
-                    <RotateCcw aria-hidden className="size-3.5" /> {rerun.isPending ? 'Starting new run…' : 'Re-run this scenario'}
-                  </Button>
-                  {rerun.error && <ErrorState error={rerun.error} title="Could not re-run this scenario" />}
-                </div>
-              </Panel>
+              <ResultUnavailable
+                job={j}
+                error={result.error}
+                hasMetrics={!!headlineMetrics}
+                onRecompute={() => rerun.mutate()}
+                recomputing={rerun.isPending}
+                recomputeError={rerun.error}
+              />
             ) : (
               <ErrorState
                 error={result.error}
@@ -497,6 +562,19 @@ export default function RunPage() {
       )}
     </div>
   )
+}
+
+/**
+ * LCP: the brief needs the scenario record and the baseline result, which depend on the job only.
+ * Mounted as soon as the completed job is known, this starts them in parallel with /result (same
+ * query keys; CompletedRun reads the cache) instead of one request wave after the result renders.
+ */
+function PrefetchBriefInputs({ job }: { job: Job }) {
+  const recordId = job.scenario_record_id ?? job.scenario_id
+  useScenario(recordId, !!recordId)
+  const { plan } = useBaselinePlan(job)
+  useResult(plan?.kind === 'compare' ? plan.baselineJob.id : undefined, true)
+  return null
 }
 
 function GuideStepsForRun({ job, ready }: { job: Job; ready: boolean }) {

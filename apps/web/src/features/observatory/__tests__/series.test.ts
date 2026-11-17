@@ -92,13 +92,15 @@ describe('gap handling', () => {
     expect([...isolatedPoints([4])]).toEqual([0])
   })
 
-  it('says "no data" in tooltips instead of a number', () => {
-    expect(tooltipValue(null, '°C')).toBe('no data')
+  it('says "missing" in tooltips instead of a number and names aggregated buckets', () => {
+    expect(tooltipValue(null, '°C')).toBe('missing')
     expect(tooltipValue(0, '°C')).toBe('0 °C')
     const html = timeTooltip('°C')([
       { seriesName: 'Hamburg <T2M>', marker: '', value: [Date.UTC(2015, 0, 17, 10), null] },
     ])
-    expect(html).toBe('<b>2015-01-17 10:00 UTC</b><br/>Hamburg &lt;T2M&gt;: <b>no data</b>')
+    expect(html).toBe('<b>2015-01-17 10:00 UTC</b><br/>Hamburg &lt;T2M&gt;: <b>missing</b>')
+    const daily = timeTooltip('MW', '1 day mean')([{ seriesName: 'DE', marker: '', value: [Date.UTC(2017, 11, 13), 70315] }])
+    expect(daily).toBe('<b>2017-12-13 00:00 UTC</b> · 1 day mean from this time<br/>DE: <b>70,315 MW</b>')
   })
 })
 
