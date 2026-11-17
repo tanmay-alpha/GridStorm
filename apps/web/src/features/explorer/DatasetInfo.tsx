@@ -2,6 +2,7 @@ import { FileText } from 'lucide-react'
 import type { NetworkDetail, NetworkSummary } from '../../api/types'
 import { Badge, Drawer, KeyValue, ProvenanceBadge, ProvenanceLabel } from '../../components/ui'
 import { NO_VALUE, formatQuantity, formatTimestamp, shortHash } from '../../lib/format'
+import { describeQualityFlag, type QualityFlagText } from '../../lib/qualityFlags'
 
 /** Source, licence, checksums and assumptions exactly as the dataset manifest publishes them. */
 function SourceDetails({ summary, detail }: { summary: NetworkSummary; detail: NetworkDetail | undefined }) {
@@ -47,9 +48,29 @@ function SourceDetails({ summary, detail }: { summary: NetworkSummary; detail: N
 }
 
 /**
- * Scientific warnings from the dataset manifest (quality flags). Always visible, never inside the
- * drawer; rendered at the end of the Explorer sidebar because they arrive with the network detail
- * request, after the controls above them have been laid out.
+ * One manifest quality flag or catalog warning: the human sentence, then the stored code in small
+ * monospace for traceability (sentences have no code; an unknown code is shown as-is).
+ */
+export function QualityFlagLine({ text }: { text: QualityFlagText }) {
+  const code = text.code && (
+    <code className="break-all font-mono text-2xs text-fg-muted" data-testid="quality-flag-code">
+      {text.code}
+    </code>
+  )
+  if (!text.sentence) return code
+  return (
+    <>
+      <span className="text-fg">{text.sentence}</span>
+      {text.affected && <span className="text-fg-muted"> Affected: {text.affected.split(',').join(', ')}.</span>}
+      {code && <span className="block">{code}</span>}
+    </>
+  )
+}
+
+/**
+ * Scientific warnings from the dataset manifest (quality flags), each as a short sentence with its
+ * code. Always visible, never inside the drawer; rendered at the end of the Explorer sidebar because
+ * they arrive with the network detail request, after the controls above them have been laid out.
  */
 export function DatasetWarnings({ detail }: { detail: NetworkDetail | undefined }) {
   const flags = detail?.manifest?.quality_flags ?? []
@@ -59,10 +80,10 @@ export function DatasetWarnings({ detail }: { detail: NetworkDetail | undefined 
       <h2 id="dataset-warnings" className="gs-label mb-1 text-warn">
         Scientific warnings ({flags.length})
       </h2>
-      <ul className="list-disc space-y-0.5 pl-4 text-xs text-warn">
+      <ul className="list-disc space-y-1.5 pl-4 text-xs leading-snug marker:text-warn">
         {flags.map((f) => (
-          <li key={f} className="break-words">
-            {f}
+          <li key={f} className="break-words" data-testid="quality-flag">
+            <QualityFlagLine text={describeQualityFlag(f)} />
           </li>
         ))}
       </ul>

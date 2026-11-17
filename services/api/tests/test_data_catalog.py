@@ -498,6 +498,19 @@ def test_real_catalog_networks_and_studies(real: TestClient) -> None:
     assert by_id["network-scigrid-de"]["region"]["code"] == "DE"
     assert by_id["study-stormbench"]["links"]["study_route"] == "/benchmarks#stormbench"
     assert by_id["study-grid2op-agents"]["links"]["study_route"] == "/operations"
+    # Every study's Workbench link names a study the web Workbench defines
+    # (apps/web/src/features/workbench/studies.ts); unknown ids silently fell back to the first one.
+    workbench = (REPO_ROOT / "apps/web/src/features/workbench/studies.ts").read_text("utf-8")
+    for e in by_id.values():
+        if not e["id"].startswith("study-"):
+            continue
+        hrefs = [d["href"] for d in e["links"]["docs"] if d["href"].startswith("/workbench?study=")]
+        assert len(hrefs) == 1, e["id"]
+        study = hrefs[0].split("=", 1)[1]
+        assert f"id: '{study}'" in workbench, (e["id"], study)
+    analogue_docs = by_id["study-observed-analogues"]["links"]["docs"]
+    workbench_link = {"label": "Research Workbench", "href": "/workbench?study=pypsa-presets"}
+    assert workbench_link in analogue_docs
 
 
 ANALOGUES = sorted(p.stem for p in (REPO_ROOT / "data" / "scenarios" / "observed").glob("*.yaml"))

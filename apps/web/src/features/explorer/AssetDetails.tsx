@@ -144,7 +144,7 @@ export function AssetDetails({
                   <button
                     type="button"
                     onClick={() => onSelect(c)}
-                    className="flex min-h-11 w-full items-center gap-2 rounded px-1 text-left text-xs hover:bg-surface-2"
+                    className="flex min-h-8 w-full items-center gap-2 rounded px-1 text-left text-xs hover:bg-surface-2 pointer-coarse:min-h-11"
                   >
                     <span className="w-20 shrink-0 text-2xs uppercase text-fg-subtle">{KIND_LABEL[c.kind]}</span>
                     <span className="truncate text-accent">{c.id}</span>

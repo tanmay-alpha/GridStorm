@@ -1,0 +1,1390 @@
+{
+ "_comment": "Captured from the local API (GET /api/v1/scenarios, /artifacts?kind=simulation, /networks, /data/catalog/observed-analogue-scenarios) on 2026-11-17, bundle 2026-11-17.2; filtered to scigrid-de / the observed-analogue presets.",
+ "entry": {
+  "id": "observed-analogue-scenarios",
+  "title": "Observed-analogue stress scenarios on scigrid-de (2015–2017 German stress days)",
+  "summary": "Three StormSpec scenarios replaying observed German stress days on the scigrid-de network, with precomputed PyPSA results.",
+  "category": "synthetic_scenario_input",
+  "provenance": "modeled",
+  "data_nature": "StormSpec scenario inputs constructed by GridStorm from observed stress days (analogue mapping, not a real system state)",
+  "region": {
+   "code": "DE",
+   "name": "Germany (scigrid-de network)",
+   "kind": "country"
+  },
+  "source": {
+   "name": "GridStorm observed-analogue scenarios (data/scenarios/observed/*.yaml)",
+   "publisher": "GridStorm (pipelines/observed)",
+   "url": "https://github.com/tanmay-alpha/GridStorm/blob/main/data/scenarios/observed",
+   "version": "gridstorm-observed-derived/2.0",
+   "doi": null,
+   "retrieved_at": null,
+   "source_sha256": "d9d5ed6c6c1635953a603e4957764a0d90b14cc17a45f58854a6f2f502f8c7d1",
+   "license": {
+    "id": "LicenseRef-GridStorm-observed-analogue",
+    "name": "Mixed: CC BY 4.0 demand multipliers (ENTSO-E load forecast); daily renewable multipliers derived from non-open ENTSO-E actual generation (derived-only)",
+    "url": "https://github.com/tanmay-alpha/GridStorm/blob/main/docs/research/entsoe-reuse-check.md",
+    "redistribution": "derived-only"
+   },
+   "attribution": "Open Power System Data. 2020. Data Package Time series. Version 2020-10-06. https://doi.org/10.25832/time_series/2020-10-06. (Primary data from various sources, for a complete list see URL). German load forecast and load/generation: ENTSO-E Transparency Platform; German capacities: OPSD calculations based on BNetzA and netztransparenz.de. Day-ahead forecast of the total load per market time unit, Germany (Reg. (EU) 543/2013 Art. 6.1.b), ENTSO-E Transparency Platform (https://transparency.entsoe.eu/), obtained via Open Power System Data, Time series 2020-10-06 (https://doi.org/10.25832/time_series/2020-10-06), column DE_load_forecast_entsoe_transparency. Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) per the ENTSO-E list of data available for free re-use (2023-10-18), item #1. Changes made by GridStorm: the stress day's 24 hourly values are divided by the mean of the nearest 1 January (UTC), then by the scigrid-de network's normalized hourly load, and rounded to 4 decimals; only these ratios are published."
+  },
+  "temporal": {
+   "start_utc": "2015-01-20T00:00:00Z",
+   "end_utc": "2017-12-13T23:00:00Z",
+   "resolution": "PT1H",
+   "timezone": "UTC",
+   "windows": [
+    {
+     "start_utc": "2015-01-20T00:00:00Z",
+     "end_utc": "2015-01-20T23:00:00Z",
+     "label": "observed-dunkelflaute-2015-01-20 (stress day, UTC)"
+    },
+    {
+     "start_utc": "2017-01-24T00:00:00Z",
+     "end_utc": "2017-01-24T23:00:00Z",
+     "label": "observed-high-load-low-res-2017-01-24 (stress day, UTC)"
+    },
+    {
+     "start_utc": "2017-12-13T00:00:00Z",
+     "end_utc": "2017-12-13T23:00:00Z",
+     "label": "observed-peak-load-2017-12-13 (stress day, UTC)"
+    }
+   ]
+  },
+  "spatial": {
+   "kind": "network",
+   "points": null
+  },
+  "series": [],
+  "quality": {
+   "rows": null,
+   "expected_rows": null,
+   "completeness_pct": null,
+   "missing_values": {},
+   "missing_policy": "kept-as-null",
+   "warnings": [
+    "Metadata-only entry: the scenario files and results are linked, not re-published as series.",
+    "Renewable shortfall is one daily multiplier per carrier on the network's own 2011-01-01 profile; observed hourly renewable timing is not represented."
+   ],
+   "checks": [
+    {
+     "name": "scenario_checksums",
+     "status": "pass",
+     "detail": "scenario YAML sha256 = data/observed/opsd-de/manifest.json scenario_files = derived-multipliers.json"
+    },
+    {
+     "name": "studio_presets_identical",
+     "status": "pass",
+     "detail": "packages/stormspec/presets/<id>.yaml is byte-identical to data/scenarios/observed/<id>.yaml for all three scenarios"
+    },
+    {
+     "name": "precomputed_results",
+     "status": "pass",
+     "detail": "each scenario has a result in analogue-results.json for the same scenario sha256, validated and solved to optimality"
+    }
+   ]
+  },
+  "transformation_version": "observed-analogue-scenarios/1.0.0",
+  "artifact": null,
+  "links": {
+   "network_id": "scigrid-de",
+   "scenario_ids": [
+    "observed-dunkelflaute-2015-01-20",
+    "observed-high-load-low-res-2017-01-24",
+    "observed-peak-load-2017-12-13"
+   ],
+   "study_route": null,
+   "docs": [
+    {
+     "label": "Observed-analogue scenarios",
+     "href": "https://github.com/tanmay-alpha/GridStorm/blob/main/docs/research/observed-analogue-scenarios.md"
+    },
+    {
+     "label": "Precomputed results (JSON)",
+     "href": "https://github.com/tanmay-alpha/GridStorm/blob/main/data/observed/analogue-results.json"
+    },
+    {
+     "label": "ENTSO-E re-use check",
+     "href": "https://github.com/tanmay-alpha/GridStorm/blob/main/docs/research/entsoe-reuse-check.md"
+    }
+   ]
+  },
+  "use_in_scenario": {
+   "available": true,
+   "network_id": "scigrid-de",
+   "preset_id": "observed-dunkelflaute-2015-01-20",
+   "route": "/studio?network=scigrid-de&preset=observed-dunkelflaute-2015-01-20",
+   "rationale": "The three StormSpec analogue scenarios are published as PRECOMPUTED Studio presets on SciGRID-DE (too large for live runs on the free API); the presets are byte-identical copies of data/scenarios/observed/*.yaml. The other two are observed-high-load-low-res-2017-01-24 and observed-peak-load-2017-12-13."
+  },
+  "exportable": false,
+  "description": "Historical-analogue scenarios: the German highest-load day, the winter Dunkelflaute day and the combined high-load / low-renewable day (detected in OPSD 2015–2020) mapped onto the 24 snapshots of scigrid-de: hourly demand from the CC BY 4.0 load forecast, one MODELED daily availability multiplier per renewable carrier. The mapping and every result are **modeled** (DC LOPF, 2011 topology), not a reconstruction of the day.\n\nPrecomputed results (`data/observed/analogue-results.json`):\n\n| Scenario | Day (UTC) | Unserved energy (MWh) | Peak shed (MW) | Shed hours |\n|---|---|---:|---:|---:|\n| baseline (network day, no events) | 2011-01-01 | 0 | 0 | 0 |\n| `observed-dunkelflaute-2015-01-20` | 2015-01-20 | 2,721 | 230 | 17 |\n| `observed-high-load-low-res-2017-01-24` | 2017-01-24 | 4,731 | 346 | 20 |\n| `observed-peak-load-2017-12-13` | 2017-12-13 | 4,429 | 335 | 19 |",
+  "transformations": [
+   {
+    "step": "detect",
+    "description": "stress days from OPSD actual load / generation / capacity (dates only are committed)"
+   },
+   {
+    "step": "map",
+    "description": "hourly demand multipliers from the load forecast; one daily renewable multiplier per carrier, rounded to 0.05"
+   },
+   {
+    "step": "solve",
+    "description": "PyPSA LOPF (HiGHS) per scenario + baseline"
+   }
+  ]
+ },
+ "scenarios": {
+  "items": [
+   {
+    "id": "scigrid-de-baseline",
+    "hash": "833d01f1a713b9367d598bb7b52c7dcd3b313019c647efe573736329d4dd7765",
+    "spec": {
+     "schema_version": "stormspec/1.0",
+     "id": "scigrid-de-baseline",
+     "name": "SciGRID Germany — baseline day",
+     "description": "Reference dispatch of the PyPSA SciGRID-DE example (585 buses, 852 lines, 96 transformers, 38 pumped-hydro storage units) for 2011-01-01, 24 hourly snapshots, no crisis events.",
+     "dataset": {
+      "network_id": "scigrid-de",
+      "sha256": "284850c8e922414f9da69ffda0623431148e0c28a3380ba370e4135ac5236500"
+     },
+     "horizon": {
+      "start": 0,
+      "snapshots": 24
+     },
+     "events": [],
+     "mitigation": {
+      "storage_dispatch": true,
+      "curtailment": true,
+      "load_shedding": {
+       "enabled": true,
+       "voll_eur_per_mwh": 10000.0
+      }
+     },
+     "execution": {
+      "engine": "pypsa",
+      "formulation": "lopf",
+      "solver": "highs",
+      "solver_options": {
+       "time_limit_s": 300.0,
+       "threads": 1
+      },
+      "deterministic": true,
+      "seed": 0
+     },
+     "assumptions": []
+    },
+    "preset": true,
+    "owner_id": null,
+    "created_at": "2026-11-17T11:27:00.798838Z",
+    "name": "SciGRID Germany — baseline day",
+    "network_id": "scigrid-de",
+    "visibility": "public",
+    "listed": true
+   },
+   {
+    "id": "observed-high-load-low-res-2017-01-24",
+    "hash": "f17ad1b777b7fc136b15f193cd46a7e865be09c73c73f3a47a9034f1a0248f39",
+    "spec": {
+     "schema_version": "stormspec/1.0",
+     "id": "observed-high-load-low-res-2017-01-24",
+     "name": "Observed analogue: combined high-load / low-renewable day 2017-01-24 (Germany, OPSD/ENTSO-E)",
+     "description": "Historical-analogue scenario. The German combined high-load / low-renewable day 2017-01-24 (UTC), detected objectively in Open Power System Data time series 2020-10-06 (lowest daily-mean wind+solar CF among complete UTC days whose daily-mean load >= the 0.90 quantile of daily-mean load), is mapped onto the 24 snapshots of scigrid-de (2011-01-01 00:00-23:00 UTC): hour by hour, the ENTSO-E day-ahead load forecast's shape and level relative to the reference day 2017-01-01 (CC BY 4.0); for wind onshore / wind offshore / solar, one MODELED daily availability multiplier per carrier (the day's renewable shortfall, rounded to 0.05) on the network's own hourly profiles. The mapping and every result are MODELED. Generated by pipelines/observed (gridstorm_observed.build) - do not edit.",
+     "dataset": {
+      "network_id": "scigrid-de",
+      "sha256": "284850c8e922414f9da69ffda0623431148e0c28a3380ba370e4135ac5236500"
+     },
+     "horizon": {
+      "start": 0,
+      "snapshots": 24
+     },
+     "events": [
+      {
+       "type": "demand_multiplier",
+       "value": 1.1584,
+       "buses": null,
+       "window": {
+        "start": 0,
+        "end": 1
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.1851,
+       "buses": null,
+       "window": {
+        "start": 1,
+        "end": 2
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.2341,
+       "buses": null,
+       "window": {
+        "start": 2,
+        "end": 3
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.2897,
+       "buses": null,
+       "window": {
+        "start": 3,
+        "end": 4
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.4097,
+       "buses": null,
+       "window": {
+        "start": 4,
+        "end": 5
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.7207,
+       "buses": null,
+       "window": {
+        "start": 5,
+        "end": 6
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.9039,
+       "buses": null,
+       "window": {
+        "start": 6,
+        "end": 7
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.9439,
+       "buses": null,
+       "window": {
+        "start": 7,
+        "end": 8
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.8309,
+       "buses": null,
+       "window": {
+        "start": 8,
+        "end": 9
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.7243,
+       "buses": null,
+       "window": {
+        "start": 9,
+        "end": 10
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.614,
+       "buses": null,
+       "window": {
+        "start": 10,
+        "end": 11
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.5725,
+       "buses": null,
+       "window": {
+        "start": 11,
+        "end": 12
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.5809,
+       "buses": null,
+       "window": {
+        "start": 12,
+        "end": 13
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.568,
+       "buses": null,
+       "window": {
+        "start": 13,
+        "end": 14
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.5589,
+       "buses": null,
+       "window": {
+        "start": 14,
+        "end": 15
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.5006,
+       "buses": null,
+       "window": {
+        "start": 15,
+        "end": 16
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.4424,
+       "buses": null,
+       "window": {
+        "start": 16,
+        "end": 17
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.4262,
+       "buses": null,
+       "window": {
+        "start": 17,
+        "end": 18
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.4186,
+       "buses": null,
+       "window": {
+        "start": 18,
+        "end": 19
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.3801,
+       "buses": null,
+       "window": {
+        "start": 19,
+        "end": 20
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.3266,
+       "buses": null,
+       "window": {
+        "start": 20,
+        "end": 21
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.264,
+       "buses": null,
+       "window": {
+        "start": 21,
+        "end": 22
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.2446,
+       "buses": null,
+       "window": {
+        "start": 22,
+        "end": 23
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.2619,
+       "buses": null,
+       "window": {
+        "start": 23,
+        "end": 24
+       }
+      },
+      {
+       "type": "renewable_availability_multiplier",
+       "carrier": "Wind Onshore",
+       "value": 0.05,
+       "window": {
+        "start": 0,
+        "end": 24
+       }
+      },
+      {
+       "type": "renewable_availability_multiplier",
+       "carrier": "Wind Offshore",
+       "value": 0.15,
+       "window": {
+        "start": 0,
+        "end": 24
+       }
+      },
+      {
+       "type": "renewable_availability_multiplier",
+       "carrier": "Solar",
+       "value": 0.2,
+       "window": {
+        "start": 0,
+        "end": 24
+       }
+      }
+     ],
+     "mitigation": {
+      "storage_dispatch": true,
+      "curtailment": true,
+      "load_shedding": {
+       "enabled": true,
+       "voll_eur_per_mwh": 10000.0
+      }
+     },
+     "execution": {
+      "engine": "pypsa",
+      "formulation": "lopf",
+      "solver": "highs",
+      "solver_options": {
+       "time_limit_s": 600.0,
+       "threads": 1
+      },
+      "deterministic": true,
+      "seed": 0
+     },
+     "assumptions": [
+      "Demand input (CC BY 4.0): Day-ahead forecast of the total load per market time unit, Germany (Reg. (EU) 543/2013 Art. 6.1.b), ENTSO-E Transparency Platform (https://transparency.entsoe.eu/), obtained via Open Power System Data, Time series 2020-10-06 (https://doi.org/10.25832/time_series/2020-10-06), column DE_load_forecast_entsoe_transparency. Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) per the ENTSO-E list of data available for free re-use (2023-10-18), item #1. Changes made by GridStorm: the stress day's 24 hourly values are divided by the mean of the nearest 1 January (UTC), then by the scigrid-de network's normalized hourly load, and rounded to 4 decimals; only these ratios are published.",
+      "Stress-day selection: the date was chosen in OPSD actual load and wind/solar generation and capacity (ENTSO-E Reg. 543/2013 Art. 6.1.a and 16.1; OPSD calculations based on BNetzA and netztransparenz.de). Those series are not openly licensed; GridStorm stores no value or statistic derived from them except the date and the coarse daily renewable multipliers below (data/observed/opsd-de/manifest.json, source.column_reuse).",
+      "Time alignment: network snapshot h = UTC hour h of the stress day. Evidence (data/observed/opsd-de/derived-multipliers.json, alignment_evidence): the network's solar availability matches observed 1 January solar CF far better in UTC than shifted to local time; for load the evidence is weaker.",
+      "MODELED demand mapping, applied uniformly to every load: m_h = [F(d,h) / mean_h F(ref,h)] / [L_net(h) / mean_h L_net(h)], F = day-ahead load forecast, reference day ref = 2017-01-01 (the 1 January nearest to d, i.e. the analogue of the network's own 1 January profile). The scaled network load follows the forecast stress-day shape and its level relative to a 1 January; the actual load differs from the forecast by the forecast error. Multipliers rounded to 4 decimals; clipped to (0, 5] at hours [none].",
+      "MODELED renewable shortfall per carrier c (Wind Onshore, Wind Offshore, Solar), applied to every generator of c for the whole day: w_c = min(round(mean_h CF_obs,c / mean_h CF_net,c / 0.05) * 0.05, 1), CF_obs = national generation / national capacity, CF_net = capacity-weighted p_max_pu of the network's generators of c. The hourly shape stays the network's own 2011-01-01 shape; the observed hourly profile is deliberately not reproduced (not openly licensed). No event when w = 1. Wind Onshore w = 0.05; Wind Offshore w = 0.15; Solar w = 0.20.",
+      "Aggregate national profiles are applied uniformly to every bus/generator: the spatial pattern of load and of wind/solar availability remains the network's 2011-01-01 pattern; only levels change.",
+      "The network (2011 grid topology, 2014 renewable capacities, 2011 demand profile) differs from the observed year's system; installed capacities are NOT rescaled. This is an analogue stress test, not a reconstruction of the observed day."
+     ]
+    },
+    "preset": true,
+    "owner_id": null,
+    "created_at": "2026-11-17T11:27:00.793590Z",
+    "name": "Observed analogue: combined high-load / low-renewable day 2017-01-24 (Germany, OPSD/ENTSO-E)",
+    "network_id": "scigrid-de",
+    "visibility": "public",
+    "listed": true
+   },
+   {
+    "id": "observed-peak-load-2017-12-13",
+    "hash": "19bc47855528d8aaa31e2cae718ee84b80bab80270b7c831dd8684a1c03ac658",
+    "spec": {
+     "schema_version": "stormspec/1.0",
+     "id": "observed-peak-load-2017-12-13",
+     "name": "Observed analogue: highest-load day 2017-12-13 (Germany, OPSD/ENTSO-E)",
+     "description": "Historical-analogue scenario. The German highest-load day 2017-12-13 (UTC), detected objectively in Open Power System Data time series 2020-10-06 (maximum hourly load over all complete UTC days), is mapped onto the 24 snapshots of scigrid-de (2011-01-01 00:00-23:00 UTC): hour by hour, the ENTSO-E day-ahead load forecast's shape and level relative to the reference day 2018-01-01 (CC BY 4.0); for wind onshore / wind offshore / solar, one MODELED daily availability multiplier per carrier (the day's renewable shortfall, rounded to 0.05) on the network's own hourly profiles. The mapping and every result are MODELED. Generated by pipelines/observed (gridstorm_observed.build) - do not edit.",
+     "dataset": {
+      "network_id": "scigrid-de",
+      "sha256": "284850c8e922414f9da69ffda0623431148e0c28a3380ba370e4135ac5236500"
+     },
+     "horizon": {
+      "start": 0,
+      "snapshots": 24
+     },
+     "events": [
+      {
+       "type": "demand_multiplier",
+       "value": 1.1299,
+       "buses": null,
+       "window": {
+        "start": 0,
+        "end": 1
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.1584,
+       "buses": null,
+       "window": {
+        "start": 1,
+        "end": 2
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.2121,
+       "buses": null,
+       "window": {
+        "start": 2,
+        "end": 3
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.2718,
+       "buses": null,
+       "window": {
+        "start": 3,
+        "end": 4
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.3981,
+       "buses": null,
+       "window": {
+        "start": 4,
+        "end": 5
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.709,
+       "buses": null,
+       "window": {
+        "start": 5,
+        "end": 6
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.8725,
+       "buses": null,
+       "window": {
+        "start": 6,
+        "end": 7
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.8992,
+       "buses": null,
+       "window": {
+        "start": 7,
+        "end": 8
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.7945,
+       "buses": null,
+       "window": {
+        "start": 8,
+        "end": 9
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.7004,
+       "buses": null,
+       "window": {
+        "start": 9,
+        "end": 10
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.6046,
+       "buses": null,
+       "window": {
+        "start": 10,
+        "end": 11
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.5614,
+       "buses": null,
+       "window": {
+        "start": 11,
+        "end": 12
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.5756,
+       "buses": null,
+       "window": {
+        "start": 12,
+        "end": 13
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.5718,
+       "buses": null,
+       "window": {
+        "start": 13,
+        "end": 14
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.5617,
+       "buses": null,
+       "window": {
+        "start": 14,
+        "end": 15
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.5215,
+       "buses": null,
+       "window": {
+        "start": 15,
+        "end": 16
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.4369,
+       "buses": null,
+       "window": {
+        "start": 16,
+        "end": 17
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.3974,
+       "buses": null,
+       "window": {
+        "start": 17,
+        "end": 18
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.3952,
+       "buses": null,
+       "window": {
+        "start": 18,
+        "end": 19
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.369,
+       "buses": null,
+       "window": {
+        "start": 19,
+        "end": 20
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.3176,
+       "buses": null,
+       "window": {
+        "start": 20,
+        "end": 21
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.2506,
+       "buses": null,
+       "window": {
+        "start": 21,
+        "end": 22
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.2163,
+       "buses": null,
+       "window": {
+        "start": 22,
+        "end": 23
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.2458,
+       "buses": null,
+       "window": {
+        "start": 23,
+        "end": 24
+       }
+      },
+      {
+       "type": "renewable_availability_multiplier",
+       "carrier": "Wind Offshore",
+       "value": 0.9,
+       "window": {
+        "start": 0,
+        "end": 24
+       }
+      },
+      {
+       "type": "renewable_availability_multiplier",
+       "carrier": "Solar",
+       "value": 0.7,
+       "window": {
+        "start": 0,
+        "end": 24
+       }
+      }
+     ],
+     "mitigation": {
+      "storage_dispatch": true,
+      "curtailment": true,
+      "load_shedding": {
+       "enabled": true,
+       "voll_eur_per_mwh": 10000.0
+      }
+     },
+     "execution": {
+      "engine": "pypsa",
+      "formulation": "lopf",
+      "solver": "highs",
+      "solver_options": {
+       "time_limit_s": 600.0,
+       "threads": 1
+      },
+      "deterministic": true,
+      "seed": 0
+     },
+     "assumptions": [
+      "Demand input (CC BY 4.0): Day-ahead forecast of the total load per market time unit, Germany (Reg. (EU) 543/2013 Art. 6.1.b), ENTSO-E Transparency Platform (https://transparency.entsoe.eu/), obtained via Open Power System Data, Time series 2020-10-06 (https://doi.org/10.25832/time_series/2020-10-06), column DE_load_forecast_entsoe_transparency. Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) per the ENTSO-E list of data available for free re-use (2023-10-18), item #1. Changes made by GridStorm: the stress day's 24 hourly values are divided by the mean of the nearest 1 January (UTC), then by the scigrid-de network's normalized hourly load, and rounded to 4 decimals; only these ratios are published.",
+      "Stress-day selection: the date was chosen in OPSD actual load and wind/solar generation and capacity (ENTSO-E Reg. 543/2013 Art. 6.1.a and 16.1; OPSD calculations based on BNetzA and netztransparenz.de). Those series are not openly licensed; GridStorm stores no value or statistic derived from them except the date and the coarse daily renewable multipliers below (data/observed/opsd-de/manifest.json, source.column_reuse).",
+      "Time alignment: network snapshot h = UTC hour h of the stress day. Evidence (data/observed/opsd-de/derived-multipliers.json, alignment_evidence): the network's solar availability matches observed 1 January solar CF far better in UTC than shifted to local time; for load the evidence is weaker.",
+      "MODELED demand mapping, applied uniformly to every load: m_h = [F(d,h) / mean_h F(ref,h)] / [L_net(h) / mean_h L_net(h)], F = day-ahead load forecast, reference day ref = 2018-01-01 (the 1 January nearest to d, i.e. the analogue of the network's own 1 January profile). The scaled network load follows the forecast stress-day shape and its level relative to a 1 January; the actual load differs from the forecast by the forecast error. Multipliers rounded to 4 decimals; clipped to (0, 5] at hours [none].",
+      "MODELED renewable shortfall per carrier c (Wind Onshore, Wind Offshore, Solar), applied to every generator of c for the whole day: w_c = min(round(mean_h CF_obs,c / mean_h CF_net,c / 0.05) * 0.05, 1), CF_obs = national generation / national capacity, CF_net = capacity-weighted p_max_pu of the network's generators of c. The hourly shape stays the network's own 2011-01-01 shape; the observed hourly profile is deliberately not reproduced (not openly licensed). No event when w = 1. Wind Onshore w = 1.00 (ratio above 1, clipped); Wind Offshore w = 0.90; Solar w = 0.70.",
+      "Aggregate national profiles are applied uniformly to every bus/generator: the spatial pattern of load and of wind/solar availability remains the network's 2011-01-01 pattern; only levels change.",
+      "The network (2011 grid topology, 2014 renewable capacities, 2011 demand profile) differs from the observed year's system; installed capacities are NOT rescaled. This is an analogue stress test, not a reconstruction of the observed day."
+     ]
+    },
+    "preset": true,
+    "owner_id": null,
+    "created_at": "2026-11-17T11:27:00.793590Z",
+    "name": "Observed analogue: highest-load day 2017-12-13 (Germany, OPSD/ENTSO-E)",
+    "network_id": "scigrid-de",
+    "visibility": "public",
+    "listed": true
+   },
+   {
+    "id": "observed-dunkelflaute-2015-01-20",
+    "hash": "66d25e27837b544bd01ee8b504a6dac14d9398600340443e41649fa2d43f053b",
+    "spec": {
+     "schema_version": "stormspec/1.0",
+     "id": "observed-dunkelflaute-2015-01-20",
+     "name": "Observed analogue: winter Dunkelflaute day 2015-01-20 (Germany, OPSD/ENTSO-E)",
+     "description": "Historical-analogue scenario. The German winter Dunkelflaute day 2015-01-20 (UTC), detected objectively in Open Power System Data time series 2020-10-06 (lowest daily-mean wind+solar capacity factor over complete UTC days in months [12, 1, 2]), is mapped onto the 24 snapshots of scigrid-de (2011-01-01 00:00-23:00 UTC): hour by hour, the ENTSO-E day-ahead load forecast's shape and level relative to the reference day 2015-01-01 (CC BY 4.0); for wind onshore / wind offshore / solar, one MODELED daily availability multiplier per carrier (the day's renewable shortfall, rounded to 0.05) on the network's own hourly profiles. The mapping and every result are MODELED. Generated by pipelines/observed (gridstorm_observed.build) - do not edit.",
+     "dataset": {
+      "network_id": "scigrid-de",
+      "sha256": "284850c8e922414f9da69ffda0623431148e0c28a3380ba370e4135ac5236500"
+     },
+     "horizon": {
+      "start": 0,
+      "snapshots": 24
+     },
+     "events": [
+      {
+       "type": "demand_multiplier",
+       "value": 1.0375,
+       "buses": null,
+       "window": {
+        "start": 0,
+        "end": 1
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.0595,
+       "buses": null,
+       "window": {
+        "start": 1,
+        "end": 2
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.1043,
+       "buses": null,
+       "window": {
+        "start": 2,
+        "end": 3
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.1544,
+       "buses": null,
+       "window": {
+        "start": 3,
+        "end": 4
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.2619,
+       "buses": null,
+       "window": {
+        "start": 4,
+        "end": 5
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.5588,
+       "buses": null,
+       "window": {
+        "start": 5,
+        "end": 6
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.7411,
+       "buses": null,
+       "window": {
+        "start": 6,
+        "end": 7
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.7745,
+       "buses": null,
+       "window": {
+        "start": 7,
+        "end": 8
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.6746,
+       "buses": null,
+       "window": {
+        "start": 8,
+        "end": 9
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.5901,
+       "buses": null,
+       "window": {
+        "start": 9,
+        "end": 10
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.4971,
+       "buses": null,
+       "window": {
+        "start": 10,
+        "end": 11
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.4506,
+       "buses": null,
+       "window": {
+        "start": 11,
+        "end": 12
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.451,
+       "buses": null,
+       "window": {
+        "start": 12,
+        "end": 13
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.4197,
+       "buses": null,
+       "window": {
+        "start": 13,
+        "end": 14
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.4228,
+       "buses": null,
+       "window": {
+        "start": 14,
+        "end": 15
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.3706,
+       "buses": null,
+       "window": {
+        "start": 15,
+        "end": 16
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.3173,
+       "buses": null,
+       "window": {
+        "start": 16,
+        "end": 17
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.3163,
+       "buses": null,
+       "window": {
+        "start": 17,
+        "end": 18
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.3139,
+       "buses": null,
+       "window": {
+        "start": 18,
+        "end": 19
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.2855,
+       "buses": null,
+       "window": {
+        "start": 19,
+        "end": 20
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.2363,
+       "buses": null,
+       "window": {
+        "start": 20,
+        "end": 21
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.1654,
+       "buses": null,
+       "window": {
+        "start": 21,
+        "end": 22
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.1075,
+       "buses": null,
+       "window": {
+        "start": 22,
+        "end": 23
+       }
+      },
+      {
+       "type": "demand_multiplier",
+       "value": 1.1213,
+       "buses": null,
+       "window": {
+        "start": 23,
+        "end": 24
+       }
+      },
+      {
+       "type": "renewable_availability_multiplier",
+       "carrier": "Wind Onshore",
+       "value": 0.05,
+       "window": {
+        "start": 0,
+        "end": 24
+       }
+      },
+      {
+       "type": "renewable_availability_multiplier",
+       "carrier": "Wind Offshore",
+       "value": 0.1,
+       "window": {
+        "start": 0,
+        "end": 24
+       }
+      },
+      {
+       "type": "renewable_availability_multiplier",
+       "carrier": "Solar",
+       "value": 0.25,
+       "window": {
+        "start": 0,
+        "end": 24
+       }
+      }
+     ],
+     "mitigation": {
+      "storage_dispatch": true,
+      "curtailment": true,
+      "load_shedding": {
+       "enabled": true,
+       "voll_eur_per_mwh": 10000.0
+      }
+     },
+     "execution": {
+      "engine": "pypsa",
+      "formulation": "lopf",
+      "solver": "highs",
+      "solver_options": {
+       "time_limit_s": 600.0,
+       "threads": 1
+      },
+      "deterministic": true,
+      "seed": 0
+     },
+     "assumptions": [
+      "Demand input (CC BY 4.0): Day-ahead forecast of the total load per market time unit, Germany (Reg. (EU) 543/2013 Art. 6.1.b), ENTSO-E Transparency Platform (https://transparency.entsoe.eu/), obtained via Open Power System Data, Time series 2020-10-06 (https://doi.org/10.25832/time_series/2020-10-06), column DE_load_forecast_entsoe_transparency. Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) per the ENTSO-E list of data available for free re-use (2023-10-18), item #1. Changes made by GridStorm: the stress day's 24 hourly values are divided by the mean of the nearest 1 January (UTC), then by the scigrid-de network's normalized hourly load, and rounded to 4 decimals; only these ratios are published.",
+      "Stress-day selection: the date was chosen in OPSD actual load and wind/solar generation and capacity (ENTSO-E Reg. 543/2013 Art. 6.1.a and 16.1; OPSD calculations based on BNetzA and netztransparenz.de). Those series are not openly licensed; GridStorm stores no value or statistic derived from them except the date and the coarse daily renewable multipliers below (data/observed/opsd-de/manifest.json, source.column_reuse).",
+      "Time alignment: network snapshot h = UTC hour h of the stress day. Evidence (data/observed/opsd-de/derived-multipliers.json, alignment_evidence): the network's solar availability matches observed 1 January solar CF far better in UTC than shifted to local time; for load the evidence is weaker.",
+      "MODELED demand mapping, applied uniformly to every load: m_h = [F(d,h) / mean_h F(ref,h)] / [L_net(h) / mean_h L_net(h)], F = day-ahead load forecast, reference day ref = 2015-01-01 (the 1 January nearest to d, i.e. the analogue of the network's own 1 January profile). The scaled network load follows the forecast stress-day shape and its level relative to a 1 January; the actual load differs from the forecast by the forecast error. Multipliers rounded to 4 decimals; clipped to (0, 5] at hours [none].",
+      "MODELED renewable shortfall per carrier c (Wind Onshore, Wind Offshore, Solar), applied to every generator of c for the whole day: w_c = min(round(mean_h CF_obs,c / mean_h CF_net,c / 0.05) * 0.05, 1), CF_obs = national generation / national capacity, CF_net = capacity-weighted p_max_pu of the network's generators of c. The hourly shape stays the network's own 2011-01-01 shape; the observed hourly profile is deliberately not reproduced (not openly licensed). No event when w = 1. Wind Onshore w = 0.05; Wind Offshore w = 0.10; Solar w = 0.25.",
+      "Aggregate national profiles are applied uniformly to every bus/generator: the spatial pattern of load and of wind/solar availability remains the network's 2011-01-01 pattern; only levels change.",
+      "The network (2011 grid topology, 2014 renewable capacities, 2011 demand profile) differs from the observed year's system; installed capacities are NOT rescaled. This is an analogue stress test, not a reconstruction of the observed day."
+     ]
+    },
+    "preset": true,
+    "owner_id": null,
+    "created_at": "2026-11-17T11:27:00.791591Z",
+    "name": "Observed analogue: winter Dunkelflaute day 2015-01-20 (Germany, OPSD/ENTSO-E)",
+    "network_id": "scigrid-de",
+    "visibility": "public",
+    "listed": true
+   }
+  ],
+  "total": 4,
+  "limit": 50,
+  "offset": 0
+ },
+ "artifacts": {
+  "items": [
+   {
+    "engine": "pypsa",
+    "artifact_id": "observed-dunkelflaute-2015-01-20",
+    "kind": "simulation",
+    "network_id": "scigrid-de",
+    "title": "Observed analogue: winter Dunkelflaute day 2015-01-20 (Germany, OPSD/ENTSO-E)",
+    "bytes": 1245406,
+    "available": true,
+    "scenario_id": "observed-dunkelflaute-2015-01-20",
+    "scenario_hash": "66d25e27837b544bd01ee8b504a6dac14d9398600340443e41649fa2d43f053b",
+    "outcome": "feasible",
+    "objective_eur": 59147317.53326,
+    "unserved_energy_mwh": 2721.006897,
+    "measurements": {
+     "run_scenario_wall_time_s": 12.763,
+     "solver_wall_time_s": 3.874,
+     "process_wall_time_s": 16.896,
+     "peak_rss_mb": 549.5,
+     "rss_method": "psutil peak_wset (Windows)",
+     "cpu": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+     "threads": 1
+    },
+    "payload_sha256": "6d0c0805881255b184e376d399400d8d5158bafc2cd1736fc419f166fd610d13",
+    "created_at": "2026-11-16T20:53:56.562Z"
+   },
+   {
+    "engine": "pypsa",
+    "artifact_id": "observed-high-load-low-res-2017-01-24",
+    "kind": "simulation",
+    "network_id": "scigrid-de",
+    "title": "Observed analogue: combined high-load / low-renewable day 2017-01-24 (Germany, OPSD/ENTSO-E)",
+    "bytes": 1249255,
+    "available": true,
+    "scenario_id": "observed-high-load-low-res-2017-01-24",
+    "scenario_hash": "f17ad1b777b7fc136b15f193cd46a7e865be09c73c73f3a47a9034f1a0248f39",
+    "outcome": "feasible",
+    "objective_eur": 87280269.396206,
+    "unserved_energy_mwh": 4731.453896,
+    "measurements": {
+     "run_scenario_wall_time_s": 19.964,
+     "solver_wall_time_s": 7.126,
+     "process_wall_time_s": 25.172,
+     "peak_rss_mb": 549.4,
+     "rss_method": "psutil peak_wset (Windows)",
+     "cpu": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+     "threads": 1
+    },
+    "payload_sha256": "6d646c1bc34969c58f237504932412db1e9a04b9d2f3ec720e0292a6f419be40",
+    "created_at": "2026-11-16T20:54:21.888Z"
+   },
+   {
+    "engine": "pypsa",
+    "artifact_id": "observed-peak-load-2017-12-13",
+    "kind": "simulation",
+    "network_id": "scigrid-de",
+    "title": "Observed analogue: highest-load day 2017-12-13 (Germany, OPSD/ENTSO-E)",
+    "bytes": 1255872,
+    "available": true,
+    "scenario_id": "observed-peak-load-2017-12-13",
+    "scenario_hash": "19bc47855528d8aaa31e2cae718ee84b80bab80270b7c831dd8684a1c03ac658",
+    "outcome": "feasible",
+    "objective_eur": 66189364.283908,
+    "unserved_energy_mwh": 4429.345555,
+    "measurements": {
+     "run_scenario_wall_time_s": 12.217,
+     "solver_wall_time_s": 4.046,
+     "process_wall_time_s": 19.991,
+     "peak_rss_mb": 543.6,
+     "rss_method": "psutil peak_wset (Windows)",
+     "cpu": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+     "threads": 1
+    },
+    "payload_sha256": "39b2d6153bb5af8703ace38bc215d21f389653690bb9a6e31a70e782a0d39c59",
+    "created_at": "2026-11-16T20:54:42.121Z"
+   },
+   {
+    "engine": "pypsa",
+    "artifact_id": "scigrid-de-baseline",
+    "kind": "simulation",
+    "network_id": "scigrid-de",
+    "title": "SciGRID Germany — baseline day",
+    "bytes": 1244046,
+    "available": true,
+    "scenario_id": "scigrid-de-baseline",
+    "scenario_hash": "833d01f1a713b9367d598bb7b52c7dcd3b313019c647efe573736329d4dd7765",
+    "outcome": "feasible",
+    "objective_eur": 6684817.323607,
+    "unserved_energy_mwh": 0.0,
+    "measurements": {
+     "run_scenario_wall_time_s": 6.507,
+     "solver_wall_time_s": 2.525,
+     "process_wall_time_s": 9.989,
+     "peak_rss_mb": 541.9,
+     "rss_method": "psutil peak_wset (Windows)",
+     "cpu": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+     "threads": 1
+    },
+    "payload_sha256": "619d5d407897503ef150ea1b014176df2234da0113927f07138eb8f05db5e75c",
+    "created_at": "2026-11-15T08:54:40.227Z"
+   },
+   {
+    "engine": "pypsa",
+    "artifact_id": "scigrid-de-dunkelflaute-storage-off",
+    "kind": "simulation",
+    "network_id": "scigrid-de",
+    "title": "SciGRID Germany — cold dark lull, storage held at zero",
+    "bytes": 1240723,
+    "available": true,
+    "scenario_id": "scigrid-de-dunkelflaute-storage-off",
+    "scenario_hash": "c410f7911a142152ee3ce969a770fcee75edf2d083a50a699656c8d5a2282d12",
+    "outcome": "feasible",
+    "objective_eur": 19614438.430578,
+    "unserved_energy_mwh": 190.215174,
+    "measurements": {
+     "run_scenario_wall_time_s": 5.385,
+     "solver_wall_time_s": 1.206,
+     "process_wall_time_s": 8.575,
+     "peak_rss_mb": 548.5,
+     "rss_method": "psutil peak_wset (Windows)",
+     "cpu": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+     "threads": 1
+    },
+    "payload_sha256": "50fd0a0de0af6918aae9ad70f048a67fca68f1ecb9583640baf65d3f9e7a6554",
+    "created_at": "2026-11-15T08:54:48.893Z"
+   },
+   {
+    "engine": "pypsa",
+    "artifact_id": "scigrid-de-dunkelflaute-storage-on",
+    "kind": "simulation",
+    "network_id": "scigrid-de",
+    "title": "SciGRID Germany — cold dark lull, storage dispatched",
+    "bytes": 1244333,
+    "available": true,
+    "scenario_id": "scigrid-de-dunkelflaute-storage-on",
+    "scenario_hash": "ff6ff4d854757eb239e622ed6169ca8461455e90e5d00725f36caf1e4fe9041b",
+    "outcome": "feasible",
+    "objective_eur": 19272040.832661,
+    "unserved_energy_mwh": 190.215174,
+    "measurements": {
+     "run_scenario_wall_time_s": 6.306,
+     "solver_wall_time_s": 2.11,
+     "process_wall_time_s": 9.286,
+     "peak_rss_mb": 549.3,
+     "rss_method": "psutil peak_wset (Windows)",
+     "cpu": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+     "threads": 1
+    },
+    "payload_sha256": "45c14654c93c85548e42b669b966be3f9ca163130218534ea8aff81f2d487158",
+    "created_at": "2026-11-15T08:54:58.268Z"
+   },
+   {
+    "engine": "pypsa",
+    "artifact_id": "scigrid-de-high-demand",
+    "kind": "simulation",
+    "network_id": "scigrid-de",
+    "title": "SciGRID Germany — high-demand event (+20 %)",
+    "bytes": 1248125,
+    "available": true,
+    "scenario_id": "scigrid-de-high-demand",
+    "scenario_hash": "be772882f1b854a1797fb23c6cbd02f365ee6d91920a8621b9034525d81268f0",
+    "outcome": "feasible",
+    "objective_eur": 16337147.738097,
+    "unserved_energy_mwh": 446.659815,
+    "measurements": {
+     "run_scenario_wall_time_s": 6.414,
+     "solver_wall_time_s": 2.533,
+     "process_wall_time_s": 9.548,
+     "peak_rss_mb": 544.9,
+     "rss_method": "psutil peak_wset (Windows)",
+     "cpu": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+     "threads": 1
+    },
+    "payload_sha256": "ab81d802a9b522475526ad55e0d6f770d729ec3a794bbbaf6dbbb9021987ad4a",
+    "created_at": "2026-11-15T08:55:07.893Z"
+   },
+   {
+    "engine": "pypsa",
+    "artifact_id": "scigrid-de-line-448-outage",
+    "kind": "simulation",
+    "network_id": "scigrid-de",
+    "title": "SciGRID Germany — outage of congested line 448 (305–306)",
+    "bytes": 1243988,
+    "available": true,
+    "scenario_id": "scigrid-de-line-448-outage",
+    "scenario_hash": "68ea821b383ffbbd6e83b202d68bd3a9b64d5fcd83c52ca7b2a9d7a3f61d5b11",
+    "outcome": "feasible",
+    "objective_eur": 6999042.865984,
+    "unserved_energy_mwh": 0.0,
+    "measurements": {
+     "run_scenario_wall_time_s": 5.882,
+     "solver_wall_time_s": 2.269,
+     "process_wall_time_s": 8.839,
+     "peak_rss_mb": 543.0,
+     "rss_method": "psutil peak_wset (Windows)",
+     "cpu": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+     "threads": 1
+    },
+    "payload_sha256": "37cf57ad0920d8be0bd9917e9038d4e5e3bd9d577878dce19dd4e6c5c7306234",
+    "created_at": "2026-11-15T08:55:16.822Z"
+   },
+   {
+    "engine": "pypsa",
+    "artifact_id": "scigrid-de-wind-lull",
+    "kind": "simulation",
+    "network_id": "scigrid-de",
+    "title": "SciGRID Germany — wind lull (wind availability x0.3)",
+    "bytes": 1239480,
+    "available": true,
+    "scenario_id": "scigrid-de-wind-lull",
+    "scenario_hash": "6a50b3b41dce1a9966c4dee3cc6a524d0e910dd99c0c62ee6d48dc2c1f6f093e",
+    "outcome": "feasible",
+    "objective_eur": 11843595.347971,
+    "unserved_energy_mwh": 0.0,
+    "measurements": {
+     "run_scenario_wall_time_s": 6.341,
+     "solver_wall_time_s": 2.242,
+     "process_wall_time_s": 9.964,
+     "peak_rss_mb": 544.7,
+     "rss_method": "psutil peak_wset (Windows)",
+     "cpu": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+     "threads": 1
+    },
+    "payload_sha256": "71b8bef30f3044358b78fcb10f16f8897f4f1682d00367b7ce9fe015748439b3",
+    "created_at": "2026-11-15T08:55:26.895Z"
+   }
+  ],
+  "total": 9,
+  "limit": 50,
+  "offset": 0
+ },
+ "networks": {
+  "items": [
+   {
+    "id": "scigrid-de",
+    "name": "SciGRID Germany (PyPSA example)",
+    "description": "German 220/380 kV transmission grid from SciGRID v0.2 (derived from OpenStreetMap), with power plants, load and renewable availability for 24 hourly snapshots of 2011-01-01, as packaged by the PyPSA project (pypsa.examples.scigrid_de).",
+    "coordinate_kind": "geographic",
+    "crs": "EPSG:4326",
+    "snapshots": {
+     "count": 24,
+     "start": "2011-01-01T00:00:00",
+     "end": "2011-01-01T23:00:00",
+     "resolution_h": 1.0
+    },
+    "counts": {
+     "buses": 585,
+     "lines": 852,
+     "transformers": 96,
+     "links": 0,
+     "generators": 1423,
+     "loads": 489,
+     "storage_units": 38,
+     "stores": 0,
+     "carriers": 16
+    },
+    "capacity_by_carrier_mw": {
+     "Brown Coal": 20879.5,
+     "Gas": 23913.13,
+     "Geothermal": 31.7,
+     "Hard Coal": 25312.6,
+     "Multiple": 152.7,
+     "Nuclear": 12068.0,
+     "Oil": 2710.2,
+     "Other": 3027.8,
+     "Pumped Hydro": 9179.499999999998,
+     "Run of River": 3999.1,
+     "Solar": 37041.52477909075,
+     "Storage Hydro": 1445.0,
+     "Waste": 1645.9,
+     "Wind Offshore": 2973.5,
+     "Wind Onshore": 37339.89532919639
+    },
+    "peak_load_mw": 58424.79999999915,
+    "total_load_mwh": 1209951.6799999976,
+    "license": {
+     "spdx": "CC-BY-4.0",
+     "url": "https://github.com/PyPSA/PyPSA/blob/6c45594596cbc5612511ee9202a9e269e5001d88/REUSE.toml",
+     "attribution": "SciGRID Germany example network, (c) PyPSA Contributors (CC-BY-4.0, https://github.com/PyPSA/PyPSA); grid topology from SciGRID v0.2 (DLR Institute of Networked Energy Systems, formerly NEXT ENERGY, www.scigrid.de) based on OpenStreetMap data (c) OpenStreetMap contributors, ODbL-1.0.",
+     "redistribution": "permitted"
+    },
+    "provenance_class": "modeled",
+    "engines": [
+     "pypsa"
+    ],
+    "network_sha256": "284850c8e922414f9da69ffda0623431148e0c28a3380ba370e4135ac5236500",
+    "has_network_file": true,
+    "live_execution": false,
+    "source": {
+     "url": "https://data.pypsa.org/networks/examples/v1.4.0/scigrid_de.nc",
+     "version": "PyPSA v1.4.0 example network (scigrid_de)",
+     "publication_date": "Wed, 11 Nov 2026 16:06:48 GMT",
+     "upstream_commit": "6c45594596cbc5612511ee9202a9e269e5001d88"
+    },
+    "cost_basis": {
+     "schema_version": "gridstorm-cost-basis/1.0",
+     "currency": null,
+     "currency_year": null,
+     "kind": "illustrative",
+     "money_unit": "illustrative cost units",
+     "price_unit": "illustrative cost units/MWh",
+     "comparability_key": "pypsa-v1.4.0:scigrid-de:illustrative-v1",
+     "provenance": "PyPSA v1.4.0 scigrid-de example uses illustrative per-carrier marginal costs; the upstream scigrid-lopf-then-pf notebook says these are not accurate.",
+     "assumptions": [
+      "Example costs are placeholders, not market prices or a verified currency basis.",
+      "Only runs on this same example cost basis are monetarily comparable.",
+      "VOLL is a scenario penalty in illustrative cost units/MWh, not an economic outage-damage estimate."
+     ]
+    }
+   }
+  ],
+  "total": 1,
+  "limit": 50,
+  "offset": 0
+ }
+}

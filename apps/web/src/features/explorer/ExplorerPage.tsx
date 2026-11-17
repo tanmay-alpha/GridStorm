@@ -1,6 +1,6 @@
-import { Suspense, useCallback, useMemo, useRef, useState } from 'react'
+import { Suspense, useCallback, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Link } from 'react-router'
-import { ArrowUpRight, ChevronRight, SlidersHorizontal } from 'lucide-react'
+import { ArrowUpRight, ChevronRight, SlidersHorizontal, X } from 'lucide-react'
 import type { NetworkSummary } from '../../api/types'
 import { useAssetTable, useNetwork, useNetworkGeojson } from '../../api/hooks'
 import { buildFeatures, NO_FILTERS, type AssetRef, type FeatureFilters, type MapFeatures } from '../../components/map/features'
@@ -41,6 +41,26 @@ const INITIAL_LAYERS: Record<'geographic' | 'schematic', LayerVisibility> = {
 const wideScreen = () => window.matchMedia?.('(min-width: 768px)').matches ?? true
 
 /**
+ * The map legend starts collapsed on a first visit so the drawing gets the whole canvas; the
+ * visitor's last choice is remembered on this device.
+ */
+const LEGEND_KEY = 'gridstorm-explorer-legend'
+function storedLegendOpen(): boolean {
+  try {
+    return localStorage.getItem(LEGEND_KEY) === 'open'
+  } catch {
+    return false
+  }
+}
+function storeLegendOpen(open: boolean) {
+  try {
+    localStorage.setItem(LEGEND_KEY, open ? 'open' : 'closed')
+  } catch {
+    // Storage unavailable (private mode): the choice lasts for this page only.
+  }
+}
+
+/**
  * Area the asset details drawer covers: a 20 rem right column (md+; from lg it sits left of the zoom
  * controls) or the lower 60 % on phones.
  */
@@ -76,13 +96,18 @@ function networkStats(summary: NetworkSummary): string[] {
   return out
 }
 
-/** Canvas header: coordinate kind (schematic vs geographic), network name, dataset totals, provenance. */
-function CanvasBar({ summary }: { summary: NetworkSummary | null }) {
+/**
+ * Canvas header: legend toggle, coordinate kind (schematic vs geographic), network name, dataset
+ * totals, provenance. The legend toggle lives here, outside the drawing, so a collapsed legend never
+ * covers a node; the open legend floats over the canvas.
+ */
+function CanvasBar({ summary, legend }: { summary: NetworkSummary | null; legend: ReactNode }) {
   const stats = summary ? networkStats(summary) : []
   return (
     <div className="flex h-11 shrink-0 items-center gap-2.5 overflow-hidden border-b border-line bg-surface px-3" data-testid="explorer-canvas-bar">
       {summary ? (
         <>
+          {legend}
           {summary.coordinate_kind === 'schematic' ? (
             <SchematicBadge inline />
           ) : (
@@ -121,15 +146,21 @@ export default function ExplorerPage() {
   const [selected, setSelected] = useState<AssetRef | null>(null)
   const detailsRef = useRef<HTMLElement | null>(null)
   const [panelOpen, setPanelOpen] = useState(true)
-  const [legendOpen, setLegendOpen] = useState(wideScreen)
-  // Legend panel size (incl. its offsets), kept clear by the schematic fit where the canvas has room.
+  const [legendOpen, setLegendOpenState] = useState(storedLegendOpen)
+  const setLegendOpen = (open: boolean) => {
+    setLegendOpenState(open)
+    storeLegendOpen(open)
+  }
+  // Open legend panel size (incl. its offsets), kept clear by the schematic fit where the canvas has room.
   const [legendBox, setLegendBox] = useState<{ width: number; height: number } | null>(null)
   const legendObserver = useRef<ResizeObserver | null>(null)
-  const legendRef = useCallback((el: HTMLDetailsElement | null) => {
+  const legendRef = useCallback((el: HTMLDivElement | null) => {
     legendObserver.current?.disconnect()
     legendObserver.current = null
     if (!el) return
-    legendObserver.current = new ResizeObserver(() => setLegendBox({ width: el.offsetWidth + 16, height: el.offsetHeight + 16 }))
+    legendObserver.current = new ResizeObserver(() => {
+      if (el.offsetWidth > 0) setLegendBox({ width: el.offsetWidth + 16, height: el.offsetHeight + 16 })
+    })
     legendObserver.current.observe(el)
   }, [])
   const [searchAll, setSearchAll] = useState(false)
@@ -216,6 +247,63 @@ export default function ExplorerPage() {
       items={names.map((label) => ({ label, color: carrierColors[label]! }))}
     />
   ))
+  // The legend's toggle sits in the canvas bar; its panel floats over the canvas's bottom-left corner
+  // (top-left on phones for geographic maps, whose expanded attribution spans the bottom edge),
+  // positioned against the canvas column, so a collapsed legend covers nothing.
+  const legend = (
+    <details
+      className="group/maplegend shrink-0"
+      data-testid="map-legend"
+      open={legendOpen}
+      onToggle={(e) => {
+        if (e.currentTarget.open !== legendOpen) setLegendOpen(e.currentTarget.open)
+      }}
+    >
+      <summary className="-ml-1 flex min-h-8 cursor-pointer list-none items-center gap-1 rounded-md px-1.5 text-xs font-semibold text-fg hover:bg-surface-2 pointer-coarse:min-h-11 [&::-webkit-details-marker]:hidden">
+        <ChevronRight aria-hidden className="size-4 shrink-0 text-fg-subtle transition-transform group-open/maplegend:rotate-90" />
+        Legend
+      </summary>
+      <div
+        ref={legendRef}
+        className={cn(
+          'gs-overlay absolute left-2 z-10 flex w-60 max-w-[calc(100%-4.5rem)] flex-col md:max-h-[60%]',
+          kind === 'geographic' ? 'top-13 max-h-[calc(100%-4rem)] md:bottom-8 md:top-auto' : 'bottom-2 max-h-[calc(100%-3.75rem)]',
+        )}
+        data-testid="map-legend-panel"
+      >
+        <div className="flex shrink-0 items-center justify-between border-b border-line pl-3">
+          <span className="text-xs font-semibold">Map legend</span>
+          <button
+            type="button"
+            onClick={() => setLegendOpen(false)}
+            aria-label="Close map legend"
+            className="flex size-8 items-center justify-center rounded hover:bg-surface-2 pointer-coarse:size-11"
+          >
+            <X aria-hidden className="size-4" />
+          </button>
+        </div>
+        <div className="min-h-0 overflow-y-auto px-3 pb-3 pt-2">
+          {features ? (
+            <>
+              {kind === 'schematic' ? (
+                <SchematicLegend features={features} layers={layers} />
+              ) : (
+                <BranchLegend mode="voltage" levels={unknownKv ? [...levels, null] : levels} showLinks={(totals.links ?? 0) > 0} />
+              )}
+              {carrierLegend}
+              {(features.skipped.buses > 0 || features.skipped.branches > 0) && (
+                <p className="mt-2 text-2xs text-warn">
+                  Not drawn (no coordinates): {features.skipped.buses} buses, {features.skipped.branches} branches
+                </p>
+              )}
+            </>
+          ) : (
+            <SkeletonBlock rows={3} label="Loading legend" />
+          )}
+        </div>
+      </div>
+    </details>
+  )
 
   return (
     <div className="flex h-full min-h-0 flex-col md:flex-row">
@@ -262,17 +350,7 @@ export default function ExplorerPage() {
           </section>
           <section aria-label="Layers and filters" className="flex flex-col gap-4 p-4">
             {data ? (
-              <>
-                <LayerControls layers={layers} onLayers={setLayers} counts={counts} rows={layerRows} />
-                <FilterControls
-                  filters={filters}
-                  onFilters={setFilters}
-                  carriers={Object.keys(carrierColors).sort()}
-                  countries={countries}
-                  carrierColor={(c) => carrierColors[c] ?? '#888'}
-                  levels={levels}
-                />
-              </>
+              <LayerControls layers={layers} onLayers={setLayers} counts={counts} rows={layerRows} />
             ) : (
               // Same height as the layer list it stands in for (one 24 px row per layer + heading).
               <div className="flex flex-col gap-1.5" aria-hidden>
@@ -282,11 +360,24 @@ export default function ExplorerPage() {
                 ))}
               </div>
             )}
-            {(generators.isFetching || storage.isFetching || loads.isFetching) && <p role="status" className="text-xs text-fg-muted">Loading requested asset tables…</p>}
+            {/* Rendered before the drawing data arrive (voltage inputs need none), so only the
+                dataset-dependent quick filters and carrier list are added later. */}
+            <FilterControls
+              filters={filters}
+              onFilters={setFilters}
+              carriers={Object.keys(carrierColors).sort()}
+              countries={countries}
+              carrierColor={(c) => carrierColors[c] ?? '#888'}
+              levels={levels}
+            />
+            {/* A reserved line: the loading note must not push the controls below it. */}
+            <p role="status" className="-mt-2 min-h-4 text-xs text-fg-muted">
+              {generators.isFetching || storage.isFetching || loads.isFetching ? 'Loading requested asset tables…' : ''}
+            </p>
             {(generators.error || storage.error || loads.error || carriers.error) && <ErrorState error={generators.error ?? storage.error ?? loads.error ?? carriers.error} title="Requested asset table unavailable" />}
           </section>
+          {/* Warnings come last: they arrive with the manifest, after everything above is laid out. */}
           <div className="flex flex-col gap-3 p-4">
-            <DatasetWarnings detail={detail.data} />
             <Link
               to={GUIDED_DEMO_URL}
               className="group flex items-center justify-between gap-3 rounded-lg border border-line px-3 py-2.5 transition-colors hover:border-accent hover:bg-accent-soft"
@@ -298,12 +389,13 @@ export default function ExplorerPage() {
               </span>
               <ArrowUpRight aria-hidden className="size-4 shrink-0 text-accent transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
             </Link>
+            <DatasetWarnings detail={detail.data} />
           </div>
         </div>
       </aside>
 
-      <div className="order-1 flex min-h-[50vh] min-w-0 flex-1 flex-col md:order-2 md:min-h-0">
-        <CanvasBar summary={sel.summary} />
+      <div className="relative order-1 flex min-h-[50vh] min-w-0 flex-1 flex-col md:order-2 md:min-h-0">
+        <CanvasBar summary={sel.summary} legend={legend} />
         <div className="relative min-h-0 flex-1 bg-map-bg">
           {geoFeatures && (
             <Suspense fallback={showGeo ? <SkeletonBlock rows={3} label="Loading map" /> : null}>
@@ -324,51 +416,20 @@ export default function ExplorerPage() {
               <ErrorState error={geojson.error} title="Could not load network map" onRetry={() => void geojson.refetch()} />
             </div>
           ) : features && sel.summary ? (
-            <>
-              {kind === 'schematic' && (
-                <SchematicView
-                  networkId={sel.id!}
-                  features={features}
-                  layers={layers}
-                  carrierColors={carrierColors}
-                  selected={selected}
-                  onSelect={setSelected}
-                  ariaLabel={`Schematic of ${sel.summary.name}. Tab to a bus and use the arrow keys, or the asset search (Ctrl+K), for keyboard access to assets.`}
-                  panel={legendOpen ? legendBox : null}
-                  occlusion={detailsCover}
-                  overlayBadge={false}
-                />
-              )}
-              <details
-                ref={legendRef}
-                className={cn(
-                  'gs-overlay group/maplegend absolute left-2 z-10 max-h-[calc(100%-1rem)] w-60 max-w-[calc(100%-4.5rem)] overflow-y-auto md:max-h-[60%]',
-                  // Phones: the expanded basemap attribution spans the bottom edge, so the legend sits top-left.
-                  kind === 'geographic' ? 'top-2 md:bottom-8 md:top-auto' : 'bottom-2',
-                )}
-                data-testid="map-legend"
-                open={legendOpen}
-                onToggle={(e) => setLegendOpen(e.currentTarget.open)}
-              >
-                <summary className="sticky top-0 flex min-h-11 cursor-pointer list-none items-center gap-1.5 bg-surface px-3 text-xs font-semibold [&::-webkit-details-marker]:hidden">
-                  <ChevronRight aria-hidden className="size-4 shrink-0 text-fg-subtle transition-transform group-open/maplegend:rotate-90" />
-                  Map legend
-                </summary>
-                <div className="border-t border-line px-3 pb-3 pt-2">
-                  {kind === 'schematic' ? (
-                    <SchematicLegend features={features} layers={layers} />
-                  ) : (
-                    <BranchLegend mode="voltage" levels={unknownKv ? [...levels, null] : levels} showLinks={(totals.links ?? 0) > 0} />
-                  )}
-                  {carrierLegend}
-                  {(features.skipped.buses > 0 || features.skipped.branches > 0) && (
-                    <p className="mt-2 text-2xs text-warn">
-                      Not drawn (no coordinates): {features.skipped.buses} buses, {features.skipped.branches} branches
-                    </p>
-                  )}
-                </div>
-              </details>
-            </>
+            kind === 'schematic' && (
+              <SchematicView
+                networkId={sel.id!}
+                features={features}
+                layers={layers}
+                carrierColors={carrierColors}
+                selected={selected}
+                onSelect={setSelected}
+                ariaLabel={`Schematic of ${sel.summary.name}. Tab to a bus and use the arrow keys, or the asset search (Ctrl+K), for keyboard access to assets.`}
+                panel={legendOpen ? legendBox : null}
+                occlusion={detailsCover}
+                overlayBadge={false}
+              />
+            )
           ) : (
             <div className="flex h-full items-center justify-center p-6">
               <SkeletonBlock rows={3} label="Loading map" />
@@ -376,10 +437,12 @@ export default function ExplorerPage() {
           )}
 
           {selected && data && (
+            // Compact drawer: as tall as its content (scrolls beyond the canvas height), right column
+            // from md, bottom sheet on phones.
             <div
               className={cn(
                 'gs-overlay absolute z-20 flex flex-col',
-                'inset-x-2 bottom-2 max-h-[60%] md:inset-x-auto md:bottom-2 md:right-2 md:top-2 md:max-h-none md:w-80 lg:right-14',
+                'inset-x-2 bottom-2 max-h-[60%] md:inset-x-auto md:bottom-auto md:right-2 md:top-2 md:max-h-[calc(100%-1rem)] md:w-80 lg:right-14',
               )}
             >
               <AssetDetails

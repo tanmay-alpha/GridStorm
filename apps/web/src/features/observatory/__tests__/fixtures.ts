@@ -119,7 +119,8 @@ export const IEEE14: DatasetEntry = {
   temporal: null,
   spatial: { kind: 'network', points: null },
   series: [],
-  quality: BLANK,
+  // As the API reports manifest flags for network entries (services/api observatory.py network_entry).
+  quality: { ...BLANK, warnings: ['quality flag: single_snapshot', 'quality flag: cost_currency_not_eur', 'quality flag: some_future_flag'] },
   artifact: null,
   links: { network_id: 'pglib-case14-ieee', scenario_ids: [], study_route: null, docs: [] },
   use_in_scenario: NO_SCENARIO('Network models are simulation targets; choose them in Crisis Studio.'),
