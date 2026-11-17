@@ -213,10 +213,39 @@ content appears earlier, 492 → 440 ms; the LCP element moves later, [INFERENCE
 run +154 ms and compare +88 ms (chart routes now fetch the engine as a second chunk instead of with the
 entry). Production after-deploy numbers decide whether these persist.
 
+## Production before → after
+
+Same script (3.3 version), same machine, single session each: before = production `f8b3c28`
+(2026-11-17T11:33Z, [`perf-3.3-before-prod.json`](data/perf-3.3-before-prod.json)); after = production
+`565aea3`, Vercel `dpl_5Q7ec9WXkVtkra8EPdWUpBf6XCvD` (2026-11-17T19:37Z,
+[`perf-3.3-after-prod.json`](data/perf-3.3-after-prod.json)). Medians of 3; noise ≈ 150 ms.
+
+| Route | Desktop LCP | Desktop JS KB | Mobile LCP | Mobile time to grid | Mobile long tasks |
+|---|---:|---:|---:|---:|---:|
+| `/` | 1204 → 748 | 387 → 174 | 1400 → 1376 | — | 815 → 730 |
+| `/explore` IEEE-14 | 1084 → 880 | 393 → 183 | 2000 → 1240 | 2351 → 1545 | 1107 → 622 |
+| `/explore` SciGRID | 1016 → 852 | 684 → 473 | 1752 → 1496 | 3472 → 2947 | 1711 → 2305 |
+| `/studio` | 1136 → 1000 | 393 → 180 | 2012 → 1664 | — | 812 → 579 |
+| `/runs/c328baa0-…` | **1764 → 1532** | 414 → 422 | 1572 → 1416 | 3850 → 2923 | 2515 → 1604 |
+| `/compare?comparison=4f5661ec-…` | 1316 → 1108 | 412 → 418 | 1256 → 1052 | 3063 → 2580 | 1801 → 1349 |
+| `/workbench` | 844 → 732 | 398 → 185 | 1588 → 1012 | — | 791 → 562 |
+| `/benchmarks` | 740 → 756 | 486 → 488 | 1668 → 1120 | — | 1011 → 1547 |
+| `/data` | 836 → 760 | 372 → 160 | 1460 → 1140 | — | 770 → 557 |
+| `/data/opsd-de-load-forecast` | 996 → 1008 | 387 → 402 | 2044 → 1836 | — | 1973 → 1715 |
+
+Reading:
+- The three desktop regressions seen locally (home, run, compare) do **not** appear on production; all three
+  improve beyond noise (run page −232 ms). The 3.2 figures (1460 → 1668 ms) came from the 3.2 script
+  version and other sessions, so they are not compared with these.
+- Routes without charts transfer ≈ 210 KB less JavaScript; CLS is unchanged or lower everywhere
+  (Studio desktop 0.0218 → 0.0002, IEEE-14 Explorer desktop 0.0164 → 0.0043).
+- Not improved: SciGRID mobile long tasks (1711 → 2305 ms) and `/benchmarks` mobile long tasks
+  (1011 → 1547 ms), both MapLibre/ECharts-bound and single-session numbers; `/data/<id>` now makes 8 API
+  requests instead of 4 (stress-window scenarios and context datasets added in 3.3) and its desktop LCP is
+  unchanged. API latency is unchanged within noise (catalog 196 → 200 ms).
 
 ## Open items
 
-- Production after-measurement: once deployed, rerun
-  `node ../../scripts/perf/measure.mjs --web https://gridstorm.vercel.app --api https://gridstorm-api.onrender.com --data-id opsd-de-load-forecast --out ../../docs/benchmarks/data/perf-3.3-after-prod.json --md ../../docs/benchmarks/data/perf-3.3-after-prod.md`
-  from `apps/web` and compare with the production table above.
-- Run-page proposal (c) belongs to the runs/ owner.
+- The ECharts core is split across two lazy chunks (`chartRuntime`, `MarkerView`) because the Observatory
+  registers `MarkAreaComponent` statically; harmless today, revisit if a third registration appears.
+- Large-geographic-map main-thread work (SciGRID) remains the main mobile cost; not addressed in 3.3.
