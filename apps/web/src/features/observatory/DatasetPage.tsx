@@ -125,7 +125,7 @@ function QualityPanel({ d }: { d: DatasetEntry }) {
                 <Badge tone={CHECK_TONE[c.status] ?? 'neutral'}>{c.status}</Badge>
                 <span className="font-medium text-fg">{c.name}</span>
               </span>
-              <span className="text-fg-muted">{c.detail}</span>
+              <span className="break-words text-fg-muted">{c.detail}</span>
             </li>
           ))}
         </ul>

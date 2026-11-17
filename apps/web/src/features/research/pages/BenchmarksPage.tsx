@@ -109,7 +109,7 @@ export function StormBenchView({ cases, platform, thresholdPct }: { cases: Storm
               <li key={c.case}>
                 <span className="font-mono">{c.case}</span>: {c.operatingPoint.method ?? NO_VALUE} — {c.operatingPoint.note ?? NO_VALUE}
                 {c.sourceFile && (
-                  <span className="text-fg-muted">
+                  <span className="break-words text-fg-muted">
                     {' '}
                     ({c.sourceFile}
                     {c.pglibCommit ? ` @ ${c.pglibCommit.slice(0, 10)}` : ''})

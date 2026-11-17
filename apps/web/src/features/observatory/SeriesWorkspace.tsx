@@ -263,7 +263,7 @@ export function SeriesWorkspace({
         <legend className="gs-label mb-1">Series (grouped by quantity and unit)</legend>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {groups.map((g) => (
-            <div key={g.key} role="group" aria-label={`${g.label} [${g.unit}]`} className="flex flex-col gap-1 rounded border border-line p-2">
+            <div key={g.key} role="group" aria-label={`${g.label} [${g.unit}]`} className="flex flex-col gap-2.5 rounded border border-line p-2">
               <p className="text-xs font-semibold text-fg">
                 {g.label} <span className="font-normal text-fg-muted">[{g.unit || 'unitless'}]</span>
               </p>
