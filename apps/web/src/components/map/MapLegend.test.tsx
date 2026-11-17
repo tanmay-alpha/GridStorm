@@ -17,3 +17,15 @@ describe('BranchLegend delta title', () => {
     expect(screen.getByText('Line loading (|flow| / s_nom)')).toBeInTheDocument()
   })
 })
+
+describe('BranchScaleKey (docked under result maps)', () => {
+  it('lists every loading band plus the no-value colour', () => {
+    render(<BranchScaleKey mode="loading" />)
+    const key = screen.getByTestId('branch-scale-key')
+    for (const label of ['0–50 %', '≥ 99.9 % (congested)', 'out of service / no value']) expect(key).toHaveTextContent(label)
+  })
+  it('uses the caller’s delta label', () => {
+    render(<BranchScaleKey mode="delta" deltaLabel="Loading change (mitigated − crisis)" />)
+    expect(screen.getByTestId('branch-scale-key')).toHaveTextContent('Loading change (mitigated − crisis)')
+  })
+})

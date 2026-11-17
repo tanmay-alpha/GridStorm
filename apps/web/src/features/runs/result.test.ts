@@ -140,3 +140,48 @@ describe('legacy cost wording (results stored before cost bases were declared)',
     expect(costBasisTexts({ assumptions: ['DC linearised power flow'], warnings: [], cost_basis: null }, PGLIB).legacyEur).toBe(false)
   })
 })
+
+describe('single-period summary (real IEEE 14 gen-1 outage result)', () => {
+  const r = JSON.parse(readFileSync('../../data/artifacts/pypsa/pglib-case14-ieee-gen-1-outage.json', 'utf8')).payload as GridstormResult
+  it('reads the one snapshot of the same series the charts plot', () => {
+    expect(isSinglePeriod(r)).toBe(true)
+    const s = singlePeriodSummary(r)
+    expect(s.label).toBe(SINGLE_PERIOD)
+    expect(s.carriers).toEqual([
+      { carrier: 'NG', mw: 59 },
+      { carrier: 'SYNC', mw: 0 },
+    ])
+    expect(s.generationMw).toBe(59)
+    expect(s.demandMw).toBe(259)
+    expect(s.shedMw).toBe(200)
+    expect(s.price.mean).toBe(r.series.mean_marginal_price_eur_per_mwh![0])
+    expect(s.price.buses).toBe(r.assets.buses!.length)
+  })
+  it('keeps missing values missing (never 0)', () => {
+    const s = singlePeriodSummary({ ...r, series: {}, assets: {} })
+    expect([s.generationMw, s.demandMw, s.shedMw, s.storageMw, s.price.mean, s.price.min, s.price.max]).toEqual([null, null, null, null, null, null, null])
+    expect(s.carriers).toEqual([])
+  })
+  it('is false for multi-snapshot results', () => {
+    expect(isSinglePeriod({ snapshots: ['2011-01-01T00:00:00', '2011-01-01T01:00:00'] })).toBe(false)
+  })
+})
+
+describe('lost results', () => {
+  const job = (id: string, created_at: string, recomputed_from_job_id: string | null = null) => ({ id, created_at, recomputed_from_job_id }) as Job
+  it('dates the known ephemeral-disk loss by the first durable job', () => {
+    expect(predatesDurableStorage({ created_at: '2026-11-15T00:30:21Z' })).toBe(true)
+    expect(predatesDurableStorage({ created_at: '2026-11-15T01:20:43Z' })).toBe(false)
+    expect(predatesDurableStorage({ created_at: null })).toBe(false)
+  })
+  it('finds recomputations by recomputed_from_job_id, newest first', () => {
+    const jobs = [job('a', '2026-11-15T01:20:00Z', 'old'), job('b', '2026-11-16T00:00:00Z', 'old'), job('c', '2026-11-16T00:00:00Z')]
+    expect(recomputationsOf(jobs, 'old').map((j) => j.id)).toEqual(['b', 'a'])
+    expect(recomputationsOf(undefined, 'old')).toEqual([])
+  })
+  it('reads recoverable and the lost checksum from the 410 body only', () => {
+    const err = new ApiError(410, 'artifact_unavailable', 'lost', { recoverable: false, result_sha256: 'abc' })
+    expect(unavailableDetails(err)).toEqual({ recoverable: false, lostSha256: 'abc' })
+    expect(unavailableDetails(new ApiError(500, 'artifact_integrity_error', 'x'))).toEqual({ recoverable: null, lostSha256: null })
+  })
+})
