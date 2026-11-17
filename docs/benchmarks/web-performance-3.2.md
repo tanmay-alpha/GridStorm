@@ -169,8 +169,78 @@ Every chunk is listed in [`data/bundle-3.2-before.json`](data/bundle-3.2-before.
   are dominated by MapLibre (≈ 290 KB) and basemap tiles, as already analysed in 3.0.
 - CLS is "good" (< 0.1) on every route and viewport; highest is SciGRID Explorer mobile 0.048.
 
-## After (to be measured on the release build)
+## After (production, GridStorm 3.2 release)
 
-Rerun both scripts with the same arguments against the deployed 3.2 release (web + API SHAs recorded
-here), then add the same tables with before → after deltas, including `/data` and `/data/<id>` and
-`/api/v1/data/catalog[/<id>]`, which did not exist on the baseline.
+- **When**: 2026-11-17T03:20Z, same machine, same script and arguments (`--data-id opsd-de-load-forecast`
+  added), single run of 3 reps per route × viewport.
+- **What**: https://gridstorm.vercel.app = Vercel `dpl_HXJ6tmwRhBqWrqMQgasMBLkq4eMT` built from merge
+  `f8b3c28`; API `/health` git_sha `f8b3c28` (meta key `backend_commit`).
+- **Raw data**: [`data/perf-3.2-after.json`](data/perf-3.2-after.json),
+  [`data/bundle-3.2-after.json`](data/bundle-3.2-after.json) (local build of the release tree).
+- No page errors or failed requests; every grid route drew its grid in all reps.
+
+### Routes — before → after (medians)
+
+Noise threshold from the method section: ≈ 150 ms for browser timings, 20 ms for API.
+
+| Route | Viewport | LCP ms | CLS (session) | Grid ms | JS KB | Requests (API) | Long tasks ms |
+|---|---|---:|---:|---:|---:|---:|---:|
+| `/` | desktop | 780 → 752 | 0.0002 → 0.0011 | n/a | 370 → 387 | 10 (1) → 19 (6) | 0 → 0 |
+| `/` | mobile | 1388 → 1136 | 0.0021 → 0.0021 | n/a | 370 → 387 | 10 (1) → 19 (6) | 464 → 352 |
+| `/explore` IEEE-14 | desktop | 1152 → 1040 | 0.0291 → 0.0172 | 1388 → 1218 | 387 → 393 | 17 (8) → 19 (8) | 50 → 0 |
+| `/explore` IEEE-14 | mobile | 1468 → 1452 | 0.0119 → 0.0021 | 1988 → 1686 | 387 → 393 | 17 (8) → 19 (8) | 505 → 277 |
+| `/explore` SciGRID | desktop | 1152 → 1072 | 0.0309 → 0.0171 | 2031 → 2029 | 677 → 684 | 34 (4) → 39 (4) | 455 → 434 |
+| `/explore` SciGRID | mobile | 2924 → 1304 | 0.0476 → 0.0296 | 2613 → 2302 | 677 → 684 | 27 (4) → 29 (4) | 1340 → 1136 |
+| `/studio` | desktop | 1272 → 1000 | 0.0253 → 0.0218 | n/a | 388 → 393 | 18 (4) → 18 (4) | 0 → 0 |
+| `/studio` | mobile | 1548 → 1408 | 0.0021 → 0.0021 | n/a | 388 → 393 | 18 (4) → 18 (4) | 413 → 355 |
+| `/runs/c328baa0-…` | desktop | 1460 → 1668 | 0.0143 → 0.0013 | 1801 → 1756 | 408 → 414 | 36 (15) → 37 (15) | 147 → 81 |
+| `/runs/c328baa0-…` | mobile | 2484 → 1260 | 0.0021 → 0.0021 | 2899 → 2562 | 408 → 414 | 36 (15) → 37 (15) | 1393 → 910 |
+| `/compare?comparison=4f5661ec-…` | desktop | 1212 → 1024 | 0.0039 → 0.0161 | 1526 → 1419 | 403 → 412 | 29 (11) → 32 (11) | 98 → 64 |
+| `/compare?comparison=4f5661ec-…` | mobile | 1216 → 1008 | 0.0021 → 0.0021 | 2735 → 2121 | 403 → 412 | 29 (11) → 32 (11) | 1160 → 736 |
+| `/workbench` | desktop | 784 → 908 | 0.0044 → 0.0002 | n/a | 395 → 398 | 12 (4) → 13 (4) | 0 → 0 |
+| `/workbench` | mobile | 1468 → 1012 | 0.0021 → 0.0021 | n/a | 395 → 398 | 12 (4) → 13 (4) | 580 → 274 |
+| `/benchmarks` | desktop | 1188 → 872 | 0.0002 → 0.0002 | n/a | 472 → 486 | 19 (8) → 20 (8) | 59 → 0 |
+| `/benchmarks` | mobile | 1156 → 1076 | 0.0021 → 0.0021 | n/a | 472 → 485 | 19 (8) → 20 (8) | 1273 → 850 |
+| `/data` (new) | desktop / mobile | 788 / 1136 | 0.0002 / 0.0021 | n/a | 372 | 8 (2) | 0 / 323 |
+| `/data/opsd-de-load-forecast` (new) | desktop / mobile | 1048 / 1540 | 0.0002 / 0.0021 | n/a | 387 | 15 (4) | 0 / 731 |
+
+### API — before → after (median ms, keep-alive)
+
+| Endpoint | Before | After |
+|---|---:|---:|
+| `/health` | 203 | 184 |
+| `/api/v1/networks` | 207 | 185 |
+| `/api/v1/networks/pglib-case14-ieee/geojson` | 204 | 189 |
+| `/api/v1/networks/scigrid-de/geojson` | 303 | 275 |
+| `/api/v1/artifacts?include=header` (89.6 → 93.5 kB, 3 new presets) | 217 | 193 |
+| `/api/v1/data/catalog` (new, 60 kB, `max-age=300`) | 404 | 196 |
+| `/api/v1/data/catalog/opsd-de-load-forecast` (new) | — | 187 |
+
+The whole API column moved by about −20 ms including `/health`, i.e. network conditions; server-side
+time is unchanged within noise. The catalog routes sit ≈ 10 ms above `/health`.
+
+### Bundle — before → after (KiB)
+
+| | Before gzip | After gzip | Δ |
+|---|---:|---:|---:|
+| Initial JS + CSS (every route) | 370.71 | 374.26 | +3.55 (+1.0 %) |
+| Total JS (34 → 42 files) | 979.44 | 1011.40 | +31.96 (+3.3 %) |
+| Total CSS | 25.82 | 27.00 | +1.18 |
+| Data Observatory route chunks (`ObservatoryPage` 2.97, `DatasetPage` 12.13, `vocabulary` 1.30) | — | 16.40 | new |
+
+### Interpretation
+
+- **Improved beyond noise**: mobile LCP on SciGRID Explorer (2924 → 1304 ms), run page (2484 → 1260 ms),
+  workbench (1468 → 1012 ms) and home (1388 → 1136 ms); mobile long tasks on run/compare/benchmarks/workbench
+  (−280…−480 ms); time to grid on IEEE-14 and on run/compare at mobile (−300…−600 ms); desktop CLS on both
+  Explorer routes roughly halved. [INFERENCE] Part of the mobile LCP gain on SciGRID and the run page comes
+  from the redesigned layouts whose largest element is now text rather than a late chart/map; single-run
+  medians, so treat the size of the gains as indicative.
+- **Regressed**: desktop run-page LCP 1460 → 1668 ms (+208 ms, above the noise threshold; cause not traced —
+  [INFERENCE] the outcome banner and KPI groups are larger elements that render once the result loads);
+  desktop compare CLS 0.0039 → 0.0161 (still "good", < 0.1); home now makes 6 API requests instead of 1
+  (`/api/v1/networks`, IEEE-14 `assets` and `geojson` for the real schematic preview, `/health`) and
+  transfers +17 KB JS; workbench desktop LCP +124 ms (noise level).
+- **Bundle**: the entry chunk every route downloads grew by 1 % gzip; new features live in lazy route chunks.
+  The 3.0 conclusion stands: the entry chunk (≈ 352 KiB gzip) remains the largest lever and was not split
+  in this release.

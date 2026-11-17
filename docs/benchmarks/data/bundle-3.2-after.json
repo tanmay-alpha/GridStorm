@@ -1,0 +1,850 @@
+{
+  "dist": "apps/web/.dist-after",
+  "at": "2026-11-17T03:20:38.047Z",
+  "totals": {
+    "js": {
+      "files": 42,
+      "raw": 3436025,
+      "gzip": 1035676,
+      "brotli": 866833
+    },
+    "css": {
+      "files": 2,
+      "raw": 147660,
+      "gzip": 27643,
+      "brotli": 22871
+    },
+    "initial_js_css": {
+      "files": 3,
+      "raw": 1240934,
+      "gzip": 383244,
+      "brotli": 322215
+    }
+  },
+  "files": [
+    {
+      "name": "index-BCbhqhKT.js",
+      "kind": "js",
+      "initial": true,
+      "raw": 1114116,
+      "gzip": 360158,
+      "brotli": 303177
+    },
+    {
+      "name": "NetworkMap-Cdxrjjdx.js",
+      "kind": "js",
+      "initial": false,
+      "raw": 1067174,
+      "gzip": 289228,
+      "brotli": 236360
+    },
+    {
+      "name": "maplibre-gl-worker-Boc9pDRP.mjs",
+      "kind": "js",
+      "initial": false,
+      "raw": 519547,
+      "gzip": 148193,
+      "brotli": 121453
+    },
+    {
+      "name": "research-DR25fuTK.js",
+      "kind": "js",
+      "initial": false,
+      "raw": 318753,
+      "gzip": 94179,
+      "brotli": 77832
+    },
+    {
+      "name": "index-CHktHTzu.css",
+      "kind": "css",
+      "initial": true,
+      "raw": 117858,
+      "gzip": 19661,
+      "brotli": 15968
+    },
+    {
+      "name": "KaTeX_AMS-Regular-DRggAlZN.ttf",
+      "kind": "other",
+      "initial": false,
+      "raw": 63632,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "StudioPage-DFGJjbIh.js",
+      "kind": "js",
+      "initial": false,
+      "raw": 62452,
+      "gzip": 18132,
+      "brotli": 16154
+    },
+    {
+      "name": "KaTeX_Main-Regular-ypZvNtVU.ttf",
+      "kind": "other",
+      "initial": false,
+      "raw": 53580,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "KaTeX_Main-Bold-waoOVXN0.ttf",
+      "kind": "other",
+      "initial": false,
+      "raw": 51336,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "RunOverview-xs_gZwu5.js",
+      "kind": "js",
+      "initial": false,
+      "raw": 47680,
+      "gzip": 15099,
+      "brotli": 13544
+    },
+    {
+      "name": "bench-C-QeEnrT.js",
+      "kind": "js",
+      "initial": false,
+      "raw": 47231,
+      "gzip": 17350,
+      "brotli": 15061
+    },
+    {
+      "name": "DatasetPage-CMFDOsH_.js",
+      "kind": "js",
+      "initial": false,
+      "raw": 37834,
+      "gzip": 12421,
+      "brotli": 11142
+    },
+    {
+      "name": "KaTeX_Main-Italic-3WenGoN9.ttf",
+      "kind": "other",
+      "initial": false,
+      "raw": 33580,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "KaTeX_AMS-Regular-DMm9YOAa.woff",
+      "kind": "other",
+      "initial": false,
+      "raw": 33516,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "KaTeX_Main-BoldItalic-DzxPMmG6.ttf",
+      "kind": "other",
+      "initial": false,
+      "raw": 32968,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "ExplorerPage-NPyXMVv3.js",
+      "kind": "js",
+      "initial": false,
+      "raw": 32510,
+      "gzip": 10288,
+      "brotli": 9256
+    },
+    {
+      "name": "KaTeX_Math-Italic-flOr_0UB.ttf",
+      "kind": "other",
+      "initial": false,
+      "raw": 31308,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "KaTeX_Math-BoldItalic-B3XSjfu4.ttf",
+      "kind": "other",
+      "initial": false,
+      "raw": 31196,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "KaTeX_Main-Regular-Dr94JaBh.woff",
+      "kind": "other",
+      "initial": false,
+      "raw": 30772,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "KaTeX_Main-Bold-Jm3AIy58.woff",
+      "kind": "other",
+      "initial": false,
+      "raw": 29912,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "research-Bv5fr4tV.css",
+      "kind": "css",
+      "initial": false,
+      "raw": 29802,
+      "gzip": 7982,
+      "brotli": 6903
+    },
+    {
+      "name": "KaTeX_AMS-Regular-BQhdFMY1.woff2",
+      "kind": "other",
+      "initial": false,
+      "raw": 28076,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "KaTeX_Typewriter-Regular-D3Ib7_Hf.ttf",
+      "kind": "other",
+      "initial": false,
+      "raw": 27556,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "KaTeX_Main-Regular-B22Nviop.woff2",
+      "kind": "other",
+      "initial": false,
+      "raw": 26272,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "KaTeX_Main-Bold-Cx986IdX.woff2",
+      "kind": "other",
+      "initial": false,
+      "raw": 25324,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "workbench-Ck18dZFF.js",
+      "kind": "js",
+      "initial": false,
+      "raw": 25274,
+      "gzip": 8628,
+      "brotli": 7729
+    },
+    {
+      "name": "MitigationPage-CcjZ9SBw.js",
+      "kind": "js",
+      "initial": false,
+      "raw": 24907,
+      "gzip": 7760,
+      "brotli": 7016
+    },
+    {
+      "name": "KaTeX_SansSerif-Bold-CFMepnvq.ttf",
+      "kind": "other",
+      "initial": false,
+      "raw": 24504,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "RunPage-DGIDm1Hl.js",
+      "kind": "js",
+      "initial": false,
+      "raw": 23206,
+      "gzip": 7927,
+      "brotli": 7043
+    },
+    {
+      "name": "SchematicView-_vBoi-bq.js",
+      "kind": "js",
+      "initial": false,
+      "raw": 22693,
+      "gzip": 8582,
+      "brotli": 7771
+    },
+    {
+      "name": "KaTeX_SansSerif-Italic-YYjJ1zSn.ttf",
+      "kind": "other",
+      "initial": false,
+      "raw": 22364,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "KaTeX_Main-Italic-BMLOBm91.woff",
+      "kind": "other",
+      "initial": false,
+      "raw": 19676,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "KaTeX_Fraktur-Bold-BdnERNNW.ttf",
+      "kind": "other",
+      "initial": false,
+      "raw": 19584,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "KaTeX_Fraktur-Regular-CB_wures.ttf",
+      "kind": "other",
+      "initial": false,
+      "raw": 19572,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "ComparePage-BctSCIGA.js",
+      "kind": "js",
+      "initial": false,
+      "raw": 19460,
+      "gzip": 6429,
+      "brotli": 5725
+    },
+    {
+      "name": "KaTeX_SansSerif-Regular-BNo7hRIc.ttf",
+      "kind": "other",
+      "initial": false,
+      "raw": 19436,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "KaTeX_Main-BoldItalic-SpSLRI95.woff",
+      "kind": "other",
+      "initial": false,
+      "raw": 19412,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "KaTeX_Math-Italic-DA0__PXp.woff",
+      "kind": "other",
+      "initial": false,
+      "raw": 18748,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "KaTeX_Math-BoldItalic-iY-2wyZ7.woff",
+      "kind": "other",
+      "initial": false,
+      "raw": 18668,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "KaTeX_Main-Italic-NWA7e6Wa.woff2",
+      "kind": "other",
+      "initial": false,
+      "raw": 16988,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "KaTeX_Main-BoldItalic-DxDJ3AOS.woff2",
+      "kind": "other",
+      "initial": false,
+      "raw": 16780,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "KaTeX_Script-Regular-C5JkGWo-.ttf",
+      "kind": "other",
+      "initial": false,
+      "raw": 16648,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "KaTeX_Math-Italic-t53AETM-.woff2",
+      "kind": "other",
+      "initial": false,
+      "raw": 16440,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "KaTeX_Math-BoldItalic-CZnvNsCZ.woff2",
+      "kind": "other",
+      "initial": false,
+      "raw": 16400,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "KaTeX_Typewriter-Regular-C0xS9mPB.woff",
+      "kind": "other",
+      "initial": false,
+      "raw": 16028,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "KaTeX_SansSerif-Bold-DbIhKOiC.woff",
+      "kind": "other",
+      "initial": false,
+      "raw": 14408,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "KaTeX_SansSerif-Italic-DN2j7dab.woff",
+      "kind": "other",
+      "initial": false,
+      "raw": 14112,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "KaTeX_Typewriter-Regular-CO6r4hn1.woff2",
+      "kind": "other",
+      "initial": false,
+      "raw": 13568,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "KaTeX_Fraktur-Bold-BsDP51OF.woff",
+      "kind": "other",
+      "initial": false,
+      "raw": 13296,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "KaTeX_Fraktur-Regular-Dxdc4cR9.woff",
+      "kind": "other",
+      "initial": false,
+      "raw": 13208,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "HomePage-DUPXbU-5.js",
+      "kind": "js",
+      "initial": false,
+      "raw": 12381,
+      "gzip": 4294,
+      "brotli": 3746
+    },
+    {
+      "name": "KaTeX_Caligraphic-Bold-ATXxdsX0.ttf",
+      "kind": "other",
+      "initial": false,
+      "raw": 12368,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "KaTeX_Caligraphic-Regular-wX97UBjC.ttf",
+      "kind": "other",
+      "initial": false,
+      "raw": 12344,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "KaTeX_SansSerif-Regular-CS6fqUqJ.woff",
+      "kind": "other",
+      "initial": false,
+      "raw": 12316,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "KaTeX_Size1-Regular-Dbsnue_I.ttf",
+      "kind": "other",
+      "initial": false,
+      "raw": 12228,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "KaTeX_SansSerif-Bold-D1sUS0GD.woff2",
+      "kind": "other",
+      "initial": false,
+      "raw": 12216,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "KaTeX_SansSerif-Italic-C3H0VqGB.woff2",
+      "kind": "other",
+      "initial": false,
+      "raw": 12028,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "KaTeX_Size2-Regular-B7gKUWhC.ttf",
+      "kind": "other",
+      "initial": false,
+      "raw": 11508,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "KaTeX_Fraktur-Bold-CL6g_b3V.woff2",
+      "kind": "other",
+      "initial": false,
+      "raw": 11348,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "KaTeX_Fraktur-Regular-CTYiF6lA.woff2",
+      "kind": "other",
+      "initial": false,
+      "raw": 11316,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "KaTeX_Script-Regular-D5yQViql.woff",
+      "kind": "other",
+      "initial": false,
+      "raw": 10588,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "KaTeX_Size4-Regular-DWFBv043.ttf",
+      "kind": "other",
+      "initial": false,
+      "raw": 10364,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "KaTeX_SansSerif-Regular-DDBCnlJ7.woff2",
+      "kind": "other",
+      "initial": false,
+      "raw": 10344,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "KaTeX_Script-Regular-D3wIWfF6.woff2",
+      "kind": "other",
+      "initial": false,
+      "raw": 9644,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "jsx-runtime-Wy9s6hX0.js",
+      "kind": "js",
+      "initial": true,
+      "raw": 8960,
+      "gzip": 3425,
+      "brotli": 3070
+    },
+    {
+      "name": "methods-D12g3_Na.js",
+      "kind": "js",
+      "initial": false,
+      "raw": 7797,
+      "gzip": 3209,
+      "brotli": 2691
+    },
+    {
+      "name": "KaTeX_Caligraphic-Bold-BEiXGLvX.woff",
+      "kind": "other",
+      "initial": false,
+      "raw": 7716,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "KaTeX_Caligraphic-Regular-CTRA-rTL.woff",
+      "kind": "other",
+      "initial": false,
+      "raw": 7656,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "KaTeX_Size3-Regular-DgpXs0kz.ttf",
+      "kind": "other",
+      "initial": false,
+      "raw": 7588,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "ObservatoryPage-BQyuDylP.js",
+      "kind": "js",
+      "initial": false,
+      "raw": 7414,
+      "gzip": 3040,
+      "brotli": 2677
+    },
+    {
+      "name": "LibraryPage-DTTJPVT6.js",
+      "kind": "js",
+      "initial": false,
+      "raw": 7126,
+      "gzip": 2309,
+      "brotli": 2041
+    },
+    {
+      "name": "KaTeX_Caligraphic-Bold-Dq_IR9rO.woff2",
+      "kind": "other",
+      "initial": false,
+      "raw": 6912,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "KaTeX_Caligraphic-Regular-Di6jR-x-.woff2",
+      "kind": "other",
+      "initial": false,
+      "raw": 6908,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "KaTeX_Size1-Regular-C195tn64.woff",
+      "kind": "other",
+      "initial": false,
+      "raw": 6496,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "KaTeX_Size2-Regular-oD1tc_U0.woff",
+      "kind": "other",
+      "initial": false,
+      "raw": 6188,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "KaTeX_Size4-Regular-BF-4gkZK.woff",
+      "kind": "other",
+      "initial": false,
+      "raw": 5980,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "SchematicLegend-DopiLCYI.js",
+      "kind": "js",
+      "initial": false,
+      "raw": 5864,
+      "gzip": 2269,
+      "brotli": 2029
+    },
+    {
+      "name": "KaTeX_Size1-Regular-mCD8mA8B.woff2",
+      "kind": "other",
+      "initial": false,
+      "raw": 5468,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "KaTeX_Size2-Regular-Dy4dx90m.woff2",
+      "kind": "other",
+      "initial": false,
+      "raw": 5208,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "KaTeX_Size4-Regular-Dl5lxZxV.woff2",
+      "kind": "other",
+      "initial": false,
+      "raw": 4928,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "KaTeX_Size3-Regular-CTq5MqoE.woff",
+      "kind": "other",
+      "initial": false,
+      "raw": 4420,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "name": "vocabulary-D6aqFBP8.js",
+      "kind": "js",
+      "initial": false,
+      "raw": 2993,
+      "gzip": 1335,
+      "brotli": 1124
+    },
+    {
+      "name": "flow-TKhEOUBS.js",
+      "kind": "js",
+      "initial": false,
+      "raw": 2597,
+      "gzip": 1198,
+      "brotli": 1060
+    },
+    {
+      "name": "GridPreview-BGkJBMAz.js",
+      "kind": "js",
+      "initial": false,
+      "raw": 2413,
+      "gzip": 1227,
+      "brotli": 1068
+    },
+    {
+      "name": "useMutation-BPU3MBHH.js",
+      "kind": "js",
+      "initial": false,
+      "raw": 2384,
+      "gzip": 1004,
+      "brotli": 903
+    },
+    {
+      "name": "scales-DAuklMni.js",
+      "kind": "js",
+      "initial": false,
+      "raw": 2312,
+      "gzip": 1189,
+      "brotli": 1059
+    },
+    {
+      "name": "GuideSteps-DO4ikFvB.js",
+      "kind": "js",
+      "initial": false,
+      "raw": 1920,
+      "gzip": 935,
+      "brotli": 818
+    },
+    {
+      "name": "SnapshotSlider-DyN1Qlfn.js",
+      "kind": "js",
+      "initial": false,
+      "raw": 1856,
+      "gzip": 1010,
+      "brotli": 935
+    },
+    {
+      "name": "PairedKpis-BrOkXyAj.js",
+      "kind": "js",
+      "initial": false,
+      "raw": 1849,
+      "gzip": 880,
+      "brotli": 787
+    },
+    {
+      "name": "useExecutionPolicy-0EuR9mKq.js",
+      "kind": "js",
+      "initial": false,
+      "raw": 886,
+      "gzip": 536,
+      "brotli": 483
+    },
+    {
+      "name": "NotFound-Colr2xU9.js",
+      "kind": "js",
+      "initial": false,
+      "raw": 585,
+      "gzip": 377,
+      "brotli": 332
+    },
+    {
+      "name": "map-D5LFWtJc.js",
+      "kind": "js",
+      "initial": false,
+      "raw": 496,
+      "gzip": 328,
+      "brotli": 298
+    },
+    {
+      "name": "file-text-UxSxP0Pv.js",
+      "kind": "js",
+      "initial": false,
+      "raw": 462,
+      "gzip": 307,
+      "brotli": 296
+    },
+    {
+      "name": "shield-check-BmybW2CB.js",
+      "kind": "js",
+      "initial": false,
+      "raw": 400,
+      "gzip": 306,
+      "brotli": 292
+    },
+    {
+      "name": "download-D2QIKHV6.js",
+      "kind": "js",
+      "initial": false,
+      "raw": 378,
+      "gzip": 297,
+      "brotli": 227
+    },
+    {
+      "name": "compass-CS5eNNxt.js",
+      "kind": "js",
+      "initial": false,
+      "raw": 326,
+      "gzip": 265,
+      "brotli": 235
+    },
+    {
+      "name": "download-X7_7sUJg.js",
+      "kind": "js",
+      "initial": false,
+      "raw": 308,
+      "gzip": 249,
+      "brotli": 220
+    },
+    {
+      "name": "pause-ZWCQCfe5.js",
+      "kind": "js",
+      "initial": false,
+      "raw": 284,
+      "gzip": 223,
+      "brotli": 209
+    },
+    {
+      "name": "rotate-ccw-Bi1nvHJ-.js",
+      "kind": "js",
+      "initial": false,
+      "raw": 278,
+      "gzip": 241,
+      "brotli": 207
+    },
+    {
+      "name": "play-D2euxTBt.js",
+      "kind": "js",
+      "initial": false,
+      "raw": 262,
+      "gzip": 235,
+      "brotli": 205
+    },
+    {
+      "name": "arrow-left-BIPX7TLq.js",
+      "kind": "js",
+      "initial": false,
+      "raw": 243,
+      "gzip": 221,
+      "brotli": 191
+    },
+    {
+      "name": "plus-I88xpBOS.js",
+      "kind": "js",
+      "initial": false,
+      "raw": 225,
+      "gzip": 207,
+      "brotli": 202
+    },
+    {
+      "name": "moneyText-B5F1jVSH.js",
+      "kind": "js",
+      "initial": false,
+      "raw": 189,
+      "gzip": 186,
+      "brotli": 165
+    }
+  ]
+}

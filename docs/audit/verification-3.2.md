@@ -38,9 +38,16 @@ listed), `journey.cjs` (use-in-scenario journey, export, keyboard, reduced motio
 | V32-03 | P2 (CI-only e2e failure) | The "Advanced research" `<details>` menu stayed open after following one of its links; with the new *Data* nav item it covered Studio's "Current grid only" toggle under Linux font metrics (`journey.spec.ts:33` timeout) | fixed `d61425d` (menu closes on navigation, regression unit test) |
 | V32-04 | info | 2 CI expectations pinned the old preset count (`tests/scientific` 12 → 15 PyPSA artifacts; `studio-live-execution` 6 → 9 SciGRID-DE presets); gitleaks flagged a public commit SHA under the key `api_git_sha` | fixed `96294d8` |
 
+## Production (after merge `f8b3c28`, 2026-11-17)
+
+- Web: Vercel `dpl_HXJ6tmwRhBqWrqMQgasMBLkq4eMT` (Git build of `f8b3c28`) aliased to gridstorm.vercel.app; API `/health` git_sha `f8b3c28`, `/ready` postgres + supabase durable.
+- `scripts/probe_production.py`: all PASS (15 visible scenarios, 58 precomputed artifacts, 7 results sha-verified, 5 lost legacy results disclosed as 410).
+- GitHub Actions on `main`: CI 44008687576, Data Observatory bundle 44008687567, scientific reproducibility incl. full slow/network tests 44009643558 (pypsa / pandapower / stormbench MATCH), public browser smoke 44009033246, production smoke 44009037283 — all success.
+- Live journey (one bounded production write: a precomputed job, no solver run): `/data/observed-analogue-scenarios` → Use in a scenario → Studio *verified precomputed result* → job `5dbb2e94-600c-4cc3-a5b7-eb4f5be55b19`, `execution_mode: precomputed`, unserved 2 721.006897 MWh, result sha `6d0c0805…` (identical to the local run); CSV export with licence header; disabled export on metadata-only entries; drawer focus trap and focus return; 0 console errors on `/data` and `/data/opsd-de-load-forecast`.
+- `/api/v1/artifacts/stormbench/stormbench-case14-ieee`: `screening_vs_dc.kendall_tau = spearman = 1.0`.
+- Performance after vs before with the same script: [web-performance-3.2](../benchmarks/web-performance-3.2.md#after-production-gridstorm-32-release).
+
 ## Not covered here
 
-- Production behaviour of 3.2 (requires deployment) — recorded in TODO G32-11 after release.
 - Supabase database/storage inventory — blocked by credentials ([production inventory](../data/production-inventory.md)).
-- Performance after: measured on production after deployment with the same script
-  ([web-performance-3.2](../benchmarks/web-performance-3.2.md)).
+- axe/overflow matrix was run on the local release build, not re-run against production (same build inputs; production browser smoke covers responsive checks).

@@ -42,9 +42,8 @@ The API runs on Render's free tier. After idling it sleeps, and the first reques
 30 s (occasionally up to a minute) to wake it; the web app shows *Checking backend…* and retries
 meanwhile. Live solves are limited to one at a time, with per-job time and memory limits.
 
-This README describes GridStorm 3.2. The 3.2 additions (Data Observatory, observed-analogue
-presets, redesigned pages) appear on the live demo once the release is deployed; deployment status
-is recorded under TODO G32-11.
+This README describes GridStorm 3.2, deployed on 2026-11-17 (web and API built from `f8b3c28`;
+see TODO G32-11 for the production checks).
 
 ## Guided demonstration
 
