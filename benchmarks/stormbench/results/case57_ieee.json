@@ -1,5 +1,6 @@
 {
  "schema_version": "stormbench-result/1.0",
+ "provenance": "calculated",
  "case": "case57_ieee",
  "source": {
   "file": "benchmarks/stormbench/cases/pglib_opf_case57_ieee.m",
@@ -56,9 +57,24 @@
   "k": 12,
   "recall_at_k": 1.0,
   "recall_at_10": 1.0,
-  "kendall_tau": 0.9997,
+  "kendall_tau": 1.0,
   "spearman": 1.0,
-  "n": 79
+  "n": 79,
+  "ties": {
+   "tolerance_pct": 1e-06,
+   "screening": {
+    "tie_groups": 7,
+    "tied_pairs": 7,
+    "max_group_span_pct": 0.0,
+    "tolerance_margin_pct": 1e-06
+   },
+   "reference": {
+    "tie_groups": 7,
+    "tied_pairs": 7,
+    "max_group_span_pct": 2.842e-14,
+    "tolerance_margin_pct": 1e-06
+   }
+  }
  },
  "screening_vs_ac": {
   "tp": 12,
@@ -70,9 +86,24 @@
   "k": 15,
   "recall_at_k": 1.0,
   "recall_at_10": 0.9,
-  "kendall_tau": 0.9162,
+  "kendall_tau": 0.9168,
   "spearman": 0.9803,
-  "n": 78
+  "n": 78,
+  "ties": {
+   "tolerance_pct": 1e-06,
+   "screening": {
+    "tie_groups": 7,
+    "tied_pairs": 7,
+    "max_group_span_pct": 0.0,
+    "tolerance_margin_pct": 1e-06
+   },
+   "reference": {
+    "tie_groups": 4,
+    "tied_pairs": 4,
+    "max_group_span_pct": 1.592e-12,
+    "tolerance_margin_pct": 1e-06
+   }
+  }
  },
  "ac": {
   "base_converged": "converged",
@@ -87,15 +118,15 @@
  },
  "runtime": {
   "repeats": 3,
-  "screening_median_s": 0.003066,
-  "dc_exact_median_s": 0.06353,
-  "ac_exact_median_s": 2.977
+  "screening_median_s": 0.002883,
+  "dc_exact_median_s": 0.04886,
+  "ac_exact_median_s": 1.816
  },
  "memory": {
   "screening_peak_tracemalloc_mib": 0.3704,
-  "dc_exact_peak_tracemalloc_mib": 0.2785,
+  "dc_exact_peak_tracemalloc_mib": 0.2781,
   "ac_exact_peak_tracemalloc_mib": 2.016,
-  "process_rss_end_mib": 252.9
+  "process_rss_end_mib": 251.8
  },
  "top_contingencies": [
   {
@@ -179,7 +210,6 @@
    "NUMBA_NUM_THREADS": "1"
   }
  },
- "provenance": "calculated",
  "contingencies": [
   {
    "branch_id": "branch-1",

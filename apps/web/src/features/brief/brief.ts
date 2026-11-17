@@ -582,7 +582,8 @@ function mitigationStatement(crisis: GridstormResult, mit: GridstormResult, labe
   return { id: 'mitigation', topic: 'mitigation', tone, text, evidence }
 }
 
-function headlineOf(r: GridstormResult): string {
+/** One-sentence outcome of a result (the brief's headline); depends on the result only. */
+export function headlineOf(r: GridstormResult): string {
   if (r.outcome === 'infeasible') return 'Infeasible: no dispatch meets demand within the limits'
   if (r.outcome !== 'feasible') return `No result: solver outcome “${r.outcome ?? 'not reported'}”`
   const u = num(r.metrics.unserved_energy_mwh)

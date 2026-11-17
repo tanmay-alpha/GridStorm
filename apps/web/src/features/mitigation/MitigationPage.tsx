@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { Fragment, useMemo, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { ArrowRight, ShieldCheck } from 'lucide-react'
@@ -10,6 +10,7 @@ import {
   Badge,
   Chart,
   EmptyState,
+  Disclosure,
   ErrorState,
   KeyValue,
   OutcomeBadge,
@@ -27,8 +28,10 @@ import { useDocumentTitle } from '../../lib/title'
 import { buildBrief } from '../brief/brief'
 import { GridImpactBrief } from '../brief/GridImpactBrief'
 import { CostBasisNote } from '../runs/CostBasis'
-import { ChangeTable, HeadlineCards } from '../runs/RunOverview'
-import { branchRows, headlineFacts, outagedKeys, snapshotLabels } from '../runs/result'
+import { costComparability } from '../compare/compare'
+import { PairedKpis } from '../compare/PairedKpis'
+import { ChangeTable, COST_NOT_SECURITY, HeadlineCards } from '../runs/RunOverview'
+import { branchRows, headlineFacts, outagedKeys, resultMetricRows, snapshotLabels } from '../runs/result'
 import { actionText, advisorBrief, isAdvisorPayload, recommendedCandidate, violationText, type AcState, type AdvisorPayload } from './advisor'
 import { STUDIES, studyById, type AdvisorStudy, type PypsaStudy } from './studies'
 
@@ -42,7 +45,7 @@ interface Column {
   source: ColumnSource
 }
 
-const ROLE_TITLE = { baseline: '1 · Baseline', crisis: '2 · Crisis', mitigation: '3 · Crisis + mitigation' } as const
+const ROLE_TITLE = { baseline: '1 · Baseline', crisis: '2 · Crisis (disturbance)', mitigation: '3 · Crisis + mitigation' } as const
 
 function SourceBadge({ source }: { source: ColumnSource }) {
   return source.kind === 'artifact' ? (
@@ -59,7 +62,7 @@ function SourceBadge({ source }: { source: ColumnSource }) {
 function ResultColumn({ col, basis }: { col: Column; basis: CostBasis | null }) {
   const m = col.result.metrics
   return (
-    <section className="gs-panel flex min-w-0 flex-col gap-2 p-3" aria-label={ROLE_TITLE[col.role]} data-testid={`column-${col.role}`}>
+    <section className="gs-panel flex h-full min-w-0 flex-col gap-2 p-3" aria-label={ROLE_TITLE[col.role]} data-testid={`column-${col.role}`}>
       <div className="flex flex-wrap items-center gap-1.5">
         <h3 className="text-sm font-semibold">{ROLE_TITLE[col.role]}</h3>
         <SourceBadge source={col.source} />
@@ -117,6 +120,13 @@ function TripleView({
   const spec = useScenario(crisis.result.scenario_id, true)
   const storage = useAssetTable(networkId, 'storage_units', (crisis.result.assets.storage_units?.length ?? 0) > 0)
   const basis = resolveCostBasis(crisis.result, network.data)
+  const bases = {
+    baseline: resolveCostBasis(baseline.result, network.data),
+    crisis: basis,
+    mitigation: resolveCostBasis(mitigation.result, network.data),
+  }
+  const crisisRows = resultMetricRows(baseline.result.metrics, crisis.result.metrics)
+  const mitigationRows = resultMetricRows(crisis.result.metrics, mitigation.result.metrics)
   const [view, setView] = useState<MapView>('delta')
   const brief = useMemo(
     () =>
@@ -156,53 +166,92 @@ function TripleView({
           </div>
         </section>
       )}
-      <div className="grid gap-3 md:grid-cols-3">
-        {cols.map((c) => (
-          <ResultColumn key={c.role} col={c} basis={resolveCostBasis(c.result, network.data)} />
+      <ol className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)_auto_minmax(0,1fr)]" aria-label="Baseline, crisis and mitigation results">
+        {cols.map((c, i) => (
+          <Fragment key={c.role}>
+            {i > 0 && (
+              <li aria-hidden className="hidden items-center text-fg-subtle md:flex">
+                <ArrowRight className="size-5" />
+              </li>
+            )}
+            <li className="min-w-0">
+              <ResultColumn col={c} basis={bases[c.role]} />
+            </li>
+          </Fragment>
         ))}
-      </div>
+      </ol>
+      <Panel title="What each step changes" id="step-changes" description="Δ = later step − earlier step; % metrics in percentage points. Only consumer-impact changes are coloured.">
+        <div className="flex flex-col gap-4">
+          <section aria-labelledby="chg-crisis-h" className="flex flex-col gap-1.5">
+            <h3 id="chg-crisis-h" className="gs-label">
+              Baseline → crisis: what the disturbance does
+            </h3>
+            <PairedKpis
+              rows={crisisRows}
+              costs={costComparability({}, bases.baseline, bases.crisis)}
+              baselineBasis={bases.baseline}
+              scenarioBasis={bases.crisis}
+              labels={{ before: 'Baseline', after: 'Crisis' }}
+              testId="kpis-crisis"
+            />
+          </section>
+          <section aria-labelledby="chg-mitigation-h" className="flex flex-col gap-1.5">
+            <h3 id="chg-mitigation-h" className="gs-label">
+              Crisis → crisis + mitigation ({effectName})
+            </h3>
+            <PairedKpis
+              rows={mitigationRows}
+              costs={costComparability({}, bases.crisis, bases.mitigation)}
+              baselineBasis={bases.crisis}
+              scenarioBasis={bases.mitigation}
+              labels={{ before: 'Crisis', after: 'Mitigated' }}
+              testId="kpis-mitigation"
+            />
+          </section>
+          <p role="note" className="text-xs text-fg-muted" data-testid="cost-not-security">
+            {COST_NOT_SECURITY}
+          </p>
+          <Disclosure summary="Full metric tables (incl. demand served and curtailment)" testId="mitigation-tables">
+            <div className="grid gap-4 lg:grid-cols-2">
+              <ChangeTable baseline={baseline.result} scenario={crisis.result} network={network.data} caption="Crisis versus baseline" scenarioLabel="Crisis" />
+              <ChangeTable baseline={crisis.result} scenario={mitigation.result} network={network.data} caption="Mitigated versus crisis" scenarioLabel="Mitigated" />
+            </div>
+          </Disclosure>
+          <CostBasisNote basis={basis} />
+        </div>
+      </Panel>
       <div className="grid gap-3 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
         <Panel title="Grid Impact Brief" id="brief" description="Crisis run versus baseline, with the mitigation effect; derived by fixed rules from the three stored results.">
           <GridImpactBrief brief={brief} />
         </Panel>
-        <div className="flex flex-col gap-3">
-          <Panel title="Crisis vs baseline">
-            <ChangeTable baseline={baseline.result} scenario={crisis.result} network={network.data} caption="Crisis versus baseline" scenarioLabel="Crisis" />
-          </Panel>
-          <Panel title="Mitigated vs crisis">
-            <ChangeTable baseline={crisis.result} scenario={mitigation.result} network={network.data} caption="Mitigated versus crisis" scenarioLabel="Mitigated" />
-          </Panel>
-          <CostBasisNote basis={basis} />
-        </div>
-      </div>
-      <div className="grid gap-3 xl:grid-cols-2">
         <Panel title="Load shedding and storage over the horizon" description="Crisis vs mitigated run, per snapshot.">
           <Chart option={chart} ariaLabel="Load shed per snapshot in the crisis and mitigated runs, with storage dispatch" testId="chart-mitigation-shed" height={300} />
         </Panel>
-        <Panel title="Network" description="Max branch loading over the horizon; Δ = mitigated − crisis in percentage points.">
-          <div className="flex flex-col gap-2">
-            <SelectField<MapView>
-              label="Map shows"
-              value={view}
-              onChange={setView}
-              testId="mitigation-map-view"
-              options={[
-                { value: 'delta', label: 'Δ max loading, mitigated − crisis [pp]' },
-                { value: 'crisis', label: 'Crisis max loading [%]' },
-                { value: 'mitigation', label: 'Mitigated max loading [%]' },
-              ]}
-            />
-            <BranchValueMap
-              networkId={networkId}
-              values={values}
-              mode={view === 'delta' ? 'delta' : 'loading'}
-              outaged={outaged}
-              className="h-[340px]"
-              ariaLabel="Map of branch loading in the mitigation study"
-            />
-          </div>
-        </Panel>
       </div>
+      <Panel title="Network" description="Solved branch flows of the crisis and mitigated runs: max loading over the horizon; Δ = mitigated − crisis in percentage points.">
+        <div className="flex flex-col gap-2">
+          <SelectField<MapView>
+            label="Map shows"
+            value={view}
+            onChange={setView}
+            testId="mitigation-map-view"
+            options={[
+              { value: 'delta', label: 'Δ max loading, mitigated − crisis [pp]' },
+              { value: 'crisis', label: 'Crisis max loading [%]' },
+              { value: 'mitigation', label: 'Mitigated max loading [%]' },
+            ]}
+          />
+          <BranchValueMap
+            networkId={networkId}
+            values={values}
+            mode={view === 'delta' ? 'delta' : 'loading'}
+            outaged={outaged}
+            className="h-[380px]"
+            ariaLabel="Map of branch loading in the mitigation study"
+            deltaLabel="Loading change (mitigated − crisis)"
+          />
+        </div>
+      </Panel>
       <Panel title="Provenance" id="provenance">
         <div className="grid gap-3 md:grid-cols-3">
           {cols.map((c) => (

@@ -1,13 +1,14 @@
-import { useMemo } from 'react'
+import { useMemo, type ReactNode } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Ban, Download, FileJson, FileText, RotateCcw } from 'lucide-react'
 import { api, ApiError } from '../../api/client'
 import { qk, TERMINAL_STATUSES, useAssetTable, useJob, useJobArtifacts, useNetwork, useResult, useScenario } from '../../api/hooks'
-import type { CostBasis, GridstormResult, Job, JobStage } from '../../api/types'
+import type { CostBasis, GridstormResult, Job, JobStage, ResultMetrics, SolverInfo } from '../../api/types'
 import {
   Badge,
   Button,
+  Disclosure,
   EmptyState,
   ErrorState,
   ExecutionModeBadge,
@@ -25,15 +26,24 @@ import { NO_VALUE, formatDuration, formatQuantity, formatTimestamp, shortHash } 
 import { formatMoney, resolveCostBasis } from '../../lib/money'
 import { downloadBlob, downloadJson, downloadText } from '../../lib/download'
 import { useDocumentTitle } from '../../lib/title'
-import { buildBrief } from '../brief/brief'
+import { buildBrief, headlineOf } from '../brief/brief'
 import { GridImpactBrief } from '../brief/GridImpactBrief'
 import { compareUrl } from '../compare/baseline'
 import { CompareWithBaseline } from '../compare/CompareWithBaseline'
 import { useBaselinePlan } from '../compare/useBaselinePlan'
 import { GuideSteps, GUIDE_STUDIO_URL } from './GuideSteps'
-import { BaselineChange, HeadlineCards, KeyAssumptions } from './RunOverview'
+import { BaselineChange, KeyAssumptions, KpiOverview } from './RunOverview'
 import { RunResultView } from './RunResultView'
-import { changedBranchKeys, costBasisTexts, headlineFacts, isIntegrityError, isResultUnavailable, outagedKeys, outcomeSummary } from './result'
+import {
+  changedBranchKeys,
+  costBasisTexts,
+  headlineFacts,
+  isIntegrityError,
+  isResultUnavailable,
+  outagedKeys,
+  outcomeSummary,
+  type OutcomeSummary,
+} from './result'
 
 const STAGES: JobStage[] = ['queued', 'loading_network', 'applying_scenario', 'building_model', 'solving', 'postprocessing', 'done']
 
@@ -152,8 +162,118 @@ function Downloads({ job, result }: { job: Job; result: GridstormResult | undefi
   )
 }
 
-/** Brief + "what changed" + result sections for a completed run with a loaded result. */
-function CompletedRun({ job, result, guide }: { job: Job; result: GridstormResult; guide: boolean }) {
+function SolverDetails({ job, solver, basis }: { job: Job; solver: SolverInfo | null; basis: CostBasis | null }) {
+  return (
+    <KeyValue
+      rows={[
+        ['Solver', solver ? `${solver.name ?? NO_VALUE} ${solver.version ?? ''}` : NO_VALUE],
+        ['Status', solver?.status ?? NO_VALUE],
+        ['Termination', solver?.termination_condition ?? NO_VALUE],
+        ['Objective', formatMoney(solver?.objective_eur, basis, { scale: true })],
+        [job.execution_mode === 'precomputed' ? 'Wall time (precomputed run)' : 'Wall time', formatDuration(solver?.wall_time_s)],
+        ['Attempts', job.attempts ?? NO_VALUE],
+        ['Started', formatTimestamp(job.started_at)],
+        ['Finished', formatTimestamp(job.finished_at)],
+      ]}
+    />
+  )
+}
+
+const BANNER_BORDER: Record<OutcomeSummary['tone'], string> = {
+  ok: 'border-l-ok',
+  warn: 'border-l-warn',
+  danger: 'border-l-danger',
+  neutral: 'border-l-line-strong',
+}
+
+/** Outcome banner: what happened in one sentence, then the KPIs (physical first) and key assumptions. */
+function RunSummary({
+  job,
+  summary,
+  metrics,
+  basis,
+  result,
+}: {
+  job: Job
+  summary: OutcomeSummary
+  metrics: Partial<ResultMetrics> | undefined
+  basis: CostBasis | null
+  result: GridstormResult | undefined
+}) {
+  return (
+    <section
+      className={cn('gs-panel flex flex-col gap-3 border-l-4 p-3 md:p-4', BANNER_BORDER[summary.tone])}
+      aria-label="Run summary"
+      data-testid="run-summary"
+      id="run-summary"
+    >
+      <div className="flex flex-col items-start gap-x-3 gap-y-2 sm:flex-row">
+        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-xl font-semibold tracking-tight" data-testid="outcome-headline">
+              {summary.label}
+            </h2>
+            <Badge tone={summary.tone}>{job.status}</Badge>
+          </div>
+          {result && (
+            <p className="text-base text-fg" data-testid="outcome-sentence">
+              {headlineOf(result)}
+            </p>
+          )}
+          <p className="text-xs text-fg-muted">{summary.detail}</p>
+        </div>
+        {metrics && <CostBasisBadge basis={basis} />}
+      </div>
+      {metrics && <KpiOverview facts={headlineFacts(metrics, basis)} />}
+      {result && <KeyAssumptions result={result} basis={basis} />}
+    </section>
+  )
+}
+
+const SECTIONS: [string, string][] = [
+  ['#run-summary', 'Outcome'],
+  ['#brief', 'Brief'],
+  ['#baseline-change', 'vs baseline'],
+  ['#network-state', 'Network'],
+  ['#dispatch', 'Dispatch'],
+  ['#congestion', 'Congestion'],
+  ['#evidence', 'Reproduce & download'],
+]
+
+/** In-page section links of a completed run (horizontal, scrolls on narrow screens). */
+function OnThisPage() {
+  return (
+    <nav aria-label="On this page" className="-mx-3 overflow-x-auto px-3 md:mx-0 md:px-0">
+      <ul className="flex w-max gap-1.5 text-xs">
+        {SECTIONS.map(([href, label]) => (
+          <li key={href}>
+            <a
+              href={href}
+              className="inline-flex min-h-8 items-center rounded-full border border-line bg-surface px-3 text-fg-muted hover:border-line-strong hover:text-fg pointer-coarse:min-h-11"
+            >
+              {label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  )
+}
+
+/** Outcome banner, brief, "what changed" and result sections for a completed run with a loaded result. */
+function CompletedRun({
+  job,
+  result,
+  guide,
+  summary,
+  evidence,
+}: {
+  job: Job
+  result: GridstormResult
+  guide: boolean
+  summary: OutcomeSummary
+  evidence: ReactNode
+}) {
   const network = useNetwork(job.network_id)
   const { plan } = useBaselinePlan(job)
   const baselineJobId = plan?.kind === 'compare' ? plan.baselineJob.id : undefined
@@ -177,6 +297,9 @@ function CompletedRun({ job, result, guide }: { job: Job; result: GridstormResul
   const highlighted = useMemo(() => (baseline.data ? changedBranchKeys(baseline.data, result) : []), [baseline.data, result])
   return (
     <>
+      <OnThisPage />
+      <RunSummary job={job} summary={summary} metrics={result.metrics} basis={basis} result={result} />
+      <Diagnostics job={job} result={result} basis={basis} />
       <div className="grid gap-3 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
         <Panel
           title="Grid Impact Brief"
@@ -187,7 +310,15 @@ function CompletedRun({ job, result, guide }: { job: Job; result: GridstormResul
         </Panel>
         <BaselineChange job={job} result={result} plan={plan} baseline={baseline} network={network.data} guide={guide} />
       </div>
-      <RunResultView job={job} result={result} network={network.data} basis={basis} outaged={outaged} highlighted={highlighted} />
+      <RunResultView
+        job={job}
+        result={result}
+        network={network.data}
+        basis={basis}
+        outaged={outaged}
+        highlighted={highlighted}
+        evidence={evidence}
+      />
     </>
   )
 }
@@ -306,25 +437,27 @@ export default function RunPage() {
       {cancel.error && <ErrorState error={cancel.error} title="Cancel failed" />}
       {settling ? (
         <SkeletonBlock rows={10} label="Loading result" />
+      ) : showResult ? (
+        <CompletedRun
+          job={j}
+          result={result.data!}
+          guide={guide}
+          summary={summary}
+          evidence={
+            <>
+              <Downloads job={j} result={result.data} />
+              <Disclosure summary="Solver and job status" testId="job-details">
+                <div className="flex flex-col gap-3">
+                  <SolverDetails job={j} solver={solver} basis={basis} />
+                  <StageTimeline job={j} />
+                </div>
+              </Disclosure>
+            </>
+          }
+        />
       ) : (
         <>
-          <section className="gs-panel flex flex-col gap-2.5 p-3 md:p-4" aria-label="Run summary" data-testid="run-summary" id="run-summary">
-            <div className="flex flex-wrap items-center gap-2">
-              <h2 className="text-lg font-semibold" data-testid="outcome-headline">
-                {summary.label}
-              </h2>
-              <Badge tone={summary.tone}>{j.status}</Badge>
-              <p className="text-xs text-fg-muted">{summary.detail}</p>
-              {headlineMetrics && (
-                <span className="ml-auto">
-                  <CostBasisBadge basis={basis} />
-                </span>
-              )}
-            </div>
-            {headlineMetrics && <HeadlineCards facts={headlineFacts(headlineMetrics, basis)} />}
-            {result.data && <KeyAssumptions result={result.data} basis={basis} />}
-          </section>
-
+          <RunSummary job={j} summary={summary} metrics={headlineMetrics} basis={basis} result={undefined} />
           {done &&
             (unavailable ? (
               <Panel title="Result file unavailable" className="border-warn/50" id="result-unavailable">
@@ -339,8 +472,6 @@ export default function RunPage() {
                   {rerun.error && <ErrorState error={rerun.error} title="Could not re-run this scenario" />}
                 </div>
               </Panel>
-            ) : result.data ? (
-              <CompletedRun job={j} result={result.data} guide={guide} />
             ) : (
               <ErrorState
                 error={result.error}
@@ -355,18 +486,7 @@ export default function RunPage() {
               {!terminal && <p className="mt-2 text-2xs text-fg-subtle">Polling the backend every second; stages appear as the worker reports them.</p>}
             </Panel>
             <Panel title="Solver configuration">
-              <KeyValue
-                rows={[
-                  ['Solver', solver ? `${solver.name ?? NO_VALUE} ${solver.version ?? ''}` : NO_VALUE],
-                  ['Status', solver?.status ?? NO_VALUE],
-                  ['Termination', solver?.termination_condition ?? NO_VALUE],
-                  ['Objective', formatMoney(solver?.objective_eur, basis, { scale: true })],
-                  [j.execution_mode === 'precomputed' ? 'Wall time (precomputed run)' : 'Wall time', formatDuration(solver?.wall_time_s)],
-                  ['Attempts', j.attempts ?? NO_VALUE],
-                  ['Started', formatTimestamp(j.started_at)],
-                  ['Finished', formatTimestamp(j.finished_at)],
-                ]}
-              />
+              <SolverDetails job={j} solver={solver} basis={basis} />
             </Panel>
             <Downloads job={j} result={result.data} />
           </div>

@@ -1,0 +1,1032 @@
+{
+  "bundle_version": "2026-11-17.1",
+  "entries": [
+    {
+      "artifact": {
+        "bytes": 514964,
+        "path": "series/nasa-power-de-renewable-resource.csv",
+        "rows": 8928,
+        "sha256": "92b02004aefed52b3a5b0d9c058f312d610be2e70deaa03a5fbe1cc92497f644"
+      },
+      "category": "renewable_resource",
+      "data_nature": "MERRA-2 reanalysis wind and CERES SYN1deg satellite-derived irradiance via NASA POWER (grid-cell values, not station data)",
+      "description": "Hourly `WS50M` (m/s, MERRA-2, 0.5° × 0.625°) and `ALLSKY_SFC_SW_DWN` (all-sky global horizontal irradiance, Wh/m² per hour = mean W/m²; CERES SYN1deg Ed4.2, 1° × 1°) from the NASA POWER Hourly API with `time-standard=UTC`. **Modeled resource indicators, not station data and not power output**: 50 m is above the grid cell's mean elevation, not a turbine hub height.\n\nCoverage: 2015-01-17..23 and calendar year 2017.",
+      "exportable": true,
+      "id": "nasa-power-de-renewable-resource",
+      "links": {
+        "docs": [
+          {
+            "href": "https://github.com/tanmay-alpha/GridStorm/blob/main/docs/data/sources-and-licensing.md",
+            "label": "Sources and licensing"
+          },
+          {
+            "href": "https://github.com/tanmay-alpha/GridStorm/blob/main/docs/research/observed-analogue-scenarios.md",
+            "label": "Observed-analogue scenarios"
+          }
+        ],
+        "network_id": null,
+        "scenario_ids": [
+          "observed-dunkelflaute-2015-01-20",
+          "observed-high-load-low-res-2017-01-24",
+          "observed-peak-load-2017-12-13"
+        ],
+        "study_route": null
+      },
+      "provenance": "modeled",
+      "quality": {
+        "checks": [
+          {
+            "detail": "8 requests with time-standard=UTC; every response header says UTC",
+            "name": "time_standard_utc",
+            "status": "pass"
+          },
+          {
+            "detail": "canonical values of all 8 requests hash to the values_sha256 in data/observed/nasa-power-de/power-hourly-requests.json",
+            "name": "values_match_request_record",
+            "status": "pass"
+          },
+          {
+            "detail": "POWER Hourly API v2.10.4; header sources MERRA2, POWER, SYN1DEG",
+            "name": "api_version",
+            "status": "pass"
+          },
+          {
+            "detail": "fill value -999 replaced by empty cells: WS50M 0, ALLSKY_SFC_SW_DWN 0",
+            "name": "fill_values",
+            "status": "pass"
+          },
+          {
+            "detail": "0 duplicate UTC timestamps",
+            "name": "no_duplicate_timestamps",
+            "status": "pass"
+          },
+          {
+            "detail": "8928 rows on the expected hourly UTC grid of 8928 hours",
+            "name": "hourly_utc_grid",
+            "status": "pass"
+          },
+          {
+            "detail": "no missing values",
+            "name": "gaps",
+            "status": "pass"
+          },
+          {
+            "detail": "all values within [0, 75] (observed min 0.03, max 23.42)",
+            "name": "plausible_range_ws50m",
+            "status": "pass"
+          },
+          {
+            "detail": "all values within [0, 1400] (observed min 0, max 935.03)",
+            "name": "plausible_range_allsky_sfc_sw_dwn",
+            "status": "pass"
+          }
+        ],
+        "completeness_pct": 100.0,
+        "expected_rows": 8928,
+        "missing_policy": "kept-as-null",
+        "missing_values": {
+          "berlin_ghi": 0,
+          "berlin_ws50m": 0,
+          "cologne_ghi": 0,
+          "cologne_ws50m": 0,
+          "hamburg_ghi": 0,
+          "hamburg_ws50m": 0,
+          "munich_ghi": 0,
+          "munich_ws50m": 0
+        },
+        "rows": 8928,
+        "warnings": [
+          "Modeled grid-cell values (reanalysis / satellite-derived), not station measurements.",
+          "Rows cover 2015-01-17..2015-01-23 and calendar year 2017 only; hours in between were not requested (not covered, not missing).",
+          "Timestamps are POWER's UTC hour labels (YYYYMMDDHH) written as hour start; POWER documents hourly average values; the alignment of the averaging interval within the hour was not verified.",
+          "Resource indicators only: no conversion to capacity factors or generation is made."
+        ]
+      },
+      "region": {
+        "code": "DE",
+        "kind": "points",
+        "name": "Germany (4 city grid cells)"
+      },
+      "series": [
+        {
+          "id": "berlin_ws50m",
+          "label": "Berlin: 50 m wind speed (WS50M)",
+          "location_id": "berlin",
+          "quantity": "wind speed at 50 m (hourly mean)",
+          "unit": "m/s"
+        },
+        {
+          "id": "berlin_ghi",
+          "label": "Berlin: all-sky GHI (ALLSKY_SFC_SW_DWN)",
+          "location_id": "berlin",
+          "quantity": "all-sky surface shortwave downward irradiance, GHI (hourly; Wh/m² per hour = mean W/m²)",
+          "unit": "Wh/m²"
+        },
+        {
+          "id": "hamburg_ws50m",
+          "label": "Hamburg: 50 m wind speed (WS50M)",
+          "location_id": "hamburg",
+          "quantity": "wind speed at 50 m (hourly mean)",
+          "unit": "m/s"
+        },
+        {
+          "id": "hamburg_ghi",
+          "label": "Hamburg: all-sky GHI (ALLSKY_SFC_SW_DWN)",
+          "location_id": "hamburg",
+          "quantity": "all-sky surface shortwave downward irradiance, GHI (hourly; Wh/m² per hour = mean W/m²)",
+          "unit": "Wh/m²"
+        },
+        {
+          "id": "cologne_ws50m",
+          "label": "Cologne: 50 m wind speed (WS50M)",
+          "location_id": "cologne",
+          "quantity": "wind speed at 50 m (hourly mean)",
+          "unit": "m/s"
+        },
+        {
+          "id": "cologne_ghi",
+          "label": "Cologne: all-sky GHI (ALLSKY_SFC_SW_DWN)",
+          "location_id": "cologne",
+          "quantity": "all-sky surface shortwave downward irradiance, GHI (hourly; Wh/m² per hour = mean W/m²)",
+          "unit": "Wh/m²"
+        },
+        {
+          "id": "munich_ws50m",
+          "label": "Munich: 50 m wind speed (WS50M)",
+          "location_id": "munich",
+          "quantity": "wind speed at 50 m (hourly mean)",
+          "unit": "m/s"
+        },
+        {
+          "id": "munich_ghi",
+          "label": "Munich: all-sky GHI (ALLSKY_SFC_SW_DWN)",
+          "location_id": "munich",
+          "quantity": "all-sky surface shortwave downward irradiance, GHI (hourly; Wh/m² per hour = mean W/m²)",
+          "unit": "Wh/m²"
+        }
+      ],
+      "source": {
+        "attribution": "The data was obtained from National Aeronautics and Space Administration (NASA) Langley Research Center's Prediction Of Worldwide Energy Resources (POWER) project funded through the NASA Earth Science Division. The data was obtained from the POWER Project's Hourly v2.10.4 version on 2026/11/16. Modified by GridStorm: hourly UTC values of four city grid cells reshaped to one wide CSV; fill value -999 written as empty cells; no value altered or interpolated. No endorsement by NASA is implied.",
+        "doi": null,
+        "license": {
+          "id": "LicenseRef-NASA-POWER",
+          "name": "NASA open data (no use restriction marked) + POWER referencing guide",
+          "redistribution": "permitted",
+          "url": "https://www.earthdata.nasa.gov/engage/open-data-services-software-policies/data-use-guidance"
+        },
+        "name": "NASA POWER Hourly API (point, community RE, time-standard=UTC)",
+        "publisher": "NASA Langley Research Center, POWER Project",
+        "retrieved_at": "2026-11-16T21:02:44+00:00",
+        "source_sha256": "046b98fe0a9def8385529eec2fc961082ff75149b33430c5540ef93bd7a9b652",
+        "url": "https://power.larc.nasa.gov/api/temporal/hourly/point",
+        "version": "v2.10.4"
+      },
+      "spatial": {
+        "kind": "points",
+        "points": [
+          {
+            "grid_note": "Coordinates as requested from the POWER point API (city centre). POWER returns the source grid cell containing them: MERRA-2 0.5° × 0.625° for T2M/WS10M/WS50M; CERES SYN1deg 1° × 1° for ALLSKY_SFC_SW_DWN. Not a station.",
+            "id": "berlin",
+            "lat": 52.52,
+            "lon": 13.405,
+            "name": "Berlin"
+          },
+          {
+            "grid_note": "Coordinates as requested from the POWER point API (city centre). POWER returns the source grid cell containing them: MERRA-2 0.5° × 0.625° for T2M/WS10M/WS50M; CERES SYN1deg 1° × 1° for ALLSKY_SFC_SW_DWN. Not a station.",
+            "id": "hamburg",
+            "lat": 53.551,
+            "lon": 9.994,
+            "name": "Hamburg"
+          },
+          {
+            "grid_note": "Coordinates as requested from the POWER point API (city centre). POWER returns the source grid cell containing them: MERRA-2 0.5° × 0.625° for T2M/WS10M/WS50M; CERES SYN1deg 1° × 1° for ALLSKY_SFC_SW_DWN. Not a station.",
+            "id": "cologne",
+            "lat": 50.938,
+            "lon": 6.96,
+            "name": "Cologne"
+          },
+          {
+            "grid_note": "Coordinates as requested from the POWER point API (city centre). POWER returns the source grid cell containing them: MERRA-2 0.5° × 0.625° for T2M/WS10M/WS50M; CERES SYN1deg 1° × 1° for ALLSKY_SFC_SW_DWN. Not a station.",
+            "id": "munich",
+            "lat": 48.137,
+            "lon": 11.575,
+            "name": "Munich"
+          }
+        ]
+      },
+      "summary": "Hourly 50 m wind speed (MERRA-2) and all-sky GHI (CERES SYN1deg) at Berlin, Hamburg, Cologne and Munich grid cells around the observed stress days and for 2017.",
+      "temporal": {
+        "end_utc": "2017-12-31T23:00:00Z",
+        "resolution": "PT1H",
+        "start_utc": "2015-01-17T00:00:00Z",
+        "timezone": "UTC",
+        "windows": [
+          {
+            "end_utc": "2015-01-23T23:00:00Z",
+            "label": "Dunkelflaute 2015-01-20 ±3 d",
+            "start_utc": "2015-01-17T00:00:00Z"
+          },
+          {
+            "end_utc": "2017-01-27T23:00:00Z",
+            "label": "High load / low renewables 2017-01-24 ±3 d",
+            "start_utc": "2017-01-21T00:00:00Z"
+          },
+          {
+            "end_utc": "2017-12-16T23:00:00Z",
+            "label": "Peak load 2017-12-13 ±3 d",
+            "start_utc": "2017-12-10T00:00:00Z"
+          }
+        ]
+      },
+      "title": "NASA POWER hourly 50 m wind and solar irradiance, four German cities (UTC)",
+      "transformation_version": "nasa-power-de-renewable-resource/1.0.0",
+      "transformations": [
+        {
+          "description": "8 sequential point requests (4 points × 2 date ranges), parameters T2M, WS10M, WS50M, ALLSKY_SFC_SW_DWN, community RE, format JSON, time-standard=UTC",
+          "step": "request"
+        },
+        {
+          "description": "URL, response sha256, API version, header sources, fill counts and canonical-values sha256 per request in data/observed/nasa-power-de/power-hourly-requests.json",
+          "step": "record"
+        },
+        {
+          "description": "YYYYMMDDHH (UTC) -> ISO-8601 hour start; -999 -> empty",
+          "step": "parse"
+        },
+        {
+          "description": "wide CSV, one column per point and parameter",
+          "step": "write"
+        }
+      ],
+      "use_in_scenario": {
+        "available": false,
+        "network_id": null,
+        "preset_id": null,
+        "rationale": "No validated mapping from these point weather/resource series to a network input (GridStorm has no validated weather-to-availability model). The only validated scenario use of observed data is the three observed-analogue scenarios on scigrid-de; see observed-analogue-scenarios.",
+        "route": null
+      }
+    },
+    {
+      "artifact": {
+        "bytes": 558439,
+        "path": "series/nasa-power-de-weather.csv",
+        "rows": 8928,
+        "sha256": "d7943b500753f7f335910d6dd96e72a2007644f622e0a564001184d7e9bbe585"
+      },
+      "category": "weather_reanalysis",
+      "data_nature": "MERRA-2 reanalysis via NASA POWER (grid-cell values, not station data)",
+      "description": "Hourly `T2M` (°C) and `WS10M` (m/s) from the NASA POWER Hourly API, requested with `time-standard=UTC` (the API defaults to local solar time). Values are MERRA-2 reanalysis averages over the 0.5° × 0.625° grid cell containing each city centre — **modeled, not station data**.\n\nCoverage: the Dunkelflaute window 2015-01-17..23 and calendar year 2017 (which contains the 2017-01-24 and 2017-12-13 stress windows).",
+      "exportable": true,
+      "id": "nasa-power-de-weather",
+      "links": {
+        "docs": [
+          {
+            "href": "https://github.com/tanmay-alpha/GridStorm/blob/main/docs/data/sources-and-licensing.md",
+            "label": "Sources and licensing"
+          },
+          {
+            "href": "https://github.com/tanmay-alpha/GridStorm/blob/main/docs/research/observed-analogue-scenarios.md",
+            "label": "Observed-analogue scenarios"
+          }
+        ],
+        "network_id": null,
+        "scenario_ids": [
+          "observed-dunkelflaute-2015-01-20",
+          "observed-high-load-low-res-2017-01-24",
+          "observed-peak-load-2017-12-13"
+        ],
+        "study_route": null
+      },
+      "provenance": "modeled",
+      "quality": {
+        "checks": [
+          {
+            "detail": "8 requests with time-standard=UTC; every response header says UTC",
+            "name": "time_standard_utc",
+            "status": "pass"
+          },
+          {
+            "detail": "canonical values of all 8 requests hash to the values_sha256 in data/observed/nasa-power-de/power-hourly-requests.json",
+            "name": "values_match_request_record",
+            "status": "pass"
+          },
+          {
+            "detail": "POWER Hourly API v2.10.4; header sources MERRA2, POWER, SYN1DEG",
+            "name": "api_version",
+            "status": "pass"
+          },
+          {
+            "detail": "fill value -999 replaced by empty cells: T2M 0, WS10M 0",
+            "name": "fill_values",
+            "status": "pass"
+          },
+          {
+            "detail": "0 duplicate UTC timestamps",
+            "name": "no_duplicate_timestamps",
+            "status": "pass"
+          },
+          {
+            "detail": "8928 rows on the expected hourly UTC grid of 8928 hours",
+            "name": "hourly_utc_grid",
+            "status": "pass"
+          },
+          {
+            "detail": "no missing values",
+            "name": "gaps",
+            "status": "pass"
+          },
+          {
+            "detail": "all values within [-45, 45] (observed min -15.91, max 33.9)",
+            "name": "plausible_range_t2m",
+            "status": "pass"
+          },
+          {
+            "detail": "all values within [0, 60] (observed min 0, max 17.73)",
+            "name": "plausible_range_ws10m",
+            "status": "pass"
+          },
+          {
+            "detail": "4032/4032 T2M/WS10M values identical to data/observed/nasa-power-de extract (2026-11-14)",
+            "name": "consistent_with_previous_extract",
+            "status": "pass"
+          }
+        ],
+        "completeness_pct": 100.0,
+        "expected_rows": 8928,
+        "missing_policy": "kept-as-null",
+        "missing_values": {
+          "berlin_t2m": 0,
+          "berlin_ws10m": 0,
+          "cologne_t2m": 0,
+          "cologne_ws10m": 0,
+          "hamburg_t2m": 0,
+          "hamburg_ws10m": 0,
+          "munich_t2m": 0,
+          "munich_ws10m": 0
+        },
+        "rows": 8928,
+        "warnings": [
+          "Modeled grid-cell values (reanalysis / satellite-derived), not station measurements.",
+          "Rows cover 2015-01-17..2015-01-23 and calendar year 2017 only; hours in between were not requested (not covered, not missing).",
+          "Timestamps are POWER's UTC hour labels (YYYYMMDDHH) written as hour start; POWER documents hourly average values; the alignment of the averaging interval within the hour was not verified."
+        ]
+      },
+      "region": {
+        "code": "DE",
+        "kind": "points",
+        "name": "Germany (4 city grid cells)"
+      },
+      "series": [
+        {
+          "id": "berlin_t2m",
+          "label": "Berlin: 2 m air temperature (T2M)",
+          "location_id": "berlin",
+          "quantity": "air temperature at 2 m (hourly mean)",
+          "unit": "°C"
+        },
+        {
+          "id": "berlin_ws10m",
+          "label": "Berlin: 10 m wind speed (WS10M)",
+          "location_id": "berlin",
+          "quantity": "wind speed at 10 m (hourly mean)",
+          "unit": "m/s"
+        },
+        {
+          "id": "hamburg_t2m",
+          "label": "Hamburg: 2 m air temperature (T2M)",
+          "location_id": "hamburg",
+          "quantity": "air temperature at 2 m (hourly mean)",
+          "unit": "°C"
+        },
+        {
+          "id": "hamburg_ws10m",
+          "label": "Hamburg: 10 m wind speed (WS10M)",
+          "location_id": "hamburg",
+          "quantity": "wind speed at 10 m (hourly mean)",
+          "unit": "m/s"
+        },
+        {
+          "id": "cologne_t2m",
+          "label": "Cologne: 2 m air temperature (T2M)",
+          "location_id": "cologne",
+          "quantity": "air temperature at 2 m (hourly mean)",
+          "unit": "°C"
+        },
+        {
+          "id": "cologne_ws10m",
+          "label": "Cologne: 10 m wind speed (WS10M)",
+          "location_id": "cologne",
+          "quantity": "wind speed at 10 m (hourly mean)",
+          "unit": "m/s"
+        },
+        {
+          "id": "munich_t2m",
+          "label": "Munich: 2 m air temperature (T2M)",
+          "location_id": "munich",
+          "quantity": "air temperature at 2 m (hourly mean)",
+          "unit": "°C"
+        },
+        {
+          "id": "munich_ws10m",
+          "label": "Munich: 10 m wind speed (WS10M)",
+          "location_id": "munich",
+          "quantity": "wind speed at 10 m (hourly mean)",
+          "unit": "m/s"
+        }
+      ],
+      "source": {
+        "attribution": "The data was obtained from National Aeronautics and Space Administration (NASA) Langley Research Center's Prediction Of Worldwide Energy Resources (POWER) project funded through the NASA Earth Science Division. The data was obtained from the POWER Project's Hourly v2.10.4 version on 2026/11/16. Modified by GridStorm: hourly UTC values of four city grid cells reshaped to one wide CSV; fill value -999 written as empty cells; no value altered or interpolated. No endorsement by NASA is implied.",
+        "doi": null,
+        "license": {
+          "id": "LicenseRef-NASA-POWER",
+          "name": "NASA open data (no use restriction marked) + POWER referencing guide",
+          "redistribution": "permitted",
+          "url": "https://www.earthdata.nasa.gov/engage/open-data-services-software-policies/data-use-guidance"
+        },
+        "name": "NASA POWER Hourly API (point, community RE, time-standard=UTC)",
+        "publisher": "NASA Langley Research Center, POWER Project",
+        "retrieved_at": "2026-11-16T21:02:44+00:00",
+        "source_sha256": "046b98fe0a9def8385529eec2fc961082ff75149b33430c5540ef93bd7a9b652",
+        "url": "https://power.larc.nasa.gov/api/temporal/hourly/point",
+        "version": "v2.10.4"
+      },
+      "spatial": {
+        "kind": "points",
+        "points": [
+          {
+            "grid_note": "Coordinates as requested from the POWER point API (city centre). POWER returns the source grid cell containing them: MERRA-2 0.5° × 0.625° for T2M/WS10M/WS50M; CERES SYN1deg 1° × 1° for ALLSKY_SFC_SW_DWN. Not a station.",
+            "id": "berlin",
+            "lat": 52.52,
+            "lon": 13.405,
+            "name": "Berlin"
+          },
+          {
+            "grid_note": "Coordinates as requested from the POWER point API (city centre). POWER returns the source grid cell containing them: MERRA-2 0.5° × 0.625° for T2M/WS10M/WS50M; CERES SYN1deg 1° × 1° for ALLSKY_SFC_SW_DWN. Not a station.",
+            "id": "hamburg",
+            "lat": 53.551,
+            "lon": 9.994,
+            "name": "Hamburg"
+          },
+          {
+            "grid_note": "Coordinates as requested from the POWER point API (city centre). POWER returns the source grid cell containing them: MERRA-2 0.5° × 0.625° for T2M/WS10M/WS50M; CERES SYN1deg 1° × 1° for ALLSKY_SFC_SW_DWN. Not a station.",
+            "id": "cologne",
+            "lat": 50.938,
+            "lon": 6.96,
+            "name": "Cologne"
+          },
+          {
+            "grid_note": "Coordinates as requested from the POWER point API (city centre). POWER returns the source grid cell containing them: MERRA-2 0.5° × 0.625° for T2M/WS10M/WS50M; CERES SYN1deg 1° × 1° for ALLSKY_SFC_SW_DWN. Not a station.",
+            "id": "munich",
+            "lat": 48.137,
+            "lon": 11.575,
+            "name": "Munich"
+          }
+        ]
+      },
+      "summary": "Hourly MERRA-2 2 m temperature and 10 m wind speed at Berlin, Hamburg, Cologne and Munich grid cells around the observed stress days and for 2017.",
+      "temporal": {
+        "end_utc": "2017-12-31T23:00:00Z",
+        "resolution": "PT1H",
+        "start_utc": "2015-01-17T00:00:00Z",
+        "timezone": "UTC",
+        "windows": [
+          {
+            "end_utc": "2015-01-23T23:00:00Z",
+            "label": "Dunkelflaute 2015-01-20 ±3 d",
+            "start_utc": "2015-01-17T00:00:00Z"
+          },
+          {
+            "end_utc": "2017-01-27T23:00:00Z",
+            "label": "High load / low renewables 2017-01-24 ±3 d",
+            "start_utc": "2017-01-21T00:00:00Z"
+          },
+          {
+            "end_utc": "2017-12-16T23:00:00Z",
+            "label": "Peak load 2017-12-13 ±3 d",
+            "start_utc": "2017-12-10T00:00:00Z"
+          }
+        ]
+      },
+      "title": "NASA POWER hourly temperature and 10 m wind, four German cities (UTC)",
+      "transformation_version": "nasa-power-de-weather/1.0.0",
+      "transformations": [
+        {
+          "description": "8 sequential point requests (4 points × 2 date ranges), parameters T2M, WS10M, WS50M, ALLSKY_SFC_SW_DWN, community RE, format JSON, time-standard=UTC",
+          "step": "request"
+        },
+        {
+          "description": "URL, response sha256, API version, header sources, fill counts and canonical-values sha256 per request in data/observed/nasa-power-de/power-hourly-requests.json",
+          "step": "record"
+        },
+        {
+          "description": "YYYYMMDDHH (UTC) -> ISO-8601 hour start; -999 -> empty",
+          "step": "parse"
+        },
+        {
+          "description": "wide CSV, one column per point and parameter",
+          "step": "write"
+        }
+      ],
+      "use_in_scenario": {
+        "available": false,
+        "network_id": null,
+        "preset_id": null,
+        "rationale": "No validated mapping from these point weather/resource series to a network input (GridStorm has no validated weather-to-availability model). The only validated scenario use of observed data is the three observed-analogue scenarios on scigrid-de; see observed-analogue-scenarios.",
+        "route": null
+      }
+    },
+    {
+      "artifact": null,
+      "category": "synthetic_scenario_input",
+      "data_nature": "StormSpec scenario inputs constructed by GridStorm from observed stress days (analogue mapping, not a real system state)",
+      "description": "Historical-analogue scenarios: the German highest-load day, the winter Dunkelflaute day and the combined high-load / low-renewable day (detected in OPSD 2015–2020) mapped onto the 24 snapshots of scigrid-de: hourly demand from the CC BY 4.0 load forecast, one MODELED daily availability multiplier per renewable carrier. The mapping and every result are **modeled** (DC LOPF, 2011 topology), not a reconstruction of the day.\n\nPrecomputed results (`data/observed/analogue-results.json`):\n\n| Scenario | Day (UTC) | Unserved energy (MWh) | Peak shed (MW) | Shed hours |\n|---|---|---:|---:|---:|\n| baseline (network day, no events) | 2011-01-01 | 0 | 0 | 0 |\n| `observed-dunkelflaute-2015-01-20` | 2015-01-20 | 2,721 | 230 | 17 |\n| `observed-high-load-low-res-2017-01-24` | 2017-01-24 | 4,731 | 346 | 20 |\n| `observed-peak-load-2017-12-13` | 2017-12-13 | 4,429 | 335 | 19 |",
+      "exportable": false,
+      "id": "observed-analogue-scenarios",
+      "links": {
+        "docs": [
+          {
+            "href": "https://github.com/tanmay-alpha/GridStorm/blob/main/docs/research/observed-analogue-scenarios.md",
+            "label": "Observed-analogue scenarios"
+          },
+          {
+            "href": "https://github.com/tanmay-alpha/GridStorm/blob/main/data/observed/analogue-results.json",
+            "label": "Precomputed results (JSON)"
+          },
+          {
+            "href": "https://github.com/tanmay-alpha/GridStorm/blob/main/docs/research/entsoe-reuse-check.md",
+            "label": "ENTSO-E re-use check"
+          }
+        ],
+        "network_id": "scigrid-de",
+        "scenario_ids": [
+          "observed-dunkelflaute-2015-01-20",
+          "observed-high-load-low-res-2017-01-24",
+          "observed-peak-load-2017-12-13"
+        ],
+        "study_route": null
+      },
+      "provenance": "modeled",
+      "quality": {
+        "checks": [
+          {
+            "detail": "scenario YAML sha256 = data/observed/opsd-de/manifest.json scenario_files = derived-multipliers.json",
+            "name": "scenario_checksums",
+            "status": "pass"
+          },
+          {
+            "detail": "packages/stormspec/presets/<id>.yaml is byte-identical to data/scenarios/observed/<id>.yaml for all three scenarios",
+            "name": "studio_presets_identical",
+            "status": "pass"
+          },
+          {
+            "detail": "each scenario has a result in analogue-results.json for the same scenario sha256, validated and solved to optimality",
+            "name": "precomputed_results",
+            "status": "pass"
+          }
+        ],
+        "completeness_pct": null,
+        "expected_rows": null,
+        "missing_policy": "kept-as-null",
+        "missing_values": {},
+        "rows": null,
+        "warnings": [
+          "Metadata-only entry: the scenario files and results are linked, not re-published as series.",
+          "Renewable shortfall is one daily multiplier per carrier on the network's own 2011-01-01 profile; observed hourly renewable timing is not represented."
+        ]
+      },
+      "region": {
+        "code": "DE",
+        "kind": "country",
+        "name": "Germany (scigrid-de network)"
+      },
+      "series": [],
+      "source": {
+        "attribution": "Open Power System Data. 2020. Data Package Time series. Version 2020-10-06. https://doi.org/10.25832/time_series/2020-10-06. (Primary data from various sources, for a complete list see URL). German load forecast and load/generation: ENTSO-E Transparency Platform; German capacities: OPSD calculations based on BNetzA and netztransparenz.de. Day-ahead forecast of the total load per market time unit, Germany (Reg. (EU) 543/2013 Art. 6.1.b), ENTSO-E Transparency Platform (https://transparency.entsoe.eu/), obtained via Open Power System Data, Time series 2020-10-06 (https://doi.org/10.25832/time_series/2020-10-06), column DE_load_forecast_entsoe_transparency. Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) per the ENTSO-E list of data available for free re-use (2023-10-18), item #1. Changes made by GridStorm: the stress day's 24 hourly values are divided by the mean of the nearest 1 January (UTC), then by the scigrid-de network's normalized hourly load, and rounded to 4 decimals; only these ratios are published.",
+        "doi": null,
+        "license": {
+          "id": "LicenseRef-GridStorm-observed-analogue",
+          "name": "Mixed: CC BY 4.0 demand multipliers (ENTSO-E load forecast); daily renewable multipliers derived from non-open ENTSO-E actual generation (derived-only)",
+          "redistribution": "derived-only",
+          "url": "https://github.com/tanmay-alpha/GridStorm/blob/main/docs/research/entsoe-reuse-check.md"
+        },
+        "name": "GridStorm observed-analogue scenarios (data/scenarios/observed/*.yaml)",
+        "publisher": "GridStorm (pipelines/observed)",
+        "retrieved_at": null,
+        "source_sha256": "d9d5ed6c6c1635953a603e4957764a0d90b14cc17a45f58854a6f2f502f8c7d1",
+        "url": "https://github.com/tanmay-alpha/GridStorm/blob/main/data/scenarios/observed",
+        "version": "gridstorm-observed-derived/2.0"
+      },
+      "spatial": {
+        "kind": "network",
+        "points": null
+      },
+      "summary": "Three StormSpec scenarios replaying observed German stress days on the scigrid-de network, with precomputed PyPSA results.",
+      "temporal": {
+        "end_utc": "2017-12-13T23:00:00Z",
+        "resolution": "PT1H",
+        "start_utc": "2015-01-20T00:00:00Z",
+        "timezone": "UTC",
+        "windows": [
+          {
+            "end_utc": "2015-01-20T23:00:00Z",
+            "label": "observed-dunkelflaute-2015-01-20 (stress day, UTC)",
+            "start_utc": "2015-01-20T00:00:00Z"
+          },
+          {
+            "end_utc": "2017-01-24T23:00:00Z",
+            "label": "observed-high-load-low-res-2017-01-24 (stress day, UTC)",
+            "start_utc": "2017-01-24T00:00:00Z"
+          },
+          {
+            "end_utc": "2017-12-13T23:00:00Z",
+            "label": "observed-peak-load-2017-12-13 (stress day, UTC)",
+            "start_utc": "2017-12-13T00:00:00Z"
+          }
+        ]
+      },
+      "title": "Observed-analogue stress scenarios on scigrid-de (2015–2017 German stress days)",
+      "transformation_version": "observed-analogue-scenarios/1.0.0",
+      "transformations": [
+        {
+          "description": "stress days from OPSD actual load / generation / capacity (dates only are committed)",
+          "step": "detect"
+        },
+        {
+          "description": "hourly demand multipliers from the load forecast; one daily renewable multiplier per carrier, rounded to 0.05",
+          "step": "map"
+        },
+        {
+          "description": "PyPSA LOPF (HiGHS) per scenario + baseline",
+          "step": "solve"
+        }
+      ],
+      "use_in_scenario": {
+        "available": true,
+        "network_id": "scigrid-de",
+        "preset_id": "observed-dunkelflaute-2015-01-20",
+        "rationale": "The three StormSpec analogue scenarios are published as PRECOMPUTED Studio presets on SciGRID-DE (too large for live runs on the free API); the presets are byte-identical copies of data/scenarios/observed/*.yaml. The other two are observed-high-load-low-res-2017-01-24 and observed-peak-load-2017-12-13.",
+        "route": "/studio?network=scigrid-de&preset=observed-dunkelflaute-2015-01-20"
+      }
+    },
+    {
+      "artifact": {
+        "bytes": 1080,
+        "path": "series/opsd-de-derived-multipliers.csv",
+        "rows": 24,
+        "sha256": "1fd4afdaecc8f94e60fe953714034346cbec263c630ba9477ccc10e509af85b4"
+      },
+      "category": "derived_research",
+      "data_nature": "GridStorm-derived scenario parameters (MODELED mapping of a CC BY 4.0 forecast onto a network day)",
+      "description": "For each observed stress day d with reference day r (nearest complete 1 January), `m_h = (F(d,h) / mean F(r)) / (L_net(h) / mean L_net)`, where F is the ENTSO-E day-ahead load forecast and L_net the scigrid-de network load; rounded to 4 decimals (docs/research/observed-analogue-scenarios.md §3).\n\n**Time axis**: the `utc` timestamps are the SciGRID-DE **model snapshot hours** (2011-01-01 h:00 UTC) each multiplier is applied to, **not observation times**: hour h of the stress day (UTC) maps to model snapshot h. Each column is the hour-of-day profile of one stress day (2015-01-20, 2017-01-24, 2017-12-13). The renewable daily multipliers of the same file derive from non-open actual-generation data and are not published as series here.",
+      "exportable": true,
+      "id": "opsd-de-derived-multipliers",
+      "links": {
+        "docs": [
+          {
+            "href": "https://github.com/tanmay-alpha/GridStorm/blob/main/docs/research/observed-analogue-scenarios.md",
+            "label": "Observed-analogue scenarios"
+          },
+          {
+            "href": "https://github.com/tanmay-alpha/GridStorm/blob/main/docs/research/entsoe-reuse-check.md",
+            "label": "ENTSO-E re-use check"
+          }
+        ],
+        "network_id": "scigrid-de",
+        "scenario_ids": [
+          "observed-dunkelflaute-2015-01-20",
+          "observed-high-load-low-res-2017-01-24",
+          "observed-peak-load-2017-12-13"
+        ],
+        "study_route": null
+      },
+      "provenance": "modeled",
+      "quality": {
+        "checks": [
+          {
+            "detail": "derived-multipliers.json sha256 af06b0c0c7f8022d9ccc3be71c1d5210c02b6b1505c03ce6b9dbcae2f452a181 matches data/observed/opsd-de/manifest.json",
+            "name": "derived_file_checksum",
+            "status": "pass"
+          },
+          {
+            "detail": "the 24 demand_multiplier events of each scenario YAML equal these values",
+            "name": "matches_scenario_events",
+            "status": "pass"
+          },
+          {
+            "detail": "0 hours clipped to StormSpec (0, 5]",
+            "name": "no_clipping",
+            "status": "pass"
+          },
+          {
+            "detail": "0 duplicate UTC timestamps",
+            "name": "no_duplicate_timestamps",
+            "status": "pass"
+          },
+          {
+            "detail": "24 rows on the expected hourly UTC grid of 24 hours",
+            "name": "hourly_utc_grid",
+            "status": "pass"
+          },
+          {
+            "detail": "no missing values",
+            "name": "gaps",
+            "status": "pass"
+          },
+          {
+            "detail": "all values within [1e-09, 5] (observed min 1.0375, max 1.9439)",
+            "name": "stormspec_range",
+            "status": "pass"
+          }
+        ],
+        "completeness_pct": 100.0,
+        "expected_rows": 24,
+        "missing_policy": "kept-as-null",
+        "missing_values": {
+          "dunkelflaute_2015_01_20": 0,
+          "high_load_low_res_2017_01_24": 0,
+          "peak_load_2017_12_13": 0
+        },
+        "rows": 24,
+        "warnings": [
+          "Timestamps are SciGRID-DE model snapshot hours (2011-01-01), not observation times: column <stress day> holds that day's hour-of-day multipliers (UTC hour h -> snapshot h)."
+        ]
+      },
+      "region": {
+        "code": "DE",
+        "kind": "country",
+        "name": "Germany (scigrid-de network)"
+      },
+      "series": [
+        {
+          "id": "dunkelflaute_2015_01_20",
+          "label": "Hour-of-day demand multiplier for stress day 2015-01-20 (reference 2015-01-01), applied to the SciGRID-DE model day 2011-01-01",
+          "location_id": null,
+          "quantity": "hour-of-day demand multiplier applied to all scigrid-de loads (timestamp = model snapshot hour, not observation time)",
+          "unit": "dimensionless"
+        },
+        {
+          "id": "high_load_low_res_2017_01_24",
+          "label": "Hour-of-day demand multiplier for stress day 2017-01-24 (reference 2017-01-01), applied to the SciGRID-DE model day 2011-01-01",
+          "location_id": null,
+          "quantity": "hour-of-day demand multiplier applied to all scigrid-de loads (timestamp = model snapshot hour, not observation time)",
+          "unit": "dimensionless"
+        },
+        {
+          "id": "peak_load_2017_12_13",
+          "label": "Hour-of-day demand multiplier for stress day 2017-12-13 (reference 2018-01-01), applied to the SciGRID-DE model day 2011-01-01",
+          "location_id": null,
+          "quantity": "hour-of-day demand multiplier applied to all scigrid-de loads (timestamp = model snapshot hour, not observation time)",
+          "unit": "dimensionless"
+        }
+      ],
+      "source": {
+        "attribution": "Day-ahead forecast of the total load per market time unit, Germany (Reg. (EU) 543/2013 Art. 6.1.b), ENTSO-E Transparency Platform (https://transparency.entsoe.eu/), obtained via Open Power System Data, Time series 2020-10-06 (https://doi.org/10.25832/time_series/2020-10-06), column DE_load_forecast_entsoe_transparency. Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) per the ENTSO-E list of data available for free re-use (2023-10-18), item #1. Changes made by GridStorm: the stress day's 24 hourly values are divided by the mean of the nearest 1 January (UTC), then by the scigrid-de network's normalized hourly load, and rounded to 4 decimals; only these ratios are published. Network load: scigrid-de (PyPSA SciGRID example, PyPSA contributors, CC BY 4.0; SciGRID/© OpenStreetMap contributors, ODbL).",
+        "doi": null,
+        "license": {
+          "id": "CC-BY-4.0",
+          "name": "Creative Commons Attribution 4.0 International",
+          "redistribution": "permitted",
+          "url": "https://creativecommons.org/licenses/by/4.0/"
+        },
+        "name": "GridStorm observed-analogue derived parameters (derived-multipliers.json)",
+        "publisher": "GridStorm (pipelines/observed)",
+        "retrieved_at": null,
+        "source_sha256": "af06b0c0c7f8022d9ccc3be71c1d5210c02b6b1505c03ce6b9dbcae2f452a181",
+        "url": "https://github.com/tanmay-alpha/GridStorm/blob/main/data/observed/opsd-de/derived-multipliers.json",
+        "version": "gridstorm-observed-derived/2.0"
+      },
+      "spatial": {
+        "kind": "network",
+        "points": null
+      },
+      "summary": "The 24 hourly demand multipliers that map each observed German stress day onto the scigrid-de network day.",
+      "temporal": {
+        "end_utc": "2011-01-01T23:00:00Z",
+        "resolution": "PT1H",
+        "start_utc": "2011-01-01T00:00:00Z",
+        "timezone": "UTC",
+        "windows": null
+      },
+      "title": "Observed-analogue hourly demand multipliers (scigrid-de)",
+      "transformation_version": "opsd-de-derived-multipliers/1.0.0",
+      "transformations": [
+        {
+          "description": "scenarios[].demand.multipliers of data/observed/opsd-de/derived-multipliers.json (written by gridstorm_observed.build)",
+          "step": "read"
+        },
+        {
+          "description": "stress-day hour h -> scigrid-de snapshot h (UTC)",
+          "step": "align"
+        },
+        {
+          "description": "one column per scenario, 4 decimals",
+          "step": "write"
+        }
+      ],
+      "use_in_scenario": {
+        "available": false,
+        "network_id": "scigrid-de",
+        "preset_id": null,
+        "rationale": "Already embedded as demand_multiplier events in the three scenarios of observed-analogue-scenarios; use those instead of applying the series by hand.",
+        "route": null
+      }
+    },
+    {
+      "artifact": {
+        "bytes": 1360701,
+        "path": "series/opsd-de-load-forecast.csv",
+        "rows": 50400,
+        "sha256": "7c9d5743d47439d26926ef229712614ce7131788e8c590ce0d1b3edc1cb6363a"
+      },
+      "category": "historical_demand",
+      "data_nature": "TSO day-ahead total load forecast (ENTSO-E Art. 6.1.b), not measured load",
+      "description": "Day-ahead forecast of the total load per market time unit for Germany (Reg. (EU) 543/2013 Art. 6.1.b) as published on the ENTSO-E Transparency Platform and packaged by Open Power System Data (time series 2020-10-06, column `DE_load_forecast_entsoe_transparency`).\n\nThis is the TSOs' forecast, **not measured load**. It is the only OPSD load column on ENTSO-E's free re-use list (item #1, CC BY 4.0); actual load, actual generation and capacities are not published here. Values are unchanged; missing hours stay empty. It is the demand input of the observed-analogue scenarios.",
+      "exportable": true,
+      "id": "opsd-de-load-forecast",
+      "links": {
+        "docs": [
+          {
+            "href": "https://github.com/tanmay-alpha/GridStorm/blob/main/docs/data/sources-and-licensing.md",
+            "label": "Sources and licensing"
+          },
+          {
+            "href": "https://github.com/tanmay-alpha/GridStorm/blob/main/docs/research/entsoe-reuse-check.md",
+            "label": "ENTSO-E re-use check"
+          },
+          {
+            "href": "https://github.com/tanmay-alpha/GridStorm/blob/main/docs/research/observed-analogue-scenarios.md",
+            "label": "Observed-analogue scenarios"
+          }
+        ],
+        "network_id": null,
+        "scenario_ids": [
+          "observed-dunkelflaute-2015-01-20",
+          "observed-high-load-low-res-2017-01-24",
+          "observed-peak-load-2017-12-13"
+        ],
+        "study_route": null
+      },
+      "provenance": "estimated",
+      "quality": {
+        "checks": [
+          {
+            "detail": "source CSV sha256 6a7f2bc571314cbf9c321cc03437691cd4be95c3a6f075e60ff99e8035c704c8 matches the pinned value",
+            "name": "source_sha256",
+            "status": "pass"
+          },
+          {
+            "detail": "50401/50401 utc_timestamp values are ISO-8601 with 'Z'",
+            "name": "source_utc_format",
+            "status": "pass"
+          },
+          {
+            "detail": "0 duplicate UTC hours",
+            "name": "source_no_duplicates",
+            "status": "pass"
+          },
+          {
+            "detail": "50401 source rows 2014-12-31T23:00:00Z..2020-09-30T23:00:00Z, step(s) ['1:00:00']",
+            "name": "source_hourly_grid",
+            "status": "pass"
+          },
+          {
+            "detail": "UTC index strictly hourly across 11 CET/CEST offset changes; every cet_cest_timestamp converts to its utc_timestamp; no repeated or skipped UTC hour",
+            "name": "dst_free_utc",
+            "status": "pass"
+          },
+          {
+            "detail": "published UTC calendar days 2015-01-01T00:00:00Z..2020-09-30T23:00:00Z; dropped 1 source row(s): 2014-12-31T23:00:00Z (empty in source)",
+            "name": "coverage_trim",
+            "status": "pass"
+          },
+          {
+            "detail": "every value is a whole MW in the source (written without decimals)",
+            "name": "integer_valued",
+            "status": "pass"
+          },
+          {
+            "detail": "0 duplicate UTC timestamps",
+            "name": "no_duplicate_timestamps",
+            "status": "pass"
+          },
+          {
+            "detail": "50400 rows on the expected hourly UTC grid of 50400 hours",
+            "name": "hourly_utc_grid",
+            "status": "pass"
+          },
+          {
+            "detail": "missing runs (kept empty): de_load_forecast: 2018-09-23T22:00:00Z +24 h",
+            "name": "gaps",
+            "status": "warn"
+          },
+          {
+            "detail": "all values within [20000, 100000] (observed min 28824, max 75912)",
+            "name": "plausible_range_mw",
+            "status": "pass"
+          }
+        ],
+        "completeness_pct": 99.952,
+        "expected_rows": 50400,
+        "missing_policy": "kept-as-null",
+        "missing_values": {
+          "de_load_forecast": 24
+        },
+        "rows": 50400,
+        "warnings": [
+          "Forecast, not measured load: the TSOs' day-ahead estimate differs from the actual load by the forecast error; actual load is not published (not openly licensed).",
+          "24 hourly values are missing in the source and kept empty."
+        ]
+      },
+      "region": {
+        "code": "DE",
+        "kind": "country",
+        "name": "Germany"
+      },
+      "series": [
+        {
+          "id": "de_load_forecast",
+          "label": "Germany: day-ahead total load forecast",
+          "location_id": null,
+          "quantity": "day-ahead forecast of total load (hourly mean)",
+          "unit": "MW"
+        }
+      ],
+      "source": {
+        "attribution": "Day-ahead forecast of the total load per market time unit, Germany (Reg. (EU) 543/2013 Art. 6.1.b), ENTSO-E Transparency Platform (https://transparency.entsoe.eu/), obtained via Open Power System Data, Time series 2020-10-06 (https://doi.org/10.25832/time_series/2020-10-06), column DE_load_forecast_entsoe_transparency. Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) per the ENTSO-E list of data available for free re-use (2023-10-18), item #1. Modified by GridStorm: column extracted; restricted to UTC calendar days 2015-01-01..2020-09-30; timestamps reformatted; whole-MW values written without decimals. No value altered, filled or interpolated.",
+        "doi": "https://doi.org/10.25832/time_series/2020-10-06",
+        "license": {
+          "id": "CC-BY-4.0",
+          "name": "Creative Commons Attribution 4.0 International",
+          "redistribution": "permitted",
+          "url": "https://creativecommons.org/licenses/by/4.0/"
+        },
+        "name": "Open Power System Data – Time series 2020-10-06 (DE_load_forecast_entsoe_transparency)",
+        "publisher": "Open Power System Data; primary data: ENTSO-E Transparency Platform",
+        "retrieved_at": "2026-11-14T15:56:46+00:00",
+        "source_sha256": "6a7f2bc571314cbf9c321cc03437691cd4be95c3a6f075e60ff99e8035c704c8",
+        "url": "https://data.open-power-system-data.org/time_series/2020-10-06/time_series_60min_singleindex.csv",
+        "version": "2020-10-06"
+      },
+      "spatial": {
+        "kind": "region",
+        "points": null
+      },
+      "summary": "Hourly German day-ahead total load forecast in MW, UTC, 2015-01-01 to 2020-09-30.",
+      "temporal": {
+        "end_utc": "2020-09-30T23:00:00Z",
+        "resolution": "PT1H",
+        "start_utc": "2015-01-01T00:00:00Z",
+        "timezone": "UTC",
+        "windows": [
+          {
+            "end_utc": "2015-01-23T23:00:00Z",
+            "label": "Dunkelflaute 2015-01-20 ±3 d",
+            "start_utc": "2015-01-17T00:00:00Z"
+          },
+          {
+            "end_utc": "2017-01-27T23:00:00Z",
+            "label": "High load / low renewables 2017-01-24 ±3 d",
+            "start_utc": "2017-01-21T00:00:00Z"
+          },
+          {
+            "end_utc": "2017-12-16T23:00:00Z",
+            "label": "Peak load 2017-12-13 ±3 d",
+            "start_utc": "2017-12-10T00:00:00Z"
+          }
+        ]
+      },
+      "title": "Germany day-ahead total load forecast (ENTSO-E via OPSD), 2015–2020",
+      "transformation_version": "opsd-de-load-forecast/1.0.0",
+      "transformations": [
+        {
+          "description": "sha256 of the cached OPSD CSV equals the datapackage.json hash pinned in data/observed/opsd-de/manifest.json",
+          "step": "verify"
+        },
+        {
+          "description": "read utc_timestamp, cet_cest_timestamp and DE_load_forecast_entsoe_transparency only",
+          "step": "select"
+        },
+        {
+          "description": "UTC format, duplicates, hourly grid, CET/CEST consistency, range",
+          "step": "check"
+        },
+        {
+          "description": "keep UTC calendar days 2015-01-01..2020-09-30 (hour-start timestamps)",
+          "step": "trim"
+        },
+        {
+          "description": "wide CSV; empty cell = missing; whole MW",
+          "step": "write"
+        }
+      ],
+      "use_in_scenario": {
+        "available": false,
+        "network_id": null,
+        "preset_id": null,
+        "rationale": "A national MW series has no validated mapping onto a network's buses. Its only validated use is the observed-analogue mapping onto scigrid-de; see observed-analogue-scenarios.",
+        "route": null
+      }
+    }
+  ],
+  "schema_version": "gridstorm-observatory/1.0"
+}

@@ -28,6 +28,22 @@ def main() -> None:
             f"| {c['case']} | {f(d['recall_at_k'])} | {f(d['kendall_tau'])} | {f(d['spearman'])} |"
         )
     print()
+    print(
+        "| case | tie groups / tied pairs: screening | DC exact | AC exact | "
+        "widest tie group (pp) | smallest margin to tolerance (pp) |"
+    )
+    print("|---|---|---|---|---|---|")
+    for c in cases:
+        sd, sa = c["screening_vs_dc"]["ties"], c["screening_vs_ac"]["ties"]
+        sides = (sd["screening"], sd["reference"], sa["reference"])
+        span = max(t["max_group_span_pct"] for t in sides)
+        margin = min(t["tolerance_margin_pct"] for t in sides)
+        print(
+            f"| {c['case']} | "
+            + " | ".join(f"{t['tie_groups']} / {t['tied_pairs']}" for t in sides)
+            + f" | {f(span)} | {f(margin)} |"
+        )
+    print()
     print("| case | buses | branches | RATE_A=0 | islanding | screened | operating point |")
     print("|---|---|---|---|---|---|---|")
     for c in cases:

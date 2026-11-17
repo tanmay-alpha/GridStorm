@@ -304,15 +304,25 @@ export function fitView(bounds: SchematicModel['bounds'], width: number, height:
 
 /**
  * Canvas insets for fitting: room for the attached symbols and labels around outer buses (≥ 40 px),
- * plus the overlaid badge (top) and controls (right). Scales with the canvas, capped to a quarter
- * of it. `panel` (px, e.g. an open bottom-left legend) is kept clear only where there is room to
- * spare: beside the drawing on wide canvases (remaining width ≥ height), below it on tall ones
- * (remaining height ≥ width); otherwise the drawing keeps the full canvas.
+ * plus the overlaid badge (top) and controls (right) when they float over the drawing. Scales with
+ * the canvas, capped to a quarter of it. `panel` (px, e.g. an open bottom-left legend) is kept clear
+ * only where there is room to spare: beside the drawing on wide canvases (remaining width ≥ height),
+ * below it on tall ones (remaining height ≥ width); otherwise the drawing keeps the full canvas.
  */
-export function fitInsets(width: number, height: number, panel?: { width: number; height: number }): Insets {
+export function fitInsets(
+  width: number,
+  height: number,
+  panel?: { width: number; height: number },
+  overlays: { badge: boolean; controls: boolean } = { badge: true, controls: true },
+): Insets {
   const base = Math.round(Math.min(56, Math.max(40, 0.05 * Math.min(width, height))))
   const cap = (v: number, dim: number) => Math.min(v, Math.floor(dim / 4))
-  const insets = { top: cap(base + 36, height), right: cap(base + 44, width), bottom: cap(base + 12, height), left: cap(base, width) }
+  const insets = {
+    top: cap(base + (overlays.badge ? 36 : 0), height),
+    right: cap(base + (overlays.controls ? 44 : 0), width),
+    bottom: cap(base + 12, height),
+    left: cap(base, width),
+  }
   if (panel && width - panel.width >= height) insets.left = Math.max(insets.left, panel.width)
   else if (panel && height - panel.height >= width) insets.bottom = Math.max(insets.bottom, panel.height)
   return insets

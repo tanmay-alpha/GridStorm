@@ -1,6 +1,7 @@
 import { Suspense, useCallback, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router'
-import { ArrowUpRight, SlidersHorizontal } from 'lucide-react'
+import { ArrowUpRight, ChevronRight, SlidersHorizontal } from 'lucide-react'
+import type { NetworkSummary } from '../../api/types'
 import { useAssetTable, useNetwork, useNetworkGeojson } from '../../api/hooks'
 import { buildFeatures, NO_FILTERS, type AssetRef, type FeatureFilters, type MapFeatures } from '../../components/map/features'
 import { BranchLegend } from '../../components/map/MapLegend'
@@ -11,14 +12,15 @@ import { SchematicView } from '../../components/map/schematic/SchematicView'
 import { buildSearchIndex } from '../../components/network/assets'
 import { NetworkSelect } from '../../components/network/NetworkSelect'
 import { useSelectedNetwork } from '../../components/network/useSelectedNetwork'
-import { Badge, EmptyState, ErrorState, Legend, SkeletonBlock } from '../../components/ui'
+import { EmptyState, ErrorState, Legend, ProvenanceBadge, SkeletonBlock } from '../../components/ui'
 import { cn } from '../../components/ui/cn'
+import { formatQuantity } from '../../lib/format'
 import { resolveCostBasis } from '../../lib/money'
 import { carrierColor } from '../../lib/scales'
 import { AssetDetails } from './AssetDetails'
 import { AssetSearch } from './AssetSearch'
-import { DatasetInfo } from './DatasetInfo'
-import { FilterControls, LayerControls } from './LayerControls'
+import { DatasetInfo, DatasetWarnings } from './DatasetInfo'
+import { FilterControls, LayerControls, SidebarHeading } from './LayerControls'
 import { SchematicBadge } from '../../components/map/SchematicBadge'
 import { assetsFromGeojson } from '../../components/map/geojson'
 import { groupCarriers } from '../../components/map/carriers'
@@ -38,8 +40,74 @@ const INITIAL_LAYERS: Record<'geographic' | 'schematic', LayerVisibility> = {
 
 const wideScreen = () => window.matchMedia?.('(min-width: 768px)').matches ?? true
 
-/** Area the asset details card covers: a 20 rem right column (md+) or the lower 60 % on phones. */
-const detailsCover = (_w: number, h: number) => (wideScreen() ? { right: 336, bottom: 0 } : { right: 0, bottom: Math.round(0.6 * h) })
+/**
+ * Area the asset details drawer covers: a 20 rem right column (md+; from lg it sits left of the zoom
+ * controls) or the lower 60 % on phones.
+ */
+const detailsCover = (_w: number, h: number) =>
+  wideScreen() ? { right: window.matchMedia?.('(min-width: 1024px)').matches ? 392 : 336, bottom: 0 } : { right: 0, bottom: Math.round(0.6 * h) }
+
+/** Dataset totals (network list `counts`) per layer row; a layer whose total is 0 is not offered. */
+const LAYER_TOTAL: Record<keyof LayerVisibility, (c: Record<string, number>) => number | undefined> = {
+  buses: (c) => c.buses,
+  lines: (c) => (c.lines === undefined && c.transformers === undefined ? undefined : (c.lines ?? 0) + (c.transformers ?? 0)),
+  links: (c) => c.links,
+  generators: (c) => c.generators,
+  storage: (c) => c.storage_units,
+  loads: (c) => c.loads,
+}
+
+const STAT_LABELS: [key: string, one: string, many: string][] = [
+  ['buses', 'bus', 'buses'],
+  ['lines', 'line', 'lines'],
+  ['transformers', 'transformer', 'transformers'],
+  ['links', 'link', 'links'],
+  ['generators', 'generator', 'generators'],
+  ['loads', 'load', 'loads'],
+  ['storage_units', 'storage unit', 'storage units'],
+]
+
+/** Whole-dataset facts from the network list (not the filtered drawing), e.g. "14 buses · 17 lines". */
+function networkStats(summary: NetworkSummary): string[] {
+  const out = STAT_LABELS.filter(([k]) => (summary.counts[k] ?? 0) > 0).map(
+    ([k, one, many]) => `${summary.counts[k]!.toLocaleString('en-US')} ${summary.counts[k] === 1 ? one : many}`,
+  )
+  if (summary.peak_load_mw !== null) out.push(`peak load ${formatQuantity(summary.peak_load_mw, 'MW', { scale: true })}`)
+  return out
+}
+
+/** Canvas header: coordinate kind (schematic vs geographic), network name, dataset totals, provenance. */
+function CanvasBar({ summary }: { summary: NetworkSummary | null }) {
+  const stats = summary ? networkStats(summary) : []
+  return (
+    <div className="flex h-11 shrink-0 items-center gap-2.5 overflow-hidden border-b border-line bg-surface px-3" data-testid="explorer-canvas-bar">
+      {summary ? (
+        <>
+          {summary.coordinate_kind === 'schematic' ? (
+            <SchematicBadge inline />
+          ) : (
+            <span className="rounded border border-info/40 bg-info-soft px-2 py-0.5 text-xs font-semibold whitespace-nowrap text-info" data-testid="geographic-badge">
+              Geographic layout — OSM basemap
+            </span>
+          )}
+          <p className="flex min-w-0 flex-1 items-baseline gap-2 text-xs">
+            <span className="hidden shrink-0 font-semibold text-fg lg:inline">{summary.name}</span>
+            <span className="tabular truncate text-fg-muted" title={stats.join(' · ')} data-testid="network-stats">
+              {stats.join(' · ')}
+            </span>
+          </p>
+          {summary.provenance_class && (
+            <span className="hidden shrink-0 items-center gap-1.5 text-2xs text-fg-subtle sm:inline-flex">
+              data <ProvenanceBadge value={summary.provenance_class} />
+            </span>
+          )}
+        </>
+      ) : (
+        <div className="gs-skeleton h-4 w-64 max-w-full" aria-hidden />
+      )}
+    </div>
+  )
+}
 
 export default function ExplorerPage() {
   const sel = useSelectedNetwork()
@@ -61,7 +129,7 @@ export default function ExplorerPage() {
     legendObserver.current?.disconnect()
     legendObserver.current = null
     if (!el) return
-    legendObserver.current = new ResizeObserver(() => setLegendBox({ width: el.offsetWidth + 16, height: el.offsetHeight + 36 }))
+    legendObserver.current = new ResizeObserver(() => setLegendBox({ width: el.offsetWidth + 16, height: el.offsetHeight + 16 }))
     legendObserver.current.observe(el)
   }, [])
   const [searchAll, setSearchAll] = useState(false)
@@ -94,6 +162,12 @@ export default function ExplorerPage() {
     () => (data ? [...new Set(data.buses.map((b) => b.country).filter((c): c is string => !!c))].sort() : []),
     [data],
   )
+  // Nominal bus voltages as stored in the dataset (quick filters, geographic legend bands).
+  const levels = useMemo(
+    () => (data ? [...new Set(data.buses.map((b) => b.v_nom_kv).filter((kv): kv is number => typeof kv === 'number'))].sort((a, b) => b - a) : []),
+    [data],
+  )
+  const unknownKv = useMemo(() => !!data?.buses.some((b) => typeof b.v_nom_kv !== 'number'), [data])
 
   // The MapLibre map stays mounted (hidden) once a geographic network has been shown, so returning
   // from a schematic network reuses its WebGL context, style and tiles instead of rebuilding them.
@@ -129,20 +203,18 @@ export default function ExplorerPage() {
     storage: storage.data ? features?.storage.features.length ?? 0 : null,
     loads: loads.data ? features?.loads.features.length ?? 0 : null,
   }
-  const layerRows: (keyof LayerVisibility)[] =
-    kind === 'schematic' ? ['buses', 'lines', 'links', 'generators', 'storage', 'loads'] : ['buses', 'lines', 'links', 'generators', 'storage']
+  const totals = sel.summary?.counts ?? {}
+  const layerRows = (
+    (kind === 'schematic' ? ['buses', 'lines', 'links', 'generators', 'storage', 'loads'] : ['buses', 'lines', 'links', 'generators', 'storage']) as (keyof LayerVisibility)[]
+  ).filter((k) => LAYER_TOTAL[k](totals) !== 0)
   const carrierLegend = groupCarriers(Object.keys(carrierColors)).map(({ group, carriers: names }) => (
-    <details key={group} className="mt-2">
-      {/* -my-1 py-1: 24 px tap target (WCAG 2.5.8) without changing the legend spacing. */}
-      <summary className="-my-1 cursor-pointer py-1 text-xs text-fg-muted">
-        {group} ({names.length})
-      </summary>
-      <Legend
-        className="mt-2"
-        title={kind === 'schematic' ? 'Carrier' : 'Carrier (size ∝ √p_nom)'}
-        items={names.map((label) => ({ label, color: carrierColors[label]! }))}
-      />
-    </details>
+    <Legend
+      key={group}
+      collapsible
+      className="mt-2"
+      title={kind === 'schematic' ? group : `${group} · size ∝ √p_nom`}
+      items={names.map((label) => ({ label, color: carrierColors[label]! }))}
+    />
   ))
 
   return (
@@ -169,75 +241,91 @@ export default function ExplorerPage() {
             {panelOpen ? 'Hide' : 'Show'}
           </button>
         </div>
-        <div id="explorer-controls" className={cn('min-h-0 flex-col gap-4 overflow-y-auto p-3', panelOpen ? 'flex' : 'hidden md:flex')}>
-          <NetworkSelect networks={sel.list} value={sel.id} onChange={selectNetwork} disabled={sel.networks.isPending} />
-          <Link
-            to={GUIDED_DEMO_URL}
-            className="group flex items-center justify-between gap-3 rounded-lg border border-accent/30 bg-accent-soft px-3 py-2.5 text-accent transition-colors hover:border-accent hover:bg-accent/10 focus-visible:outline-offset-2"
-            data-testid="try-sample-crisis"
-          >
-            <span className="flex min-w-0 flex-col gap-0.5">
-              <span className="text-xs font-semibold">Try a sample crisis</span>
-              <span className="text-2xs text-fg-muted">IEEE 14-bus · generator outage · reproducible demo</span>
-            </span>
-            <ArrowUpRight aria-hidden className="size-4 shrink-0 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-          </Link>
-          {sel.unknownRequested && (
-            <p role="alert" className="text-xs text-warn">
-              Requested network not found; showing {sel.id}.
-            </p>
-          )}
-          <AssetSearch key={sel.id} index={searchIndex} onPick={setSelected} disabled={!data} pickedFocus={detailsRef} />
-          <label className="flex min-h-11 items-center gap-2 text-xs text-fg-muted"><input type="checkbox" checked={searchAll} onChange={(e) => setSearchAll(e.target.checked)} />Include generation, storage and loads in search</label>
-          {(generators.isFetching || storage.isFetching || loads.isFetching) && <p role="status" className="text-xs text-fg-muted">Loading requested asset tables…</p>}
-          {(generators.error || storage.error || loads.error || carriers.error) && <ErrorState error={generators.error ?? storage.error ?? loads.error ?? carriers.error} title="Requested asset table unavailable" />}
-          {data && (
-            <>
-              <LayerControls layers={layers} onLayers={setLayers} counts={counts} rows={layerRows} />
-              <FilterControls
-                filters={filters}
-                onFilters={setFilters}
-                carriers={Object.keys(carrierColors).sort()}
-                countries={countries}
-                carrierColor={(c) => carrierColors[c] ?? '#888'}
-              />
-            </>
-          )}
-          {sel.summary && (
-            <section aria-labelledby="dataset-title">
-              <h2 id="dataset-title" className="gs-label mb-1">
-                Dataset
-              </h2>
-              <DatasetInfo summary={sel.summary} detail={detail.data} />
-              {detail.error && <ErrorState className="mt-2" error={detail.error} title="Dataset manifest unavailable" />}
-            </section>
-          )}
+        <div id="explorer-controls" className={cn('min-h-0 flex-col divide-y divide-line overflow-y-auto', panelOpen ? 'flex' : 'hidden md:flex')}>
+          <section aria-label="Network" className="flex flex-col gap-3 p-4">
+            <NetworkSelect networks={sel.list} value={sel.id} onChange={selectNetwork} disabled={sel.networks.isPending} />
+            {sel.unknownRequested && (
+              <p role="alert" className="text-xs text-warn">
+                Requested network not found; showing {sel.id}.
+              </p>
+            )}
+            <DatasetInfo summary={sel.summary} detail={detail.data} />
+            {detail.error && <ErrorState error={detail.error} title="Dataset manifest unavailable" />}
+          </section>
+          <section aria-labelledby="explorer-find" className="flex flex-col gap-1.5 p-4">
+            <SidebarHeading id="explorer-find">Find an asset</SidebarHeading>
+            <AssetSearch key={sel.id} index={searchIndex} onPick={setSelected} disabled={!data} pickedFocus={detailsRef} />
+            <label className="flex min-h-8 items-center gap-2 text-xs text-fg-muted pointer-coarse:min-h-11">
+              <input type="checkbox" className="size-3.5 accent-[var(--gs-accent)]" checked={searchAll} onChange={(e) => setSearchAll(e.target.checked)} />
+              Include generation, storage and loads in search
+            </label>
+          </section>
+          <section aria-label="Layers and filters" className="flex flex-col gap-4 p-4">
+            {data ? (
+              <>
+                <LayerControls layers={layers} onLayers={setLayers} counts={counts} rows={layerRows} />
+                <FilterControls
+                  filters={filters}
+                  onFilters={setFilters}
+                  carriers={Object.keys(carrierColors).sort()}
+                  countries={countries}
+                  carrierColor={(c) => carrierColors[c] ?? '#888'}
+                  levels={levels}
+                />
+              </>
+            ) : (
+              // Same height as the layer list it stands in for (one 24 px row per layer + heading).
+              <div className="flex flex-col gap-1.5" aria-hidden>
+                <div className="gs-skeleton h-4 w-16" />
+                {layerRows.map((k) => (
+                  <div key={k} className="gs-skeleton h-5" />
+                ))}
+              </div>
+            )}
+            {(generators.isFetching || storage.isFetching || loads.isFetching) && <p role="status" className="text-xs text-fg-muted">Loading requested asset tables…</p>}
+            {(generators.error || storage.error || loads.error || carriers.error) && <ErrorState error={generators.error ?? storage.error ?? loads.error ?? carriers.error} title="Requested asset table unavailable" />}
+          </section>
+          <div className="flex flex-col gap-3 p-4">
+            <DatasetWarnings detail={detail.data} />
+            <Link
+              to={GUIDED_DEMO_URL}
+              className="group flex items-center justify-between gap-3 rounded-lg border border-line px-3 py-2.5 transition-colors hover:border-accent hover:bg-accent-soft"
+              data-testid="try-sample-crisis"
+            >
+              <span className="flex min-w-0 flex-col gap-0.5">
+                <span className="text-xs font-semibold text-accent">Try a sample crisis</span>
+                <span className="text-2xs text-fg-muted">IEEE 14-bus · generator outage · reproducible demo</span>
+              </span>
+              <ArrowUpRight aria-hidden className="size-4 shrink-0 text-accent transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+            </Link>
+          </div>
         </div>
       </aside>
 
-      <div className="relative order-1 min-h-[50vh] flex-1 md:order-2 md:min-h-0">
-        {geoFeatures && (
-          <Suspense fallback={showGeo ? <SkeletonBlock rows={3} label="Loading map" /> : null}>
-            <LazyNetworkMap
-              coordinateKind="geographic"
-              features={showGeo ? features! : geoFeatures}
-              layers={layersByKind.geographic}
-              carrierColors={carrierColors}
-              selected={showGeo ? selected : null}
-              onSelect={setSelected}
-              hidden={!showGeo}
-              ariaLabel={`Map of ${sel.summary?.name ?? 'the network'}. Use the asset search (Ctrl+K) for keyboard access to assets.`}
-            />
-          </Suspense>
-        )}
-        {geojson.error ? (
-          <div className="p-4">
-            <ErrorState error={geojson.error} title="Could not load network map" onRetry={() => void geojson.refetch()} />
-          </div>
-        ) : features && sel.summary ? (
-          <>
-            {kind === 'schematic' && (
-              <>
+      <div className="order-1 flex min-h-[50vh] min-w-0 flex-1 flex-col md:order-2 md:min-h-0">
+        <CanvasBar summary={sel.summary} />
+        <div className="relative min-h-0 flex-1 bg-map-bg">
+          {geoFeatures && (
+            <Suspense fallback={showGeo ? <SkeletonBlock rows={3} label="Loading map" /> : null}>
+              <LazyNetworkMap
+                coordinateKind="geographic"
+                features={showGeo ? features! : geoFeatures}
+                layers={layersByKind.geographic}
+                carrierColors={carrierColors}
+                selected={showGeo ? selected : null}
+                onSelect={setSelected}
+                hidden={!showGeo}
+                ariaLabel={`Map of ${sel.summary?.name ?? 'the network'}. Use the asset search (Ctrl+K) for keyboard access to assets.`}
+              />
+            </Suspense>
+          )}
+          {geojson.error ? (
+            <div className="p-4">
+              <ErrorState error={geojson.error} title="Could not load network map" onRetry={() => void geojson.refetch()} />
+            </div>
+          ) : features && sel.summary ? (
+            <>
+              {kind === 'schematic' && (
                 <SchematicView
                   networkId={sel.id!}
                   features={features}
@@ -248,57 +336,66 @@ export default function ExplorerPage() {
                   ariaLabel={`Schematic of ${sel.summary.name}. Tab to a bus and use the arrow keys, or the asset search (Ctrl+K), for keyboard access to assets.`}
                   panel={legendOpen ? legendBox : null}
                   occlusion={detailsCover}
+                  overlayBadge={false}
                 />
-                <SchematicBadge />
-              </>
-            )}
-            <details
-              ref={legendRef}
-              className="gs-panel absolute bottom-7 left-2 z-10 max-h-[calc(100%-4rem)] max-w-64 overflow-y-auto p-2 shadow-sm md:max-h-[55%]"
-              data-testid="map-legend"
-              open={legendOpen}
-              onToggle={(e) => setLegendOpen(e.currentTarget.open)}
-            >
-              <summary className="flex min-h-11 cursor-pointer items-center text-xs font-semibold">Map legend</summary>
-              {kind === 'schematic' ? <SchematicLegend features={features} layers={layers} /> : <BranchLegend mode="voltage" />}
-              {carrierLegend}
-              {(features.skipped.buses > 0 || features.skipped.branches > 0) && (
-                <p className="mt-2 text-2xs text-warn">
-                  Not drawn (no coordinates): {features.skipped.buses} buses, {features.skipped.branches} branches
-                </p>
               )}
-            </details>
-            {/* Geographic maps: clear MapLibre's bottom-right scale bar (~44 px incl. margins) with a gap. */}
-            <div className={cn('absolute right-2 z-10 flex gap-1', kind === 'geographic' ? 'bottom-14' : 'bottom-8')}>
-              {sel.summary.provenance_class && <Badge tone="neutral">data: {sel.summary.provenance_class}</Badge>}
+              <details
+                ref={legendRef}
+                className={cn(
+                  'gs-overlay group/maplegend absolute left-2 z-10 max-h-[calc(100%-1rem)] w-60 max-w-[calc(100%-4.5rem)] overflow-y-auto md:max-h-[60%]',
+                  // Phones: the expanded basemap attribution spans the bottom edge, so the legend sits top-left.
+                  kind === 'geographic' ? 'top-2 md:bottom-8 md:top-auto' : 'bottom-2',
+                )}
+                data-testid="map-legend"
+                open={legendOpen}
+                onToggle={(e) => setLegendOpen(e.currentTarget.open)}
+              >
+                <summary className="sticky top-0 flex min-h-11 cursor-pointer list-none items-center gap-1.5 bg-surface px-3 text-xs font-semibold [&::-webkit-details-marker]:hidden">
+                  <ChevronRight aria-hidden className="size-4 shrink-0 text-fg-subtle transition-transform group-open/maplegend:rotate-90" />
+                  Map legend
+                </summary>
+                <div className="border-t border-line px-3 pb-3 pt-2">
+                  {kind === 'schematic' ? (
+                    <SchematicLegend features={features} layers={layers} />
+                  ) : (
+                    <BranchLegend mode="voltage" levels={unknownKv ? [...levels, null] : levels} showLinks={(totals.links ?? 0) > 0} />
+                  )}
+                  {carrierLegend}
+                  {(features.skipped.buses > 0 || features.skipped.branches > 0) && (
+                    <p className="mt-2 text-2xs text-warn">
+                      Not drawn (no coordinates): {features.skipped.buses} buses, {features.skipped.branches} branches
+                    </p>
+                  )}
+                </div>
+              </details>
+            </>
+          ) : (
+            <div className="flex h-full items-center justify-center p-6">
+              <SkeletonBlock rows={3} label="Loading map" />
             </div>
-          </>
-        ) : (
-          <div className="flex h-full items-center justify-center p-6">
-            <SkeletonBlock rows={3} label="Loading map" />
-          </div>
-        )}
+          )}
 
-        {selected && data && (
-          <div
-            className={cn(
-              'gs-panel absolute z-20 flex flex-col shadow-lg',
-              'inset-x-2 bottom-2 max-h-[60%] md:inset-x-auto md:bottom-auto md:right-2 md:top-12 md:max-h-[calc(100%-4rem)] md:w-80',
-            )}
-          >
-            <AssetDetails
-              ref={detailsRef}
-              networkId={sel.id!}
-              assets={data}
-              selected={selected}
-              fieldProvenance={detail.data?.field_provenance}
-              coordinateKind={kind}
-              costBasis={resolveCostBasis(sel.summary, detail.data?.manifest)}
-              onSelect={setSelected}
-              onClose={() => setSelected(null)}
-            />
-          </div>
-        )}
+          {selected && data && (
+            <div
+              className={cn(
+                'gs-overlay absolute z-20 flex flex-col',
+                'inset-x-2 bottom-2 max-h-[60%] md:inset-x-auto md:bottom-2 md:right-2 md:top-2 md:max-h-none md:w-80 lg:right-14',
+              )}
+            >
+              <AssetDetails
+                ref={detailsRef}
+                networkId={sel.id!}
+                assets={data}
+                selected={selected}
+                fieldProvenance={detail.data?.field_provenance}
+                coordinateKind={kind}
+                costBasis={resolveCostBasis(sel.summary, detail.data?.manifest)}
+                onSelect={setSelected}
+                onClose={() => setSelected(null)}
+              />
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )

@@ -1,6 +1,10 @@
 import type { ReactNode } from 'react'
 import { cn } from './cn'
 
+/**
+ * Titled surface. Header: optional leading icon, title (h2, 14 px semibold), one-line description,
+ * right-aligned actions. Give an `id` to label the section by its title.
+ */
 export function Panel({
   title,
   actions,
@@ -9,6 +13,7 @@ export function Panel({
   bodyClassName,
   id,
   description,
+  icon,
 }: {
   title?: ReactNode
   actions?: ReactNode
@@ -17,19 +22,24 @@ export function Panel({
   bodyClassName?: string
   id?: string
   description?: ReactNode
+  /** Decorative leading icon (mark it aria-hidden). */
+  icon?: ReactNode
 }) {
   const headingId = id ? `${id}-title` : undefined
   return (
     <section className={cn('gs-panel flex min-w-0 flex-col', className)} aria-labelledby={headingId} id={id}>
       {(title || actions) && (
-        <header className="flex items-center justify-between gap-2 border-b border-line/80 px-4 py-3">
-          <div className="min-w-0">
-            {title && (
-              <h2 id={headingId} className="truncate text-sm font-semibold tracking-tight text-fg">
-                {title}
-              </h2>
-            )}
-            {description && <p className="text-xs text-fg-muted">{description}</p>}
+        <header className="flex items-center justify-between gap-2 border-b border-line px-4 py-3">
+          <div className="flex min-w-0 items-start gap-2">
+            {icon && <span className="mt-0.5 flex shrink-0 text-fg-subtle">{icon}</span>}
+            <div className="min-w-0">
+              {title && (
+                <h2 id={headingId} className="truncate text-sm font-semibold tracking-tight text-fg">
+                  {title}
+                </h2>
+              )}
+              {description && <p className="mt-0.5 text-xs text-fg-muted">{description}</p>}
+            </div>
           </div>
           {actions && <div className="flex shrink-0 items-center gap-1.5">{actions}</div>}
         </header>

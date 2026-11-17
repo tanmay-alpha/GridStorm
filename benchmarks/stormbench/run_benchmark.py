@@ -16,6 +16,10 @@ from stormbench.bench import main  # noqa: E402
 ROOT = Path(__file__).resolve().parents[2]
 
 if __name__ == "__main__":
+    # Recorded in artifact headers: the documented invocation, not machine-specific paths.
+    command = " ".join(
+        ["uv run --locked python ../../benchmarks/stormbench/run_benchmark.py", *sys.argv[1:]]
+    )
     raise SystemExit(
         main(
             [
@@ -24,6 +28,7 @@ if __name__ == "__main__":
                 "--results-dir",
                 str(ROOT / "benchmarks" / "stormbench" / "results"),
                 *sys.argv[1:],
-            ]
+            ],
+            command=command,
         )
     )

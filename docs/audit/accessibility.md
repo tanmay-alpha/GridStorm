@@ -1,5 +1,7 @@
 # Live accessibility audit (axe-core + keyboard)
 
+> Historical audit (2026-11-14). Superseded by the fixes in TODO P6-12 (contrast, ARIA, target size, run-page map crash) and the GridStorm 3.0 axe re-audit (TODO G3-14); see [TODO.md](../../TODO.md) for the current state.
+
 Audited: 2026-11-14 22:14–22:30 UTC against the live deployment <https://gridstorm.vercel.app>
 (API `git_sha 887d217`). Light theme (default) only. Nothing in the app was changed for this audit.
 

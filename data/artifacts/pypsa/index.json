@@ -47,6 +47,72 @@
       "created_at": "2026-11-15T09:03:28.633Z"
     },
     {
+      "artifact_id": "observed-dunkelflaute-2015-01-20",
+      "kind": "simulation",
+      "network_id": "scigrid-de",
+      "title": "Observed analogue: winter Dunkelflaute day 2015-01-20 (Germany, OPSD/ENTSO-E)",
+      "scenario_id": "observed-dunkelflaute-2015-01-20",
+      "scenario_hash": "66d25e27837b544bd01ee8b504a6dac14d9398600340443e41649fa2d43f053b",
+      "outcome": "feasible",
+      "objective_eur": 59147317.53326,
+      "unserved_energy_mwh": 2721.006897,
+      "measurements": {
+        "run_scenario_wall_time_s": 12.763,
+        "solver_wall_time_s": 3.874,
+        "process_wall_time_s": 16.896,
+        "peak_rss_mb": 549.5,
+        "rss_method": "psutil peak_wset (Windows)",
+        "cpu": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+        "threads": 1
+      },
+      "payload_sha256": "6d0c0805881255b184e376d399400d8d5158bafc2cd1736fc419f166fd610d13",
+      "created_at": "2026-11-16T20:53:56.562Z"
+    },
+    {
+      "artifact_id": "observed-high-load-low-res-2017-01-24",
+      "kind": "simulation",
+      "network_id": "scigrid-de",
+      "title": "Observed analogue: combined high-load / low-renewable day 2017-01-24 (Germany, OPSD/ENTSO-E)",
+      "scenario_id": "observed-high-load-low-res-2017-01-24",
+      "scenario_hash": "f17ad1b777b7fc136b15f193cd46a7e865be09c73c73f3a47a9034f1a0248f39",
+      "outcome": "feasible",
+      "objective_eur": 87280269.396206,
+      "unserved_energy_mwh": 4731.453896,
+      "measurements": {
+        "run_scenario_wall_time_s": 19.964,
+        "solver_wall_time_s": 7.126,
+        "process_wall_time_s": 25.172,
+        "peak_rss_mb": 549.4,
+        "rss_method": "psutil peak_wset (Windows)",
+        "cpu": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+        "threads": 1
+      },
+      "payload_sha256": "6d646c1bc34969c58f237504932412db1e9a04b9d2f3ec720e0292a6f419be40",
+      "created_at": "2026-11-16T20:54:21.888Z"
+    },
+    {
+      "artifact_id": "observed-peak-load-2017-12-13",
+      "kind": "simulation",
+      "network_id": "scigrid-de",
+      "title": "Observed analogue: highest-load day 2017-12-13 (Germany, OPSD/ENTSO-E)",
+      "scenario_id": "observed-peak-load-2017-12-13",
+      "scenario_hash": "19bc47855528d8aaa31e2cae718ee84b80bab80270b7c831dd8684a1c03ac658",
+      "outcome": "feasible",
+      "objective_eur": 66189364.283908,
+      "unserved_energy_mwh": 4429.345555,
+      "measurements": {
+        "run_scenario_wall_time_s": 12.217,
+        "solver_wall_time_s": 4.046,
+        "process_wall_time_s": 19.991,
+        "peak_rss_mb": 543.6,
+        "rss_method": "psutil peak_wset (Windows)",
+        "cpu": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+        "threads": 1
+      },
+      "payload_sha256": "39b2d6153bb5af8703ace38bc215d21f389653690bb9a6e31a70e782a0d39c59",
+      "created_at": "2026-11-16T20:54:42.121Z"
+    },
+    {
       "artifact_id": "pglib-case118-ieee-baseline",
       "kind": "simulation",
       "network_id": "pglib-case118-ieee",

@@ -10,7 +10,9 @@ Every in-service branch outage is one contingency. Pipeline per case:
 5. metrics (``metrics.compare``), runtimes (median of ``repeats``), tracemalloc peaks (own pass).
 
 Determinism: no random numbers are used; HiGHS LP and all linear algebra are deterministic for a
-fixed platform/library build. Thread count is pinned to 1 by the caller (env vars).
+fixed platform/library build. Thread count is pinned to 1 by the caller (env vars). Across
+platforms (OpenBLAS kernel dispatch by CPU, compilers) severities differ by round-off
+(~1e-13 pp on case14/case30), so every ranking uses ``metrics`` tie groups (``TOL_PCT``).
 """
 
 from __future__ import annotations
@@ -443,7 +445,8 @@ def run_case(name: str, repeats: int = 3, memory: bool = True, log=print) -> dic
         "top_contingencies": [],
         "platform": environment(),
     }
-    order = np.argsort(-np.nan_to_num(sev_a, nan=-1.0), kind="stable")[:10]
+    # AC non-convergence (NaN) sorts last; severities within TOL_PCT are ties broken by index.
+    order = metrics.top_k_order(np.nan_to_num(sev_a, nan=-1.0))[:10]
     payload["top_contingencies"] = [
         {
             "branch_id": f"branch-{int(net.branch_rows[outages[j]]) + 1}",
@@ -577,7 +580,8 @@ def quiet() -> None:
     logging.getLogger("pandapower").setLevel(logging.ERROR)
 
 
-def main(argv: list[str] | None = None) -> int:
+def main(argv: list[str] | None = None, command: str | None = None) -> int:
+    """CLI entry; ``command`` (recorded in artifact headers) defaults to the invocation."""
     import argparse
 
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
@@ -599,7 +603,8 @@ def main(argv: list[str] | None = None) -> int:
     args = ap.parse_args(argv)
     quiet()
     cases = [c for c in args.cases.split(",") if c]
-    command = "uv run python " + " ".join([Path(sys.argv[0]).name, *(argv or sys.argv[1:])])
+    if command is None:
+        command = "uv run python " + " ".join([Path(sys.argv[0]).name, *(argv or sys.argv[1:])])
     results = []
     for name in cases:
         print(f"[stormbench] {name}", flush=True)

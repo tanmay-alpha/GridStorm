@@ -15,7 +15,7 @@ PATHS = artifact_paths()
 
 
 def test_artifact_inventory():
-    assert len(PATHS) == 12
+    assert len(PATHS) == 15
     index = load(ARTIFACTS / "index.json")
     assert {p.stem for p in PATHS} == {row["artifact_id"] for row in index["artifacts"]}
 

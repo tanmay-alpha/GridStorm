@@ -1,5 +1,7 @@
 # GridStorm verification issue log
 
+> Historical issue log (first deployment). The two entries still marked OPEN were resolved later: VER-007 by TODO P6-10 (API memory fix, `c190e80`) and VER-010 by TODO P6-08 (production CORS excludes localhost, verified live); see [TODO.md](../../TODO.md).
+
 Maintained by the independent verifier (Agent F). Every entry has reproducible evidence.
 Severity: **S1** blocks a claim/demo or is a security hole · **S2** wrong/misleading output or
 contract deviation · **S3** quality/robustness · **S4** nit.

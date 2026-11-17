@@ -66,8 +66,10 @@ export function DataTable<T>({
   return (
     <div className={cn('min-w-0', className)}>
       {/* Horizontally scrollable on narrow screens: focusable so keyboard users can scroll it (WCAG 2.1.1).
-          "(table)" keeps the landmark name distinct from a panel titled like the caption (landmark-unique). */}
-      <div className="overflow-x-auto" role="region" aria-label={`${caption} (table)`} tabIndex={0}>
+          "(table)" keeps the landmark name distinct from a panel titled like the caption (landmark-unique).
+          `relative` makes this the containing block of absolutely positioned (sr-only) header text, which
+          otherwise escapes the scroll clip and widens the page's scroll container. */}
+      <div className="relative overflow-x-auto" role="region" aria-label={`${caption} (table)`} tabIndex={0}>
         <table className="w-full border-collapse text-xs">
           <caption className="sr-only">{caption}</caption>
           <thead>

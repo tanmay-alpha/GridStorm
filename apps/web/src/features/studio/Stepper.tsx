@@ -2,6 +2,14 @@ import { Check } from 'lucide-react'
 import { cn } from '../../components/ui'
 import { STEPS, STEP_LABEL, type Step } from './flow'
 
+/** What each stage settles, shown under the label from the sm breakpoint. */
+const STEP_HINT: Record<Step, string> = {
+  grid: 'Power-system dataset',
+  crisis: 'Outages, demand, weather',
+  review: 'Horizon & mitigation',
+  run: 'Validate & solve',
+}
+
 /** Four-stage progress; each stage is a button (disabled until the previous answers exist). */
 export function Stepper({ current, open, onGo }: { current: Step; open: (s: Step) => boolean; onGo: (s: Step) => void }) {
   const index = STEPS.indexOf(current)
@@ -36,6 +44,9 @@ export function Stepper({ current, open, onGo }: { current: Step; open: (s: Step
                 <span className="min-w-0 break-words">
                   <span className="sr-only">Step {i + 1}: </span>
                   {STEP_LABEL[s]}
+                  <span aria-hidden className="hidden text-2xs font-normal text-fg-subtle sm:block">
+                    {STEP_HINT[s]}
+                  </span>
                 </span>
               </button>
             </li>

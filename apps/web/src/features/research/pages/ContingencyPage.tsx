@@ -4,6 +4,7 @@ import { formatNumber, formatQuantity, NO_VALUE } from '../../../lib/format'
 import { loadingColor, LOADING_SCALE } from '../../../lib/scales'
 import { ArtifactSection } from '../components/ArtifactPanel'
 import { Disclaimer } from '../components/Disclaimer'
+import { StudyGuide } from '../components/StudyGuide'
 import { NetworkSchematic } from '../components/NetworkSchematic'
 import type { CostBasis } from '../../../api/types'
 import { costBasisKindLabel, formatMoney, formatPrice, moneyUnit, resolveCostBasis } from '../../../lib/money'
@@ -436,6 +437,7 @@ export function ContingencyPage() {
         }
       />
       <Disclaimer>Steady-state AC power-flow screening on research networks. Not an operational security assessment or instruction.</Disclaimer>
+      <StudyGuide route="/contingency" />
       {body}
     </div>
   )

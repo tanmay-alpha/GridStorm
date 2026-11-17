@@ -24,6 +24,7 @@ import {
   ScientificNotice,
   SkeletonBlock,
   TextField,
+  cn,
   type ExecutionAvailability,
 } from '../../components/ui'
 import { formatQuantity, formatTimestamp, shortHash } from '../../lib/format'
@@ -51,6 +52,8 @@ import { GuidePanel } from './GuidePanel'
 import { PresetList } from './PresetList'
 import { crisisLabel, plural } from './presentation'
 import { EVENT_LABEL, availableEventTypes, blankSpec, localIssues, newEvent, normaliseSpec } from './spec'
+import { ReviewSummary } from './ReviewSummary'
+import { ScenarioContext } from './ScenarioContext'
 import { Stepper } from './Stepper'
 import { useDebounced } from './useDebounced'
 import { useExecutionPolicy } from './useExecutionPolicy'
@@ -84,7 +87,7 @@ const FORECAST_TEXT: Record<ExecutionAvailability, string> = {
 
 function SummaryRow({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="flex flex-col gap-0.5">
+    <div className="contents">
       <dt className="gs-label">{label}</dt>
       <dd className="min-w-0 break-words text-xs text-fg">{children}</dd>
     </div>
@@ -361,8 +364,8 @@ export default function StudioPage() {
     content = (
       <div className="flex flex-col gap-3">
         <Panel
-          title={`2 · Choose crisis on ${network?.name ?? networkId}`}
-          description="Start from a curated preset, a saved scenario, or build custom events. Open “Details & ids” for full traceability."
+          title="Step 2 · Choose the crisis"
+          description={`On ${network?.name ?? networkId}. Start from a curated preset or a saved scenario, or build custom events. “Details & ids” on each card gives full traceability.`}
           actions={
             (presets.length > netPresets.length || saved.length > visibleSaved.length || showAllPresets) && (
               <Button size="sm" variant="ghost" data-testid="show-all-presets" onClick={() => setShowAllPresets((v) => !v)}>
@@ -500,123 +503,143 @@ export default function StudioPage() {
     const execError = issuesAt(allErrors, 'execution')
     content = (
       <div className="flex flex-col gap-3">
-        <Panel title="3 · Review settings" description="Name, horizon and mitigation options of this scenario.">
-          <div className="grid gap-3 sm:grid-cols-2">
-            <TextField
-              label="Name"
-              value={spec.name}
-              testId="scenario-name"
-              error={issuesAt(allErrors, 'name')}
-              onChange={(name) => update((s) => ({ ...s, name }))}
-            />
-            <TextField
-              label="Scenario id"
-              value={spec.id}
-              testId="scenario-id"
-              hint="Lowercase letters, digits, hyphens; 3–64 characters. Identifies saved scenarios and results."
-              error={issuesAt(allErrors, 'id')}
-              onChange={(id) => update((s) => ({ ...s, id }))}
-            />
-            <TextField
-              className="sm:col-span-2"
-              label="Description"
-              value={spec.description ?? ''}
-              error={issuesAt(allErrors, 'description')}
-              onChange={(description) => update((s) => ({ ...s, description }))}
-            />
-          </div>
-        </Panel>
         <Panel
-          title="Horizon"
-          description={
-            snaps
-              ? `Grid has ${plural(snaps.count, 'snapshot')} × ${formatQuantity(snaps.resolution_h, 'h')} (${formatTimestamp(snaps.start)} → ${formatTimestamp(snaps.end)}).`
-              : 'Snapshot metadata unavailable.'
-          }
+          title="Step 3 · Review horizon and mitigation"
+          description="Defaults come from the chosen scenario; change them only when your question needs it."
+          bodyClassName="flex flex-col divide-y divide-line/80 p-0"
         >
-          <div className="grid gap-3 sm:grid-cols-3">
-            <NumberField
-              label="Start snapshot"
-              unit="index"
-              step={1}
-              min={0}
-              value={spec.horizon.start ?? 0}
-              testId="horizon-start"
-              error={issuesAt(allErrors, 'horizon.start')}
-              onChange={(v) => update((s) => ({ ...s, horizon: { ...s.horizon, start: v ?? 0 } }))}
-            />
-            <NumberField
-              label="Snapshots"
-              unit="count"
-              step={1}
-              min={LIMITS.horizonSnapshots.min}
-              max={LIMITS.horizonSnapshots.max}
-              value={spec.horizon.snapshots}
-              testId="horizon-snapshots"
-              error={issuesAt(
-                allErrors.filter((i) => i.path !== 'horizon.start'),
-                'horizon',
-              )}
-              onChange={(v) => update((s) => ({ ...s, horizon: { ...s.horizon, snapshots: v ?? 0 } }))}
-            />
-            <div className="flex flex-col justify-end text-xs text-fg-muted">
-              Duration: <span className="tabular font-semibold text-fg">{formatQuantity(durationH, 'h')}</span>
+          <section aria-labelledby="review-scenario-h" className="flex flex-col gap-3 p-4">
+            <h3 id="review-scenario-h" className="gs-label">
+              Scenario
+            </h3>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <TextField
+                label="Name"
+                value={spec.name}
+                testId="scenario-name"
+                error={issuesAt(allErrors, 'name')}
+                onChange={(name) => update((s) => ({ ...s, name }))}
+              />
+              <TextField
+                label="Scenario id"
+                value={spec.id}
+                testId="scenario-id"
+                hint="Lowercase letters, digits, hyphens; 3–64 characters. Identifies saved scenarios and results."
+                error={issuesAt(allErrors, 'id')}
+                onChange={(id) => update((s) => ({ ...s, id }))}
+              />
+              <TextField
+                className="sm:col-span-2"
+                label="Description"
+                value={spec.description ?? ''}
+                error={issuesAt(allErrors, 'description')}
+                onChange={(description) => update((s) => ({ ...s, description }))}
+              />
             </div>
-          </div>
-        </Panel>
-        <Panel title="Mitigation" actions={<CostBasisBadge basis={costBasis} testId="studio-cost-basis" />}>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div className="flex flex-col gap-2">
-              <CheckboxField
-                label="Storage dispatch"
-                hint="Off: storage units held at zero dispatch."
-                checked={spec.mitigation.storage_dispatch}
-                onChange={(v) => update((s) => ({ ...s, mitigation: { ...s.mitigation, storage_dispatch: v } }))}
+          </section>
+          <section aria-labelledby="review-horizon-h" className="flex flex-col gap-3 p-4">
+            <div>
+              <h3 id="review-horizon-h" className="gs-label">
+                Time horizon
+              </h3>
+              <p className="mt-0.5 text-xs text-fg-muted">
+                {snaps
+                  ? `The grid has ${plural(snaps.count, 'snapshot')} × ${formatQuantity(snaps.resolution_h, 'h')} (${formatTimestamp(snaps.start)} → ${formatTimestamp(snaps.end)}).`
+                  : 'Snapshot metadata unavailable.'}
+              </p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <NumberField
+                label="Start snapshot"
+                unit="index"
+                step={1}
+                min={0}
+                value={spec.horizon.start ?? 0}
+                testId="horizon-start"
+                error={issuesAt(allErrors, 'horizon.start')}
+                onChange={(v) => update((s) => ({ ...s, horizon: { ...s.horizon, start: v ?? 0 } }))}
               />
-              <CheckboxField
-                label="Allow renewable curtailment"
-                hint="Off: variable renewables must produce all available power."
-                checked={spec.mitigation.curtailment}
-                onChange={(v) => update((s) => ({ ...s, mitigation: { ...s.mitigation, curtailment: v } }))}
+              <NumberField
+                label="Snapshots"
+                unit="count"
+                step={1}
+                min={LIMITS.horizonSnapshots.min}
+                max={LIMITS.horizonSnapshots.max}
+                value={spec.horizon.snapshots}
+                testId="horizon-snapshots"
+                error={issuesAt(
+                  allErrors.filter((i) => i.path !== 'horizon.start'),
+                  'horizon',
+                )}
+                onChange={(v) => update((s) => ({ ...s, horizon: { ...s.horizon, snapshots: v ?? 0 } }))}
               />
-              <CheckboxField
-                label="Load shedding"
-                hint="Adds load-shedding generators at the value of lost load."
-                checked={spec.mitigation.load_shedding.enabled}
+              <div className="flex flex-col justify-end text-xs text-fg-muted">
+                Duration: <span className="tabular font-semibold text-fg">{formatQuantity(durationH, 'h')}</span>
+              </div>
+            </div>
+          </section>
+          <section aria-labelledby="review-mitigation-h" className="flex flex-col gap-3 p-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h3 id="review-mitigation-h" className="gs-label">
+                Mitigation levers
+              </h3>
+              <CostBasisBadge basis={costBasis} testId="studio-cost-basis" />
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="flex flex-col gap-2">
+                <CheckboxField
+                  label="Storage dispatch"
+                  hint="Off: storage units held at zero dispatch."
+                  checked={spec.mitigation.storage_dispatch}
+                  onChange={(v) => update((s) => ({ ...s, mitigation: { ...s.mitigation, storage_dispatch: v } }))}
+                />
+                <CheckboxField
+                  label="Allow renewable curtailment"
+                  hint="Off: variable renewables must produce all available power."
+                  checked={spec.mitigation.curtailment}
+                  onChange={(v) => update((s) => ({ ...s, mitigation: { ...s.mitigation, curtailment: v } }))}
+                />
+                <CheckboxField
+                  label="Load shedding"
+                  hint="Adds load-shedding generators at the value of lost load."
+                  checked={spec.mitigation.load_shedding.enabled}
+                  onChange={(v) =>
+                    update((s) => ({
+                      ...s,
+                      mitigation: { ...s.mitigation, load_shedding: { ...s.mitigation.load_shedding, enabled: v } },
+                    }))
+                  }
+                />
+              </div>
+              <NumberField
+                label="Value of lost load (VOLL)"
+                unit={priceUnit(costBasis)}
+                min={0}
+                max={LIMITS.vollEurPerMwh.max}
+                value={spec.mitigation.load_shedding.voll_eur_per_mwh}
+                testId="voll"
+                hint="Penalty per MWh of unserved energy, in the dataset's money unit. A modelling parameter, not an estimate of economic damage."
+                error={issuesAt(allErrors, 'mitigation.load_shedding')}
                 onChange={(v) =>
                   update((s) => ({
                     ...s,
-                    mitigation: { ...s.mitigation, load_shedding: { ...s.mitigation.load_shedding, enabled: v } },
+                    mitigation: {
+                      ...s.mitigation,
+                      load_shedding: { ...s.mitigation.load_shedding, voll_eur_per_mwh: v ?? Number.NaN },
+                    },
                   }))
                 }
               />
             </div>
-            <NumberField
-              label="Value of lost load (VOLL)"
-              unit={priceUnit(costBasis)}
-              min={0}
-              max={LIMITS.vollEurPerMwh.max}
-              value={spec.mitigation.load_shedding.voll_eur_per_mwh}
-              testId="voll"
-              hint="Penalty per MWh of unserved energy, in the dataset's money unit. A modelling parameter, not an estimate of economic damage."
-              error={issuesAt(allErrors, 'mitigation.load_shedding')}
-              onChange={(v) =>
-                update((s) => ({
-                  ...s,
-                  mitigation: {
-                    ...s.mitigation,
-                    load_shedding: { ...s.mitigation.load_shedding, voll_eur_per_mwh: v ?? Number.NaN },
-                  },
-                }))
-              }
-            />
-          </div>
+          </section>
         </Panel>
         <Disclosure
           testId="advanced-settings"
+          className="border-dashed bg-surface-2/40 shadow-none"
           summary={
             <>
-              Advanced: solver & execution
+              <span>Advanced: solver & execution</span>
+              <span className="text-xs font-normal text-fg-muted">optional · defaults are reproducible</span>
               {execError && <Badge tone="danger">error</Badge>}
             </>
           }
@@ -651,38 +674,49 @@ export default function StudioPage() {
   } else if (spec) {
     content = (
       <div className="flex flex-col gap-3">
-        <Panel title="4 · Run" description="Validated by the backend against the dataset on every change.">
+        <Panel title="Step 4 · Validate and run" description="The backend validates the scenario against the dataset on every change.">
           <div className="flex flex-col gap-3">
             {validation.error && !runReport ? (
               <ErrorState error={validation.error} title="Validation request failed" onRetry={() => void validation.refetch()} />
             ) : (
               <ValidationMessages report={shownReport} local={local} pending={validating && !runReport} onGoToStep={goTo} />
             )}
-            <div className="flex flex-wrap items-center gap-2 text-xs" data-testid="execution-forecast" data-availability={avail}>
-              <span className="font-semibold">Execution:</span>
-              <ExecutionBadge value={avail} />
-              <span className="text-fg-muted">{FORECAST_TEXT[avail]}</span>
-            </div>
-            {simArtifacts.error && avail === 'checking' && (
-              <ErrorState error={simArtifacts.error} title="Could not load the precomputed result index" onRetry={() => void simArtifacts.refetch()} />
-            )}
-            <div className="flex flex-wrap items-center gap-2">
+            <div
+              className={cn(
+                'flex flex-col gap-3 rounded-lg border p-3 md:flex-row md:items-center md:justify-between',
+                blockReason === null ? 'border-accent/50 bg-accent-soft/50' : 'border-line bg-surface-2',
+              )}
+              data-testid="run-action"
+            >
+              <div className="flex min-w-0 flex-col gap-1 text-xs" data-testid="execution-forecast" data-availability={avail}>
+                <span className="flex flex-wrap items-center gap-2">
+                  <span className="font-semibold text-fg">Execution</span>
+                  <ExecutionBadge value={avail} />
+                </span>
+                <span className="text-fg-muted">{FORECAST_TEXT[avail]}</span>
+              </div>
               <Button
                 variant="primary"
+                className="h-11 shrink-0 px-5 text-base"
                 onClick={() => run.mutate(spec)}
                 disabled={blockReason !== null}
                 aria-describedby={blockReason ? 'run-block-reason' : undefined}
                 data-testid="run-scenario"
               >
-                <Play aria-hidden className="size-4" />
+                <Play aria-hidden className="size-5" />
                 {run.isPending ? 'Submitting…' : avail === 'precomputed' ? 'Open verified result' : 'Run simulation'}
               </Button>
-              <Button onClick={() => save.mutate(spec)} disabled={blocked || save.isPending} data-testid="save-scenario">
+            </div>
+            {simArtifacts.error && avail === 'checking' && (
+              <ErrorState error={simArtifacts.error} title="Could not load the precomputed result index" onRetry={() => void simArtifacts.refetch()} />
+            )}
+            <div className="flex flex-wrap items-center gap-2">
+              <Button className="pointer-coarse:h-11" onClick={() => save.mutate(spec)} disabled={blocked || save.isPending} data-testid="save-scenario">
                 <Save aria-hidden className="size-4" />
                 {save.isPending ? 'Saving…' : 'Save scenario'}
               </Button>
               {edited && (
-                <Button variant="ghost" onClick={() => setConfirmDiscard(true)} data-testid="discard-edits">
+                <Button variant="ghost" className="pointer-coarse:h-11" onClick={() => setConfirmDiscard(true)} data-testid="discard-edits">
                   <RotateCcw aria-hidden className="size-4" /> Discard edits
                 </Button>
               )}
@@ -726,6 +760,7 @@ export default function StudioPage() {
             )}
           </div>
         </Panel>
+        <ReviewSummary spec={spec} network={network} crisisName={crisisName} durationH={durationH} basis={costBasis} onEdit={goTo} />
         <Disclosure summary="StormSpec JSON (exact submitted scenario)">
           <pre className="max-h-80 overflow-auto font-mono text-2xs text-fg-muted" data-testid="spec-json">
             {JSON.stringify(spec, null, 2)}
@@ -822,7 +857,7 @@ export default function StudioPage() {
           )}
         </ScientificNotice>
       )}
-      <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_18rem]">
+      <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_23rem]">
         <div className="flex min-w-0 flex-col gap-3">
           <div
             ref={contentRef}
@@ -839,7 +874,7 @@ export default function StudioPage() {
             data-testid="step-nav"
           >
             {prevStep ? (
-              <Button variant="ghost" onClick={() => goTo(prevStep)} data-testid="step-back">
+              <Button variant="ghost" className="pointer-coarse:h-11" onClick={() => goTo(prevStep)} data-testid="step-back">
                 <ArrowLeft aria-hidden className="size-4" /> Back<span className="sr-only">: {STEP_LABEL[prevStep]}</span>
               </Button>
             ) : (
@@ -854,6 +889,7 @@ export default function StudioPage() {
                 )}
                 <Button
                   variant="primary"
+                  className="pointer-coarse:h-11"
                   disabled={!canEnter(nextStep, flowState)}
                   aria-describedby={!canEnter(nextStep, flowState) ? 'step-next-hint' : undefined}
                   onClick={() => goTo(nextStep)}
@@ -869,9 +905,9 @@ export default function StudioPage() {
         {/* Below the step on mobile: shown with the placeholder, it was pushed off screen when the grid
             list replaced it (CLS 0.19). In its own column on desktop, appearing later shifts nothing. */}
         {!(step === 'grid' && scenarios.isPending) && (
-        <aside aria-label="Scenario summary" className="flex min-w-0 flex-col gap-3 lg:sticky lg:top-3 lg:self-start">
+        <aside aria-label="Scenario summary" className="flex min-w-0 flex-col gap-3 lg:self-start">
           <Panel title="Your scenario">
-            <dl className="flex flex-col gap-2" data-testid="scenario-summary">
+            <dl className="grid grid-cols-[5.5rem_minmax(0,1fr)] items-baseline gap-x-3 gap-y-2" data-testid="scenario-summary">
               <SummaryRow label="Grid">{network ? `${network.name} (${network.id})` : 'Not chosen yet'}</SummaryRow>
               <SummaryRow label="Crisis">
                 {crisisName}
@@ -912,6 +948,18 @@ export default function StudioPage() {
               )}
             </dl>
           </Panel>
+          {spec ? (
+            <ScenarioContext spec={spec} network={network} />
+          ) : (
+            <Panel title="What a run gives you">
+              <ul className="flex list-disc flex-col gap-1 pl-4 text-xs text-fg-muted">
+                <li>An optimal dispatch of the grid under your crisis, solved by the backend or served from a verified precomputed result.</li>
+                <li>Unserved energy, demand served, line loading and congestion, and the operating cost in the dataset’s own cost basis.</li>
+                <li>A Grid Impact Brief whose every statement links to the stored values it was derived from.</li>
+                <li>Comparison against the grid’s baseline run once one has completed, and downloadable result, report and reproduction manifest.</li>
+              </ul>
+            </Panel>
+          )}
         </aside>
         )}
       </div>

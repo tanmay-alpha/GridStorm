@@ -564,3 +564,202 @@ export interface Artifact<P = Record<string, unknown>> {
   artifact: ArtifactHeader
   payload: P
 }
+
+// ---------- Data Observatory (/api/v1/data, gridstorm-observatory/1.0) ----------
+export type DatasetCategory =
+  | 'network_model'
+  | 'network_assets'
+  | 'historical_demand'
+  | 'weather_reanalysis'
+  | 'renewable_resource'
+  | 'synthetic_scenario_input'
+  | 'derived_research'
+  | 'precomputed_experiment'
+  | 'simulation_output'
+
+export type Redistribution = 'permitted' | 'derived-only' | 'restricted'
+
+export interface DatasetRegion {
+  code: string
+  name: string
+  kind: 'country' | 'points' | 'benchmark' | 'bidding-zone'
+}
+
+export interface DatasetLicense {
+  id: string
+  name: string
+  url: string | null
+  redistribution: Redistribution
+}
+
+export interface DatasetSource {
+  name: string
+  publisher: string | null
+  url: string | null
+  version: string | null
+  doi: string | null
+  retrieved_at: string | null
+  source_sha256: string | null
+  license: DatasetLicense
+  attribution: string
+}
+
+/** A published window; `end_utc` is the last covered timestamp (inclusive). */
+export interface DatasetWindow {
+  start_utc: string
+  end_utc: string
+  label: string
+}
+
+export interface DatasetTemporal {
+  start_utc: string
+  end_utc: string
+  /** ISO-8601 duration, e.g. "PT1H". */
+  resolution: string
+  timezone: 'UTC'
+  windows: DatasetWindow[] | null
+}
+
+export interface DatasetPoint {
+  id: string
+  name: string
+  lat: number
+  lon: number
+  grid_note: string | null
+}
+
+export interface DatasetSpatial {
+  kind: 'points' | 'region' | 'network' | 'none'
+  points: DatasetPoint[] | null
+}
+
+export interface DatasetSeriesInfo {
+  id: string
+  label: string
+  unit: string
+  quantity: string
+  location_id: string | null
+}
+
+export type QualityStatus = 'pass' | 'warn' | 'fail'
+
+export interface DatasetQualityCheck {
+  name: string
+  status: QualityStatus
+  detail: string
+}
+
+export interface DatasetQuality {
+  rows: number | null
+  expected_rows: number | null
+  completeness_pct: number | null
+  missing_values: Record<string, number>
+  missing_policy: 'kept-as-null'
+  /** Absent from catalog summaries (detail only). */
+  checks?: DatasetQualityCheck[]
+  warnings: string[]
+}
+
+export interface DatasetArtifact {
+  path: string
+  sha256: string
+  bytes: number
+  rows: number
+}
+
+export interface DatasetLinks {
+  network_id: string | null
+  scenario_ids: string[]
+  study_route: string | null
+  docs: { label: string; href: string }[]
+}
+
+export interface UseInScenario {
+  available: boolean
+  network_id: string | null
+  preset_id: string | null
+  route: string | null
+  rationale: string
+}
+
+/** Catalog list item: DatasetEntry minus description, transformations and quality.checks. */
+export interface DatasetSummary {
+  id: string
+  title: string
+  summary: string
+  category: DatasetCategory
+  provenance: Provenance
+  data_nature: string
+  region: DatasetRegion | null
+  source: DatasetSource
+  temporal: DatasetTemporal | null
+  spatial: DatasetSpatial
+  series: DatasetSeriesInfo[]
+  quality: DatasetQuality
+  transformation_version: string
+  artifact: DatasetArtifact | null
+  links: DatasetLinks
+  use_in_scenario: UseInScenario
+  exportable: boolean
+}
+
+export interface DatasetEntry extends DatasetSummary {
+  description: string
+  transformations: { step: string; description: string }[]
+  quality: DatasetQuality & { checks: DatasetQualityCheck[] }
+}
+
+export type FacetCounts = Record<string, number>
+
+export interface ObservatoryBundleStatus {
+  status: 'ok' | 'degraded' | 'absent' | 'error'
+  bundle_version: string | null
+  sha256: string | null
+  detail: string | null
+  failed_datasets: string[]
+}
+
+export interface DataCatalogPage extends Page<DatasetSummary> {
+  facets: { category: FacetCounts; provenance: FacetCounts; region: FacetCounts; source: FacetCounts }
+  bundle: ObservatoryBundleStatus
+}
+
+export type SeriesResolution = 'auto' | 'raw' | 'PT3H' | 'P1D' | 'P7D'
+export type SeriesAggregation = 'mean' | 'min' | 'max'
+
+export interface DataSeriesResponse {
+  dataset_id: string
+  bundle_version: string
+  sha256: string
+  start_utc: string
+  end_utc: string
+  /** "raw" (the published `raw_resolution`) or the aggregation bucket width; buckets are labelled by their UTC start. */
+  resolution: 'raw' | 'PT3H' | 'P1D' | 'P7D' | (string & {})
+  /** Published resolution of the dataset, e.g. "PT1H". */
+  raw_resolution: string
+  aggregation: SeriesAggregation | null
+  points: number
+  series: { id: string; label: string; unit: string; values: (number | null)[] }[]
+  timestamps: string[]
+  missing: Record<string, number>
+}
+
+/** Server-side catalog filters (all optional; empty strings are dropped from the query). */
+export interface DataCatalogFilters {
+  q?: string
+  category?: string
+  provenance?: string
+  region?: string
+  source?: string
+}
+
+/** Series query; missing start/end ⇒ the API's default window. */
+export interface DataSeriesParams {
+  series?: string[]
+  start?: string | null
+  /** Exclusive upper bound (the API serves timestamps < end). */
+  end?: string | null
+  resolution?: SeriesResolution
+  agg?: SeriesAggregation
+  max_points?: number
+}

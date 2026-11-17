@@ -254,7 +254,7 @@ cd ../../workers/pypsa
 OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 uv run python ../../pipelines/observed/scripts/run_analogues.py
 cd ../../pipelines/observed
 uvx ruff@0.14.0 check --fix . && uvx ruff@0.14.0 format .
-uv run pytest -q                                   # 38 passed, incl. the reconstruction attempt
+uv run pytest -q                                   # 92 passed (2026-11-17), incl. the reconstruction attempt and observatory bundle tests
 ```
 
 `--network-dir` (on both commands) overrides `data/networks/scigrid-de`. Full
@@ -267,3 +267,10 @@ unchanged because the stress days are unchanged), four serial single-threaded ad
 reconstruction tests ran). These tests require the real canonical SciGRID network, not a synthetic
 substitute. Re-run the solve command after regenerating scenarios so that scenario hashes and
 recorded results stay synchronized.
+
+Since GridStorm 3.2 (2026-11-17) the three scenarios are also published as **precomputed** Crisis
+Studio presets (`packages/stormspec/presets/observed-*.yaml`, byte-identical copies guarded by
+`publish_observatory.py --verify`) with full PyPSA result artifacts in `data/artifacts/pypsa/`
+(unserved energy 2 721.006897 / 4 731.453896 / 4 429.345555 MWh, scenario hashes identical to
+`analogue-results.json`), and the Data Observatory (`/data`) links to them. See
+[observatory pipeline](../data/observatory-pipeline.md).

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { ThemeProvider } from '../../lib/theme'
@@ -35,11 +35,18 @@ afterEach(() => {
 
 describe('AppLayout', () => {
   it('separates workspace links from advanced research and marks the active route', () => {
-    expect(WORKSPACE_NAV.map((n) => n.label)).toEqual(['Explore', 'Simulate', 'Compare', 'Mitigation', 'Library'])
+    expect(WORKSPACE_NAV.map((n) => n.label)).toEqual(['Explore', 'Data', 'Simulate', 'Compare', 'Mitigation', 'Library'])
     expect(RESEARCH_NAV.map((n) => n.label)).toEqual(['Workbench', 'Contingency', 'Operations', 'Benchmarks', 'Methods'])
     renderAt('/studio')
     expect(screen.getByRole('link', { name: 'Simulate' })).toHaveAttribute('aria-current', 'page')
     expect(screen.getByText('Advanced research')).toBeInTheDocument()
+  })
+  it('closes the Advanced research menu after one of its links is followed', () => {
+    renderAt('/studio')
+    const details = screen.getByText('Advanced research').closest('details') as HTMLDetailsElement
+    details.open = true
+    fireEvent.click(screen.getByRole('link', { name: 'Workbench' }))
+    expect(details.open).toBe(false)
   })
   it('shows the safety disclaimer without any breakpoint-hidden class (VER-012)', () => {
     renderAt('/studio')

@@ -1,0 +1,80 @@
+name: Data Observatory bundle
+
+# Publication check for data/observatory/ (docs/data/observatory-pipeline.md): pipeline tests plus
+# `publish_observatory.py --verify` (re-hash, schema, licence gate, byte-equal re-derivation).
+# The API redeploy is not triggered here: Render's build filter includes data/observatory/**, so a
+# merged bundle change rebuilds the API image that bakes the bundle in.
+
+on:
+  pull_request:
+    paths:
+      - "pipelines/observed/**"
+      - "data/observed/**"
+      - "data/observatory/**"
+      - "data/scenarios/observed/**"
+      - "packages/stormspec/presets/observed-*.yaml"
+      - ".github/workflows/observatory.yml"
+  push:
+    branches: [main]
+    paths:
+      - "pipelines/observed/**"
+      - "data/observed/**"
+      - "data/observatory/**"
+      - "data/scenarios/observed/**"
+      - "packages/stormspec/presets/observed-*.yaml"
+      - ".github/workflows/observatory.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: observatory-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GRIDSTORM_DATA_CACHE: ${{ github.workspace }}/../data-cache
+  # OPSD time series 2020-10-06, 60-min single index (pinned in pipelines/observed sources.py).
+  OPSD_URL: https://data.open-power-system-data.org/time_series/2020-10-06/time_series_60min_singleindex.csv
+  OPSD_SHA256: 6a7f2bc571314cbf9c321cc03437691cd4be95c3a6f075e60ff99e8035c704c8
+
+jobs:
+  verify:
+    name: pipeline tests + bundle verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: pipelines/observed
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          cache-dependency-glob: pipelines/observed/uv.lock
+      - name: Sync locked environment
+        run: uv sync --locked --python 3.11
+      - name: Restore OPSD source (130 MB, sha256-pinned)
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.GRIDSTORM_DATA_CACHE }}/opsd
+          key: opsd-time-series-2020-10-06-6a7f2bc5
+      - name: Download OPSD source if not cached
+        # Optional: without it the forecast entry is checksum-verified only (carried forward).
+        continue-on-error: true
+        run: |
+          dest="$GRIDSTORM_DATA_CACHE/opsd/time_series_60min_singleindex.csv"
+          mkdir -p "$(dirname "$dest")"
+          if [ ! -f "$dest" ]; then
+            curl -fsSL --retry 3 -o "$dest.part" "$OPSD_URL"
+            echo "$OPSD_SHA256  $dest.part" | sha256sum -c -
+            mv "$dest.part" "$dest"
+          fi
+      - name: Pipeline tests
+        run: uv run --no-sync pytest -q
+      - name: Verify bundle (offline)
+        run: |
+          if [ ! -f "$GRIDSTORM_DATA_CACHE/opsd/time_series_60min_singleindex.csv" ]; then
+            echo "::warning::OPSD source unavailable: opsd-de-load-forecast checked by sha256 only"
+          fi
+          uv run --no-sync python scripts/publish_observatory.py --out ../../data/observatory --verify

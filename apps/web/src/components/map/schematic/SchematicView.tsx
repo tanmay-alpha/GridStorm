@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent as ReactPointerEvent } from 'react'
-import { HVDC_COLOR, LOADING_SCALE, deltaColor, loadingColor, voltageColor } from '../../../lib/scales'
+import { useCallback, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent as ReactPointerEvent } from 'react'
+import { HVDC_COLOR, LOADING_SCALE, deltaColor, loadingColor } from '../../../lib/scales'
+import { MAP_INK, deviceFill, deviceStroke, schematicVoltageColor } from './colors'
 import { cn } from '../../ui/cn'
 import { assetKey, type AssetRef, type MapFeatures } from '../features'
 import { DEFAULT_LAYERS, type BranchColorMode, type LayerVisibility } from '../layers'
@@ -35,7 +36,7 @@ import {
  * are drawn only in `loading`/`delta` mode, i.e. only when a caller passes solved values.
  */
 
-const BUS_R = 6
+const BUS_R = 6.5
 const SYMBOL_R = 7.5
 const STEM = 14
 const STORAGE_COLOR = '#7d6ad6'
@@ -80,6 +81,8 @@ export interface SchematicViewProps {
   ariaLabel: string
   className?: string
   showControls?: boolean
+  /** A schematic badge floats over the top-left of the drawing (true by default); false when the caller labels it outside. */
+  overlayBadge?: boolean
   /** Size (px, incl. its margins) of a bottom-left overlay, e.g. an open legend, kept clear when there is room. */
   panel?: { width: number; height: number } | null
   /**
@@ -100,11 +103,13 @@ export function SchematicView({
   ariaLabel,
   className,
   showControls = true,
+  overlayBadge = true,
   panel = null,
   occlusion,
 }: SchematicViewProps) {
   const wrapRef = useRef<HTMLDivElement>(null)
   const svgRef = useRef<SVGSVGElement>(null)
+  const gridId = useId()
   const [size, setSize] = useState({ w: 0, h: 0 })
   useEffect(() => {
     const el = wrapRef.current
@@ -123,8 +128,14 @@ export function SchematicView({
   const panelW = panel?.width ?? 0
   const panelH = panel?.height ?? 0
   const fit = useMemo(
-    () => fitView(model.bounds, size.w, size.h, fitInsets(size.w, size.h, panelW > 0 ? { width: panelW, height: panelH } : undefined)),
-    [model.bounds, size.w, size.h, panelW, panelH],
+    () =>
+      fitView(
+        model.bounds,
+        size.w,
+        size.h,
+        fitInsets(size.w, size.h, panelW > 0 ? { width: panelW, height: panelH } : undefined, { badge: overlayBadge, controls: showControls }),
+      ),
+    [model.bounds, size.w, size.h, panelW, panelH, overlayBadge, showControls],
   )
   // A user pan/zoom belongs to one network; switching network (or "Fit") returns to the fitted view,
   // and until the user moves, resizes keep re-fitting.
@@ -280,7 +291,7 @@ export function SchematicView({
   const branchColorOf = (b: SchematicBranch) => {
     if (colorMode === 'loading') return loadingColor(b.value)
     if (colorMode === 'delta') return deltaColor(b.value)
-    return b.kind === 'link' ? HVDC_COLOR : voltageColor(b.kv)
+    return b.kind === 'link' ? HVDC_COLOR : schematicVoltageColor(b.kv)
   }
 
   const ready = !!view && size.w > 0 && size.h > 0
@@ -309,7 +320,7 @@ export function SchematicView({
   }
 
   const deviceColor = (d: SchematicDevice) =>
-    d.kind === 'load' ? 'var(--gs-fg-muted)' : d.kind === 'storage_unit' ? (d.carrier && carrierColors[d.carrier]) || STORAGE_COLOR : (d.carrier && carrierColors[d.carrier]) || '#7a7a85'
+    d.kind === 'load' ? MAP_INK : d.kind === 'storage_unit' ? (d.carrier && carrierColors[d.carrier]) || STORAGE_COLOR : (d.carrier && carrierColors[d.carrier]) || '#7a7a85'
 
   const deviceTitle = (d: SchematicDevice) => {
     const mw = d.mw === null ? '' : d.kind === 'load' ? ` · peak ${d.mw.toLocaleString('en-US')} MW` : ` · p_nom ${d.mw.toLocaleString('en-US')} MW`
@@ -346,6 +357,13 @@ export function SchematicView({
         aria-describedby={`schematic-help-${networkId}`}
         style={{ cursor: 'grab' }}
       >
+        {/* Drafting dot grid; moves with pans (not zoom) so the sheet reads as one surface. */}
+        <defs>
+          <pattern id={gridId} width={24} height={24} patternUnits="userSpaceOnUse" patternTransform={`translate(${view?.tx ?? 0} ${view?.ty ?? 0})`}>
+            <circle cx={1} cy={1} r={1} fill="var(--gs-map-grid)" />
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill={`url(#${gridId})`} />
         {view && (
           <>
             {/* Branches: highlight/selection underlays, then the branch strokes, then markers. */}
@@ -372,8 +390,8 @@ export function SchematicView({
                     {congested && <path d={d} stroke="var(--gs-danger)" strokeOpacity={0.3} strokeWidth={w + 6} fill="none" data-congested="true" />}
                     {split ? (
                       <>
-                        <path d={`M${sx(p0.x)} ${sy(p0.y)}L${mid[0]} ${mid[1]}`} stroke={voltageColor(p0.kv)} strokeWidth={w} fill="none" strokeLinecap="round" />
-                        <path d={`M${mid[0]} ${mid[1]}L${sx(p1.x)} ${sy(p1.y)}`} stroke={voltageColor(p1.kv)} strokeWidth={w} fill="none" strokeLinecap="round" />
+                        <path d={`M${sx(p0.x)} ${sy(p0.y)}L${mid[0]} ${mid[1]}`} stroke={schematicVoltageColor(p0.kv)} strokeWidth={w} fill="none" strokeLinecap="round" />
+                        <path d={`M${mid[0]} ${mid[1]}L${sx(p1.x)} ${sy(p1.y)}`} stroke={schematicVoltageColor(p1.kv)} strokeWidth={w} fill="none" strokeLinecap="round" />
                       </>
                     ) : (
                       <path
@@ -387,8 +405,8 @@ export function SchematicView({
                     )}
                     {b.kind === 'transformer' && (
                       <g transform={`translate(${mid[0]} ${mid[1]}) rotate(${deg})`} data-transformer-symbol="">
-                        <circle cx={-3.2} r={5} fill="var(--gs-map-bg)" stroke={split ? voltageColor(p0.kv) : color} strokeWidth={1.6} />
-                        <circle cx={3.2} r={5} fill="none" stroke={split ? voltageColor(p1.kv) : color} strokeWidth={1.6} />
+                        <circle cx={-3.6} r={5.6} fill="var(--gs-map-bg)" stroke={split ? schematicVoltageColor(p0.kv) : color} strokeWidth={1.8} />
+                        <circle cx={3.6} r={5.6} fill="none" stroke={split ? schematicVoltageColor(p1.kv) : color} strokeWidth={1.8} />
                       </g>
                     )}
                     {b.outaged && (
@@ -421,7 +439,8 @@ export function SchematicView({
                     y1={by + sin * BUS_R * s}
                     x2={x - cos * SYMBOL_R * s}
                     y2={y - sin * SYMBOL_R * s}
-                    stroke={d.outaged ? 'var(--gs-danger)' : 'var(--gs-line-strong)'}
+                    stroke={d.outaged ? 'var(--gs-danger)' : MAP_INK}
+                    strokeOpacity={d.outaged ? 1 : 0.7}
                     strokeWidth={1.3}
                     strokeDasharray={d.outaged ? '3 2' : undefined}
                   />
@@ -433,11 +452,11 @@ export function SchematicView({
                       <path transform={`rotate(${(d.angle * 180) / Math.PI})`} d="M-5 -5.5L6 0L-5 5.5Z" fill={color} />
                     ) : (
                       <>
-                        <circle r={SYMBOL_R} fill="var(--gs-surface)" stroke={color} strokeWidth={2} />
+                        <circle r={SYMBOL_R} style={{ fill: deviceFill(color), stroke: deviceStroke(color) }} strokeWidth={2} />
                         {d.kind === 'generator' ? (
-                          <path d="M-4.2 0C-3 -3.6 -1.2 -3.6 0 0S3 3.6 4.2 0" fill="none" stroke={color} strokeWidth={1.6} strokeLinecap="round" />
+                          <path d="M-4.2 0C-3 -3.6 -1.2 -3.6 0 0S3 3.6 4.2 0" fill="none" style={{ stroke: deviceStroke(color) }} strokeWidth={1.8} strokeLinecap="round" />
                         ) : (
-                          <path d="M-1.8 -4.4V4.4M1.8 -2.4V2.4" stroke={color} strokeWidth={1.8} strokeLinecap="round" />
+                          <path d="M-1.8 -4.4V4.4M1.8 -2.4V2.4" style={{ stroke: deviceStroke(color) }} strokeWidth={1.8} strokeLinecap="round" />
                         )}
                       </>
                     )}
@@ -488,18 +507,18 @@ export function SchematicView({
                     {isSel && <circle cx={x} cy={y} r={r + 5} fill="none" stroke="var(--gs-accent)" strokeWidth={3} />}
                     {isFocus && <circle cx={x} cy={y} r={r + 8} fill="none" stroke="var(--gs-focus)" strokeWidth={2} strokeDasharray="3 2" />}
                     {b.highlighted && <circle cx={x} cy={y} r={r + 6} fill="none" stroke="var(--gs-fg)" strokeOpacity={0.35} strokeWidth={4} />}
-                    <circle cx={x} cy={y} r={r} fill="var(--gs-surface)" stroke={voltageColor(b.kv)} strokeWidth={2.6} />
+                    <circle cx={x} cy={y} r={r} fill="var(--gs-surface)" stroke={schematicVoltageColor(b.kv)} strokeWidth={3} />
                     {showLabel && (
                       <text
                         x={x + cos * lr}
                         y={y + sin * lr}
                         textAnchor={anchor}
                         dominantBaseline={baseline}
-                        fontSize={isSel ? 12.5 : 11}
+                        fontSize={isSel ? 13 : 12}
                         fontWeight={isSel ? 700 : 600}
                         fill="var(--gs-fg)"
                         stroke="var(--gs-map-bg)"
-                        strokeWidth={3}
+                        strokeWidth={4}
                         paintOrder="stroke"
                         className="tabular"
                         aria-hidden

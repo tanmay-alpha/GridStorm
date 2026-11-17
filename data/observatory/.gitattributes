@@ -1,0 +1,2 @@
+# Bundle bytes are pinned by sha256 in manifest.json: never convert line endings.
+* -text

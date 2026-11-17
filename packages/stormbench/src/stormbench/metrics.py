@@ -11,6 +11,13 @@ re-solve):
 * severity of l = max post-contingency loading over those same branches (NaN-safe).
 * all comparisons against the threshold use a tolerance of ``TOL_PCT`` percentage points: the
   DC-OPF operating point binds limits at exactly 100 %, which round-off would otherwise flag.
+* ranking (Kendall tau-b, Spearman rho, recall@k, top-contingency lists) uses the same tolerance:
+  severities are grouped into tie groups by single linkage on the sorted values (consecutive sorted
+  values within ``TOL_PCT`` share a group), and each value is replaced by its group's dense rank.
+  The grouping depends only on the multiset of values, never on input order, so outages whose
+  severities are equal in exact arithmetic but differ by round-off (1e-14…1e-11 pp, platform- and
+  BLAS-kernel-dependent) cannot change a rank statistic. Within a tie group, top-k selection breaks
+  ties by contingency index (source branch order).
 """
 
 from __future__ import annotations
@@ -65,23 +72,75 @@ def confusion(pred: np.ndarray, truth: np.ndarray) -> dict:
     }
 
 
-def recall_at_k(score_pred: np.ndarray, score_true: np.ndarray, k: int) -> float | None:
-    """|top-k(pred) ∩ top-k(true)| / k (stable sort, ties broken by index)."""
+def tie_groups(values: np.ndarray, tol: float = TOL_PCT) -> np.ndarray:
+    """Dense tie-group rank per element (0 = smallest group) by single linkage on sorted values.
+
+    Consecutive sorted values whose gap is <= ``tol`` belong to the same group, so the result is
+    invariant to the order of the input and to perturbations smaller than half the distance
+    between any consecutive gap and ``tol`` (``tie_summary``'s ``tolerance_margin_pct``).
+    Values must be finite.
+    """
+    v = np.asarray(values, dtype=float)
+    if not np.all(np.isfinite(v)):
+        raise ValueError("tie_groups requires finite values")
+    order = np.argsort(v, kind="stable")
+    new_group = np.diff(v[order]) > tol
+    ranks = np.empty(v.shape[0], dtype=np.int64)
+    ranks[order] = np.concatenate(([0], np.cumsum(new_group))) if v.shape[0] else []
+    return ranks
+
+
+def tie_summary(values: np.ndarray, tol: float = TOL_PCT) -> dict:
+    """Tie groups (size >= 2), tied pairs, widest group span (chaining) and tolerance margin.
+
+    ``tolerance_margin_pct`` is the smallest |gap - tol| over consecutive sorted values: the
+    grouping cannot change unless round-off moves some value by at least half of it.
+    """
+    v = np.sort(np.asarray(values, dtype=float))
+    groups = tie_groups(v, tol)
+    sizes = np.bincount(groups) if v.shape[0] else np.zeros(0, dtype=np.int64)
+    first = np.concatenate(([0], np.cumsum(sizes)[:-1])) if sizes.shape[0] else sizes
+    last = first + sizes - 1
+    gaps = np.diff(v)
+    return {
+        "tie_groups": int(np.sum(sizes > 1)),
+        "tied_pairs": int(np.sum(sizes * (sizes - 1) // 2)),
+        "max_group_span_pct": float(np.max(v[last] - v[first])) if sizes.shape[0] else None,
+        "tolerance_margin_pct": float(np.min(np.abs(gaps - tol))) if gaps.shape[0] else None,
+    }
+
+
+def top_k_order(score: np.ndarray, tol: float = TOL_PCT) -> np.ndarray:
+    """Indices by descending tie group of ``score``; ties (within ``tol``) broken by index."""
+    groups = tie_groups(score, tol)
+    return np.lexsort((np.arange(groups.shape[0]), -groups))
+
+
+def recall_at_k(
+    score_pred: np.ndarray, score_true: np.ndarray, k: int, tol: float = TOL_PCT
+) -> float | None:
+    """|top-k(pred) ∩ top-k(true)| / k on tie groups (ties within ``tol`` broken by index)."""
     n = score_pred.shape[0]
     k = min(k, n)
     if k <= 0:
         return None
-    top_p = set(np.argsort(-score_pred, kind="stable")[:k].tolist())
-    top_t = set(np.argsort(-score_true, kind="stable")[:k].tolist())
+    top_p = set(top_k_order(score_pred, tol)[:k].tolist())
+    top_t = set(top_k_order(score_true, tol)[:k].tolist())
     return len(top_p & top_t) / k
 
 
-def rank_agreement(score_pred: np.ndarray, score_true: np.ndarray) -> dict:
-    """Kendall tau-b and Spearman rho (None if fewer than 2 points or a constant vector)."""
-    if score_pred.shape[0] < 2 or np.ptp(score_pred) == 0 or np.ptp(score_true) == 0:
+def rank_agreement(score_pred: np.ndarray, score_true: np.ndarray, tol: float = TOL_PCT) -> dict:
+    """Kendall tau-b and Spearman rho (average ranks) on tie groups within ``tol``.
+
+    None if fewer than 2 points or either vector forms a single tie group (constant).
+    """
+    if score_pred.shape[0] < 2:
         return {"kendall_tau": None, "spearman": None}
-    tau = stats.kendalltau(score_pred, score_true).statistic
-    rho = stats.spearmanr(score_pred, score_true).statistic
+    gp, gt = tie_groups(score_pred, tol), tie_groups(score_true, tol)
+    if gp.max() == 0 or gt.max() == 0:
+        return {"kendall_tau": None, "spearman": None}
+    tau = stats.kendalltau(gp, gt, variant="b").statistic
+    rho = stats.spearmanr(gp, gt).statistic
     return {"kendall_tau": float(tau), "spearman": float(rho)}
 
 
@@ -96,4 +155,9 @@ def compare(sev_pred: np.ndarray, sev_true: np.ndarray, threshold: float = 100.0
     out["recall_at_10"] = recall_at_k(sev_pred, sev_true, 10)
     out.update(rank_agreement(sev_pred, sev_true))
     out["n"] = int(sev_pred.shape[0])
+    out["ties"] = {
+        "tolerance_pct": TOL_PCT,
+        "screening": tie_summary(sev_pred),
+        "reference": tie_summary(sev_true),
+    }
     return out

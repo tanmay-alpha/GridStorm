@@ -27,19 +27,41 @@ function tokens(selector: string): Record<string, string> {
   return Object.fromEntries([...block.matchAll(/--gs-([\w-]+):\s*(#[0-9a-f]{6})/gi)].map((m) => [m[1]!, m[2]!]))
 }
 
-// Every background text-fg-subtle can sit on: page, panels, inset rows, and the soft badge tints.
-const BACKGROUNDS = ['canvas', 'surface', 'surface-2', 'surface-3', 'accent-soft', 'ok-soft', 'warn-soft', 'danger-soft', 'info-soft']
+// Every background text-fg-subtle can sit on: page, panels, inset rows, the soft badge tints and network drawings.
+const BACKGROUNDS = ['canvas', 'surface', 'surface-2', 'surface-3', 'accent-soft', 'ok-soft', 'warn-soft', 'danger-soft', 'info-soft', 'map-bg']
 
 describe.each([
   ['light', ':root'],
   ['dark', "[data-theme='dark']"],
-])('%s theme text tokens', (_name, selector) => {
+])('%s theme tokens', (_name, selector) => {
   const t = tokens(selector)
+  const pair = (fg: string, bg: string) => {
+    expect(t[fg], `--gs-${fg}`).toMatch(/^#/)
+    expect(t[bg], `--gs-${bg}`).toMatch(/^#/)
+    return contrast(t[fg]!, t[bg]!)
+  }
   it.each(['fg', 'fg-muted', 'fg-subtle'])('--gs-%s meets 4.5:1 (WCAG 1.4.3) on every background', (fg) => {
-    for (const bg of BACKGROUNDS) {
-      expect(t[fg], `--gs-${fg}`).toMatch(/^#/)
-      expect(t[bg], `--gs-${bg}`).toMatch(/^#/)
-      expect(contrast(t[fg]!, t[bg]!), `--gs-${fg} on --gs-${bg}`).toBeGreaterThanOrEqual(4.5)
-    }
+    for (const bg of BACKGROUNDS) expect(pair(fg, bg), `--gs-${fg} on --gs-${bg}`).toBeGreaterThanOrEqual(4.5)
+  })
+  // Badges and status text: `text-ok` on `bg-ok-soft`, and the same colour as plain text on panels and the page.
+  it.each(['accent', 'ok', 'warn', 'danger', 'info'])('--gs-%s text meets 4.5:1 on its soft tint, surface and canvas', (tone) => {
+    for (const bg of [`${tone}-soft`, 'surface', 'surface-2', 'canvas'])
+      expect(pair(tone, bg), `--gs-${tone} on --gs-${bg}`).toBeGreaterThanOrEqual(4.5)
+  })
+  it('--gs-accent-fg meets 4.5:1 on --gs-accent (primary buttons)', () => {
+    expect(pair('accent-fg', 'accent')).toBeGreaterThanOrEqual(4.5)
+  })
+  // Non-text contrast (WCAG 1.4.11): focus indicator, form-control boundaries and chart series.
+  it('--gs-focus meets 3:1 on every page and panel background', () => {
+    for (const bg of ['canvas', 'surface', 'surface-2', 'map-bg']) expect(pair('focus', bg), `--gs-focus on --gs-${bg}`).toBeGreaterThanOrEqual(3)
+  })
+  it('--gs-map-ink meets 3:1 on --gs-map-bg and surface (schematic strokes)', () => {
+    for (const bg of ['map-bg', 'surface']) expect(pair('map-ink', bg), `on --gs-${bg}`).toBeGreaterThanOrEqual(3)
+  })
+  it('--gs-control-border meets 3:1 on canvas, surface and surface-2', () => {
+    for (const bg of ['canvas', 'surface', 'surface-2']) expect(pair('control-border', bg), `on --gs-${bg}`).toBeGreaterThanOrEqual(3)
+  })
+  it.each([1, 2, 3, 4, 5, 6, 7, 8])('--gs-chart-%i meets 3:1 on surface', (i) => {
+    expect(pair(`chart-${i}`, 'surface')).toBeGreaterThanOrEqual(3)
   })
 })

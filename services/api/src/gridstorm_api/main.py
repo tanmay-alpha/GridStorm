@@ -24,7 +24,7 @@ from .context import AppContext
 from .errors import UnhandledErrorMiddleware, install_error_handlers
 from .ratelimit import BodySizeLimitMiddleware, TrustedProxyMiddleware
 from .readiness import SolverProbe, StorageProbe
-from .routers import artifacts, comparisons, health, networks, scenarios, simulations
+from .routers import artifacts, comparisons, data, health, networks, scenarios, simulations
 from .security_headers import SecurityHeadersMiddleware
 from .sync import sync_catalog, sync_presets
 
@@ -125,7 +125,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             proxy_hops=settings.trusted_proxy_hops,
         )
 
-    for module in (health, networks, scenarios, simulations, comparisons, artifacts):
+    for module in (health, networks, scenarios, simulations, comparisons, artifacts, data):
         app.include_router(module.router)
 
     @app.get("/", include_in_schema=False)

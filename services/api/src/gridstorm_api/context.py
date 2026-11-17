@@ -10,6 +10,7 @@ from .auth import JWTVerifier
 from .catalog import NetworkCatalog
 from .config import Settings
 from .db import Database
+from .observatory import DataObservatory
 from .precomputed import PrecomputedArtifacts
 from .ratelimit import TokenBucketLimiter
 from .storage import ArtifactStore, make_store
@@ -30,6 +31,7 @@ class AppContext:
     jwt: JWTVerifier
     post_limiter: TokenBucketLimiter
     sim_limiter: TokenBucketLimiter
+    observatory: DataObservatory
     network_versions: dict[str, uuid.UUID] = field(default_factory=dict)
     pool: WorkerPool | None = None
     analytics: AnalyticsService | None = None
@@ -38,12 +40,14 @@ class AppContext:
 
     @classmethod
     def build(cls, settings: Settings) -> AppContext:
+        catalog = NetworkCatalog(settings.networks_dir)
+        precomputed = PrecomputedArtifacts(settings.artifacts_dir)
         return cls(
             settings=settings,
             db=Database(settings.resolved_database_url),
-            catalog=NetworkCatalog(settings.networks_dir),
+            catalog=catalog,
             store=make_store(settings),
-            precomputed=PrecomputedArtifacts(settings.artifacts_dir),
+            precomputed=precomputed,
             jwt=JWTVerifier(
                 secret=settings.supabase_jwt_secret,
                 supabase_url=settings.supabase_url,
@@ -55,4 +59,5 @@ class AppContext:
             sim_limiter=TokenBucketLimiter(
                 settings.rate_limit_sim_per_min, settings.rate_limit_sim_burst
             ),
+            observatory=DataObservatory(settings, catalog, precomputed),
         )

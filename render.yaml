@@ -19,6 +19,7 @@ services:
         - database/**
         - data/networks/**
         - data/artifacts/**
+        - data/observatory/**
         - .dockerignore
     dockerfilePath: ./services/api/Dockerfile
     dockerContext: .

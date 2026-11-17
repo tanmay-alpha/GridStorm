@@ -95,11 +95,11 @@ export function AssetDetails({
   }
 
   return (
-    <section ref={ref} tabIndex={-1} aria-labelledby="asset-details-title" data-testid="asset-details" className="flex min-h-0 flex-col">
-      <header className="flex items-start justify-between gap-2 border-b border-line px-3 py-2">
+    <section ref={ref} tabIndex={-1} aria-labelledby="asset-details-title" data-testid="asset-details" className="flex min-h-0 flex-1 flex-col">
+      <header className="flex shrink-0 items-start justify-between gap-2 border-b border-line py-2 pl-4 pr-1.5">
         <div className="min-w-0">
           <p className="gs-label">{KIND_LABEL[selected.kind]}</p>
-          <h2 id="asset-details-title" className="truncate text-sm font-semibold" title={selected.id}>
+          <h2 id="asset-details-title" className="truncate font-mono text-base font-semibold tracking-tight" title={selected.id}>
             {selected.id}
           </h2>
         </div>
@@ -107,7 +107,7 @@ export function AssetDetails({
           <X aria-hidden className="size-4" />
         </button>
       </header>
-      <div className="min-h-0 overflow-y-auto px-3 py-2">
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
         {query.isPending ? <SkeletonBlock rows={3} label="Loading asset details" /> : query.error ? <ErrorState error={query.error} title="Could not load asset details" onRetry={() => void query.refetch()} /> : !row ? (
           <p className="text-xs text-fg-muted">Asset not found in the canonical dataset.</p>
         ) : (

@@ -1,5 +1,5 @@
 import { ApiError } from '../../api/client'
-import type { CostBasis, GridstormResult, Job, Outcome, ResultBranch, ResultMetrics, SolverInfo } from '../../api/types'
+import type { CostBasis, GridstormResult, Job, MetricDelta, Outcome, ResultBranch, ResultMetrics, SolverInfo } from '../../api/types'
 import { assetKey } from '../../components/map/features'
 import type { ChartOption } from '../../components/ui'
 import { carrierColor } from '../../lib/scales'
@@ -357,6 +357,29 @@ export function headlineFacts(m: Partial<ResultMetrics>, basis: CostBasis | null
   const co2 = num(m.co2_emissions_t)
   if (co2 !== null) out.push({ key: 'co2', label: 'CO₂ emissions', value: co2, display: formatQuantity(co2, 't', { scale: true }) })
   return out
+}
+
+function servedPct(m: Partial<ResultMetrics>): number | null {
+  const s = m.served_load_mwh
+  const t = m.total_load_mwh
+  return isFiniteNumber(s) && isFiniteNumber(t) && t > 0 ? (s / t) * 100 : null
+}
+
+/**
+ * Compact baseline → scenario rows of two results (same formatting rules as the Compare page):
+ * physical metrics first, the operating cost (model economics) last.
+ */
+export function resultMetricRows(b: Partial<ResultMetrics>, s: Partial<ResultMetrics>): Pick<MetricDelta, 'metric' | 'unit' | 'baseline' | 'scenario'>[] {
+  const v = (x: unknown) => (isFiniteNumber(x) ? x : null)
+  return [
+    { metric: 'unserved_energy_mwh', unit: 'MWh', baseline: v(b.unserved_energy_mwh), scenario: v(s.unserved_energy_mwh) },
+    { metric: 'peak_load_shed_mw', unit: 'MW', baseline: v(b.peak_load_shed_mw), scenario: v(s.peak_load_shed_mw) },
+    { metric: 'demand_served_pct', unit: '%', baseline: servedPct(b), scenario: servedPct(s) },
+    { metric: 'max_line_loading_pct', unit: '%', baseline: v(b.max_line_loading_pct), scenario: v(s.max_line_loading_pct) },
+    { metric: 'congested_line_count', unit: 'count', baseline: v(b.congested_line_count), scenario: v(s.congested_line_count) },
+    { metric: 'curtailment_mwh', unit: 'MWh', baseline: v(b.curtailment_mwh), scenario: v(s.curtailment_mwh) },
+    { metric: 'total_system_cost_eur', unit: 'EUR', baseline: v(b.total_system_cost_eur), scenario: v(s.total_system_cost_eur) },
+  ]
 }
 
 /** Assumption and warning texts of a result, with legacy "EUR" wording mapped to the cost basis. */

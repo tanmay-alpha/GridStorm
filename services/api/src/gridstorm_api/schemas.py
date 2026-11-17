@@ -310,3 +310,190 @@ class PrecomputedArtifact(_Open):
     title: str | None
     bytes: int | None
     available: bool
+
+
+# --- data observatory (local observatory contract; docs/architecture/backend.md) ---------------
+DataCategory = Literal[
+    "network_model",
+    "network_assets",
+    "historical_demand",
+    "weather_reanalysis",
+    "renewable_resource",
+    "synthetic_scenario_input",
+    "derived_research",
+    "precomputed_experiment",
+    "simulation_output",
+]
+
+
+class DataLicense(_Open):
+    id: str | None
+    name: str | None
+    url: str | None
+    redistribution: Literal["permitted", "derived-only", "restricted"]
+
+
+class DataSource(_Open):
+    name: str
+    publisher: str | None
+    url: str | None
+    version: str | None
+    doi: str | None
+    retrieved_at: str | None
+    source_sha256: str | None
+    license: DataLicense
+    attribution: str | None
+
+
+class DataRegion(_Open):
+    code: str
+    name: str
+    kind: Literal["country", "points", "benchmark", "bidding-zone"]
+
+
+class DataWindow(_Open):
+    start_utc: str
+    end_utc: str
+    label: str | None = None
+
+
+class DataTemporal(_Open):
+    start_utc: str | None
+    end_utc: str | None
+    resolution: str | None
+    timezone: Literal["UTC"]
+    windows: list[DataWindow] | None
+
+
+class DataPoint(_Open):
+    id: str
+    name: str | None
+    lat: float
+    lon: float
+    grid_note: str | None = None
+
+
+class DataSpatial(_Open):
+    kind: Literal["points", "region", "network", "none"]
+    points: list[DataPoint] | None
+
+
+class DataSeriesInfo(_Open):
+    id: str
+    label: str
+    unit: str | None
+    quantity: str | None
+    location_id: str | None
+
+
+class DataCheck(_Open):
+    name: str
+    status: Literal["pass", "warn", "fail"]
+    detail: str | None
+
+
+class DataQualitySummary(_Open):
+    rows: int | None
+    expected_rows: int | None
+    completeness_pct: float | None
+    missing_values: dict[str, int]
+    missing_policy: str
+    warnings: list[str]
+
+
+class DataQuality(DataQualitySummary):
+    checks: list[DataCheck]
+
+
+class DataTransformation(_Open):
+    step: str
+    description: str
+
+
+class DataArtifact(_Open):
+    path: str
+    sha256: str
+    bytes: int
+    rows: int | None
+
+
+class DataDocLink(_Open):
+    label: str
+    href: str
+
+
+class DataLinks(_Open):
+    network_id: str | None
+    scenario_ids: list[str]
+    study_route: str | None
+    docs: list[DataDocLink]
+
+
+class DataUseInScenario(_Open):
+    available: bool
+    network_id: str | None
+    preset_id: str | None
+    route: str | None
+    rationale: str
+
+
+class DatasetSummary(_Open):
+    id: str
+    title: str
+    summary: str
+    category: DataCategory
+    provenance: Provenance
+    data_nature: str
+    region: DataRegion | None
+    source: DataSource
+    temporal: DataTemporal | None
+    spatial: DataSpatial
+    series: list[DataSeriesInfo]
+    quality: DataQualitySummary
+    transformation_version: str | None
+    artifact: DataArtifact | None
+    links: DataLinks
+    use_in_scenario: DataUseInScenario
+    exportable: bool
+
+
+class DatasetEntry(DatasetSummary):
+    description: str
+    quality: DataQuality
+    transformations: list[DataTransformation]
+
+
+class DataBundleStatus(BaseModel):
+    status: Literal["ok", "degraded", "absent", "error"]
+    schema_version: str | None
+    bundle_version: str | None
+    sha256: str | None
+    detail: str | None
+    failed_datasets: list[str]
+
+
+class DataCatalogPage(Page[DatasetSummary]):
+    facets: dict[str, dict[str, int]]
+    bundle: DataBundleStatus
+
+
+class DataSeriesValues(BaseModel):
+    id: str
+    label: str
+    unit: str | None
+    values: list[float | None]
+
+
+class DataSeriesResponse(BaseModel):
+    dataset_id: str
+    bundle_version: str | None
+    sha256: str
+    start_utc: str
+    end_utc: str
+    resolution: Literal["raw", "PT3H", "P1D", "P7D"]
+    raw_resolution: str
+    aggregation: Literal["mean", "min", "max"] | None
+    points: int
+    series: list[DataSeriesValues]
+    timestamps: list[str]
+    missing: dict[str, int]

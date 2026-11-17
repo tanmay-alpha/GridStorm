@@ -23,6 +23,17 @@ test('IEEE 14 renders as a fitted schematic with all buses; selection syncs with
   await expect(schematic.locator('[data-branch-kind="transformer"]')).toHaveCount(3)
   await expect(page.getByTestId('schematic-badge')).toBeVisible()
   await expect(page.getByTestId('schematic-legend')).toContainText('kV')
+  // Canvas header: dataset totals exactly as the API's network list reports them.
+  const summary = ((await (await request.get('/api/v1/networks')).json()).items as { id: string; counts: Record<string, number> }[]).find((n) => n.id === 'pglib-case14-ieee')!
+  const stats = page.getByTestId('network-stats')
+  await expect(stats).toContainText(`${summary.counts.buses} buses`)
+  await expect(stats).toContainText(`${summary.counts.transformers} transformers`)
+  // Source details open in a drawer and close with Escape; warnings stay on the page.
+  await page.getByRole('button', { name: 'Source, licence and assumptions' }).click()
+  await expect(page.getByTestId('dataset-drawer')).toContainText('network.nc sha256')
+  await page.keyboard.press('Escape')
+  await expect(page.getByTestId('dataset-drawer')).toHaveCount(0)
+  await expect(page.getByTestId('dataset-warnings')).toBeVisible()
   // Units are drawn at their buses once their tables arrive (5 generators, 11 loads in PGLib case14).
   await expect(schematic.locator('[data-device-kind="generator"]')).toHaveCount(5)
   await expect(schematic.locator('[data-device-kind="load"]')).toHaveCount(11)
@@ -89,7 +100,7 @@ test('IEEE 14 renders as a fitted schematic with all buses; selection syncs with
   expect(errors).toEqual([])
 })
 
-test('IEEE 118 is usable as a schematic and geographic networks keep MapLibre', async ({ page }) => {
+test('IEEE 118 is usable as a schematic and geographic networks keep MapLibre', async ({ page, request }) => {
   const errors: string[] = []
   page.on('pageerror', (e) => errors.push(e.message))
   await page.goto('/explore?network=pglib-case118-ieee')
@@ -105,11 +116,20 @@ test('IEEE 118 is usable as a schematic and geographic networks keep MapLibre', 
   await expect(page.getByTestId('asset-details')).toContainText('bus-69')
   await expect(schematic.locator('[data-bus-id="bus-69"]')).toHaveAttribute('aria-pressed', 'true')
   await page.keyboard.press('Escape')
+  // Quick voltage filter: one toggle per stored level; 345 kV keeps exactly the dataset's 345 kV buses.
+  const fc = await (await request.get('/api/v1/networks/pglib-case118-ieee/geojson')).json()
+  const at345 = (fc.features as { properties: { component: string; v_nom_kv?: number } }[]).filter((f) => f.properties.component === 'bus' && f.properties.v_nom_kv === 345).length
+  expect(at345).toBeGreaterThan(0)
+  await page.getByTestId('voltage-quick-filter').getByRole('button', { name: '345 kV' }).click()
+  await expect(schematic.locator('[data-bus-id]')).toHaveCount(at345)
+  await page.getByTestId('voltage-quick-filter').getByRole('button', { name: 'All levels' }).click()
+  await expect(schematic.locator('[data-bus-id]')).toHaveCount(118)
 
   await page.getByTestId('network-select').selectOption('scigrid-de')
   expect(await waitForNetworkView(page, 'scigrid-de')).toBe('map')
   await expect(page.getByTestId('network-schematic')).toHaveCount(0)
   await expect(page.getByTestId('schematic-badge')).toHaveCount(0)
+  await expect(page.getByTestId('geographic-badge')).toBeVisible()
   await expect(page.locator('.maplibregl-map')).toHaveCount(1)
   expect(errors).toEqual([])
 })

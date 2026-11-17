@@ -141,6 +141,10 @@ def test_openapi_matches_contract_paths(client):
         ("get", "/api/v1/reports/{report_id}"),
         ("get", "/api/v1/artifacts"),
         ("get", "/api/v1/artifacts/{engine}/{artifact_id}"),
+        ("get", "/api/v1/data/catalog"),
+        ("get", "/api/v1/data/catalog/{dataset_id}"),
+        ("get", "/api/v1/data/catalog/{dataset_id}/series"),
+        ("get", "/api/v1/data/catalog/{dataset_id}/export"),
     }
     actual = {(m, p) for p, ops in spec["paths"].items() for m in ops}
     assert actual == expected

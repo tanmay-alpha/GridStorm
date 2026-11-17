@@ -36,6 +36,7 @@ export function BranchValueMap({
   outaged = NO_KEYS,
   highlighted = NO_KEYS,
   className = 'h-[420px]',
+  deltaLabel,
 }: {
   networkId: string
   values: Record<string, number | null>
@@ -47,6 +48,8 @@ export function BranchValueMap({
   outaged?: readonly string[]
   highlighted?: readonly string[]
   className?: string
+  /** Legend title in delta mode; defaults to "Loading change (scenario − baseline)". */
+  deltaLabel?: string
 }) {
   const networks = useNetworks()
   const summary = networks.data?.find((n) => n.id === networkId) ?? null
@@ -94,7 +97,7 @@ export function BranchValueMap({
           <SchematicBadge />
           <details className="gs-panel absolute bottom-2 left-2 z-10 max-h-[calc(100%-1rem)] max-w-60 overflow-y-auto p-2 shadow-sm" open>
             <summary className="flex min-h-8 cursor-pointer items-center text-xs font-semibold">Legend</summary>
-            <SchematicLegend features={features} layers={DEFAULT_LAYERS} mode={mode} />
+            <SchematicLegend features={features} layers={DEFAULT_LAYERS} mode={mode} deltaLabel={deltaLabel} />
           </details>
           {unitsError && (
             <p role="alert" className="gs-panel absolute bottom-2 right-2 z-10 max-w-56 p-2 text-2xs text-warn">
@@ -116,7 +119,7 @@ export function BranchValueMap({
             />
           </Suspense>
           <div className="gs-panel absolute bottom-2 left-2 z-10 max-w-56 p-2 shadow-sm">
-            <BranchLegend mode={mode} outaged={outaged.length > 0} highlighted={highlighted.length > 0} />
+            <BranchLegend mode={mode} outaged={outaged.length > 0} highlighted={highlighted.length > 0} deltaLabel={deltaLabel} />
           </div>
         </>
       )}

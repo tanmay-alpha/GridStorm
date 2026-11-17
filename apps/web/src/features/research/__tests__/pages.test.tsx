@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, within } from '@testing-library/react'
+import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import advisor from '../__fixtures__/advisor-case14.json'
 import crossEngine from '../__fixtures__/cross-engine-pglib-case14-ieee.json'
@@ -53,7 +54,12 @@ function stubBackend(engines: Docs, networks: unknown[] = []) {
 
 function wrap(ui: ReactNode) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
-  return render(<QueryClientProvider client={client}>{ui}</QueryClientProvider>)
+  // Pages link to the Research Workbench (study guide), so they render inside a router.
+  return render(
+    <QueryClientProvider client={client}>
+      <MemoryRouter>{ui}</MemoryRouter>
+    </QueryClientProvider>,
+  )
 }
 
 const indexRow = (doc: { artifact: { artifact_id: string; kind: string; network_id: string | null } }, extra: Record<string, unknown> = {}) => ({
