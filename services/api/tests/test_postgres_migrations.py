@@ -182,6 +182,46 @@ def test_rls_policies_enforce_owner_visibility(migrated):
         assert {r[0] for r in conn.execute(text("select id from network_datasets"))} >= {"rls-net"}
 
 
+def test_client_roles_have_least_privilege(migrated):
+    """0004: anon has no write grant anywhere; worker internals are not client-readable."""
+    tables = [
+        r[0]
+        for r in migrated.engine.connect().execute(
+            text("select tablename from pg_tables where schemaname = 'public'")
+        )
+    ]
+    assert "simulation_jobs" in tables
+    with migrated.engine.connect() as conn:
+
+        def has(role: str, table: str, priv: str) -> bool:
+            return conn.execute(
+                text("select has_table_privilege(:r, :t, :p)"),
+                {"r": role, "t": f"public.{table}", "p": priv},
+            ).scalar()
+
+        def col(role: str, column: str) -> bool:
+            return conn.execute(
+                text("select has_column_privilege(:r, 'public.simulation_jobs', :c, 'SELECT')"),
+                {"r": role, "c": column},
+            ).scalar()
+
+        for table in tables:
+            for priv in ("INSERT", "UPDATE", "DELETE"):
+                assert not has("anon", table, priv), (table, priv)
+        # owner-scoped client writes stay possible for authenticated users (policies in 0002)
+        assert has("authenticated", "scenario_definitions", "INSERT")
+        for role in ("anon", "authenticated"):
+            assert not col(role, "worker_id")
+            assert not col(role, "heartbeat_at")
+            for column in ("id", "status", "outcome", "result_sha256", "visibility"):
+                assert col(role, column), (role, column)
+        # (Default privileges for future tables are not asserted here: the fixture re-runs the
+        # Supabase stub, which re-grants them; production is checked via pg_default_acl.)
+    with migrated.engine.begin() as conn:
+        conn.execute(text("set local role anon"))
+        assert conn.execute(text("select count(id) from simulation_jobs")).scalar() >= 0
+
+
 def test_api_on_postgres(pg_url, migrated, settings_factory):
     with migrated.engine.begin() as conn:
         conn.execute(

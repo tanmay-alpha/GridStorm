@@ -21,6 +21,16 @@ Last updated: 2026-11-17
 
 Live (since 2026-11-17): https://gridstorm.vercel.app (Vercel `dpl_HXJ6tmwRhBqWrqMQgasMBLkq4eMT`, Git build of `main` `f8b3c28`, PR #14) · https://gridstorm-api.onrender.com (`/health` git_sha `f8b3c28`; `/ready` postgres + supabase durable) · CI green on PR #14 (28/28, run 44006783223) and on `main` (run 44008687576); scientific reproducibility on `main` incl. full tests green (run 44009643558); production browser smoke (44009033246) and production smoke (44009037283) green; `scripts/probe_production.py` all PASS. Earlier: web `387f584` / API `127db27` (PR #12/#13), `cf482f2` (3.0).
 
+## GridStorm 3.3 — database verification, refinement (started 2026-11-17)
+
+Branch `release/gridstorm-3.3` from `main` `16e9f78`. Baseline: web Vercel build of `f8b3c28`, API git_sha `f8b3c28`.
+Statuses as in 3.2. Refinement only: nothing from 3.0/3.2 is re-implemented.
+
+| ID | Task | Pri | Status | Acceptance criteria | Evidence |
+|---|---|---|---|---|---|
+| G33-01 | Production DB + Storage inventory (completes G32-02) and least-privilege fix | P0 | LOCALLY TESTED | Real measured values; access findings fixed with an isolated-DB test and rollback | Credentials: `DATABASE_URL` of the GridStorm Render service via the (refreshed) Render API, read-only run 2026-11-17 11:17 UTC → [inventory](docs/data/production-inventory.md): migrations 0001–0003 sha-identical, 12 tables RLS on, 14 jobs all completed with metrics + result rows, 0 orphan objects, 0 sha/size mismatches, 8 broken refs = the 5 known legacy jobs, DB 13.1 MB (2.6 %), Storage 2.54 MB (0.25 %), bucket private. Findings: anon write grants unused by any policy; `worker_id`/`heartbeat_at` readable via PostgREST → `0004_client_role_least_privilege.sql` + docker test |
+| G33-02 | Dependabot: `actions/checkout` v7 (#1), `gitleaks-action` v3 (#4) | P3 | IMPLEMENTING | Upstream notes reviewed; CI green before merge | #1: v5 Node 24, v6 credentials in a separate file, v7 blocks fork checkout only for `pull_request_target`/`workflow_run` (not used here); 28/28 checks → merged. #4: v3 = Node 24 runtime, no input changes; rebase requested |
+
 ## GridStorm 3.2 — data observatory, scientific reliability, product polish (started 2026-11-17)
 
 Branch `release/gridstorm-3.2` from `main` `387f584`, merged as PR [#14](https://github.com/tanmay-alpha/GridStorm/pull/14) → `f8b3c28`. Separate count; **not** part of earlier tallies.
