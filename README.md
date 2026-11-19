@@ -45,7 +45,8 @@ meanwhile. Live solves are limited to one at a time, with per-job time and memor
 This README describes GridStorm 3.3, deployed on 2026-11-17 (web and API built from `565aea3`;
 see TODO G33-07 for the production checks), plus the 3.4 completion pass of 2026-11-19 (TODO
 G34-01…04): every local gate re-run green, lint warnings removed, and e2e runs no longer overwrite
-the committed audit screenshots. 3.4 changes no API, data or science and is not yet deployed.
+the committed audit screenshots. 3.4 changes no API, data or science; its web build (`9467df4`) is
+live on Vercel and the API still runs `565aea3`.
 
 ## Guided demonstration
 

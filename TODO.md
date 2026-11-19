@@ -23,7 +23,7 @@ Live (since 2026-11-17, GridStorm 3.3): https://gridstorm.vercel.app (Vercel `dp
 
 ## GridStorm 3.4 — completion and hygiene pass (2026-11-19)
 
-Local only: built on `main` `de47cf9`; **not yet committed or deployed** (production stays on 3.3 `565aea3`). No API, data, schema or science changes. **4/4 LOCALLY TESTED.**
+Built on `main` `de47cf9`, pushed directly to `main` as `8a3889f` → `2824b6f` → `9467df4`. CI on `main` green (run 44491791903, 23/23 jobs incl. Playwright e2e and API container smoke); Vercel deployed `9467df4` (commit status "Deployment has completed"). The API is unchanged (no `services/` or `data/` changes) and stays on `/health` git_sha `565aea3`. No API, data, schema or science changes. **4/4 CI VERIFIED; web DEPLOYED.**
 Statuses as in 3.2.
 
 | ID | Task | Pri | Status | Acceptance criteria | Evidence |
