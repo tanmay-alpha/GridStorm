@@ -1,10 +1,10 @@
 import { test as base, expect } from '@playwright/test'
 import type { Page } from '@playwright/test'
-import { mkdir, writeFile } from 'node:fs/promises'
+import { writeFile } from 'node:fs/promises'
+import { screenshotDir } from './artifacts'
 import { waitForNetworkView } from './helpers/networkView'
 import path from 'node:path'
 
-const evidence = path.resolve('../../docs/audit/screenshots/2026-11-15-integrated')
 const historic = '2d47898b-8546-420e-a382-acc29f14d3d4'
 const test = base.extend<{ mutationGuard: void }>({
   mutationGuard: [async ({ page }, use) => {
@@ -23,7 +23,7 @@ const test = base.extend<{ mutationGuard: void }>({
 })
 
 async function capture(page: Page, name: string, details: unknown) {
-  await mkdir(evidence, { recursive: true })
+  const evidence = await screenshotDir('2026-11-15-integrated')
   await page.screenshot({ path: path.join(evidence, `${name}.png`), fullPage: true })
   await writeFile(path.join(evidence, `${name}.json`), JSON.stringify(details, null, 2))
 }

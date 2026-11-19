@@ -1,15 +1,13 @@
 import { test, expect, type APIRequestContext, type Page } from '@playwright/test'
-import { mkdir } from 'node:fs/promises'
 import path from 'node:path'
 import { setTimeout as sleep } from 'node:timers/promises'
+import { screenshotDir } from './artifacts'
 import { waitForNetworkView } from './helpers/networkView'
 
 /**
  * Guided demo, results half: IEEE 14 gen-1 outage run → Grid Impact Brief → one-click comparison with
  * the baseline → exports. Real local backend (live PyPSA solves, reuse=true), as in journey.spec.ts.
  */
-const AFTER = path.resolve('../../docs/audit/screenshots/3.0/after')
-
 async function completedJob(request: APIRequestContext, scenarioId: string): Promise<string> {
   const list = await (await request.get('/api/v1/simulations?limit=200')).json()
   const done = (list.items as { id: string; scenario_id: string | null; status: string; result_available?: boolean | null }[]).find(
@@ -30,8 +28,7 @@ async function completedJob(request: APIRequestContext, scenarioId: string): Pro
 }
 
 async function shot(page: Page, name: string) {
-  await mkdir(AFTER, { recursive: true })
-  await page.screenshot({ path: path.join(AFTER, `${name}.png`) })
+  await page.screenshot({ path: path.join(await screenshotDir('3.0/after'), `${name}.png`) })
 }
 
 test('run page answers what happened, then one click compares with the baseline (guided)', async ({ page, request }) => {

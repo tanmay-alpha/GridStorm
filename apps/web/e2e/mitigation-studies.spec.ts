@@ -1,16 +1,13 @@
 import { test, expect, type Page } from '@playwright/test'
-import { mkdir } from 'node:fs/promises'
 import path from 'node:path'
+import { screenshotDir } from './artifacts'
 
 /**
  * Baseline → crisis → mitigation on committed verified outputs (data/artifacts, served by the local
  * API): the page must say plainly when a mitigation does not change the outcome. Read-only.
  */
-const AFTER = path.resolve('../../docs/audit/screenshots/3.0/after')
-
 async function shot(page: Page, name: string) {
-  await mkdir(AFTER, { recursive: true })
-  await page.screenshot({ path: path.join(AFTER, `${name}.png`) })
+  await page.screenshot({ path: path.join(await screenshotDir('3.0/after'), `${name}.png`) })
 }
 
 test('SciGRID cold dark lull: storage dispatch does not change unserved energy (precomputed)', async ({ page }) => {

@@ -1,8 +1,7 @@
 import { test, expect, type APIRequestContext, type Page } from '@playwright/test'
-import { mkdir } from 'node:fs/promises'
 import path from 'node:path'
 import { setTimeout as sleep } from 'node:timers/promises'
-import { SCREENSHOTS } from './artifacts'
+import { screenshotDir } from './artifacts'
 import { waitForNetworkView } from './helpers/networkView'
 
 /**
@@ -43,7 +42,7 @@ async function settle(page: Page) {
 
 test('screenshot matrix of all routes', async ({ browser, request }) => {
   test.setTimeout(600_000)
-  await mkdir(SCREENSHOTS, { recursive: true })
+  const directory = await screenshotDir('')
   const baseline = await completedJob(request, 'pglib-case14-ieee-baseline')
   const outage = await completedJob(request, 'pglib-case14-ieee-gen-1-outage')
   const routes: { name: string; url: string; prepare?: (page: Page) => Promise<void> }[] = [
@@ -90,7 +89,7 @@ test('screenshot matrix of all routes', async ({ browser, request }) => {
         await settle(page)
         await r.prepare?.(page)
         await expect(page.locator('html')).toHaveAttribute('data-theme', theme)
-        await page.screenshot({ path: path.join(SCREENSHOTS, `${r.name}-${vpName}-${theme}.png`) })
+        await page.screenshot({ path: path.join(directory, `${r.name}-${vpName}-${theme}.png`) })
       }
       expect(errors).toEqual([])
       await context.close()

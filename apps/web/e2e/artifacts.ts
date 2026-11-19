@@ -1,9 +1,25 @@
+import { test } from '@playwright/test'
 import { existsSync, readFileSync } from 'node:fs'
+import { mkdir } from 'node:fs/promises'
 import path from 'node:path'
 
 /** Repository data/artifacts — the same files the local backend serves via /api/v1/artifacts. */
 export const ARTIFACTS = path.resolve(import.meta.dirname, '../../../data/artifacts')
-export const SCREENSHOTS = path.resolve(import.meta.dirname, '../../../docs/audit/screenshots')
+const SCREENSHOTS = path.resolve(import.meta.dirname, '../../../docs/audit/screenshots')
+
+/**
+ * Directory (created) for a spec's screenshots, called inside a test. The folders under
+ * docs/audit/screenshots are committed, dated evidence: they are rewritten only with
+ * GRIDSTORM_WRITE_EVIDENCE=1. Ordinary runs write to the test's git-ignored output directory.
+ */
+export async function screenshotDir(evidenceSubdir: string): Promise<string> {
+  const dir =
+    process.env.GRIDSTORM_WRITE_EVIDENCE === '1'
+      ? path.join(SCREENSHOTS, evidenceSubdir)
+      : test.info().outputPath(evidenceSubdir || 'screenshots')
+  await mkdir(dir, { recursive: true })
+  return dir
+}
 
 export interface IndexItem {
   artifact_id: string
