@@ -8,7 +8,7 @@ PypsaEurBuilder, StormRisk, CrossEngine, SimBenchAC, StormML) · C Frontend (Fro
 D Data (DataPipelines, Research, ObservedEvents, ExplorerPort, DocsWriter) · E Backend/Infra (Backend,
 CIDevOps) · F Verification (Verifier) · I Integration owner.
 
-Last updated: 2026-11-17
+Last updated: 2026-11-19
 
 ## Progress dashboard
 
@@ -20,6 +20,18 @@ Last updated: 2026-11-17
 | VERIFIED (evidence recorded) | 46 | research, licensing (incl. ENTSO-E remediation), all science engines, data, CI, verification, security, a11y/perf audit, EENS wording |
 
 Live (since 2026-11-17, GridStorm 3.3): https://gridstorm.vercel.app (Vercel `dpl_5Q7ec9WXkVtkra8EPdWUpBf6XCvD`, Git build of `main` `565aea3`, PR #15) · API `/health` git_sha `565aea3`. Previous (3.2): https://gridstorm.vercel.app (Vercel `dpl_HXJ6tmwRhBqWrqMQgasMBLkq4eMT`, Git build of `main` `f8b3c28`, PR #14) · https://gridstorm-api.onrender.com (`/health` git_sha `f8b3c28`; `/ready` postgres + supabase durable) · CI green on PR #14 (28/28, run 44006783223) and on `main` (run 44008687576); scientific reproducibility on `main` incl. full tests green (run 44009643558); production browser smoke (44009033246) and production smoke (44009037283) green; `scripts/probe_production.py` all PASS. Earlier: web `387f584` / API `127db27` (PR #12/#13), `cf482f2` (3.0).
+
+## GridStorm 3.4 — completion and hygiene pass (2026-11-19)
+
+Local only: built on `main` `de47cf9`; **not yet committed or deployed** (production stays on 3.3 `565aea3`). No API, data, schema or science changes. **4/4 LOCALLY TESTED.**
+Statuses as in 3.2.
+
+| ID | Task | Pri | Status | Acceptance criteria | Evidence |
+|---|---|---|---|---|---|
+| G34-01 | Full local gate run on `de47cf9` | P0 | LOCALLY TESTED | Every check CI runs, run locally | `scripts/test_all.sh`: 17/17 components ok, 950 passed, 0 failed (API 199 / 1 skipped Linux-only OOM test); ruff 0.14.0 check + format clean (238 files); web tsc clean, vitest 46 files / 418 tests, `npm run build` ok, `npm audit --omit=dev` 0 vulnerabilities; `selftest_compare_artifacts.py` OK; Playwright against the local API 52 specs: 45 passed + 6 opt-in skipped, 1 failure (F-07 `net::ERR_INSUFFICIENT_RESOURCES` while the Python suites ran in parallel) passed on rerun 9/9 |
+| G34-02 | ESLint warnings: non-component exports in component files (`react-refresh/only-export-components`) | P3 | LOCALLY TESTED | `npm run lint` 0 problems | was 5 warnings → 0: `buttonClass` → `components/ui/buttonClass.ts`, `PROVENANCE_DESCRIPTION` → `components/ui/provenance.ts`, guide constants → `features/runs/guide.ts`, `useTheme`/`cssVar`/context → `lib/themeContext.ts`; the `components/ui` barrel exports the same names, so callers did not change |
+| G34-03 | e2e runs overwrote committed audit evidence | P2 | LOCALLY TESTED | A plain `npm run e2e` leaves `docs/` untouched | `integrated-findings`, `mitigation-studies`, `results-compare` and `screenshots` specs rewrote about 75 dated PNG/JSON files under `docs/audit/screenshots/` and added untracked `landing-*.png` on every run. Added `screenshotDir()` in `e2e/artifacts.ts`: writes to the git-ignored test output by default, and to the evidence folders only with `GRIDSTORM_WRITE_EVIDENCE=1`. Rerun of the 4 specs: 13/13 passed, `git status docs` clean |
+| G34-04 | Junk removal | P3 | DONE | Only regenerable or scratch files removed | Inside the repo: ignored caches, logs, `dist`, Playwright output and the local `.test-logs`. Outside the repo, with the owner's approval: scratch/log folders (≈ 75 MB). Kept: `upstream/` clones, `build-pypsa-eur/`, `.secrets/`, `.venv`, `node_modules`, tracked audit evidence. The probe scripts that `docs/audit/issues.md` cites under `_verifier_tmp/` were part of the deleted scratch |
 
 ## GridStorm 3.3 — database verification, refinement (started 2026-11-17)
 

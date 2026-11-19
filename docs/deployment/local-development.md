@@ -177,3 +177,8 @@ The existing frontend scripts are `npm run typecheck`, `npm run lint`, `npm test
 4173 and also has the local API proxy. Python checks and the component test runner are documented
 in [CI](ci.md); cross-engine verification has its own harness at `tests/cross_engine/run_all.py`.
 These are available commands, not a claim that they passed on your machine.
+
+Playwright specs proxy `/api` to `GRIDSTORM_API_PROXY` (default `http://127.0.0.1:8130`; on Windows
+that port can sit in an excluded range, so start the API on `:8000` and set
+`GRIDSTORM_API_PROXY=http://127.0.0.1:8000`). Screenshots go to the git-ignored `test-results/`;
+the dated evidence under `docs/audit/screenshots/` is rewritten only with `GRIDSTORM_WRITE_EVIDENCE=1`.

@@ -43,7 +43,9 @@ The API runs on Render's free tier. After idling it sleeps, and the first reques
 meanwhile. Live solves are limited to one at a time, with per-job time and memory limits.
 
 This README describes GridStorm 3.3, deployed on 2026-11-17 (web and API built from `565aea3`;
-see TODO G33-07 for the production checks).
+see TODO G33-07 for the production checks), plus the 3.4 completion pass of 2026-11-19 (TODO
+G34-01…04): every local gate re-run green, lint warnings removed, and e2e runs no longer overwrite
+the committed audit screenshots. 3.4 changes no API, data or science and is not yet deployed.
 
 ## Guided demonstration
 
@@ -297,8 +299,11 @@ On Windows, run these in Git Bash and make sure `python3` is a real interpreter 
 | [`keepalive.yml`](.github/workflows/keepalive.yml) | every third day | read-only readiness probe of the production API and database |
 
 Locally: `bash scripts/test_all.sh` runs every component's tests in its own environment (same
-marker selection as CI); in `apps/web`, `npm run typecheck`, `npm run lint`, `npm test`,
-`npm run e2e`. Details: [CI](docs/deployment/ci.md).
+marker selection as CI; 17 components, 950 tests on 2026-11-19); in `apps/web`, `npm run typecheck`,
+`npm run lint`, `npm test` (418 tests), `npm run e2e`. The e2e specs need a local API (see
+[local development](docs/deployment/local-development.md#execution-modes-and-diagnostics)); their
+screenshots go to the git-ignored `test-results/`, and the dated evidence under
+`docs/audit/screenshots/` is rewritten only with `GRIDSTORM_WRITE_EVIDENCE=1`. Details: [CI](docs/deployment/ci.md).
 
 ## Deployment
 
