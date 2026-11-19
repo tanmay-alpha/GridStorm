@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import type { JobStatus, Outcome, Provenance } from '../../api/types'
 import { cn } from './cn'
+import { PROVENANCE_DESCRIPTION } from './provenance'
 
 export type Tone = 'neutral' | 'accent' | 'ok' | 'warn' | 'danger' | 'info'
 
@@ -48,14 +49,6 @@ const PROVENANCE_TONE: Record<Provenance, Tone> = {
   synthetic: 'danger',
   modeled: 'info',
   calculated: 'accent',
-}
-
-export const PROVENANCE_DESCRIPTION: Record<Provenance, string> = {
-  observed: 'Observed — taken from a published measured/recorded source',
-  estimated: 'Estimated — inferred from partial data with stated assumptions',
-  synthetic: 'Synthetic — artificially generated, not real-world data',
-  modeled: 'Modeled — output or input assumption of a model',
-  calculated: 'Calculated — deterministically derived from other values',
 }
 
 export function ProvenanceBadge({ value }: { value: Provenance | string | null | undefined }) {

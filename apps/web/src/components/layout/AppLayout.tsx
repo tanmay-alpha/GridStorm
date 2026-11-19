@@ -3,7 +3,7 @@ import { NavLink, Outlet, useLocation } from 'react-router'
 import { Dialog } from 'radix-ui'
 import { Menu, Moon, Sun, X, Zap } from 'lucide-react'
 import { useHealth } from '../../api/hooks'
-import { useTheme } from '../../lib/theme'
+import { useTheme } from '../../lib/themeContext'
 import { useDocumentTitle } from '../../lib/title'
 import { cn } from '../ui/cn'
 

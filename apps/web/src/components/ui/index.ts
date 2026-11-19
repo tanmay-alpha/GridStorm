@@ -1,15 +1,10 @@
-export { Button, LinkButton, buttonClass } from './Button'
-export type { ButtonProps, ButtonVariant, ButtonSize } from './Button'
-export {
-  Badge,
-  ProvenanceBadge,
-  ProvenanceLabel,
-  JobStatusBadge,
-  OutcomeBadge,
-  ExecutionModeBadge,
-  PROVENANCE_DESCRIPTION,
-} from './Badge'
+export { Button, LinkButton } from './Button'
+export type { ButtonProps } from './Button'
+export { buttonClass } from './buttonClass'
+export type { ButtonVariant, ButtonSize } from './buttonClass'
+export { Badge, ProvenanceBadge, ProvenanceLabel, JobStatusBadge, OutcomeBadge, ExecutionModeBadge } from './Badge'
 export type { Tone } from './Badge'
+export { PROVENANCE_DESCRIPTION } from './provenance'
 export { ExecutionBadge } from './Execution'
 export type { ExecutionAvailability } from './Execution'
 export { CostBasisBadge } from './CostBasisBadge'

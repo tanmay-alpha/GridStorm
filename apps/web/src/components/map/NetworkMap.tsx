@@ -12,7 +12,7 @@ import {
 // serves index.html) and the map never loads. Emit the self-contained worker as an asset instead.
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'
 import type { CoordinateKind } from '../../api/types'
-import { cssVar, useTheme } from '../../lib/theme'
+import { cssVar, useTheme } from '../../lib/themeContext'
 import {
   HVDC_COLOR,
   deltaColorExpression,

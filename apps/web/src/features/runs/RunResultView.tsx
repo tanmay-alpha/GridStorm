@@ -6,7 +6,7 @@ import type { AssetRef } from '../../components/map/features'
 import { Badge, Chart, DataTable, Disclosure, KeyValue, Panel, ProvenanceDisclosure, cn, type Column } from '../../components/ui'
 import { NO_VALUE, formatNumber, formatQuantity, isFiniteNumber, shortHash } from '../../lib/format'
 import { moneyUnit, priceUnit } from '../../lib/money'
-import { cssVar, useTheme } from '../../lib/theme'
+import { cssVar, useTheme } from '../../lib/themeContext'
 import { CostBasisNote } from './CostBasis'
 import { SinglePeriodSummary } from './SinglePeriodSummary'
 import {

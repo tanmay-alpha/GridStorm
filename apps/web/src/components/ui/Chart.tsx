@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ECharts, EChartsCoreOption } from 'echarts/core'
-import { cssVar, useTheme } from '../../lib/theme'
+import { cssVar, useTheme } from '../../lib/themeContext'
 import { loadChartRuntime } from './chartLoader'
 import { cn } from './cn'
 

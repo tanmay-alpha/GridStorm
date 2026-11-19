@@ -1,6 +1,6 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { ThemeContext, type Theme } from './themeContext'
 
-export type Theme = 'light' | 'dark'
 const KEY = 'gridstorm-theme'
 
 function initialTheme(): Theme {
@@ -8,14 +8,6 @@ function initialTheme(): Theme {
   if (attr === 'dark' || attr === 'light') return attr
   return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 }
-
-interface ThemeCtx {
-  theme: Theme
-  setTheme: (t: Theme) => void
-  toggle: () => void
-}
-
-const Ctx = createContext<ThemeCtx | null>(null)
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(initialTheme)
@@ -34,16 +26,5 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     () => ({ theme, setTheme, toggle: () => setTheme(theme === 'dark' ? 'light' : 'dark') }),
     [theme, setTheme],
   )
-  return <Ctx.Provider value={value}>{children}</Ctx.Provider>
-}
-
-export function useTheme(): ThemeCtx {
-  const c = useContext(Ctx)
-  if (!c) throw new Error('useTheme outside ThemeProvider')
-  return c
-}
-
-/** Read resolved CSS custom properties (for canvas libraries like ECharts/MapLibre). */
-export function cssVar(name: string): string {
-  return getComputedStyle(document.documentElement).getPropertyValue(name).trim()
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
 }

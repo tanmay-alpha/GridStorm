@@ -7,7 +7,7 @@ import type { CanonicalGenerator, NetworkSummary } from '../../api/types'
 import { Button, ErrorState, SkeletonBlock, type ExecutionAvailability } from '../../components/ui'
 import { formatNumber, formatQuantity } from '../../lib/format'
 import { formatPrice, resolveCostBasis } from '../../lib/money'
-import { GUIDE_STEPS } from '../runs/GuideSteps'
+import { GUIDE_STEPS } from '../runs/guide'
 import { investigationQuestion } from './presentation'
 
 /** Plain-language description of generator outages, from the network's generator table. */
