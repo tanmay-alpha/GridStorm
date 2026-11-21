@@ -8,7 +8,7 @@ dependencies = [
     "numpy>=1.26",
     # pandapower 3.5.x AC OPF with apparent-power branch limits (OPF_FLOW_LIM=0) calls the sparse
     # `.H` attribute in pypower/d2Sbr_dV2.py, which SciPy removed in 1.14.
-    "scipy>=1.11,<1.14",
+    "scipy>=1.11,<1.18",
     "scikit-learn>=1.5",
     "pandapower>=3.5,<3.6",
     "numba>=0.60",

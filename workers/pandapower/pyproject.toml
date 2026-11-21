@@ -9,7 +9,7 @@ dependencies = [
     "pandas>=2.2,<3",
     "numpy>=1.26,<3",
     # pandapower 3.5.x AC-OPF (pypower/d2Sbr_dV2.py) uses sparse `.H`, removed in SciPy 1.14.
-    "scipy>=1.11,<1.14",
+    "scipy>=1.11,<1.18",
     "networkx>=3",
     "stormspec",
     "matpowercaseframes>=2.1,<3",
